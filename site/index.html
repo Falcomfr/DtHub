@@ -22,6 +22,7 @@
 <link rel="canonical" href="https://falcomfr.github.io/DtHub/">
 <link rel="alternate" hreflang="en" href="https://falcomfr.github.io/DtHub/">
 <link rel="alternate" hreflang="fr" href="https://falcomfr.github.io/DtHub/index.fr.html">
+<link rel="alternate" hreflang="es" href="https://falcomfr.github.io/DtHub/index.es.html">
 <link rel="alternate" hreflang="x-default" href="https://falcomfr.github.io/DtHub/">
 
 <meta property="og:type" content="website">
@@ -31,9 +32,9 @@
 <meta property="og:url" content="https://falcomfr.github.io/DtHub/">
 <meta property="og:title" content="DT Hub, play DOFUS Touch on PC with multiple accounts">
 <meta property="og:description" content="Several accounts side by side, from your own phones. Not an emulator, no automation.">
-<meta property="og:image" content="https://falcomfr.github.io/DtHub/screenshots/cadre-a-onglets.jpg">
+<meta property="og:image" content="https://falcomfr.github.io/DtHub/screenshots/cadre-a-onglets.en.jpg">
 <meta property="og:image:width" content="1600">
-<meta property="og:image:height" content="981">
+<meta property="og:image:height" content="953">
 <meta property="og:image:alt" content="A single window carrying two tabs, one account per tab.">
 <meta name="twitter:card" content="summary_large_image">
 
@@ -62,10 +63,12 @@
   "inLanguage": "en",
   "isAccessibleForFree": true,
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
-  "image": "https://falcomfr.github.io/DtHub/screenshots/cadre-a-onglets.jpg",
+  "image": "https://falcomfr.github.io/DtHub/screenshots/cadre-a-onglets.en.jpg",
   "screenshot": [
-    "https://falcomfr.github.io/DtHub/screenshots/cadre-a-onglets.jpg",
-    "https://falcomfr.github.io/DtHub/screenshots/appareils.png",
+    "https://falcomfr.github.io/DtHub/screenshots/cadre-a-onglets.en.jpg",
+    "https://falcomfr.github.io/DtHub/screenshots/cote-a-cote.en.jpg",
+    "https://falcomfr.github.io/DtHub/screenshots/appareils.en.png",
+    "https://falcomfr.github.io/DtHub/screenshots/suivi-des-quetes.png",
     "https://falcomfr.github.io/DtHub/screenshots/liste-des-donjons.png"
   ],
   "author": { "@type": "Person", "name": "Falcom", "url": "https://github.com/Falcomfr" },
@@ -74,17 +77,16 @@
 </script>
 <script>
 // The pages are static: nobody negotiates the language for us. English is
-// served by default, a browser asking for French is sent to the other
-// page. No storage, no tracker: the "?lang=" parameter on language links
+// served by default, a browser asking for French or Spanish is sent to
+// that page. No storage, no tracker: the "?lang=" parameter on language links
 // disarms the redirect, without which we would go in circles.
 (function () {
   if (location.search.indexOf('lang=') !== -1) { return; }
   var langues = navigator.languages || [navigator.language || ''];
   for (var i = 0; i < langues.length; i++) {
-    if ((langues[i] || '').toLowerCase().indexOf('fr') === 0) {
-      location.replace('index.fr.html');
-      return;
-    }
+    var langue = (langues[i] || '').toLowerCase();
+    if (langue.indexOf('fr') === 0) { location.replace('index.fr.html'); return; }
+    if (langue.indexOf('es') === 0) { location.replace('index.es.html'); return; }
   }
 })();
 </script>
@@ -119,84 +121,92 @@
   <g id="i-discord"><path transform="translate(0 1.5) scale(.625)" d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z" fill="currentColor" stroke="none"/></g>
 </defs></svg>
 
-<div class="page">
-
 <div class="barre">
-  <span class="marque"><img src="app.png" alt="" width="30" height="30">DT Hub</span>
-  <nav>
-    <a href="https://github.com/Falcomfr/DtHub/releases">Releases</a>
-    <a href="https://github.com/Falcomfr/DtHub"><svg class="ic"><use href="#i-github"/></svg>GitHub</a>
-    <a href="https://discord.gg/aauJcga6eG"><svg class="ic"><use href="#i-discord"/></svg>Discord</a>
-    <a href="index.fr.html?lang=fr">Français</a>
-  </nav>
+  <div class="barre-dedans">
+    <a class="marque" href="#top"><img src="app.png" alt="" width="30" height="30">DT Hub</a>
+    <nav>
+      <a href="https://github.com/Falcomfr/DtHub/releases">Releases</a>
+      <a href="https://github.com/Falcomfr/DtHub"><svg class="ic"><use href="#i-github"/></svg>GitHub</a>
+      <a href="https://discord.gg/aauJcga6eG"><svg class="ic"><use href="#i-discord"/></svg>Discord</a>
+      <a href="index.fr.html?lang=fr">Français</a>
+      <a href="index.es.html?lang=es">Español</a>
+      <a class="bouton petit" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe"><svg class="ic"><use href="#i-telecharger"/></svg>Download</a>
+    </nav>
+  </div>
 </div>
 
+<div class="page" id="top">
+
 <header class="hero">
-  <h1>Play DOFUS&nbsp;Touch on PC, several accounts at once</h1>
-  <p class="accroche">
-    From your own phones. Not an emulator.
-    <strong>Written by a DOFUS&nbsp;Touch player, for players.</strong>
-  </p>
+  <div class="hero-texte">
+    <h1>Play DOFUS&nbsp;Touch on PC, several accounts at once</h1>
+    <p class="accroche">
+      From your own phones. Not an emulator.
+      <strong>Written by a DOFUS&nbsp;Touch player, for players.</strong>
+    </p>
 
-  <ul class="faits-cles">
-    <li><b><svg class="ic"><use href="#i-gratuit"/></svg>Free</b><span>No ads, no account, no paid feature.</span></li>
-    <li><b><svg class="ic"><use href="#i-regles"/></svg>Within the game's rules</b><span>No bot, no macro, no modification of the game.</span></li>
-    <li><b><svg class="ic"><use href="#i-guides"/></svg>Guides with permission</b><span>Those of <a href="https://papycha.fr">papycha.fr</a>, with their agreement.</span></li>
-    <li><b><svg class="ic"><use href="#i-vous"/></svg>Built with you</b><span>Every reported defect gets fixed.</span></li>
-  </ul>
-
-  <div class="telecharger">
-    <a class="bouton" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe"><svg class="ic"><use href="#i-telecharger"/></svg>Download DtHub.exe</a>
-    <span class="sous-bouton">Windows 10 or 11, 64 bit · nothing to install · MIT licence</span>
-  <div class="avertissement"><svg class="ic"><use href="#i-info"/></svg><span>On the first launch, Windows warns: it does not yet know an application this new. <b>More info</b>, then <b>Run anyway</b>. Only until it is signed. <a href="#download">The detail</a>.</span></div>
+    <div class="telecharger">
+      <a class="bouton" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe"><svg class="ic"><use href="#i-telecharger"/></svg>Download DtHub.exe</a>
+      <span class="sous-bouton">Windows 10 or 11, 64 bit · nothing to install · MIT licence</span>
+      <div class="avertissement"><svg class="ic"><use href="#i-info"/></svg><span>On the first launch, Windows warns: it does not yet know an application this new. <b>More info</b>, then <b>Run anyway</b>. Only until it is signed. <a href="#download">The detail</a>.</span></div>
+    </div>
   </div>
+
+  <figure class="hero-image">
+    <a href="screenshots/cadre-a-onglets.en.jpg"><img src="screenshots/cadre-a-onglets.en.jpg" alt="Two DOFUS Touch accounts as tabs in one DT Hub window" width="1600" height="953"></a>
+  </figure>
 </header>
+
+<ul class="faits-cles">
+  <li><b><svg class="ic"><use href="#i-gratuit"/></svg>Free</b><span>No ads, no account, no paid feature.</span></li>
+  <li><b><svg class="ic"><use href="#i-regles"/></svg>Within the game's rules</b><span>No bot, no macro, no modification of the game.</span></li>
+  <li><b><svg class="ic"><use href="#i-guides"/></svg>Guides with permission</b><span>Those of <a href="https://papycha.fr">papycha.fr</a>, with their agreement.</span></li>
+  <li><b><svg class="ic"><use href="#i-vous"/></svg>Built with you</b><span>Every reported defect gets fixed.</span></li>
+</ul>
 
 <section id="built-for">
   <h2><svg class="ic"><use href="#i-soleil"/></svg><span>Built for DOFUS&nbsp;Touch</span></h2>
-  <ul class="liste">
+  <ul class="liste deux-colonnes">
     <li>Windows at the size the game requires</li>
     <li>Display cut for the game</li>
     <li>Found on every Android profile, whatever its id</li>
     <li>Closing a window really disconnects the character</li>
     <li>Guides and Almanax filtered on Touch</li>
+    <li>The image decoded by the PC's graphics card: little processor per window</li>
   </ul>
 </section>
 
 <section id="windows">
   <h2><svg class="ic"><use href="#i-fenetres"/></svg><span>The windows</span></h2>
-  <div class="categorie">
-    <div>
-      <ul class="liste">
-        <li>One account per Android profile</li>
-        <li>All at the same size, the same place</li>
-        <li>Or all of them in a tabbed frame</li>
-        <li>Four sizes from the keyboard, and full screen</li>
-        <li>Tiling in one shortcut</li>
-        <li>A window can be locked</li>
-      </ul>
-    </div>
-    <figure><img src="screenshots/cadre-a-onglets.jpg" alt="A single window holding two tabs" loading="lazy"></figure>
-  </div>
+  <ul class="liste deux-colonnes">
+    <li>One account per Android profile</li>
+    <li>All at the same size, the same place, or all in a tabbed frame</li>
+    <li><code>F1</code> to <code>F8</code> bring an account forward</li>
+    <li>Side by side with <code>Ctrl+T</code>, or a grid of four with <code>Ctrl+G</code></li>
+    <li>Four sizes from the keyboard, and full screen, left with <code>Esc</code></li>
+    <li>The phone's charge, heat and lag in each title, if you want</li>
+    <li>A window can be locked in place</li>
+  </ul>
+  <figure class="large"><a href="screenshots/cote-a-cote.en.jpg"><img src="screenshots/cote-a-cote.en.jpg" alt="Two accounts side by side, each in its own window" loading="lazy"></a></figure>
 </section>
 
 <section id="panel">
   <h2><svg class="ic"><use href="#i-panneau"/></svg><span>The panel</span></h2>
-  <div class="categorie">
+  <div class="categorie inverse">
     <div>
       <ul class="liste">
         <li><code>Ctrl+P</code> shows or hides it</li>
-        <li>Your phones and their accounts</li>
-        <li>A colour per account, on its row, its tab and its window's border</li>
+        <li>Your phones and their accounts, each with a colour and a key</li>
         <li>What each account is doing, and for how long</li>
-        <li>The Android profile behind each one</li>
         <li>How each phone is doing, charge and link</li>
         <li>Open or close an account in one click</li>
         <li>Battery, heat, slow Wi-Fi: it warns</li>
         <li>The game lags: it says whether the phone, its Wi-Fi or the PC is to blame, and what to do</li>
+        <li>Profiles: sets of accounts, their places and settings, opened in one gesture</li>
+        <li>Quality and distance per account, up to 120 frames per second</li>
       </ul>
     </div>
-    <figure><img src="screenshots/appareils.en.png" alt="The panel, two phones and their four accounts" loading="lazy"></figure>
+    <figure class="etroite"><a href="screenshots/appareils.en.png"><img src="screenshots/appareils.en.png" alt="The panel, two phones and their accounts" loading="lazy"></a></figure>
   </div>
 </section>
 
@@ -205,14 +215,25 @@
   <div class="categorie">
     <div>
       <ul class="liste">
-        <li>The guides from <a href="https://papycha.fr">papycha.fr</a>, beside the game</li>
-        <li><code>Ctrl+Q</code> shows or hides them</li>
-        <li>782 quests, 83 dungeons, 2 raids, 8 lairs</li>
-        <li>Sorted by level, size and area, in aligned columns</li>
+        <li>The guides from <a href="https://papycha.fr">papycha.fr</a>, beside the game, <code>Ctrl+Q</code></li>
+        <li>787 quests, 83 dungeons, 2 raids, 8 lairs</li>
+        <li>Your Papycha quest tracking: each quest done, in progress or to do</li>
+        <li>How many are done in each area, with filters for what is left and what you can reach</li>
+        <li>Daily, weekly and seasonal quests flagged</li>
         <li>The steps, and where you were</li>
       </ul>
     </div>
-    <figure><img src="screenshots/liste-des-donjons.en.png" alt="The dungeon list sorted by level" loading="lazy"></figure>
+    <figure class="etroite"><a href="screenshots/suivi-des-quetes.png"><img src="screenshots/suivi-des-quetes.png" alt="The quests of an area, with their state" loading="lazy"></a></figure>
+  </div>
+  <div class="categorie inverse">
+    <div>
+      <ul class="liste">
+        <li>Dungeons sorted by level, in aligned columns</li>
+        <li>Size, coordinates, key and soul stone on each line</li>
+        <li>The path to a dungeon right before it</li>
+      </ul>
+    </div>
+    <figure class="etroite"><a href="screenshots/liste-des-donjons.png"><img src="screenshots/liste-des-donjons.png" alt="The dungeon list sorted by level" loading="lazy"></a></figure>
   </div>
 </section>
 
@@ -225,50 +246,53 @@
         <li>Its name copied in one click, to paste in the marketplace</li>
         <li>The bonus, written out in full</li>
         <li>The days with a repeatable quest or a blessing, flagged</li>
-        <li>The quest and the meryde</li>
-        <li>The week at a glance</li>
-        <li>The week's offerings in one list, each one ready to copy for the marketplace</li>
+        <li>The week's offerings in one list, each one ready to copy</li>
         <li>The days of your profession, gathering and crafting, over two months</li>
         <li>Any date from the calendar</li>
       </ul>
     </div>
-    <figure><img src="screenshots/almanax.png" alt="The Almanax window, the day's offering and bonus" loading="lazy"></figure>
+    <figure class="etroite"><a href="screenshots/almanax.en.png"><img src="screenshots/almanax.en.png" alt="The Almanax window, the day's offering, the week and a profession" loading="lazy"></a></figure>
   </div>
 </section>
 
 <section id="tools">
   <h2><svg class="ic"><use href="#i-outils"/></svg><span>DOFUS&nbsp;Touch tools</span></h2>
-  <ul class="liste">
-    <li><a href="https://www.dofus-touch-map.com/">Dofus Touch Map</a>, the resource map, in a window beside the game</li>
-    <li><a href="https://calcofus.fr/">Calcofus</a>, the damage calculators, in a narrow window that reopens the last one used</li>
-    <li><a href="https://www.dofusroom.com/insightroom">DofusRoom</a>, the lines of sight on the DOFUS&nbsp;Touch fight maps, in a window beside the game</li>
-    <li><a href="https://play.google.com/store/apps/details?id=com.makeintouch.dtstuff">DTStuff</a> and <a href="https://play.google.com/store/apps/details?id=com.makeintouch.ocrapp">OcrApp</a>, installed and opened from the PC</li>
-    <li><a href="https://touch.dofusbook.net/">DofusBook</a>, to build your gear, in the browser</li>
+  <ul class="outils">
+    <li><img src="logos/lomitall.png" alt="" width="40" height="40"><div><a href="https://lomitall.fr">DT Portal</a><span>lomitall.fr: guides, tools, classes and gear, in a large window</span></div></li>
+    <li><img src="logos/dtmap.png" alt="" width="40" height="40"><div><a href="https://www.dofus-touch-map.com/">Dofus Touch Map</a><span>The resource map, in a window beside the game</span></div></li>
+    <li><img src="logos/calcofus.png" alt="" width="40" height="40"><div><a href="https://calcofus.fr/">Calcofus</a><span>The damage calculators, in a narrow window that reopens the last one used</span></div></li>
+    <li><img src="logos/dofusroom.png" alt="" width="40" height="40"><div><a href="https://www.dofusroom.com/insightroom">DofusRoom</a><span>The lines of sight on the fight maps, beside the game</span></div></li>
+    <li><img src="logos/dtstuff.png" alt="" width="40" height="40"><div><a href="https://play.google.com/store/apps/details?id=com.makeintouch.dtstuff">DTStuff</a><span>Installed and opened from the PC</span></div></li>
+    <li><img src="logos/ocrapp.png" alt="" width="40" height="40"><div><a href="https://play.google.com/store/apps/details?id=com.makeintouch.ocrapp">OcrApp</a><span>Installed and opened from the PC</span></div></li>
+    <li><img src="logos/dofusbook.png" alt="" width="40" height="40"><div><a href="https://touch.dofusbook.net/">DofusBook</a><span>To build your gear, in the browser</span></div></li>
+    <li><img src="logos/papycha.png" alt="" width="40" height="40"><div><a href="https://papycha.fr">Papycha</a><span>The quest guides and your tracking, built in</span></div></li>
   </ul>
 </section>
 
-<section id="rules">
-  <h2><svg class="ic"><use href="#i-regles"/></svg><span>Within the game's rules</span></h2>
-  <ul class="liste">
-    <li>No bot, no macro, no input replay</li>
-    <li>No action repeated across several accounts</li>
-    <li>The game is not modified, nor is the phone</li>
-    <li>No reading of memory, no network interception</li>
-    <li>No game asset embedded</li>
-  </ul>
-</section>
+<div class="duo">
+  <section id="rules" class="carte">
+    <h2><svg class="ic"><use href="#i-regles"/></svg><span>Within the game's rules</span></h2>
+    <ul class="liste">
+      <li>No bot, no macro, no input replay</li>
+      <li>No action repeated across several accounts</li>
+      <li>The game is not modified, nor is the phone</li>
+      <li>No reading of memory, no network interception</li>
+      <li>No game asset embedded</li>
+    </ul>
+  </section>
 
-<section id="rest">
-  <h2><svg class="ic"><use href="#i-reste"/></svg><span>The rest</span></h2>
-  <ul class="liste">
-    <li>One file, no installer</li>
-    <li>USB or Wi-Fi, with automatic reconnection</li>
-    <li>The phone's screen can stay off while you play</li>
-    <li>Clipboard both ways</li>
-    <li>English, French and Spanish</li>
-    <li>An anonymised incident report, ready to paste on GitHub or Discord</li>
-  </ul>
-</section>
+  <section id="rest" class="carte">
+    <h2><svg class="ic"><use href="#i-reste"/></svg><span>The rest</span></h2>
+    <ul class="liste">
+      <li>One file, no installer</li>
+      <li>USB or Wi-Fi, with automatic reconnection</li>
+      <li>The phone's screen stays off while you play, <code>Ctrl+E</code> after a call</li>
+      <li>Clipboard both ways</li>
+      <li>English, French and Spanish</li>
+      <li>An anonymised incident report, ready to paste on GitHub or Discord</li>
+    </ul>
+  </section>
+</div>
 
 <section id="download">
   <h2><svg class="ic"><use href="#i-telecharger"/></svg><span>Download</span></h2>

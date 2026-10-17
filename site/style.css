@@ -36,7 +36,11 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-.page { max-width: 1000px; margin: 0 auto; padding: 0 24px 80px; }
+.page {
+  max-width: 1120px; margin: 0 auto; padding-block: 0 80px;
+  padding-left: max(24px, env(safe-area-inset-left, 0px));
+  padding-right: max(24px, env(safe-area-inset-right, 0px));
+}
 
 a { color: var(--lien); text-underline-offset: 2px; }
 a:hover { color: #a8cfff; }
@@ -44,9 +48,18 @@ a:hover { color: #a8cfff; }
 /* Top bar */
 
 .barre {
-  display: flex; align-items: center; justify-content: space-between;
-  flex-wrap: wrap; gap: 10px 16px; padding: 20px 0 0; font-size: 15px;
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10;
+  background: rgba(20, 22, 26, 0.82); border-bottom: 1px solid var(--trait);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
 }
+.barre-dedans {
+  max-width: 1120px; margin: 0 auto; padding-block: 12px;
+  padding-left: max(24px, env(safe-area-inset-left, 0px));
+  padding-right: max(24px, env(safe-area-inset-right, 0px));
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 10px 16px; font-size: 15px;
+}
+.barre .marque { color: var(--texte); text-decoration: none; }
 .barre .marque { display: flex; align-items: center; gap: 10px; font-weight: 650; font-size: 18px; white-space: nowrap; }
 .barre .marque img { width: 30px; height: 30px; }
 /* Four links no longer fit beside the name on a phone: they wrap under it
@@ -58,7 +71,21 @@ a:hover { color: #a8cfff; }
 
 /* Header */
 
-header.hero { padding: 44px 0 0; }
+/* The hero: the claim and the button on the left, the application itself on
+   the right. The screenshot is the argument, so it gets the most room. */
+header.hero {
+  padding: 56px 0 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+  gap: 40px; align-items: center;
+}
+.hero-image { margin: 0; }
+.hero-image img {
+  display: block; width: 100%; height: auto; border-radius: 12px;
+  border: 1px solid rgba(240, 180, 41, .28);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .55), 0 0 0 6px rgba(240, 180, 41, .05), 0 0 80px rgba(240, 180, 41, .10);
+}
+@media (max-width: 900px) {
+  header.hero { grid-template-columns: 1fr; gap: 28px; padding-top: 36px; }
+}
 header.hero h1 {
   font-size: clamp(30px, 4.4vw, 40px); margin: 0 0 12px;
   letter-spacing: -0.02em; line-height: 1.2; text-wrap: balance;
@@ -66,14 +93,17 @@ header.hero h1 {
 header.hero .accroche { font-size: 19px; margin: 0; max-width: 60ch; color: var(--texte); }
 header.hero .accroche strong { color: var(--texte); }
 
+/* Four promises, four cards of the same height: they are equals. */
 ul.faits-cles {
-  list-style: none; padding: 0; margin: 26px 0 0; display: grid; gap: 1px;
-  background: var(--trait); border: 1px solid var(--trait);
-  border-radius: var(--rayon); overflow: hidden;
+  list-style: none; padding: 0; margin: 48px 0 0; display: grid; gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
-ul.faits-cles li { background: var(--carte); padding: 13px 18px; display: flex; gap: 14px; align-items: baseline; flex-wrap: wrap; }
-ul.faits-cles b { color: var(--vert); font-weight: 650; white-space: nowrap; font-size: 15px; }
-ul.faits-cles span { color: var(--doux); font-size: 16px; flex: 1 1 340px; }
+ul.faits-cles li {
+  background: var(--carte); border: 1px solid var(--trait); border-radius: var(--rayon);
+  padding: 16px 18px; display: flex; flex-direction: column; gap: 6px; min-width: 0;
+}
+ul.faits-cles b { color: var(--vert); font-weight: 650; font-size: 16px; }
+ul.faits-cles span { color: var(--doux); font-size: 15px; line-height: 1.5; }
 
 /* Download */
 
@@ -84,6 +114,9 @@ ul.faits-cles span { color: var(--doux); font-size: 16px; flex: 1 1 340px; }
   border-radius: var(--rayon); text-decoration: none;
 }
 .bouton:hover { background: #ffc844; color: #1a1205; }
+.bouton.petit { font-size: 14px; padding: 6px 14px; }
+.bouton.petit .ic { margin-right: 6px; }
+a:focus-visible, .bouton:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .sous-bouton { color: var(--doux); font-size: 15px; }
 
 /* Sections and categories */
@@ -102,19 +135,64 @@ p { margin: 10px 0; }
  * same space and read together. Below eight hundred pixels wide, they stack
  * for lack of room, and that is the only case where they do. */
 
-.categorie { margin-top: 34px; display: grid; grid-template-columns: 1fr 330px; gap: 30px; align-items: start; }
-.categorie:first-of-type { margin-top: 22px; }
-.categorie.large { grid-template-columns: 1fr; }
+.categorie {
+  margin-top: 30px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  gap: 40px; align-items: center;
+}
+.categorie > div { min-width: 0; }
+/* Every other section puts its image first, so the eye zigzags down the
+   page instead of reading one long column of lists. */
+.categorie.inverse { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
+.categorie.inverse > figure { order: -1; }
 .categorie h3 { margin: 0 0 8px; }
 .categorie figure { margin: 0; }
+/* The panel, the guides and the Almanax are tall windows: at full width
+   they would be taller than the screen. */
+.categorie figure.etroite { justify-self: center; max-width: 360px; }
 .categorie img {
   display: block; max-width: 100%; height: auto;
   border: 1px solid var(--trait); border-radius: var(--rayon); background: var(--carte);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .45);
 }
+.categorie figure a { display: block; border-radius: var(--rayon); }
 .categorie ul.liste { margin-top: 0; }
 
 @media (max-width: 800px) {
-  .categorie { grid-template-columns: 1fr; gap: 18px; }
+  .categorie, .categorie.inverse { grid-template-columns: 1fr; gap: 18px; }
+  .categorie.inverse > figure { order: 0; }
+}
+
+/* A wide screenshot, such as two windows side by side, under its list. */
+figure.large { margin: 26px 0 0; }
+figure.large img {
+  display: block; width: 100%; height: auto; border-radius: var(--rayon);
+  border: 1px solid var(--trait); box-shadow: 0 16px 40px rgba(0, 0, 0, .45);
+}
+
+/* A short list of equals reads faster on two columns. */
+ul.liste.deux-colonnes { columns: 2; column-gap: 40px; }
+ul.liste.deux-colonnes li { break-inside: avoid; }
+@media (max-width: 700px) { ul.liste.deux-colonnes { columns: 1; } }
+
+/* The tools, each with its own logo, shown with their owners' agreement. */
+ul.outils {
+  list-style: none; padding: 0; margin: 22px 0 0; display: grid; gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+}
+ul.outils li {
+  display: flex; gap: 14px; align-items: flex-start; min-width: 0;
+  background: var(--carte); border: 1px solid var(--trait); border-radius: var(--rayon); padding: 14px 16px;
+}
+ul.outils img { width: 40px; height: 40px; border-radius: 9px; flex: none; }
+ul.outils div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+ul.outils a { font-weight: 650; }
+ul.outils span { color: var(--doux); font-size: 15px; line-height: 1.45; }
+
+/* The rules and the rest side by side: two short lists of the same weight. */
+.duo { margin-top: 64px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
+.duo > section.carte {
+  margin-top: 0; min-width: 0;
+  background: var(--carte); border: 1px solid var(--trait); border-radius: var(--rayon); padding: 20px 22px 8px;
 }
 
 /* Lists */
@@ -153,6 +231,8 @@ footer .liens { display: flex; flex-wrap: wrap; gap: 18px; margin-bottom: 16px; 
 
 @media (prefers-reduced-motion: no-preference) {
   a, .bouton { transition: color .12s ease, background-color .12s ease; }
+  .categorie figure img, .hero-image img, figure.large img { transition: transform .2s ease, box-shadow .2s ease; }
+  .categorie figure a:hover img, .hero-image a:hover img, figure.large a:hover img { transform: translateY(-3px); }
 }
 
 /* Icons.
@@ -176,10 +256,7 @@ footer .liens { display: flex; flex-wrap: wrap; gap: 18px; margin-bottom: 16px; 
 h2 { display: flex; align-items: center; gap: 11px; padding-bottom: 12px; }
 h2 .ic { color: var(--accent); width: 1.05em; height: 1.05em; }
 
-/* A fixed width on the label so the four descriptions start on the same
-   line. Ragged, the eye reads four separate rows instead of a table. It
-   gives way below its own width, where the list stacks anyway. */
-ul.faits-cles b { display: flex; align-items: center; gap: 9px; min-width: 206px; }
+ul.faits-cles b { display: flex; align-items: center; gap: 9px; }
 ul.faits-cles b .ic { color: var(--vert); width: 18px; height: 18px; }
 
 .bouton { display: inline-flex; align-items: center; }
@@ -198,7 +275,7 @@ ul.faits-cles b .ic { color: var(--vert); width: 18px; height: 18px; }
 header.hero { position: relative; }
 header.hero::before {
   content: ""; position: absolute; z-index: -1;
-  left: -12%; right: -12%; top: -70px; height: 340px;
+  left: -12%; right: -12%; top: -40px; height: 520px;
   background: radial-gradient(60% 70% at 30% 0%, rgba(240, 180, 41, .10), transparent 70%);
   pointer-events: none;
 }

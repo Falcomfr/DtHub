@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  The two pages, and the pair they form.
+  The three pages, and the set they form.
 
   **No <lastmod>.** Nothing in the release bumps this file, so the date
   would be whatever was true the day it was typed; Google ignores a lastmod
@@ -18,12 +18,21 @@
     <loc>https://falcomfr.github.io/DtHub/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://falcomfr.github.io/DtHub/"/>
     <xhtml:link rel="alternate" hreflang="fr" href="https://falcomfr.github.io/DtHub/index.fr.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://falcomfr.github.io/DtHub/index.es.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://falcomfr.github.io/DtHub/"/>
   </url>
   <url>
     <loc>https://falcomfr.github.io/DtHub/index.fr.html</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://falcomfr.github.io/DtHub/"/>
     <xhtml:link rel="alternate" hreflang="fr" href="https://falcomfr.github.io/DtHub/index.fr.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://falcomfr.github.io/DtHub/index.es.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://falcomfr.github.io/DtHub/"/>
+  </url>
+  <url>
+    <loc>https://falcomfr.github.io/DtHub/index.es.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://falcomfr.github.io/DtHub/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://falcomfr.github.io/DtHub/index.fr.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://falcomfr.github.io/DtHub/index.es.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://falcomfr.github.io/DtHub/"/>
   </url>
 </urlset>

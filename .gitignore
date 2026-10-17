@@ -539,4 +539,5 @@ publication/
 # in the repository, a megabyte and a half for nothing, and leave two copies
 # to keep in agreement.
 site/screenshots/
+site/logos/
 site/app.png

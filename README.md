@@ -19,7 +19,8 @@ what it does, and the download.
 
 ---
 
-> **Status: early development (v0.5).** Usable, but rough edges remain. See
+> **Status: beta.** Played every day on several phones, with a new version
+> most weeks. Version 1.0 comes once more players have tested it. See
 > [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md).
 
 ## Download
@@ -50,20 +51,25 @@ the first time: DT Hub then fetches ADB and scrcpy from Google and Genymobile,
 
 ## What it looks like
 
-<img src="assets/screenshots/cadre-a-onglets.jpg" alt="Two accounts as tabs inside one window" width="820">
+<img src="assets/screenshots/cadre-a-onglets.en.jpg" alt="Two accounts as tabs inside one window" width="820">
 
-*Two accounts in one tabbed frame. They can also stand side by side, each in its
-own window.*
+*Two accounts in one tabbed frame, each tab with its colour, its key and a cross
+to close it.*
 
-<img src="assets/screenshots/appareils.en.png" alt="The configurator, two phones and their four accounts" width="380"> <img src="assets/screenshots/almanax.png" alt="The Almanax window" width="380">
+<img src="assets/screenshots/cote-a-cote.en.jpg" alt="Two accounts side by side, each in its own window" width="820">
 
-*The configurator: each phone's charge and link on its own line, a colour and a
-state for each account, and the Almanax of the day.*
+*Two accounts side by side, `Ctrl+T`, the phone's state in each title. `Ctrl+G`
+makes a grid of four.*
 
-<img src="assets/screenshots/liste-des-donjons.en.png" alt="The dungeon list sorted by level" width="560">
+<img src="assets/screenshots/appareils.en.png" alt="The configurator, two phones and their accounts" width="380"> <img src="assets/screenshots/almanax.en.png" alt="The Almanax window" width="380">
 
-*Dungeons sorted by level, size and area, with coordinates and prerequisites.
-That list is one DT Hub builds itself.*
+*The configurator: each phone's charge and link on its own line, a colour, a
+key and a state for each account, and the Almanax of the day.*
+
+<img src="assets/screenshots/suivi-des-quetes.png" alt="Quests of an area, with their progress" width="380"> <img src="assets/screenshots/liste-des-donjons.png" alt="The dungeon list sorted by level" width="380">
+
+*Your Papycha quest tracking beside the game, and the dungeons sorted by level,
+with coordinates, key and soul stone.*
 
 ## What it does
 
@@ -87,16 +93,31 @@ window on your PC.
 - **Any Android profile id works.** A cloned profile is not always 999, and
   DT Hub never assumes it is.
 - **Stacked windows.** Every instance opens at the same place and size, so
-  they overlay exactly. `Ctrl+Tab` cycles through them.
+  they overlay exactly. `Ctrl+Tab` cycles through them, and `F1` to `F8`
+  bring forward the account on that line of the list.
+- **Side by side, or in a grid.** Three or four windows share the quarters of
+  the screen with `Ctrl+G`. Full screen is one key or one button away, and
+  `Esc` leaves it.
 - **Or one window with tabs.** Any instance can be docked into a single frame
-  and picked from a tab bar, dragged into another order, or pulled back out.
+  and picked from a tab bar, dragged into another order, closed from its
+  cross, or pulled back out.
   Typing and the clipboard reach the docked game exactly as they reach a free
   window, and the frame answers to the size and placement shortcuts like any
   other game window.
 - **A floating configurator**, shown or hidden with `Ctrl+P`, holding the
   window position, the device list and the shortcuts. Each row says what its
   account is doing and for how long its window has been open, and each phone
-  gets a line of its own for its charge and its link.
+  gets a line of its own for its charge and its link. When the game lags, it
+  says whether the phone, its Wi-Fi or the PC is to blame, and what to do.
+  The same state can sit in each game window's title.
+- **Profiles**: sets of accounts with their positions and settings, opened in
+  one gesture.
+- **Quality per account**, from Low to a custom step up to 120 frames per
+  second, a sharper image option for coloured text, and the in-game
+  distance. The PC's graphics card decodes the image, so each window costs
+  little processor.
+- **The phone's screen can stay off** while you play: it heats less and the
+  battery lasts. `Ctrl+E` switches it off again after a call.
 - **A colour per account**, on its row, on its tab in the frame, and on the
   window's own border. Accounts are given one on their own; you
   can change it or take it away, and what you take away stays away. The window
@@ -104,12 +125,17 @@ window on your PC.
 - **Clipboard sync** both ways, through scrcpy's own mechanism.
 - **A quest guide**, opened with `Ctrl+Q`, that reads
   [papycha.fr](https://papycha.fr) beside the game and remembers where you
-  stopped. It shows the site's own pages; it never plays for you.
+  stopped. It shows the site's own pages; it never plays for you. Link your
+  Papycha tracking and each quest shows whether it is done or in progress,
+  each area how many are done, with filters for what is left and what you
+  can reach. Repeatable quests show their rhythm.
 - **The Almanax of DOFUS Touch**, read from the official calendar filtered on
   Touch: the day's offering, copied in one click for the marketplace search,
   the days that also hold a special repeatable quest or a blessing, flagged,
   the week's offerings in one list, and the days of your profession over the
   next two months.
+- **The DT Portal**: [lomitall.fr](https://lomitall.fr), its guides, tools,
+  classes and gear, in a large DT Hub window.
 - **DOFUS Touch tools** one click away:
   [Dofus Touch Map](https://www.dofus-touch-map.com/) and
   [Calcofus](https://calcofus.fr/) and the lines of sight of
@@ -176,10 +202,12 @@ port changes after a reboot.
 | `F1` … `F8` | The account on that line of the list, in its tab when it is in the frame |
 | `Ctrl+R` | Put every window back in place |
 | `Ctrl+T` | Tile the windows side by side |
+| `Ctrl+G` | Arrange three or four windows in a grid |
 | `Ctrl+1` … `Ctrl+4` | Resize every window to one of four steps |
-| `Ctrl+5` | Full screen (press again to leave it) |
+| `Ctrl+5` | Full screen (press again, or `Esc`, to leave it) |
 | `Ctrl+E` | Switch off again the phone screens you lit up, when the game turns them off |
 | `Ctrl+Q` | Show or hide the quest guide |
+| `Ctrl+M` | Show or hide the Almanax |
 | `Ctrl+0` | Close every window |
 
 Shortcuts only apply while a DT Hub window is focused, so `Ctrl+Tab` keeps

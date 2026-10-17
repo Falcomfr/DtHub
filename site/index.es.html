@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DT Hub, jugar a DOFUS Touch en PC con varias cuentas</title>
+<meta name="description" content="Juega a DOFUS Touch en PC, varias cuentas lado a lado, desde tus propios teléfonos. No es un emulador. Gratis, libre, sin automatización.">
+<link rel="icon" href="app.png">
+<link rel="stylesheet" href="style.css">
+
+<!-- **Absolute, and that is the whole point.** The two pages named each
+     other with a relative hreflang and offered a relative og:image, which
+     no crawler and no chat client resolves: pasted in a Discord channel,
+     the link showed a bare address with no card at all, and the language
+     pair was never read. Everything a machine reads from this page now
+     carries the full address, even where a browser would have coped.
+
+     The English page is the site root, so it is named by the directory
+     and not by index.html. The two addresses serve the same bytes, and
+     saying which one is the original is the whole job of a canonical. -->
+
+<link rel="canonical" href="https://falcomfr.github.io/DtHub/index.es.html">
+<link rel="alternate" hreflang="fr" href="https://falcomfr.github.io/DtHub/index.fr.html">
+<link rel="alternate" hreflang="en" href="https://falcomfr.github.io/DtHub/">
+<link rel="alternate" hreflang="es" href="https://falcomfr.github.io/DtHub/index.es.html">
+<link rel="alternate" hreflang="x-default" href="https://falcomfr.github.io/DtHub/">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="DT Hub">
+<meta property="og:locale" content="es_ES">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:locale:alternate" content="fr_FR">
+<meta property="og:url" content="https://falcomfr.github.io/DtHub/index.es.html">
+<meta property="og:title" content="DT Hub, jugar a DOFUS Touch en PC con varias cuentas">
+<meta property="og:description" content="Varias cuentas lado a lado, desde tus propios teléfonos. No es un emulador, sin automatización.">
+<meta property="og:image" content="https://falcomfr.github.io/DtHub/screenshots/cadre-a-onglets.es.jpg">
+<meta property="og:image:width" content="1600">
+<meta property="og:image:height" content="953">
+<meta property="og:image:alt" content="Una sola ventana con dos pestañas, una cuenta por pestaña.">
+<meta name="twitter:card" content="summary_large_image">
+
+<!-- What the application is, for the machines that ask.
+
+     **No version number.** Nothing in the release bumps this file, and a
+     number frozen at the version of the day it was written would be a lie
+     by the next one. The download address always serves the latest, which
+     is the fact worth publishing. No rating either: the project has none,
+     and inventing one is the kind of structured data that gets a site
+     demoted rather than found. -->
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "DT Hub",
+  "alternateName": ["DTHub", "DOFUS Touch Hub"],
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Windows 10, Windows 11",
+  "softwareRequirements": "Windows 10 or 11, 64 bits. Android 11 or later on the phone.",
+  "url": "https://falcomfr.github.io/DtHub/index.es.html",
+  "downloadUrl": "https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe",
+  "softwareHelp": "https://github.com/Falcomfr/DtHub",
+  "license": "https://github.com/Falcomfr/DtHub/blob/main/LICENSE",
+  "inLanguage": "es",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+  "image": "https://falcomfr.github.io/DtHub/screenshots/cadre-a-onglets.es.jpg",
+  "screenshot": [
+    "https://falcomfr.github.io/DtHub/screenshots/cadre-a-onglets.es.jpg",
+    "https://falcomfr.github.io/DtHub/screenshots/cote-a-cote.es.jpg",
+    "https://falcomfr.github.io/DtHub/screenshots/appareils.es.png",
+    "https://falcomfr.github.io/DtHub/screenshots/suivi-des-quetes.png",
+    "https://falcomfr.github.io/DtHub/screenshots/liste-des-donjons.png"
+  ],
+  "author": { "@type": "Person", "name": "Falcom", "url": "https://github.com/Falcomfr" },
+  "description": "Juega a DOFUS Touch en PC, varias cuentas lado a lado, desde tus propios teléfonos. No es un emulador, sin automatización."
+}
+</script>
+</head>
+<body>
+
+<!-- Icons, drawn here rather than fetched: the project promises to send
+     nothing without being asked, and a page that pulls an icon font from a
+     stranger's server breaks that promise for decoration.
+
+     Four of them are the application's own glyphs, copied path for path:
+     stacked windows, the Almanax calendar, the sliders of an account's
+     settings. The rest are drawn in the same hand, one stroke, round ends,
+     on the same fifteen unit grid. -->
+<svg class="jeu-icones" aria-hidden="true" focusable="false"><defs>
+  <g id="i-soleil"><circle cx="7.5" cy="7.5" r="2.7"/><path d="M7.5 1.4V3M7.5 12v1.6M1.4 7.5H3M12 7.5h1.6M3.2 3.2l1.2 1.2M10.6 10.6l1.2 1.2M11.8 3.2l-1.2 1.2M4.4 10.6l-1.2 1.2"/></g>
+  <g id="i-fenetres"><path d="M1.8 2.2h8.4v6.2H1.8ZM4.8 6.6h8.4v6.2H4.8Z"/></g>
+  <g id="i-panneau"><path d="M1.8 5h11.4M1.8 10h11.4"/><circle cx="5" cy="5" r="1.6"/><circle cx="10" cy="10" r="1.6"/></g>
+  <g id="i-guides"><path d="M7.5 4.3C6 3.1 4 2.8 2 3.1v8.6c2-.3 4 0 5.5 1.2 1.5-1.2 3.5-1.5 5.5-1.2V3.1c-2-.3-4 0-5.5 1.2ZM7.5 4.3v8.6"/></g>
+  <g id="i-almanax"><path d="M3 4.5h10v9H3ZM3 7.5h10M6 3v3M10 3v3"/></g>
+  <g id="i-outils"><path d="M9.6 2.1a3.1 3.1 0 0 0-3.3 4.2L2.2 10.4a1.2 1.2 0 0 0 1.7 1.7L8 8a3.1 3.1 0 0 0 4.2-3.3l-1.9 1.9-1.7-.5-.5-1.7Z"/></g>
+  <g id="i-regles"><path d="M7.5 1.8 12.6 3.7v4.1c0 2.9-2.2 4.7-5.1 5.5-2.9-.8-5.1-2.6-5.1-5.5V3.7Z"/><path d="m5.5 7.6 1.6 1.6 3-3.2"/></g>
+  <g id="i-reste"><path d="M7.5 1.9 13 4.7v5.6L7.5 13.1 2 10.3V4.7ZM2 4.7l5.5 2.8L13 4.7M7.5 7.5v5.6"/></g>
+  <g id="i-telecharger"><path d="M7.5 2.2v7.6M4.4 6.9l3.1 3.1 3.1-3.1M2.6 12.8h9.8"/></g>
+  <g id="i-merci"><path d="M7.5 12.8C4 10.4 1.9 8.4 1.9 6.2A2.9 2.9 0 0 1 7.5 4.8 2.9 2.9 0 0 1 13.1 6.2c0 2.2-2.1 4.2-5.6 6.6Z"/></g>
+  <g id="i-gratuit"><path d="M2.3 7.9V2.6h5.3l5.2 5.3-4.9 4.9Z"/><circle cx="4.9" cy="5.1" r=".8"/></g>
+  <g id="i-vous"><path d="M2.2 3.4h10.6v6.8H7.2l-3 2.6v-2.6H2.2Z"/></g>
+  <g id="i-info"><circle cx="7.5" cy="7.5" r="5.7"/><path d="M7.5 6.8v3.6M7.5 4.6v.1"/></g>
+  <g id="i-github"><path d="M7.5 1.2a6.3 6.3 0 0 0-2 12.3c.31.06.43-.14.43-.3v-1.08c-1.75.38-2.12-.84-2.12-.84-.29-.73-.7-.92-.7-.92-.57-.39.04-.38.04-.38.63.04.97.65.97.65.56.97 1.48.69 1.84.53.06-.41.22-.69.4-.85-1.4-.16-2.87-.7-2.87-3.11 0-.69.25-1.25.65-1.69-.07-.16-.28-.81.06-1.68 0 0 .53-.17 1.74.64a6 6 0 0 1 3.16 0c1.2-.81 1.73-.64 1.73-.64.35.87.13 1.52.07 1.68.4.44.65 1 .65 1.69 0 2.42-1.48 2.95-2.88 3.1.23.2.43.58.43 1.17v1.73c0 .17.11.37.43.3A6.3 6.3 0 0 0 7.5 1.2Z" fill="currentColor" stroke="none"/></g>
+  <!-- Discord's own mark, not drawn in our hand: alone it is the only thing
+       that says where the link leads. Scaled from its 24 unit box. -->
+  <g id="i-discord"><path transform="translate(0 1.5) scale(.625)" d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z" fill="currentColor" stroke="none"/></g>
+</defs></svg>
+
+<div class="barre">
+  <div class="barre-dedans">
+    <a class="marque" href="#top"><img src="app.png" alt="" width="30" height="30">DT Hub</a>
+    <nav>
+      <a href="https://github.com/Falcomfr/DtHub/releases">Versiones</a>
+      <a href="https://github.com/Falcomfr/DtHub"><svg class="ic"><use href="#i-github"/></svg>GitHub</a>
+      <a href="https://discord.gg/aauJcga6eG"><svg class="ic"><use href="#i-discord"/></svg>Discord</a>
+      <a href="index.html?lang=en">English</a>
+      <a href="index.fr.html?lang=fr">Français</a>
+      <a class="bouton petit" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe"><svg class="ic"><use href="#i-telecharger"/></svg>Descargar</a>
+    </nav>
+  </div>
+</div>
+
+<div class="page" id="top">
+
+<header class="hero">
+  <div class="hero-texte">
+    <h1>Juega a DOFUS&nbsp;Touch en PC, con varias cuentas a la vez</h1>
+    <p class="accroche">
+      Desde tus propios teléfonos. No es un emulador.
+      <strong>Escrito por un jugador de DOFUS&nbsp;Touch, para jugadores.</strong>
+    </p>
+
+    <div class="telecharger">
+      <a class="bouton" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe"><svg class="ic"><use href="#i-telecharger"/></svg>Descargar DtHub.exe</a>
+      <span class="sous-bouton">Windows 10 u 11, 64 bits · nada que instalar · licencia MIT</span>
+      <div class="avertissement"><svg class="ic"><use href="#i-info"/></svg><span>En el primer arranque, Windows avisa: todavía no conoce una aplicación tan reciente. <b>Más información</b> y luego <b>Ejecutar de todas formas</b>. Solo hasta que esté firmada. <a href="#descargar">Los detalles</a>.</span></div>
+    </div>
+  </div>
+
+  <figure class="hero-image">
+    <a href="screenshots/cadre-a-onglets.es.jpg"><img src="screenshots/cadre-a-onglets.es.jpg" alt="Dos cuentas de DOFUS Touch en pestañas en una ventana de DT Hub" width="1600" height="953"></a>
+  </figure>
+</header>
+
+<ul class="faits-cles">
+  <li><b><svg class="ic"><use href="#i-gratuit"/></svg>Gratis</b><span>Sin anuncios, sin cuenta, sin funciones de pago.</span></li>
+  <li><b><svg class="ic"><use href="#i-regles"/></svg>Dentro de las reglas del juego</b><span>Sin bot, sin macro, sin modificar el juego.</span></li>
+  <li><b><svg class="ic"><use href="#i-guides"/></svg>Guías con permiso</b><span>Las de <a href="https://papycha.fr">papycha.fr</a>, con su acuerdo.</span></li>
+  <li><b><svg class="ic"><use href="#i-vous"/></svg>Hecho contigo</b><span>Cada fallo que se reporta se corrige.</span></li>
+</ul>
+
+<section id="pensado">
+  <h2><svg class="ic"><use href="#i-soleil"/></svg><span>Pensado para DOFUS&nbsp;Touch</span></h2>
+  <ul class="liste deux-colonnes">
+    <li>Ventanas del tamaño que exige el juego</li>
+    <li>Pantalla recortada para el juego</li>
+    <li>Encuentra cada perfil de Android, sea cual sea su número</li>
+    <li>Cerrar una ventana desconecta de verdad al personaje</li>
+    <li>Guías y Almanax filtrados para Touch</li>
+    <li>La imagen la decodifica la tarjeta gráfica del PC: poco procesador por ventana</li>
+  </ul>
+</section>
+
+<section id="ventanas">
+  <h2><svg class="ic"><use href="#i-fenetres"/></svg><span>Las ventanas</span></h2>
+  <ul class="liste deux-colonnes">
+    <li>Una cuenta por perfil de Android</li>
+    <li>Todas del mismo tamaño, en el mismo sitio, o todas en un marco con pestañas</li>
+    <li><code>F1</code> a <code>F8</code> traen una cuenta al frente</li>
+    <li>Lado a lado con <code>Ctrl+T</code>, o una cuadrícula de cuatro con <code>Ctrl+G</code></li>
+    <li>Cuatro tamaños con el teclado, y pantalla completa, que se deja con <code>Esc</code></li>
+    <li>La batería, el calor y el lag del teléfono en cada título, si quieres</li>
+    <li>Una ventana se puede bloquear en su sitio</li>
+  </ul>
+  <figure class="large"><a href="screenshots/cote-a-cote.es.jpg"><img src="screenshots/cote-a-cote.es.jpg" alt="Dos cuentas lado a lado, cada una en su ventana" loading="lazy"></a></figure>
+</section>
+
+<section id="panel">
+  <h2><svg class="ic"><use href="#i-panneau"/></svg><span>El panel</span></h2>
+  <div class="categorie inverse">
+    <div>
+      <ul class="liste">
+        <li><code>Ctrl+P</code> lo muestra u oculta</li>
+        <li>Tus teléfonos y sus cuentas, cada una con su color y su tecla</li>
+        <li>Qué hace cada cuenta, y desde cuándo</li>
+        <li>El estado de cada teléfono, batería y conexión</li>
+        <li>Abrir o cerrar una cuenta con un clic</li>
+        <li>Batería, calor, Wi-Fi lento: avisa</li>
+        <li>El juego va con lag: dice si es el teléfono, su Wi-Fi o el PC, y qué hacer</li>
+        <li>Los perfiles: grupos de cuentas, con sus posiciones y ajustes, abiertos de una vez</li>
+        <li>Calidad y distancia por cuenta, hasta 120 imágenes por segundo</li>
+      </ul>
+    </div>
+    <figure class="etroite"><a href="screenshots/appareils.es.png"><img src="screenshots/appareils.es.png" alt="El panel, dos teléfonos y sus cuentas, con el menú de herramientas abierto" loading="lazy"></a></figure>
+  </div>
+</section>
+
+<section id="guias">
+  <h2><svg class="ic"><use href="#i-guides"/></svg><span>Las guías</span></h2>
+  <div class="categorie">
+    <div>
+      <ul class="liste">
+        <li>Las guías de <a href="https://papycha.fr">papycha.fr</a>, al lado del juego, <code>Ctrl+Q</code></li>
+        <li>787 misiones, 83 mazmorras, 2 raids, 8 guaridas</li>
+        <li>Tu seguimiento de Papycha: cada misión hecha, en curso o por hacer</li>
+        <li>Cuántas llevas en cada zona, con filtros para lo que queda y lo que está a tu alcance</li>
+        <li>Las misiones diarias, semanales y de temporada señaladas</li>
+        <li>Los pasos, y dónde te quedaste</li>
+      </ul>
+    </div>
+    <figure class="etroite"><a href="screenshots/suivi-des-quetes.png"><img src="screenshots/suivi-des-quetes.png" alt="Las misiones de una zona, con su estado" loading="lazy"></a></figure>
+  </div>
+  <div class="categorie inverse">
+    <div>
+      <ul class="liste">
+        <li>Las mazmorras ordenadas por nivel, en columnas alineadas</li>
+        <li>Tamaño, posición, llave y piedra de alma en cada línea</li>
+        <li>El camino a una mazmorra justo antes de ella</li>
+      </ul>
+    </div>
+    <figure class="etroite"><a href="screenshots/liste-des-donjons.png"><img src="screenshots/liste-des-donjons.png" alt="La lista de mazmorras ordenada por nivel" loading="lazy"></a></figure>
+  </div>
+</section>
+
+<section id="almanax">
+  <h2><svg class="ic"><use href="#i-almanax"/></svg><span>El Almanax</span></h2>
+  <div class="categorie">
+    <div>
+      <ul class="liste">
+        <li>La ofrenda del día y a quién llevarla</li>
+        <li>Su nombre copiado con un clic, para pegarlo en el mercadillo</li>
+        <li>La bonificación, escrita entera</li>
+        <li>Los días con misión repetible o bendición, señalados</li>
+        <li>Las ofrendas de la semana en una lista, cada una lista para copiar</li>
+        <li>Los días de tu oficio, recolección y fabricación, durante dos meses</li>
+        <li>Cualquier fecha del calendario</li>
+      </ul>
+    </div>
+    <figure class="etroite"><a href="screenshots/almanax.es.png"><img src="screenshots/almanax.es.png" alt="La ventana del Almanax: ofrenda del día, semana y oficio" loading="lazy"></a></figure>
+  </div>
+</section>
+
+<section id="herramientas">
+  <h2><svg class="ic"><use href="#i-outils"/></svg><span>Herramientas de DOFUS&nbsp;Touch</span></h2>
+  <ul class="outils">
+    <li><img src="logos/lomitall.png" alt="" width="40" height="40"><div><a href="https://lomitall.fr">Portal DT</a><span>lomitall.fr: guías, herramientas, clases y equipos, en una ventana grande</span></div></li>
+    <li><img src="logos/dtmap.png" alt="" width="40" height="40"><div><a href="https://www.dofus-touch-map.com/">Dofus Touch Map</a><span>El mapa de recursos, en una ventana al lado del juego</span></div></li>
+    <li><img src="logos/calcofus.png" alt="" width="40" height="40"><div><a href="https://calcofus.fr/">Calcofus</a><span>Las calculadoras de daño, en una ventana estrecha que reabre la última usada</span></div></li>
+    <li><img src="logos/dofusroom.png" alt="" width="40" height="40"><div><a href="https://www.dofusroom.com/insightroom">DofusRoom</a><span>Las líneas de visión de los mapas de combate, al lado del juego</span></div></li>
+    <li><img src="logos/dtstuff.png" alt="" width="40" height="40"><div><a href="https://play.google.com/store/apps/details?id=com.makeintouch.dtstuff">DTStuff</a><span>Instalada y abierta desde el PC</span></div></li>
+    <li><img src="logos/ocrapp.png" alt="" width="40" height="40"><div><a href="https://play.google.com/store/apps/details?id=com.makeintouch.ocrapp">OcrApp</a><span>Instalada y abierta desde el PC</span></div></li>
+    <li><img src="logos/dofusbook.png" alt="" width="40" height="40"><div><a href="https://touch.dofusbook.net/">DofusBook</a><span>Para montar tu equipo, en el navegador</span></div></li>
+    <li><img src="logos/papycha.png" alt="" width="40" height="40"><div><a href="https://papycha.fr">Papycha</a><span>Las guías de misiones y tu seguimiento, integrados</span></div></li>
+  </ul>
+</section>
+
+<div class="duo">
+  <section id="reglas" class="carte">
+    <h2><svg class="ic"><use href="#i-regles"/></svg><span>Dentro de las reglas del juego</span></h2>
+    <ul class="liste">
+      <li>Sin bot, sin macro, sin repetición de acciones</li>
+      <li>Ninguna acción repetida en varias cuentas</li>
+      <li>No se modifica el juego, ni el teléfono</li>
+      <li>Sin lectura de memoria, sin interceptar la red</li>
+      <li>Ningún recurso del juego incluido</li>
+    </ul>
+  </section>
+
+  <section id="resto" class="carte">
+    <h2><svg class="ic"><use href="#i-reste"/></svg><span>El resto</span></h2>
+    <ul class="liste">
+      <li>Un solo archivo, sin instalador</li>
+      <li>USB o Wi-Fi, con reconexión automática</li>
+      <li>La pantalla del teléfono sigue apagada mientras juegas, <code>Ctrl+E</code> tras una llamada</li>
+      <li>Portapapeles en los dos sentidos</li>
+      <li>Español, francés e inglés</li>
+      <li>Un informe de incidencia anonimizado, listo para pegar en GitHub o Discord</li>
+    </ul>
+  </section>
+</div>
+
+<section id="descargar">
+  <h2><svg class="ic"><use href="#i-telecharger"/></svg><span>Descargar</span></h2>
+
+  <div class="telecharger">
+    <a class="bouton" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe"><svg class="ic"><use href="#i-telecharger"/></svg>Descargar DtHub.exe</a>
+    <span class="sous-bouton">
+      <a href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe.sha256">huella SHA256</a> ·
+      <a href="https://github.com/Falcomfr/DtHub/releases">todas las versiones</a>
+    </span>
+  </div>
+
+  <ul class="liste">
+    <li>Windows 10 u 11, 64 bits</li>
+    <li>Android 11 o posterior, con un perfil clonado</li>
+    <li>Conexión a internet en el primer arranque, para 19 MB de herramientas</li>
+    <li>Firma del código: solicitada a <a href="https://signpath.org/">SignPath Foundation</a>, gratuita para el software libre. El certificado se emitirá a su nombre, no al mío.</li>
+  </ul>
+
+  <div class="encart">
+    <h3>En el primer arranque, Windows avisa</h3>
+    <p>DT Hub es reciente y todavía no está firmado, así que Windows no lo
+      conoce. Según el PC, aparece una de estas dos ventanas:</p>
+    <ul class="liste">
+      <li><b>«Windows protegió su PC»</b>: Más información y luego Ejecutar de todas formas</li>
+      <li><b>«No se pudo comprobar el editor»</b>: Ejecutar</li>
+    </ul>
+    <p>
+      Ninguna de las dos indica un virus, y ningún antivirus ha encontrado nada
+      en este archivo. Se ha solicitado un certificado de firma y hay un análisis
+      de Microsoft en curso. Mientras tanto,
+      <a href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe.sha256">comprueba su huella</a>, y mira
+      <a href="https://github.com/Falcomfr/DtHub/blob/main/docs/CONFIANCE.md">por qué</a>, en francés.
+    </p>
+  </div>
+</section>
+
+<section id="gracias">
+  <h2><svg class="ic"><use href="#i-merci"/></svg><span>Gracias</span></h2>
+  <p>
+    A <a href="https://papycha.fr">papycha.fr</a>, cuyas guías se muestran aquí
+    con su acuerdo, y a <a href="https://discord.gg/b8MHM9v">su Discord</a>.
+    A Lomitall, que presentó DT Hub en vídeo: su
+    <a href="https://www.youtube.com/@Lomitall">canal de YouTube</a> y
+    <a href="https://discord.gg/RnKWEX2n5V">su Discord</a>.
+    A <a href="https://github.com/Genymobile/scrcpy">scrcpy</a>,
+    sobre el que descansa toda la imagen.
+    A MakeInTouch, por DTStuff y OcrApp, a
+    <a href="https://calcofus.fr/">calcofus.fr</a> y a
+    <a href="https://www.dofusroom.com/">dofusroom.com</a>, que aceptaron que DT Hub
+    muestre sus nombres y logotipos. A
+    <a href="https://www.dofus-touch-map.com/">Dofus Touch Map</a>, que puedes
+    <a href="https://www.dofus-touch-map.com/donation">apoyar aquí</a>,
+    y a <a href="https://touch.dofusbook.net/">DofusBook</a>. Y a los jugadores que avisan de lo que
+    falla, en <a href="https://github.com/Falcomfr/DtHub/issues">GitHub</a>
+    o en <a href="https://discord.gg/aauJcga6eG">Discord</a>.
+  </p>
+</section>
+
+<footer>
+  <div class="liens">
+    <a href="https://github.com/Falcomfr/DtHub">Código fuente</a>
+    <a href="https://github.com/Falcomfr/DtHub/releases">Versiones</a>
+    <a href="https://github.com/Falcomfr/DtHub/blob/main/CHANGELOG.es.md">Cambios</a>
+    <a href="https://github.com/Falcomfr/DtHub/issues">Reportar un fallo</a>
+  </div>
+  <p>
+    Publicado con <a href="https://github.com/Falcomfr/DtHub/blob/main/LICENSE">licencia MIT</a>.
+    Los títulos de misiones del archivo <code>quest-successes.json</code> siguen
+    siendo propiedad de papycha.fr.
+  </p>
+  <p>
+    <strong>Sin relación con Ankama.</strong> DOFUS y DOFUS Touch son marcas de
+    Ankama. Este proyecto no está afiliado, aprobado ni respaldado por Ankama.
+  </p>
+</footer>
+
+</div>
+</body>
+</html>

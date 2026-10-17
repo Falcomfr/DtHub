@@ -18,7 +18,7 @@ on:
     paths:
       - 'site/**'
       - 'assets/screenshots/**'
-      - 'assets/app.png'
+      - 'assets/*.png'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -59,6 +59,9 @@ jobs:
           mkdir -p site/screenshots
           cp assets/screenshots/* site/screenshots/
           cp assets/app.png site/app.png
+          # The tools' logos, shown with their owners' agreement.
+          mkdir -p site/logos
+          cp assets/{calcofus,dofusbook,dofusroom,dtmap,dtstuff,lomitall,ocrapp,papycha}.png site/logos/
 
       - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
 
