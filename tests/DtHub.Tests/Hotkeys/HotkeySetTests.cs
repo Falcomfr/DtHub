@@ -84,7 +84,7 @@ public class HotkeySetTests
     {
         var set = HotkeySet.Default;
 
-        foreach (var action in Enum.GetValues<HotkeyAction>())
+        foreach (var action in Enum.GetValues<HotkeyAction>().Where(a => a != HotkeyAction.LeaveFullscreen))
         {
             Assert.NotNull(set.For(action));
             Assert.True(set.For(action)!.IsAssigned, $"{action} n'a pas de raccourci.");
@@ -341,7 +341,7 @@ public class HotkeySetTests
         var set = HotkeySet.FromBindings(null);
 
         Assert.Equal("Ctrl + Tab", set.For(HotkeyAction.NextInstance)!.DisplayText);
-        Assert.Equal(Enum.GetValues<HotkeyAction>().Length, set.Bindings.Count);
+        Assert.Equal(Enum.GetValues<HotkeyAction>().Length - 1, set.Bindings.Count);
     }
 
     [Fact]
@@ -369,6 +369,28 @@ public class HotkeySetTests
 
         Assert.Equal(HotkeyAction.NextInstance, set.Resolve(VirtualKeys.R, HotkeyModifiers.Control));
         Assert.False(set.For(HotkeyAction.Rearrange)!.IsAssigned);
+    }
+
+    [Fact]
+    public void Echap_quitte_le_plein_ecran_seulement_pendant_le_plein_ecran()
+    {
+        var set = HotkeySet.Default;
+
+        Assert.Equal(
+            HotkeyAction.LeaveFullscreen,
+            set.WhileFullscreen(true).Resolve(VirtualKeys.Escape, HotkeyModifiers.None));
+        Assert.Null(set.WhileFullscreen(false).Resolve(VirtualKeys.Escape, HotkeyModifiers.None));
+        Assert.Null(set.For(HotkeyAction.LeaveFullscreen));
+    }
+
+    [Fact]
+    public void Echap_donne_a_une_action_par_le_joueur_lui_reste_en_plein_ecran()
+    {
+        var set = HotkeySet.Default.With(HotkeyAction.Quests, VirtualKeys.Escape, HotkeyModifiers.None);
+
+        Assert.Equal(
+            HotkeyAction.Quests,
+            set.WhileFullscreen(true).Resolve(VirtualKeys.Escape, HotkeyModifiers.None));
     }
 
     [Fact]

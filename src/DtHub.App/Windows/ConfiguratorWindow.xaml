@@ -247,8 +247,8 @@
 
 
             <!-- Arranging only appears when there's something to arrange:
-                 at least two windows, and only when placements can
-                 move. A single window, or two docked in the tabbed
+                 at least two windows, one for fullscreen, and only when
+                 placements can move. A single window, or two docked in the tabbed
                  frame, and pressing these buttons did nothing. No text:
                  their icon says what they do, and the window footer
                  gets some breathing room. -->
@@ -256,23 +256,38 @@
                     Background="{StaticResource KeyFaceBrush}"
                     BorderBrush="{StaticResource BevelBorderBrush}" BorderThickness="1"
                     CornerRadius="{StaticResource RadiusKey}"
-                    Visibility="{Binding CanArrange, Converter={StaticResource BoolToVisibility}}">
+                    Visibility="{Binding CanFullscreen, Converter={StaticResource BoolToVisibility}}">
               <StackPanel Orientation="Horizontal">
+
+                <!-- Fullscreen first, the most used (2026-10-17). It has a
+                     use with a single window, the others from two. -->
+                <Button Style="{StaticResource GroupKey}"
+                        ToolTip="{loc:T ActionFullscreenDetail}"
+                        Command="{Binding FullscreenCommand}">
+                  <Path Style="{StaticResource RowGlyph}" VerticalAlignment="Center"
+                        Data="M 2,5.5 V 2.5 H 5 M 10,2.5 H 13 V 5.5 M 13,9.5 V 12.5 H 10 M 5,12.5 H 2 V 9.5" />
+                </Button>
+
+                <Border Width="1" Margin="0,6" Background="{DynamicResource BorderBrush}"
+                        Visibility="{Binding CanArrange, Converter={StaticResource BoolToVisibility}}" />
 
                 <Button Style="{StaticResource GroupKey}"
                         ToolTip="{loc:T StackTip}"
-                        Command="{Binding RearrangeCommand}">
+                        Command="{Binding RearrangeCommand}"
+                        Visibility="{Binding CanArrange, Converter={StaticResource BoolToVisibility}}">
                   <!-- Two overlapping windows: that's exactly what the
                        action does, and no glyph said it clearly. -->
                   <Path Style="{StaticResource RowGlyph}" VerticalAlignment="Center"
                         Data="M 1.8,2.2 H 10.2 V 8.4 H 1.8 Z M 4.8,6.6 H 13.2 V 12.8 H 4.8 Z" />
                 </Button>
 
-                <Border Width="1" Margin="0,6" Background="{DynamicResource BorderBrush}" />
+                <Border Width="1" Margin="0,6" Background="{DynamicResource BorderBrush}"
+                        Visibility="{Binding CanArrange, Converter={StaticResource BoolToVisibility}}" />
 
                 <Button Style="{StaticResource GroupKey}"
                         ToolTip="{loc:T SideBySideTip}"
-                        Command="{Binding TileCommand}">
+                        Command="{Binding TileCommand}"
+                        Visibility="{Binding CanArrange, Converter={StaticResource BoolToVisibility}}">
                   <!-- One window split in two: the two separate panels
                        filled in with their own stroke at this size, and
                        the icon turned into two blank blocks. -->

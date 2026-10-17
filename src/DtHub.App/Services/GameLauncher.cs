@@ -3665,6 +3665,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
             await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
         }
 
+        await ArmEscapeAsync().ConfigureAwait(false);
+
         return moved;
     }
 
@@ -3689,7 +3691,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// pressing it again stayed stuck, with the slider as the only way
     /// out.
     /// </summary>
-    public async Task ToggleFullscreenAsync(CancellationToken cancellationToken = default)
+    public async Task ToggleFullscreenAsync(
+        bool leaveOnly = false,
+        CancellationToken cancellationToken = default)
     {
         await _arranging.WaitAsync(cancellationToken).ConfigureAwait(false);
 
@@ -3700,7 +3704,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 _ = await ApplyPercentAsync(_windows.PercentBeforeFullscreen, cancellationToken: cancellationToken)
                     .ConfigureAwait(false);
             }
-            else
+            else if (!leaveOnly)
             {
                 _ = await ApplySizeCoreAsync(_windows.Presets.FullscreenIndex, cancellationToken)
                     .ConfigureAwait(false);
@@ -3732,6 +3736,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
         await ResizeFrameAsync(sizeIndex >= _windows.Presets.FullscreenIndex).ConfigureAwait(false);
 
         await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
+
+        await ArmEscapeAsync().ConfigureAwait(false);
 
         return moved;
     }
@@ -3806,7 +3812,28 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // reloads through this path, whichever window opened it.
         await RefreshWindowTitlesAsync(cancellationToken).ConfigureAwait(false);
 
-        return await _hotkeys.ApplyAsync(hotkeys).ConfigureAwait(false);
+        _escapeArmed = _windows.IsFullscreen;
+
+        return await _hotkeys.ApplyAsync(hotkeys.WhileFullscreen(_escapeArmed)).ConfigureAwait(false);
+    }
+
+    /// <summary>Whether Escape is armed to leave fullscreen.</summary>
+    private volatile bool _escapeArmed;
+
+    /// <summary>
+    /// Arms Escape on entering fullscreen and gives it back to the game on
+    /// leaving, only when that changes: the slider calls this at every notch.
+    /// </summary>
+    private async Task ArmEscapeAsync()
+    {
+        if (_windows.IsFullscreen == _escapeArmed || _hotkeySet is not { } hotkeys)
+        {
+            return;
+        }
+
+        _escapeArmed = _windows.IsFullscreen;
+
+        _ = await _hotkeys.ApplyAsync(hotkeys.WhileFullscreen(_escapeArmed)).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -4598,6 +4625,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
             await _windows.ApplyPercentAsync([], settings.CustomSizePercent, cancellationToken)
                 .ConfigureAwait(false);
         }
+
+        // The hotkeys were armed before this size was read, at startup.
+        await ArmEscapeAsync().ConfigureAwait(false);
     }
 
     private async Task EnsureHotkeysAsync(CancellationToken cancellationToken)
@@ -4969,6 +4999,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
                 case HotkeyAction.Fullscreen:
                     await ToggleFullscreenAsync().ConfigureAwait(false);
+                    break;
+
+                case HotkeyAction.LeaveFullscreen:
+                    await ToggleFullscreenAsync(leaveOnly: true).ConfigureAwait(false);
                     break;
 
                 case HotkeyAction.ScreenOff:

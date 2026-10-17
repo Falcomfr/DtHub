@@ -1189,7 +1189,7 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
     <value>La plus grande des quatre tailles. Elle couvre la zone utile de l'écran, barre des tâches exclue : ce n'est pas le plein écran.</value>
   </data>
   <data name="ActionFullscreenDetail" xml:space="preserve">
-    <value>Couvre l'écran entier, sans bordure. Appuyer à nouveau en sort et rend à chaque fenêtre la place qu'elle avait.</value>
+    <value>Couvre l'écran entier, sans bordure. Appuyer à nouveau, ou sur Échap, en sort et rend à chaque fenêtre la place qu'elle avait. Pendant le plein écran, Échap n'arrive plus au jeu.</value>
   </data>
   <data name="ActionScreenOffDetail" xml:space="preserve">
     <value>Éteint l'écran du téléphone de la fenêtre de jeu, ou de tous les téléphones depuis une autre fenêtre DT Hub, le jeu continue.</value>
@@ -1202,6 +1202,15 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
   </data>
   <data name="TurnScreenOffNowTip" xml:space="preserve">
     <value>Éteint l'écran du téléphone, le jeu continue.</value>
+  </data>
+  <data name="ActionLeaveFullscreen" xml:space="preserve">
+    <value>Quitter le plein écran</value>
+  </data>
+  <data name="ActionLeaveFullscreenDetail" xml:space="preserve">
+    <value>Échap, seulement pendant le plein écran : en sort comme un second appui sur le raccourci du plein écran.</value>
+  </data>
+  <data name="HotkeyClearTip" xml:space="preserve">
+    <value>Retirer ce raccourci</value>
   </data>
   <data name="ActionQuitDetail" xml:space="preserve">
     <value>Ferme l'application et toutes les fenêtres de jeu.</value>

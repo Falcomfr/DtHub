@@ -18,7 +18,20 @@ public class HotkeyLayoutTests
             .SelectMany(e => e)
             .ToList();
 
-        Assert.Equal(Enum.GetValues<HotkeyAction>().Order(), placed.Order());
+        // Leaving fullscreen with Escape is not edited: it only exists while
+        // in fullscreen, on top of the player's own keys.
+        Assert.Equal(
+            Enum.GetValues<HotkeyAction>().Where(a => a != HotkeyAction.LeaveFullscreen).Order(),
+            placed.Order());
+    }
+
+    [Fact]
+    public void Le_plein_ecran_ouvre_le_rangement_des_fenetres()
+    {
+        // Asked first by the player, 2026-10-17: it is the one used most.
+        var arranging = HotkeyLayout.Sections.Single(s => s.Section == HotkeySection.Arranging);
+
+        Assert.Equal([HotkeyAction.Fullscreen], arranging.Entries[0]);
     }
 
     [Fact]

@@ -148,6 +148,14 @@ public sealed class HotkeySet
     }
 
     /// <summary>
+    /// The set to arm: in fullscreen, Escape leaves it as well, asked on
+    /// 2026-10-17. The game then loses Escape until fullscreen ends. A
+    /// player who gave Escape to an action keeps it there.
+    /// </summary>
+    public HotkeySet WhileFullscreen(bool fullscreen) =>
+        fullscreen ? With(HotkeyAction.LeaveFullscreen, VirtualKeys.Escape, HotkeyModifiers.None) : this;
+
+    /// <summary>
     /// Removes an action's shortcut, which becomes inactive.
     /// </summary>
     public HotkeySet Without(HotkeyAction action)
