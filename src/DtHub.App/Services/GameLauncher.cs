@@ -2399,7 +2399,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     private static bool SameShown(
         IReadOnlyDictionary<string, (BatteryReading? Battery, ThermalReading? Heat)> before,
-        IReadOnlyDictionary<string, (BatteryReading? Battery, ThermalReading? Heat)> after) =>
+        Dictionary<string, (BatteryReading? Battery, ThermalReading? Heat)> after) =>
         before.Count == after.Count
         && after.All(pair => before.TryGetValue(pair.Key, out var old)
             && ScrcpyCommandBuilder.BuildTitleStatus(old.Battery, old.Heat, false, TimeSpan.Zero)
