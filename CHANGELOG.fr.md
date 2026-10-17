@@ -17,6 +17,11 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
 - Le son du jeu ne se coupe plus sur un Wi-Fi chargé : il garde sa propre
   réserve, comme l'image.
+- DT Hub consomme beaucoup moins de processeur quand le panneau est affiché,
+  et presque rien quand il est réduit.
+- Chaque fenêtre de jeu prend environ 160 Mo de mémoire de moins sur le
+  téléphone.
+- Un téléphone laissé de côté depuis des jours ne ralentit plus le panneau.
 
 ## [0.9.0] - 2026-10-17
 

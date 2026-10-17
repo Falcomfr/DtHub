@@ -23,6 +23,10 @@ belongs in the commits and in `docs/DECISIONS.md`.
 
 - The game's sound no longer cuts out on a busy Wi-Fi: it keeps a reserve of
   its own, as the image does.
+- DT Hub uses much less processor while the panel is shown, and almost none
+  while it is minimized.
+- Each game window takes about 160 MB less of the phone's memory.
+- A phone left aside for days no longer slows the panel down.
 
 ## [0.9.0] - 2026-10-17
 
