@@ -634,6 +634,9 @@ public sealed class DeviceDiscoveryService : IDisposable
     /// </summary>
     private static readonly TimeSpan MemoryFreshness = TimeSpan.FromSeconds(30);
 
+    /// <summary>Devices whose Android has no <c>am memory-factor</c>.</summary>
+    private readonly HashSet<string> _noMemoryFactor = new(StringComparer.Ordinal);
+
     /// <summary>
     /// Android's verdict on its memory, or <c>null</c> if the device says
     /// nothing.
@@ -660,16 +663,26 @@ public sealed class DeviceDiscoveryService : IDisposable
 
             string? factor = null;
 
-            try
+            if (!_noMemoryFactor.Contains(serial))
             {
-                factor = await _adb
-                    .ShellAsync(serial, ["am", "memory-factor", "show"], cancellationToken: cancellationToken)
-                    .ConfigureAwait(false);
-            }
-            catch (AdbException)
-            {
-                // Android 11 has no such command: the reading falls back on
-                // the share available, which is why it is read apart.
+                try
+                {
+                    factor = await _adb
+                        .ShellAsync(serial, ["am", "memory-factor", "show"], cancellationToken: cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                catch (AdbException exception)
+                {
+                    // Android 11 has no such command: the reading falls back
+                    // on the share available, which is why it is read apart.
+                    // Not asked again, or the log took a warning every thirty
+                    // seconds for it (Mi 9T Pro, 2026-10-17). A device that
+                    // dropped out says so in its own kind, and is asked again.
+                    if (exception.Kind == AdbErrorKind.Unknown)
+                    {
+                        _noMemoryFactor.Add(serial);
+                    }
+                }
             }
 
             var reading = MemoryReading.Parse(factor, meminfo);
