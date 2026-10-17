@@ -40,8 +40,6 @@ belongs in the commits and in `docs/DECISIONS.md`.
 
 ### Fixed
 
-- A new quest from Papycha is filed in the right section, no longer in
-  "Autres quêtes".
 - An account's line keeps its height when its window opens: the lines
   below no longer jump.
 - A dragged account takes its new place in the list the moment it is
