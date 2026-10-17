@@ -898,8 +898,9 @@
 
                   <!-- The bracket that ties a dungeon's path to the dungeon
                        below it, at the very start of the rows, two pixels
-                       thick and in the road's colour so that it reads at a
-                       glance. The path's row draws its upper arm, the
+                       thick in the dividers' colour: visible without
+                       competing with the road. The road's own colour was
+                       tried and drew too much attention. The path's row draws its upper arm, the
                        dungeon's row its lower arm; each stops at its own
                        row's edge, three pixels past the row's margin, so
                        nothing has to overflow into the neighbour. -->
@@ -909,10 +910,10 @@
                       <RowDefinition />
                     </Grid.RowDefinitions>
                     <Border x:Name="CrochetHaut" Grid.Row="1" Margin="0,0,0,-3"
-                            BorderThickness="2,2,0,0" BorderBrush="{DynamicResource GlyphPlaceBrush}"
+                            BorderThickness="2,2,0,0" BorderBrush="{DynamicResource BorderBrush}"
                             SnapsToDevicePixels="True" Visibility="Collapsed" />
                     <Border x:Name="CrochetBas" Grid.Row="0" Margin="0,-3,0,0"
-                            BorderThickness="2,0,0,2" BorderBrush="{DynamicResource GlyphPlaceBrush}"
+                            BorderThickness="2,0,0,2" BorderBrush="{DynamicResource BorderBrush}"
                             SnapsToDevicePixels="True" Visibility="Collapsed" />
                   </Grid>
 
