@@ -37,6 +37,9 @@ belongs in the commits and in `docs/DECISIONS.md`.
   and in the windows' title.
 - The mouse hovering over a game no longer reaches the phone, and Android's
   own keyboard no longer opens on the game (Android 12 and later).
+- When a phone does not show up for pairing, the window points to step 5 of
+  the Help before typing its address by hand, without which it would not
+  reconnect on its own.
 
 ### Fixed
 

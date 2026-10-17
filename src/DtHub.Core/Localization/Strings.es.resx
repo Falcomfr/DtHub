@@ -468,10 +468,10 @@
     <value>El aparato y el PC deben estar en la misma red Wi-Fi, y Android 11 como mínimo. Después, la conexión se rehace sola en cada arranque, si la red deja pasar el anuncio del aparato (ver 5).</value>
   </data>
   <data name="StaysOffline" xml:space="preserve">
-    <value>5. Vinculado, pero el aparato sigue sin conexión</value>
+    <value>5. El aparato no aparece, o sigue sin conexión</value>
   </data>
   <data name="StaysOfflineCause" xml:space="preserve">
-    <value>El PC llega al aparato, pero no recibe su anuncio en la red. Comprueba, por este orden:</value>
+    <value>El PC no recibe el anuncio del aparato en la red. Comprueba, por este orden:</value>
   </data>
   <data name="StaysOfflineSameBand" xml:space="preserve">
     <value>• el PC y el aparato en la misma Wi-Fi: no uno en 2,4 GHz y el otro en 5 GHz, ni el PC por cable si el router separa ambos;</value>
@@ -2362,8 +2362,14 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="ManualPairingHint" xml:space="preserve">
     <value>En la pantalla de vinculación del dispositivo, copia abajo «Dirección IP y puerto» y luego el código de seis dígitos.</value>
   </data>
+  <data name="NotDetectedSeeHelp" xml:space="preserve">
+    <value>¿No aparece el dispositivo? Sigue primero el paso 5 de la Ayuda: sin él, escribir la dirección a mano lo vincula, pero la conexión no se rehará sola.</value>
+  </data>
+  <data name="NotDetectedOpenHelp" xml:space="preserve">
+    <value>Abrir la Ayuda, paso 5</value>
+  </data>
   <data name="ManualPairingLink" xml:space="preserve">
-    <value>¿No aparece el dispositivo? Escribe su dirección a mano</value>
+    <value>¿Sigue sin aparecer? Escribe su dirección a mano</value>
   </data>
   <data name="ToolCalcofusName" xml:space="preserve">
     <value>Calcofus</value>

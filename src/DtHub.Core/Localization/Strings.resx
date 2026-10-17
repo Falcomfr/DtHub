@@ -468,10 +468,10 @@
     <value>The device and the PC must be on the same Wi-Fi network, and Android 11 at least. After that, the connection is made again on its own at every start, if the network lets the device's announcement through (see 5).</value>
   </data>
   <data name="StaysOffline" xml:space="preserve">
-    <value>5. Paired, but the device stays offline</value>
+    <value>5. The device does not show up, or stays offline</value>
   </data>
   <data name="StaysOfflineCause" xml:space="preserve">
-    <value>The PC reaches the device, but does not receive its announcement on the network. Check, in this order:</value>
+    <value>The PC does not receive the device's announcement on the network. Check, in this order:</value>
   </data>
   <data name="StaysOfflineSameBand" xml:space="preserve">
     <value>• the PC and the device on the same Wi-Fi: not one on 2.4 GHz and the other on 5 GHz, nor the PC on a cable if the router keeps the two apart;</value>
@@ -2362,8 +2362,14 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="ManualPairingHint" xml:space="preserve">
     <value>On the device's pairing screen, copy the "IP address &amp; Port" below, then the six-digit code.</value>
   </data>
+  <data name="NotDetectedSeeHelp" xml:space="preserve">
+    <value>Device not showing up? Follow step 5 of the Help first: without it, typing the address by hand pairs the device, but the connection will not come back on its own.</value>
+  </data>
+  <data name="NotDetectedOpenHelp" xml:space="preserve">
+    <value>Open the Help, step 5</value>
+  </data>
   <data name="ManualPairingLink" xml:space="preserve">
-    <value>Device not showing up? Type its address by hand</value>
+    <value>Still nothing? Type its address by hand</value>
   </data>
   <data name="ToolCalcofusName" xml:space="preserve">
     <value>Calcofus</value>

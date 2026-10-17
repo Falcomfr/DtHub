@@ -468,10 +468,10 @@
     <value>L'appareil et le PC doivent être sur le même réseau Wi-Fi, et Android 11 au minimum. Ensuite, la connexion se refait toute seule à chaque lancement, si le réseau laisse passer l'annonce de l'appareil (voir 5).</value>
   </data>
   <data name="StaysOffline" xml:space="preserve">
-    <value>5. Associé, mais l'appareil reste hors ligne</value>
+    <value>5. L'appareil n'apparaît pas, ou reste hors ligne</value>
   </data>
   <data name="StaysOfflineCause" xml:space="preserve">
-    <value>Le PC atteint l'appareil, mais ne reçoit pas son annonce sur le réseau. Vérifiez dans l'ordre :</value>
+    <value>Le PC ne reçoit pas l'annonce de l'appareil sur le réseau. Vérifiez dans l'ordre :</value>
   </data>
   <data name="StaysOfflineSameBand" xml:space="preserve">
     <value>• le PC et l'appareil sur le même Wi-Fi : pas l'un en 2,4 GHz et l'autre en 5 GHz, ni le PC en câble si la box sépare les deux ;</value>
@@ -2362,8 +2362,14 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="ManualPairingHint" xml:space="preserve">
     <value>Sur l'écran d'association de l'appareil, recopiez ci-dessous « Adresse IP et port », puis le code à six chiffres.</value>
   </data>
+  <data name="NotDetectedSeeHelp" xml:space="preserve">
+    <value>L'appareil n'apparaît pas ? Suivez d'abord l'étape 5 de l'Aide : sans elle, une saisie à la main associe l'appareil, mais la connexion ne se refera pas toute seule.</value>
+  </data>
+  <data name="NotDetectedOpenHelp" xml:space="preserve">
+    <value>Ouvrir l'Aide, étape 5</value>
+  </data>
   <data name="ManualPairingLink" xml:space="preserve">
-    <value>L'appareil n'apparaît pas ? Saisir son adresse à la main</value>
+    <value>Toujours rien ? Saisir son adresse à la main</value>
   </data>
   <data name="ToolCalcofusName" xml:space="preserve">
     <value>Calcofus</value>

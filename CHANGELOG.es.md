@@ -31,6 +31,9 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
   en el título de las ventanas.
 - El paso del ratón sobre un juego ya no llega al teléfono, y el teclado de
   Android ya no se abre sobre el juego (Android 12 y posteriores).
+- Cuando un teléfono no aparece para vincularlo, la ventana remite al paso 5
+  de la Ayuda antes de escribir su dirección a mano, sin el cual no se
+  volvería a conectar solo.
 
 ### Corregido
 

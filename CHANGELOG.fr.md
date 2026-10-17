@@ -31,6 +31,9 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
   panneau comme dans le titre des fenêtres.
 - Le survol de la souris sur un jeu n'est plus envoyé au téléphone, et le
   clavier d'Android ne s'ouvre plus sur le jeu (Android 12 et suivants).
+- Quand un téléphone n'apparaît pas pour l'association, la fenêtre renvoie à
+  l'étape 5 de l'Aide avant la saisie de son adresse à la main, sans laquelle
+  il ne se reconnecterait pas tout seul.
 
 ### Corrigé
 

@@ -52,6 +52,17 @@
         <StackPanel>
           <TextBlock Style="{StaticResource Muted}"
                      Text="{loc:T WaitingForDevice}" />
+          <!-- Typed by hand, the address pairs the phone, but the network
+               that hid its announcement keeps hiding it, and the phone never
+               reconnects on its own: the help's step 5 comes first. -->
+          <TextBlock Style="{StaticResource Muted}" Margin="0,10,0,0"
+                     FontSize="{StaticResource FontSmall}"
+                     Text="{loc:T NotDetectedSeeHelp}"
+                     Visibility="{Binding OffersManualEntry, Converter={StaticResource BoolToVisibility}}" />
+          <Button Style="{StaticResource LinkButton}" Margin="0,4,0,0" HorizontalAlignment="Left"
+                  FontSize="{StaticResource FontSmall}"
+                  Content="{loc:T NotDetectedOpenHelp}" Click="OnHelp"
+                  Visibility="{Binding OffersManualEntry, Converter={StaticResource BoolToVisibility}}" />
           <Button Style="{StaticResource LinkButton}" Margin="0,6,0,0" HorizontalAlignment="Left"
                   FontSize="{StaticResource FontSmall}"
                   Content="{loc:T ManualPairingLink}" Command="{Binding EnterManuallyCommand}"
