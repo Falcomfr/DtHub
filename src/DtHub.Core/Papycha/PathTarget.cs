@@ -78,6 +78,72 @@ public static class PathTarget
     }
 
     /// <summary>
+    /// Paths whose title does not name their zone, placed by hand with the
+    /// user on 2026-10-17: a zaap, an island of the zone, a spell. Path id,
+    /// section id.
+    /// </summary>
+    private static readonly Dictionary<int, int> ByHand = new()
+    {
+        [3628] = 131,   // Zaap du village de la canopée et Zoth: Île d'Otomaï
+        [13235] = 135,  // Ile de Sakaï: Île de Frigost
+        [5817] = 135,   // Zaap du Village Enseveli: Île de Frigost
+        [1618] = 52,    // Wabbit GM: Île des Wabbits
+        [6210] = 52,    // Obtenir le sort Cawotte: Île des Wabbits
+    };
+
+    /// <summary>
+    /// The dungeon a path leads to: the one sharing the most distinctive
+    /// words with its title. <c>null</c> when none shares one, or when two
+    /// share as many: "Wabbit" alone does not tell the castle from the
+    /// burrow.
+    /// </summary>
+    public static DungeonSummary? DungeonOf(string? title, IEnumerable<DungeonSummary> dungeons)
+    {
+        ArgumentNullException.ThrowIfNull(dungeons);
+
+        var words = Words(title);
+
+        List<(DungeonSummary Dungeon, int Shared)> ranked =
+        [
+            .. dungeons
+                .Select(d => (d, Words(d.Title).Count(words.Contains)))
+                .Where(pair => pair.Item2 > 0)
+                .OrderByDescending(pair => pair.Item2),
+        ];
+
+        return ranked.Count == 0 || (ranked.Count > 1 && ranked[1].Shared == ranked[0].Shared)
+            ? null
+            : ranked[0].Dungeon;
+    }
+
+    /// <summary>
+    /// The zone a quest path belongs to, or zero: the section whose
+    /// distinctive words its title all carries, "Otomaï" for "Restat sur
+    /// Otomaï", the most specific when several do. A path the title does not
+    /// place may be placed by hand.
+    /// </summary>
+    public static int ZoneOf(PathSummary path, IReadOnlyList<QuestSection> sections)
+    {
+        ArgumentNullException.ThrowIfNull(path);
+        ArgumentNullException.ThrowIfNull(sections);
+
+        if (ByHand.TryGetValue(path.Id, out var zone))
+        {
+            return sections.Any(s => s.Id == zone) ? zone : 0;
+        }
+
+        var words = Words(path.Title);
+
+        return sections
+            .Select(s => (s.Id, Needed: Words(QuestZoneOrder.DisplayName(s.Name))))
+            .Where(z => z.Needed.Count > 0 && z.Needed.IsSubsetOf(words))
+            .OrderByDescending(z => z.Needed.Count)
+            .ThenBy(z => z.Id)
+            .Select(z => z.Id)
+            .FirstOrDefault();
+    }
+
+    /// <summary>
     /// The words of a title, normalized the same way as search and
     /// stripped of anything that does not distinguish.
     /// </summary>

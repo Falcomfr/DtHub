@@ -105,9 +105,71 @@ public sealed class QuestTree
     public IReadOnlyList<DungeonSummary> Fighting(DungeonKind kind) =>
         [.. _catalog.Catalog.Dungeons.Where(d => d.Kind == kind)];
 
-    /// <summary>The paths on one side.</summary>
+    /// <summary>
+    /// The paths on one side that nothing else takes: on the quests side,
+    /// those no zone takes; on the dungeons side, those no dungeon takes.
+    /// The others are listed with what they serve.
+    /// </summary>
     public IReadOnlyList<PathSummary> Paths(PathSide side) =>
-        [.. _catalog.Catalog.Paths.Where(p => p.Side == side)];
+    [
+        .. _catalog.Catalog.Paths.Where(p => p.Side == side && (side == PathSide.Quests
+            ? PathTarget.ZoneOf(p, _catalog.Catalog.Sections) == 0
+            : PathOf(p) is null)),
+    ];
+
+    /// <summary>The quest paths a zone takes, listed at its head.</summary>
+    public IReadOnlyList<PathSummary> PathsIn(int section) =>
+    [
+        .. _catalog.Catalog.Paths
+            .Where(p => p.Side == PathSide.Quests && PathTarget.ZoneOf(p, _catalog.Catalog.Sections) == section)
+            .OrderBy(p => p.Title, StringComparer.CurrentCulture),
+    ];
+
+    /// <summary>A quest path's row, at the head of its zone.</summary>
+    public static QuestNode NodeOf(PathSummary path) => new(
+        QuestNodeKind.Quest,
+        (path ?? throw new ArgumentNullException(nameof(path))).Title,
+        Path: path,
+        Glyph: QuestNodeGlyph.Route);
+
+    /// <summary>
+    /// Each dungeon row followed by its path, indented under it like an
+    /// achievement's quests: the path's title only repeats the dungeon's
+    /// name, so the row says what it is instead.
+    /// </summary>
+    public IEnumerable<QuestNode> WithPaths(IEnumerable<QuestNode> rows)
+    {
+        ArgumentNullException.ThrowIfNull(rows);
+
+        var paths = _catalog.Catalog.Paths
+            .Where(p => p.Side == PathSide.Dungeons)
+            .Select(p => (Path: p, Dungeon: PathOf(p)))
+            .Where(pair => pair.Dungeon is not null)
+            .ToLookup(pair => pair.Dungeon!.Id, pair => pair.Path);
+
+        foreach (var row in rows)
+        {
+            yield return row;
+
+            if (row.Dungeon is null)
+            {
+                continue;
+            }
+
+            foreach (var path in paths[row.Dungeon.Id])
+            {
+                yield return new QuestNode(
+                    QuestNodeKind.Quest,
+                    Strings.Get("AccessPath"),
+                    Path: path,
+                    Glyph: QuestNodeGlyph.Route,
+                    InSuccess: true);
+            }
+        }
+    }
+
+    private DungeonSummary? PathOf(PathSummary path) =>
+        PathTarget.DungeonOf(path.Title, _catalog.Catalog.Dungeons);
 
     /// <summary>
     /// The paths sub-branch, at the head of the branch it serves.
@@ -132,7 +194,7 @@ public sealed class QuestTree
     /// site does not give a level bring up the rear under their own header,
     /// rather than passing for level zero.
     /// </summary>
-    public IEnumerable<QuestNode> DungeonNodes() => Banded(Fighting(DungeonKind.Dungeon));
+    public IEnumerable<QuestNode> DungeonNodes() => WithPaths(Banded(Fighting(DungeonKind.Dungeon)));
 
     /// <summary>Dungeons cut into bands of fifty levels, in level order.</summary>
     public static IEnumerable<QuestNode> Banded(IEnumerable<DungeonSummary> dungeons)

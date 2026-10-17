@@ -2545,4 +2545,7 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="RecurrenceSeasonal" xml:space="preserve">
     <value>De temporada</value>
   </data>
+  <data name="AccessPath" xml:space="preserve">
+    <value>Camino de acceso</value>
+  </data>
 </root>

@@ -23,6 +23,9 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 - Les intertitres de succès des guides n'affichent plus de fourchette de
   niveaux : le site en donne pour trop peu de quêtes.
 
+- Les chemins de quêtes ouvrent la zone où ils mènent, et le chemin d'un
+  donjon se range juste sous lui.
+
 ### Corrigé
 
 - Les guides de quêtes se remplissent de nouveau pour les nouveaux joueurs,

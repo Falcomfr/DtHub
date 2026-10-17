@@ -143,6 +143,41 @@ public class QuestTreeTests
     }
 
     [Fact]
+    public async Task Une_zone_recoit_les_chemins_que_son_nom_designe()
+    {
+        var client = new FakePapychaClient()
+            .WithQuest(1, "Une quête d'Otomaï", 131)
+            .WithSection(131, "Île d'Otomaï");
+        client.Paths.Add(new PathSummary { Id = 3711, Title = "Aller sur l’Île d’Otomaï", Url = "https://papycha.fr/o/" });
+        client.Paths.Add(new PathSummary { Id = 7247, Title = "Chouque", Url = "https://papycha.fr/c/" });
+
+        var (tree, _) = await BuildAsync(client);
+
+        Assert.Equal(3711, Assert.Single(tree.PathsIn(131)).Id);
+
+        // The branch keeps only the paths no zone takes.
+        Assert.Equal(7247, Assert.Single(tree.Paths(PathSide.Quests)).Id);
+    }
+
+    [Fact]
+    public async Task Un_donjon_est_suivi_de_son_chemin_en_retrait()
+    {
+        var client = new FakePapychaClient().WithQuest(1, "Q", 18).WithSection(18, "Astrub");
+        client.Dungeons.Add(new DungeonSummary { Id = 5744, Kind = DungeonKind.Dungeon, Title = "Canopée du Kimbo", Level = 60 });
+        client.Paths.Add(new PathSummary { Id = 5739, Title = "Canopée du Kimbo", Url = "https://papycha.fr/k/" });
+
+        var (tree, _) = await BuildAsync(client);
+        var rows = tree.DungeonNodes().Where(n => n.Kind != QuestNodeKind.Header).ToList();
+
+        Assert.Equal(2, rows.Count);
+        Assert.Equal(5744, rows[0].Dungeon?.Id);
+        Assert.Equal(5739, rows[1].Path?.Id);
+        Assert.True(rows[1].InSuccess);
+        Assert.Equal(Strings.Get("AccessPath"), rows[1].Label);
+        Assert.Empty(tree.Paths(PathSide.Dungeons));
+    }
+
+    [Fact]
     public async Task Un_intertitre_de_succes_ne_porte_pas_de_niveau()
     {
         // The site gives a level for 103 quests out of 762: a range drawn from

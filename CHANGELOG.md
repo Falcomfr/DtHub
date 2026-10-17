@@ -29,6 +29,9 @@ belongs in the commits and in `docs/DECISIONS.md`.
 - Achievement headings in the guide lists no longer show a level range: the
   site gives a level for too few quests.
 
+- Quest paths head the zone they lead to, and a dungeon's path sits right
+  under it.
+
 ### Fixed
 
 - The quest guides fill again for new players, and quests the site adds

@@ -93,4 +93,84 @@ public sealed class PathTargetTests
         Assert.Equal(PathSide.Quests, PathTarget.Of(null, Donjons));
         Assert.Equal(PathSide.Quests, PathTarget.Of("   ", Donjons));
     }
+
+    private static readonly DungeonSummary[] Lieux =
+    [
+        new() { Id = 5744, Title = "Canopée du Kimbo" },
+        new() { Id = 1457, Title = "Caverne du Koulosse" },
+        new() { Id = 2614, Title = "Château du Wa Wabbit" },
+        new() { Id = 5497, Title = "Repaire de Skeunk" },
+        new() { Id = 5799, Title = "Tanière Givrefoux" },
+        new() { Id = 1443, Title = "Terrier du Wa Wabbit" },
+    ];
+
+    [Theory]
+    [InlineData("Canopée du Kimbo", 5744)]
+    [InlineData("donjon du Koulosse", 1457)]
+    [InlineData("Château du Wa Wabbit", 2614)]
+    [InlineData("du donjon du Skeunk", 5497)]
+    [InlineData("Tanière Givrefoux", 5799)]
+    [InlineData("Terrier du Wa Wabbit", 1443)]
+    public void Un_chemin_de_donjon_se_rattache_au_donjon_qu_il_nomme(string titre, int donjon)
+    {
+        Assert.Equal(donjon, PathTarget.DungeonOf(titre, Lieux)?.Id);
+    }
+
+    [Fact]
+    public void Un_chemin_qui_ne_nomme_aucun_donjon_ne_se_rattache_a_rien()
+    {
+        Assert.Null(PathTarget.DungeonOf("Aller sur l’île de Moon", Lieux));
+    }
+
+    private static readonly QuestSection[] Zones =
+    [
+        new() { Id = 18, Name = "Astrub", Parent = 25 },
+        new() { Id = 25, Name = "Amakna" },
+        new() { Id = 52, Name = "Île des Wabbits" },
+        new() { Id = 131, Name = "Île d'Otomaï" },
+        new() { Id = 135, Name = "Île de Frigost" },
+        new() { Id = -3, Name = "Quêtes du Krosmoz" },
+    ];
+
+    private static PathSummary Chemin(int id, string titre) => new() { Id = id, Title = titre };
+
+    [Theory]
+    [InlineData(3711, "Aller sur l’Île d’Otomaï", 131)]
+    [InlineData(3684, "trouver Otomaï", 131)]
+    [InlineData(21368, "Restat sur Otomaï | chemin optimisé", 131)]
+    [InlineData(10914, "Aller sur l’île de Frigost", 135)]
+    [InlineData(1558, "Aller sur l’île des Wabbits", 52)]
+    [InlineData(22234, "Les souterrains d’Astrub", 18)]
+    public void Un_chemin_se_range_dans_la_zone_que_son_titre_nomme(int id, string titre, int zone)
+    {
+        Assert.Equal(zone, PathTarget.ZoneOf(Chemin(id, titre), Zones));
+    }
+
+    [Theory]
+    [InlineData(3628, "Zaap du village de la canopée et Zoth", 131)]
+    [InlineData(13235, "Ile de Sakaï", 135)]
+    [InlineData(5817, "Zaap du Village Enseveli", 135)]
+    [InlineData(1618, "Wabbit GM", 52)]
+    [InlineData(6210, "Obtenir le sort Cawotte", 52)]
+    public void Un_chemin_que_son_titre_ne_situe_pas_est_range_a_la_main(int id, string titre, int zone)
+    {
+        Assert.Equal(zone, PathTarget.ZoneOf(Chemin(id, titre), Zones));
+    }
+
+    [Theory]
+    [InlineData(3574, "Aller sur l’île de Moon")]
+    [InlineData(23683, "Ilots de Moon")]
+    [InlineData(10907, "Aller sur l’île du Minotoror")]
+    [InlineData(7247, "Chouque")]
+    [InlineData(48498, "La Source")]
+    public void Un_chemin_sans_zone_n_est_range_nulle_part(int id, string titre)
+    {
+        Assert.Equal(0, PathTarget.ZoneOf(Chemin(id, titre), Zones));
+    }
+
+    [Fact]
+    public void Un_rangement_a_la_main_vers_une_zone_absente_ne_range_rien()
+    {
+        Assert.Equal(0, PathTarget.ZoneOf(Chemin(13235, "Ile de Sakaï"), [new QuestSection { Id = 18, Name = "Astrub" }]));
+    }
 }

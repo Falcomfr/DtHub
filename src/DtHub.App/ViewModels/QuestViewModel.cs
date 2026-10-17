@@ -619,7 +619,11 @@ public sealed partial class QuestViewModel : ObservableObject
             Breadcrumb = Strings.Get("Dungeons");
             SetBack(target: 0);
 
-            Nodes.Add(_tree.PathBranch(PathSide.Dungeons, QuestTree.DungeonPathSection));
+            // Only the paths no dungeon takes: the others sit under theirs.
+            if (_tree.Paths(PathSide.Dungeons).Count > 0)
+            {
+                Nodes.Add(_tree.PathBranch(PathSide.Dungeons, QuestTree.DungeonPathSection));
+            }
 
             foreach (var node in _tree.DungeonNodes())
             {
@@ -638,10 +642,11 @@ public sealed partial class QuestViewModel : ObservableObject
 
             // With no tiers: ten rows are read in one go, and splitting them
             // would help no one.
-            foreach (var place in _tree.Fighting(kind).OrderBy(d => d.Level)
-                         .ThenBy(d => d.Title, StringComparer.CurrentCulture))
+            foreach (var node in _tree.WithPaths(_tree.Fighting(kind).OrderBy(d => d.Level)
+                         .ThenBy(d => d.Title, StringComparer.CurrentCulture)
+                         .Select(QuestTree.NodeOf)))
             {
-                Nodes.Add(QuestTree.NodeOf(place));
+                Nodes.Add(node);
             }
 
             return;
@@ -657,8 +662,7 @@ public sealed partial class QuestViewModel : ObservableObject
 
             foreach (var path in _tree.Paths(side).OrderBy(p => p.Title, StringComparer.CurrentCulture))
             {
-                Nodes.Add(new QuestNode(
-                    QuestNodeKind.Quest, path.Title, Path: path, Glyph: QuestNodeGlyph.Route));
+                Nodes.Add(QuestTree.NodeOf(path));
             }
 
             return;
@@ -684,7 +688,11 @@ public sealed partial class QuestViewModel : ObservableObject
                     Glyph: QuestNodeGlyph.Family));
             }
 
-            Nodes.Add(_tree.PathBranch(PathSide.Quests, QuestTree.QuestPathSection));
+            // Only the paths no zone takes: the others head their zone.
+            if (_tree.Paths(PathSide.Quests).Count > 0)
+            {
+                Nodes.Add(_tree.PathBranch(PathSide.Quests, QuestTree.QuestPathSection));
+            }
 
             // A subheading is held back until a branch after it survives.
             QuestNode? header = null;
@@ -745,6 +753,14 @@ public sealed partial class QuestViewModel : ObservableObject
 
         Breadcrumb = Strings.Get("QuestAreaCrumb") + Separator + _tree.NameOf(section);
         SetBack(target: QuestTree.RootSection);
+
+        // The ways to get there come before what is done there.
+        var paths = _tree.PathsIn(section);
+
+        for (var i = 0; i < paths.Count; i++)
+        {
+            Nodes.Add(QuestTree.NodeOf(paths[i]) with { Spaced = i == paths.Count - 1 });
+        }
 
         AddBySuccess(_catalog.InSection(section));
     }
