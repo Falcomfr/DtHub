@@ -35,6 +35,11 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
 ### Corrigé
 
+- L'onglet Guides se remplit de nouveau, même pour un nouveau joueur : DT Hub
+  lit l'API publique de Papycha et garde les quêtes, succès et rubriques qu'il
+  connaissait déjà.
+- Une nouvelle quête de Papycha se range dans la bonne rubrique, et non plus
+  dans « Autres quêtes ».
 - La ligne d'un compte garde sa hauteur quand sa fenêtre s'ouvre : les
   lignes du dessous ne sautent plus.
 - Un compte déplacé prend sa nouvelle place dans la liste dès qu'on le
