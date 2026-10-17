@@ -169,6 +169,15 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     private readonly SemaphoreSlim _screenKeepersLock = new(1, 1);
 
     /// <summary>
+    /// Windowless sessions carrying a phone's sound, by device id, once the
+    /// window that carried it has closed. See <see cref="PassSoundOnAsync" />.
+    /// </summary>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, IProcessSession> _soundKeepers =
+        new(StringComparer.Ordinal);
+
+    private readonly SemaphoreSlim _soundKeepersLock = new(1, 1);
+
+    /// <summary>
     /// How long the screen-off session is given to say the screen is off.
     /// Past this it is kept all the same: the wait only decides when the
     /// next opening may push its own server.
@@ -306,6 +315,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         var session = new ScrcpySession(sessionId, target, windowTitle, process)
         {
             CarriesAudio = options.AudioEnabled,
+            SoundArguments = options.AudioEnabled ? ScrcpyCommandBuilder.BuildSoundArguments(serial, options) : null,
 
             // The display keeps a fixed resolution: the window is
             // computed to its ratio, on its client area.
@@ -442,7 +452,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
                 // game sessions lived on, or replaced on request: released
                 // before the new one starts.
                 _ = _screenKeepers.TryRemove(deviceId, out _);
-                await StopScreenKeeperAsync(running).ConfigureAwait(false);
+                await StopKeeperAsync(running).ConfigureAwait(false);
             }
 
             // It pushes a server like an opening does, so it takes its
@@ -480,7 +490,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
 
             try
             {
-                confirmed = await AwaitScreenOffAsync(keeper, cancellationToken).ConfigureAwait(false);
+                confirmed = await AwaitLineAsync(keeper, ScreenOffLine, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
@@ -495,7 +505,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
                 }
                 else
                 {
-                    await StopScreenKeeperAsync(keeper).ConfigureAwait(false);
+                    await StopKeeperAsync(keeper).ConfigureAwait(false);
                 }
             }
         }
@@ -530,10 +540,10 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Waits for scrcpy to say the screen is off, or for the deadline.
-    /// True if it said so.
+    /// Waits for scrcpy to write <paramref name="text" />, or for the
+    /// deadline. True if it wrote it.
     /// </summary>
-    private async Task<bool> AwaitScreenOffAsync(IProcessSession keeper, CancellationToken cancellationToken)
+    private async Task<bool> AwaitLineAsync(IProcessSession keeper, string text, CancellationToken cancellationToken)
     {
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(ScreenOffTimeout);
@@ -542,7 +552,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         {
             await foreach (var line in keeper.Output.ReadAllAsync(deadline.Token).ConfigureAwait(false))
             {
-                if (line.Text.Contains(ScreenOffLine, StringComparison.Ordinal))
+                if (line.Text.Contains(text, StringComparison.Ordinal))
                 {
                     return true;
                 }
@@ -627,15 +637,116 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
             _screenKeepersLock.Release();
         }
 
-        await StopScreenKeeperAsync(keeper).ConfigureAwait(false);
+        await StopKeeperAsync(keeper).ConfigureAwait(false);
     }
+
+    /// <summary>True while a windowless session carries this phone's sound.</summary>
+    public bool HoldsSound(string deviceId) =>
+        _soundKeepers.TryGetValue(deviceId, out var keeper) && !keeper.HasExited;
+
+    /// <summary>
+    /// Hands the phone's sound to a windowless session when the window that
+    /// carried it ends before the phone's other accounts, and stops that
+    /// session with the last account. Called from both ends of a session,
+    /// like <see cref="ReleaseScreenIfLastAsync" />, and harmless the second
+    /// time.
+    ///
+    /// **Reported on 2026-10-17**: accounts A and B open, A closed with its
+    /// window's button, and B was silent on the PC. The sound goes to the
+    /// first window of a phone only, an echo otherwise, and was never handed
+    /// on. Reopening B's window instead would have moved its game off its
+    /// display.
+    /// </summary>
+    private async Task PassSoundOnAsync(ScrcpySession ending)
+    {
+        var deviceId = ending.Target.DeviceId;
+
+        await _soundKeepersLock.WaitAsync().ConfigureAwait(false);
+
+        try
+        {
+            _ = _soundKeepers.TryGetValue(deviceId, out var running);
+
+            if (!HasLiveSessionOn(deviceId, except: ending))
+            {
+                if (running is not null && _soundKeepers.TryRemove(deviceId, out _))
+                {
+                    await StopKeeperAsync(running).ConfigureAwait(false);
+                }
+
+                return;
+            }
+
+            if (ending.SoundArguments is null || running is { HasExited: false })
+            {
+                return;
+            }
+
+            // Died on its own, a Wi-Fi drop for instance: released before
+            // the next one starts.
+            if (running is not null)
+            {
+                _ = _soundKeepers.TryRemove(deviceId, out _);
+                await StopKeeperAsync(running).ConfigureAwait(false);
+            }
+
+            string scrcpyPath;
+            string adbPath;
+
+            try
+            {
+                scrcpyPath = await _scrcpy.GetScrcpyPathAsync().ConfigureAwait(false);
+                adbPath = await _adbLocator.GetAdbPathAsync().ConfigureAwait(false);
+            }
+            catch (Exception exception) when (exception is DependencyProvisioningException or Adb.AdbException)
+            {
+                // Both were found to open the account: missing now, the
+                // other accounts stay silent on the PC, as before.
+                return;
+            }
+
+            // It pushes a server like an opening does, so it takes its turn
+            // in the same queue until its server answers.
+            await using var lease = await _gate.EnterAsync(deviceId, CancellationToken.None).ConfigureAwait(false);
+
+            IProcessSession keeper;
+
+            try
+            {
+                keeper = _launcher.Start(new ProcessRequest
+                {
+                    FileName = scrcpyPath,
+                    Arguments = ending.SoundArguments,
+                    Environment = new Dictionary<string, string?> { ["ADB"] = adbPath },
+                });
+            }
+            catch (ProcessLaunchException)
+            {
+                // The other accounts stay silent on the PC, as before, and
+                // keep their game: closing one account must not fail for it.
+                return;
+            }
+
+            _soundKeepers[deviceId] = keeper;
+
+            _ = await AwaitLineAsync(keeper, ServerLine, CancellationToken.None).ConfigureAwait(false);
+            _ = Task.Run(() => DrainAsync(keeper), CancellationToken.None);
+        }
+        finally
+        {
+            _soundKeepersLock.Release();
+        }
+    }
+
+    /// <summary>What scrcpy writes once its server runs on the phone.</summary>
+    private const string ServerLine = "[server] INFO: Device:";
 
     /// <summary>
     /// Killed outright, since it has no window to be asked to close.
     /// Measured on the 13T Pro: the phone's own clean-up turns the
     /// screen back on within a second all the same.
     /// </summary>
-    private static async Task StopScreenKeeperAsync(IProcessSession keeper)
+    private static async Task StopKeeperAsync(IProcessSession keeper)
     {
         if (!keeper.HasExited)
         {
@@ -821,6 +932,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         // does not leave the loop time to finish, and the phone would
         // be left dark.
         await ReleaseScreenIfLastAsync(session).ConfigureAwait(false);
+        await PassSoundOnAsync(session).ConfigureAwait(false);
 
         // After scrcpy has left, never before: it is the one that
         // notifies its server, and the server that returns the
@@ -1096,9 +1208,21 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
             _screenKeepersLock.Release();
         }
 
+        await _soundKeepersLock.WaitAsync().ConfigureAwait(false);
+
+        try
+        {
+            keepers.AddRange(_soundKeepers.Values);
+            _soundKeepers.Clear();
+        }
+        finally
+        {
+            _soundKeepersLock.Release();
+        }
+
         foreach (var keeper in keepers)
         {
-            await StopScreenKeeperAsync(keeper).ConfigureAwait(false);
+            await StopKeeperAsync(keeper).ConfigureAwait(false);
         }
 
         // The lock is not disposed: a read loop still finishing may ask
@@ -1366,6 +1490,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         // still alive themselves, both found one, and the screen stayed
         // dark with no game open.
         await ReleaseScreenIfLastAsync(session).ConfigureAwait(false);
+        await PassSoundOnAsync(session).ConfigureAwait(false);
     }
 
     private ScrcpySession FailedSession(

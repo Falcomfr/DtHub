@@ -2227,7 +2227,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }
 
         var carried = _sessions.ActiveSessions.Any(s =>
-            s.IsAlive && s.CarriesAudio && string.Equals(Routable(s.Target), serial, StringComparison.Ordinal));
+            s.IsAlive
+            && (s.CarriesAudio || _sessions.HoldsSound(s.Target.DeviceId))
+            && string.Equals(Routable(s.Target), serial, StringComparison.Ordinal));
 
         if (Count(_uncapturedReadings, serial, carried && sound.GamePlayers > 0 && !sound.Captured)
             == SoundReadingsBeforeWarning)
@@ -2850,6 +2852,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
             // session per device therefore carries it, the first
             // one opened. Granting it to all of them would give the
             // same stream in several copies, that is to say an echo.
+            // When that window closes first, a windowless session takes
+            // the sound over for the others, see PassSoundOnAsync.
             if (display.AudioEnabled && HasOpenSessionOn(instance.DeviceId))
             {
                 display = display with { AudioEnabled = false };
@@ -2863,8 +2867,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
             if (instance.IsTransient)
             {
                 // Never the sound either: a phone's sound goes to its first
-                // window and is not handed back, and the store must not take
-                // it from the game opened next.
+                // window, and the store must not take it from the game
+                // opened next.
                 display = display with
                 {
                     VirtualDisplayWidth = 1080,

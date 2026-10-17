@@ -140,50 +140,7 @@ public static class ScrcpyCommandBuilder
             arguments.Add("--legacy-paste");
         }
 
-        if (!sanitized.AudioEnabled)
-        {
-            arguments.Add("--no-audio");
-        }
-        else
-        {
-            // **Measured on a real device**, 13T Pro under Android 16, the
-            // game playing its music, reading the peak of the Windows
-            // output while scrcpy ran:
-            //
-            //   --audio-source=output    (scrcpy's default)   0.0000
-            //   --audio-source=playback                       0.0945
-            //   --audio-source=mic       (control)            0.7633
-            //
-            // The control matters: it proves the path from scrcpy to the
-            // PC speakers works, and that the silence comes from the
-            // phone's side.
-            //
-            // "output" forwards the whole sound through Android's
-            // remote_submix device. On this phone "dumpsys audio" reads
-            // "remote_submix): 0" for the music stream, so what is
-            // forwarded is silence, and scrcpy reports no error at all
-            // because the capture did start. "output" also mutes the
-            // phone's own speaker, which nobody asked for when the phone
-            // sits next to the PC.
-            //
-            // "playback" leaves the phone its sound and captures what the
-            // applications allow. The game allows it, which is what this
-            // is for. An application that opts out, a video service for
-            // instance, stays silent on the PC and there is nothing to be
-            // done about that.
-            if (sanitized.DeviceSdkVersion >= AndroidRequirements.PlaybackAudioSdk)
-            {
-                arguments.Add("--audio-source=playback");
-            }
-
-            // **Heard on 2026-10-17**, the 13T Pro on a Wi-Fi resending a
-            // third of its packets: with scrcpy's 50 ms the sound cut out
-            // several times a minute, with 200 ms not once. The image has its
-            // own buffer, sized on the link; the sound had none of its own.
-            // It arrives 0.15 s later, which a turn-based game does not feel,
-            // and neither the image nor the clicks go through it.
-            arguments.Add("--audio-buffer=" + AudioBufferMs.ToString(CultureInfo.InvariantCulture));
-        }
+        AddSound(arguments, sanitized);
 
         if (!sanitized.ClipboardSyncEnabled)
         {
@@ -262,6 +219,90 @@ public static class ScrcpyCommandBuilder
         // Deliberately absent: --kill-adb-on-close. The ADB server is
         // shared with the rest of the machine and must not go down
         // with a DT Hub session.
+        return arguments;
+    }
+
+    /// <summary>
+    /// The sound part of a window's command, or of the windowless session
+    /// that carries the sound once its window has closed.
+    /// </summary>
+    private static void AddSound(List<string> arguments, ScrcpyOptions sanitized)
+    {
+        if (!sanitized.AudioEnabled)
+        {
+            arguments.Add("--no-audio");
+            return;
+        }
+
+        // **Measured on a real device**, 13T Pro under Android 16, the
+        // game playing its music, reading the peak of the Windows
+        // output while scrcpy ran:
+        //
+        //   --audio-source=output    (scrcpy's default)   0.0000
+        //   --audio-source=playback                       0.0945
+        //   --audio-source=mic       (control)            0.7633
+        //
+        // The control matters: it proves the path from scrcpy to the
+        // PC speakers works, and that the silence comes from the
+        // phone's side.
+        //
+        // "output" forwards the whole sound through Android's
+        // remote_submix device. On this phone "dumpsys audio" reads
+        // "remote_submix): 0" for the music stream, so what is
+        // forwarded is silence, and scrcpy reports no error at all
+        // because the capture did start. "output" also mutes the
+        // phone's own speaker, which nobody asked for when the phone
+        // sits next to the PC.
+        //
+        // "playback" leaves the phone its sound and captures what the
+        // applications allow. The game allows it, which is what this
+        // is for. An application that opts out, a video service for
+        // instance, stays silent on the PC and there is nothing to be
+        // done about that.
+        if (sanitized.DeviceSdkVersion >= AndroidRequirements.PlaybackAudioSdk)
+        {
+            arguments.Add("--audio-source=playback");
+        }
+
+        // **Heard on 2026-10-17**, the 13T Pro on a Wi-Fi resending a
+        // third of its packets: with scrcpy's 50 ms the sound cut out
+        // several times a minute, with 200 ms not once. The image has its
+        // own buffer, sized on the link; the sound had none of its own.
+        // It arrives 0.15 s later, which a turn-based game does not feel,
+        // and neither the image nor the clicks go through it.
+        arguments.Add("--audio-buffer=" + AudioBufferMs.ToString(CultureInfo.InvariantCulture));
+    }
+
+    /// <summary>
+    /// A session that shows nothing and only carries the phone's sound to
+    /// the PC, started when the window that carried it closes while other
+    /// accounts of the phone stay open: the sound goes to the first window
+    /// only, see GameLauncher, and the others were left silent.
+    ///
+    /// **Measured on the 13T Pro on 2026-10-17**: it stays up with no window
+    /// and no error, and the audio policy lists its capture, uid 2000, beside
+    /// the game's two players.
+    /// </summary>
+    public static IReadOnlyList<string> BuildSoundArguments(string serial, ScrcpyOptions options)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(serial);
+        ArgumentNullException.ThrowIfNull(options);
+
+        List<string> arguments =
+        [
+            Option("serial", serial),
+            "--no-video",
+            "--no-window",
+            "--no-control",
+            "--no-clipboard-autosync",
+
+            // It changes nothing on the phone that would need restoring,
+            // see --no-cleanup in BuildMirrorArguments.
+            "--no-cleanup",
+        ];
+
+        AddSound(arguments, options.Sanitized());
+
         return arguments;
     }
 

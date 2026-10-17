@@ -494,6 +494,67 @@ public class ScrcpySessionManagerTests
         Assert.True(manager.HoldsScreenOff("MATERIEL123"));
     }
 
+    private const string ServerLine = "[server] INFO: Device: [Xiaomi] Xiaomi 23078PND5G (Android 16)";
+
+    // The first window of a phone carries its sound, the next ones are opened
+    // without it: GameLauncher decides, the manager only sees the options.
+    private static readonly ScrcpyOptions WithSound = ScrcpyOptions.Default with { AudioEnabled = true, DeviceSdkVersion = 36 };
+
+    private static bool IsSoundKeeper(ProcessRequest request) =>
+        request.Arguments.Contains("--no-window") && !request.Arguments.Contains("--no-audio");
+
+    [Fact]
+    public async Task Fermer_le_compte_qui_porte_le_son_le_rend_aux_comptes_restes_ouverts()
+    {
+        // Reported on 2026-10-17: A and B open, A closed with its window's
+        // button, B had no more sound on the PC.
+        var sound = new FakeProcessSession(9).Emit(ServerLine);
+        var b = new FakeProcessSession(2).Emit(NewDisplayLine);
+        var launcher = new FakeProcessLauncher()
+            .Prepare(new FakeProcessSession(1).Emit(NewDisplayLine))
+            .Prepare(b)
+            .Prepare(sound);
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        var a = await manager.StartAsync(Target(0), WithSound, null, CancellationToken.None);
+        await manager.StartAsync(Target(999), WithSound with { AudioEnabled = false }, null, CancellationToken.None);
+
+        await manager.StopAsync(a.Id, CancellationToken.None);
+
+        var request = Assert.Single(launcher.Requests, IsSoundKeeper);
+        Assert.Contains("--serial=USB0001", request.Arguments);
+        Assert.Contains("--no-video", request.Arguments);
+        Assert.Contains("--audio-source=playback", request.Arguments);
+        Assert.True(manager.HoldsSound("MATERIEL123"));
+
+        // The last account gone, the sound goes with it.
+        b.Exit();
+
+        await sound.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(5));
+
+        Assert.True(sound.WasKilled);
+        Assert.False(manager.HoldsSound("MATERIEL123"));
+    }
+
+    [Fact]
+    public async Task Fermer_un_compte_sans_le_son_ou_le_dernier_ne_lance_aucun_son()
+    {
+        var launcher = new FakeProcessLauncher()
+            .Prepare(new FakeProcessSession(1).Emit(NewDisplayLine))
+            .Prepare(new FakeProcessSession(2).Emit(NewDisplayLine));
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        var a = await manager.StartAsync(Target(0), WithSound, null, CancellationToken.None);
+        var b = await manager.StartAsync(Target(999), WithSound with { AudioEnabled = false }, null, CancellationToken.None);
+
+        await manager.StopAsync(b.Id, CancellationToken.None);
+        await manager.StopAsync(a.Id, CancellationToken.None);
+
+        Assert.DoesNotContain(launcher.Requests, IsSoundKeeper);
+    }
+
     [Fact]
     public async Task Reeteindre_sans_gardien_en_demarre_un()
     {

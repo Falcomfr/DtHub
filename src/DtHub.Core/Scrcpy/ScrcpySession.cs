@@ -108,6 +108,13 @@ public sealed class ScrcpySession
     public bool CarriesAudio { get; init; }
 
     /// <summary>
+    /// What starts the windowless session that takes the sound over when
+    /// this window closes before the phone's other accounts, or <c>null</c>
+    /// when it does not carry the sound.
+    /// </summary>
+    internal IReadOnlyList<string>? SoundArguments { get; init; }
+
+    /// <summary>
     /// True as soon as the session has been opened at least once.
     ///
     /// An opening failure is already handled during launch, by falling
