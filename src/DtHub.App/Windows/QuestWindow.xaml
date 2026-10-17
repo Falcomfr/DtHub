@@ -978,7 +978,6 @@
                         <ColumnDefinition Width="90" />
                         <ColumnDefinition Width="66" />
                         <ColumnDefinition Width="26" />
-                        <ColumnDefinition Width="26" />
                       </Grid.ColumnDefinitions>
 
                       <StackPanel Grid.Column="0" Orientation="Horizontal"
@@ -1088,30 +1087,6 @@
                                     a 2.6,2.6 0 1 0 -5.2,0
                                     M 7.8,7.5 H 12.8 M 10.3,7.5 V 9.8 M 12.4,7.5 V 9.3" />
                       </Border>
-
-                      <!-- The path that leads to the dungeon, as a link on
-                           its own row: a row of its own under the dungeon
-                           did not read as belonging to it. Same road as the
-                           paths' icon, so the two are told apart from the
-                           key at a glance. The column stays when there is
-                           none, so nothing shifts. -->
-                      <Button Grid.Column="3" Style="{StaticResource IconButton}"
-                              HorizontalAlignment="Right" VerticalAlignment="Center"
-                              Tag="{Binding Access}" Click="OnFollowAccess"
-                              ToolTip="{loc:T AccessPath}"
-                              ToolTipService.InitialShowDelay="200"
-                              Visibility="{Binding Access,
-                                                   Converter={StaticResource EmptyToVisibility},
-                                                   ConverterParameter=inverse}">
-                        <Path Style="{StaticResource ListGlyph}"
-                              Stroke="{DynamicResource GlyphPlaceBrush}"
-                              StrokeStartLineCap="Flat" StrokeEndLineCap="Flat"
-                              Data="M 3.2,13.6 L 5.5,2.4
-                                    M 11.8,13.6 L 9.5,2.4
-                                    M 7.5,12.4 V 10.2
-                                    M 7.5,8.4 V 6.4
-                                    M 7.5,4.6 V 3.2" />
-                      </Button>
                     </Grid>
 
                     <!-- Still the right-hand text of every other kind of
@@ -1289,6 +1264,18 @@
                     <Setter TargetName="Trait" Property="Visibility" Value="Visible" />
                     <Setter TargetName="Ligne" Property="Margin" Value="0" />
                     <Setter TargetName="Libelle" Property="Margin" Value="9,3,0,3" />
+                  </DataTrigger>
+
+                  <!-- A dungeon's path, under its dungeon: its road moves to
+                       where the dungeon names start, past the level column
+                       (22 wide, 10 of gap), and its label follows the road
+                       (15 wide, 6 of gap). Left in the glyph column, the road
+                       read as heading the dungeon below. -->
+                  <DataTrigger Binding="{Binding Nested}" Value="True">
+                    <Setter TargetName="Nature" Property="Grid.Column" Value="1" />
+                    <Setter TargetName="Nature" Property="HorizontalAlignment" Value="Left" />
+                    <Setter TargetName="Nature" Property="Margin" Value="32,0,0,0" />
+                    <Setter TargetName="Libelle" Property="Margin" Value="53,0,0,0" />
                   </DataTrigger>
 
                   <!-- The break's blank space, placed on the row before

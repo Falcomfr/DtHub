@@ -22,8 +22,8 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 - Los encabezados de logros de las guías ya no muestran un rango de niveles:
   el sitio lo da para muy pocas misiones.
 
-- Los caminos de misiones encabezan la zona a la que llevan, y la fila de
-  una mazmorra enlaza con su camino.
+- Los caminos de misiones encabezan la zona a la que llevan, y el camino de
+  una mazmorra queda justo debajo de ella.
 
 ### Corregido
 

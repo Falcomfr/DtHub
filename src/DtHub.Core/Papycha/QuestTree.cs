@@ -133,9 +133,12 @@ public sealed class QuestTree
         Glyph: QuestNodeGlyph.Route);
 
     /// <summary>
-    /// Each dungeon row carrying the path that leads to it, as a link on the
-    /// row itself. A row of its own under the dungeon was tried first: it did
-    /// not read as belonging to it.
+    /// Each dungeon row followed by the row of the path that leads to it,
+    /// named after the dungeon and aligned on the dungeon names.
+    ///
+    /// A row of the list and not a link on the dungeon's row: a link alone
+    /// left the path out of the list, which could no longer show where one
+    /// was once the path open, and an icon did not say what it was.
     /// </summary>
     public IEnumerable<QuestNode> WithPaths(IEnumerable<QuestNode> rows)
     {
@@ -145,12 +148,26 @@ public sealed class QuestTree
             .Where(p => p.Side == PathSide.Dungeons)
             .Select(p => (Path: p, Dungeon: PathOf(p)))
             .Where(pair => pair.Dungeon is not null)
-            .GroupBy(pair => pair.Dungeon!.Id)
-            .ToDictionary(g => g.Key, g => g.First().Path);
+            .ToLookup(pair => pair.Dungeon!.Id, pair => pair.Path);
 
-        return rows.Select(row => row.Dungeon is { } dungeon && paths.TryGetValue(dungeon.Id, out var path)
-            ? row with { Access = path }
-            : row);
+        foreach (var row in rows)
+        {
+            yield return row;
+
+            if (row.Dungeon is null)
+            {
+                continue;
+            }
+
+            foreach (var path in paths[row.Dungeon.Id])
+            {
+                yield return NodeOf(path) with
+                {
+                    Label = Strings.Format("PathTo", row.Dungeon.Title),
+                    Nested = true,
+                };
+            }
+        }
     }
 
     /// <summary>

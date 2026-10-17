@@ -160,10 +160,10 @@ public class QuestTreeTests
     }
 
     [Fact]
-    public async Task Un_donjon_porte_le_lien_vers_son_chemin_sur_sa_propre_ligne()
+    public async Task Un_donjon_est_suivi_de_la_ligne_de_son_chemin()
     {
-        // A row of its own under the dungeon did not read as belonging to
-        // it: the link sits on the dungeon's row.
+        // A row of the list, so that the list finds it again once the path
+        // is open, and named after the dungeon so that it reads as its own.
         var client = new FakePapychaClient().WithQuest(1, "Q", 18).WithSection(18, "Astrub");
         client.Dungeons.Add(new DungeonSummary { Id = 5744, Kind = DungeonKind.Dungeon, Title = "Canopée du Kimbo", Level = 60 });
         client.Dungeons.Add(new DungeonSummary { Id = 1, Kind = DungeonKind.Dungeon, Title = "Blops", Level = 60 });
@@ -172,9 +172,12 @@ public class QuestTreeTests
         var (tree, _) = await BuildAsync(client);
         var rows = tree.DungeonNodes().Where(n => n.Kind != QuestNodeKind.Header).ToList();
 
-        Assert.Equal(2, rows.Count);
-        Assert.Equal(5739, rows.Single(r => r.Dungeon?.Id == 5744).Access?.Id);
-        Assert.Null(rows.Single(r => r.Dungeon?.Id == 1).Access);
+        Assert.Equal([1, 5744, 0], rows.Select(r => r.Dungeon?.Id ?? 0));
+        var path = rows[2];
+        Assert.Equal(5739, path.Path?.Id);
+        Assert.True(path.Nested);
+        Assert.Equal(Strings.Format("PathTo", "Canopée du Kimbo"), path.Label);
+        Assert.Equal("https://papycha.fr/k/", path.Url);
         Assert.Empty(tree.Paths(PathSide.Dungeons));
     }
 
@@ -192,7 +195,7 @@ public class QuestTreeTests
 
         var (tree, _) = await BuildAsync(client);
         PathSummary Path(int id) => tree.Paths(PathSide.Quests).Concat(tree.Paths(PathSide.Dungeons)).Concat(tree.PathsIn(131))
-            .Concat(tree.DungeonNodes().Select(n => n.Access).OfType<PathSummary>())
+            .Concat(tree.DungeonNodes().Select(n => n.Path).OfType<PathSummary>())
             .First(p => p.Id == id);
 
         Assert.Equal(131, tree.SectionOf(Path(3711)));

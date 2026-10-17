@@ -2545,7 +2545,7 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="RecurrenceSeasonal" xml:space="preserve">
     <value>Seasonal</value>
   </data>
-  <data name="AccessPath" xml:space="preserve">
-    <value>Access path</value>
+  <data name="PathTo" xml:space="preserve">
+    <value>Path to {0}</value>
   </data>
 </root>

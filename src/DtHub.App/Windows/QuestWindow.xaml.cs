@@ -1074,16 +1074,6 @@ public partial class QuestWindow : Window
     }
 
     /// <summary>Opens the quest a prerequisite names.</summary>
-    /// <summary>Opens the path linked from a dungeon's row.</summary>
-    private void OnFollowAccess(object sender, RoutedEventArgs e)
-    {
-        if ((sender as FrameworkElement)?.Tag is PathSummary path
-            && _viewModel.Activate(QuestTree.NodeOf(path)) is { } url)
-        {
-            Open(url);
-        }
-    }
-
     private void OnFollowNeed(object sender, RoutedEventArgs e)
     {
         PanneauPrerequis.IsOpen = false;
