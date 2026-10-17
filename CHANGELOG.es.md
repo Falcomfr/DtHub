@@ -10,6 +10,13 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Corregido
+
+- Las cuentas reabiertas en pestañas al arrancar vuelven a mostrar el botón de
+  pantalla completa del panel.
+
 ## [0.9.1] - 2026-10-17
 
 ### Añadido

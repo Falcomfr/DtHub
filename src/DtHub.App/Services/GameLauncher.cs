@@ -4747,7 +4747,16 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         var frame = new Windows.TabbedGameWindow(_windows.Controller) { ShortcutReminder = _titleHint };
 
-        frame.Closed += (_, _) => _tabs = null;
+        // The frame counts as one window to arrange: the panel's fullscreen
+        // and arranging keys follow it in and out. Accounts reopened in tabs
+        // at startup reached Running before the frame existed, and nothing
+        // told the panel afterwards: the fullscreen key stayed hidden
+        // (2026-10-17).
+        frame.Closed += (_, _) =>
+        {
+            _tabs = null;
+            ArrangeableChanged?.Invoke(this, EventArgs.Empty);
+        };
 
         // Closing the frame closes the accounts it was housing:
         // that is what the action announces, and seeing them
@@ -4795,6 +4804,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         _tabs = frame;
         frame.Show();
+        ArrangeableChanged?.Invoke(this, EventArgs.Empty);
 
         // After it is shown: there is no handle before that, so
         // nothing to place. The frame thus reappears where it was
