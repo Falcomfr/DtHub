@@ -82,6 +82,39 @@ public class PapychaClientTests
     }
 
     [Fact]
+    public async Task Le_rythme_d_une_quete_vient_de_l_api()
+    {
+        var (client, _) = Create(new()
+        {
+            ["quests?per_page=100&page=1"] = """
+                {"items":[
+                  {"id":1,"name":"a","url":"u","recurrence":"daily"},
+                  {"id":2,"name":"b","url":"u","recurrence":"weekly"},
+                  {"id":3,"name":"c","url":"u","recurrence":"repeatable"},
+                  {"id":4,"name":"d","url":"u","recurrence":"seasonal"},
+                  {"id":5,"name":"e","url":"u","recurrence":"once"},
+                  {"id":6,"name":"f","url":"u","recurrence":null},
+                  {"id":7,"name":"g","url":"u","recurrence":"monthly"}
+                ],"total":7,"total_pages":1}
+                """,
+        });
+
+        var quests = await client.GetQuestsAsync();
+
+        Assert.Equal(
+            [
+                QuestRecurrence.Daily,
+                QuestRecurrence.Weekly,
+                QuestRecurrence.Repeatable,
+                QuestRecurrence.Seasonal,
+                QuestRecurrence.Once,
+                QuestRecurrence.Unknown,
+                QuestRecurrence.Unknown,
+            ],
+            quests.Select(q => q.Recurrence));
+    }
+
+    [Fact]
     public async Task Un_nom_avec_des_entites_html_est_decode()
     {
         var (client, _) = Create(new()

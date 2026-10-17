@@ -64,8 +64,13 @@ public sealed class QuestCatalogDocument
     /// thirty of the ninety-six entries in a fifteenth-schema catalog
     /// name no achievement at all. An unchanged site fingerprint would
     /// trigger no reread, and the old ordering would stay in place.
+    ///
+    /// Version 17: how often each quest can be done again. Absent from an
+    /// older catalog, the field would read "done once" for every quest, and
+    /// a catalog already merged would not be read again before the site
+    /// changes.
     /// </summary>
-    public const int CurrentSchemaVersion = 16;
+    public const int CurrentSchemaVersion = 17;
 
     public int SchemaVersion { get; set; } = CurrentSchemaVersion;
 

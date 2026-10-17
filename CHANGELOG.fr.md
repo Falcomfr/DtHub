@@ -13,6 +13,11 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
 ## [Unreleased]
 
+### Ajouté
+
+- Les quêtes répétables affichent leur rythme dans les listes des guides :
+  quotidienne, hebdomadaire, répétable ou saisonnière.
+
 ### Corrigé
 
 - Les guides de quêtes se remplissent de nouveau pour les nouveaux joueurs,

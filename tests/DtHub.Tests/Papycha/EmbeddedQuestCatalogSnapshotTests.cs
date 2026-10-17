@@ -22,6 +22,7 @@ public class EmbeddedQuestCatalogSnapshotTests
         Assert.Null(catalog.SiteModifiedUtc);
         Assert.False(catalog.NeedsRebuild);
         Assert.Contains(668, catalog.Quests.Single(q => q.Id == 14099).SectionIds);
+        Assert.Equal(72, catalog.Quests.Count(q => q.Recurrence == QuestRecurrence.Daily));
     }
 
     [Fact]

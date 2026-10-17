@@ -95,6 +95,33 @@ public class QuestCatalogMergeTests
     }
 
     [Fact]
+    public void Le_rythme_de_l_api_l_emporte_et_un_rythme_absent_garde_le_connu()
+    {
+        var baseline = Baseline(
+            Known(1, "Changée", 18) with { Recurrence = QuestRecurrence.Weekly },
+            Known(2, "Muette", 18) with { Recurrence = QuestRecurrence.Daily });
+
+        var merged = Merge(
+            baseline,
+            [
+                FromApi(1, "Changée", 18) with { Recurrence = QuestRecurrence.Daily },
+                FromApi(2, "Muette", 18),
+            ]);
+
+        Assert.Equal(QuestRecurrence.Daily, merged.Quests.Single(q => q.Id == 1).Recurrence);
+        Assert.Equal(QuestRecurrence.Daily, merged.Quests.Single(q => q.Id == 2).Recurrence);
+    }
+
+    [Fact]
+    public void La_fusion_ecrit_la_version_courante_du_schema()
+    {
+        var baseline = Baseline(Known(1, "A", 18));
+        baseline.SchemaVersion = 16;
+
+        Assert.Equal(QuestCatalogDocument.CurrentSchemaVersion, Merge(baseline).SchemaVersion);
+    }
+
+    [Fact]
     public void Les_prerequis_connus_l_emportent_et_ceux_de_l_api_comblent_un_vide()
     {
         var baseline = Baseline(

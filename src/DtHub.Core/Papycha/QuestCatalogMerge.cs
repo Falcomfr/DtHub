@@ -59,7 +59,7 @@ public static class QuestCatalogMerge
 
         return new QuestCatalogDocument
         {
-            SchemaVersion = baseline.SchemaVersion,
+            SchemaVersion = QuestCatalogDocument.CurrentSchemaVersion,
             IndexedUtc = now,
             SiteModifiedUtc = siteModified,
             Quests = mergedQuests,
@@ -113,6 +113,7 @@ public static class QuestCatalogMerge
             Url = api.Url.Length > 0 ? api.Url : known.Url,
             Level = api.Level > 0 ? api.Level : known.Level,
             StartPosition = api.StartPosition.Length > 0 ? api.StartPosition : known.StartPosition,
+            Recurrence = api.Recurrence != QuestRecurrence.Unknown ? api.Recurrence : known.Recurrence,
             Prerequisites = known.Prerequisites.Count > 0 ? known.Prerequisites : api.Prerequisites,
         };
     }

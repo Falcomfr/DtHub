@@ -10463,3 +10463,12 @@ qu'elle donnait), les analyseurs de pages, `sonde-rang`, `sonde-voisines` et
 `audit-etapes.mjs`. La sonde de livraison vérifie désormais l'API publique ;
 les contrôles de forme des pages de guide, qui lisaient le corps des
 articles, disparaissent avec elle.
+
+**Complété le 17/10/2026 : le rythme des quêtes répétables.** L'API donne un
+champ `recurrence` (73 quotidiennes, 7 hebdomadaires, 22 répétables, 4
+saisonnières sur 762). Il s'affiche en étiquette à droite de la ligne, dans la
+colonne de détail jusque-là vide pour les quêtes. Une quête de la rubrique
+« Quêtes répétables » (682) sans rythme dans l'API est dite « Répétable » :
+95 seulement des 128 le portent. Le catalogue embarqué reçoit les rythmes du
+jour et le schéma passe à 17, sans quoi un cache déjà fusionné aurait dit
+toutes les quêtes « faites une fois » jusqu'au prochain changement du site.

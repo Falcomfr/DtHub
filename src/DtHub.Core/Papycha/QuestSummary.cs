@@ -117,6 +117,13 @@ public sealed record QuestSummary
     /// only 117.
     /// </summary>
     public IReadOnlyList<string> Prerequisites { get; init; } = [];
+
+    /// <summary>
+    /// How often the quest can be done again, from the site's API.
+    /// Measured on 2026-10-17: 73 daily, 7 weekly, 22 repeatable, 4
+    /// seasonal, out of 762.
+    /// </summary>
+    public QuestRecurrence Recurrence { get; init; }
 }
 
 /// <summary>

@@ -98,6 +98,18 @@ public class QuestTreeTests
     }
 
     [Fact]
+    public async Task Une_ligne_de_quete_porte_son_rythme_a_droite()
+    {
+        var (tree, _) = await BuildAsync(new FakePapychaClient()
+            .WithQuest(1, "Adoption éphémère", 18)
+            .WithSection(18, "Astrub"));
+
+        var row = tree.NodeOf(new QuestSummary { Id = 1, Title = "Adoption éphémère", Recurrence = QuestRecurrence.Daily });
+
+        Assert.Equal(Strings.Get("RecurrenceDaily"), row.Detail);
+    }
+
+    [Fact]
     public async Task Les_quetes_d_un_succes_arrivent_sous_leur_intertitre()
     {
         var client = new FakePapychaClient()

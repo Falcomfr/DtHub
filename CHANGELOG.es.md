@@ -12,6 +12,11 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 
 ## [Unreleased]
 
+### Añadido
+
+- Las misiones repetibles muestran su ritmo en las listas de guías: diaria,
+  semanal, repetible o de temporada.
+
 ### Corregido
 
 - Las guías de misiones vuelven a llenarse para los jugadores nuevos, y las

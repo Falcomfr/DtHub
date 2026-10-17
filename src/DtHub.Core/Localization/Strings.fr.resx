@@ -2539,4 +2539,16 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="NextQuests" xml:space="preserve">
     <value>Suivantes</value>
   </data>
+  <data name="RecurrenceDaily" xml:space="preserve">
+    <value>Quotidienne</value>
+  </data>
+  <data name="RecurrenceWeekly" xml:space="preserve">
+    <value>Hebdomadaire</value>
+  </data>
+  <data name="RecurrenceRepeatable" xml:space="preserve">
+    <value>Répétable</value>
+  </data>
+  <data name="RecurrenceSeasonal" xml:space="preserve">
+    <value>Saisonnière</value>
+  </data>
 </root>

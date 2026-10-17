@@ -19,6 +19,11 @@ belongs in the commits and in `docs/DECISIONS.md`.
 
 ## [Unreleased]
 
+### Added
+
+- Repeatable quests show their rhythm in the guide lists: daily, weekly,
+  repeatable or seasonal.
+
 ### Fixed
 
 - The quest guides fill again for new players, and quests the site adds

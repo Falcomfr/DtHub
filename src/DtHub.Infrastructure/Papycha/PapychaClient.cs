@@ -200,6 +200,15 @@ public sealed partial class PapychaClient : IPapychaClient
             // whichever of them the catalog already knows.
             Categories = [.. (item.Section ?? []).Concat(item.Zone ?? []).Select(t => t.Id)],
             StartPosition = item.StartCoordinates?.Trim() ?? string.Empty,
+            Recurrence = item.Recurrence switch
+            {
+                "once" => QuestRecurrence.Once,
+                "daily" => QuestRecurrence.Daily,
+                "weekly" => QuestRecurrence.Weekly,
+                "repeatable" => QuestRecurrence.Repeatable,
+                "seasonal" => QuestRecurrence.Seasonal,
+                _ => QuestRecurrence.Unknown,
+            },
 
             // The conditions are free text, some written as a list item:
             // "- Alignement bontarien 40 minimum.".
@@ -290,6 +299,8 @@ public sealed partial class PapychaClient : IPapychaClient
 
         [JsonPropertyName("start_coordinates")]
         public string? StartCoordinates { get; set; }
+
+        public string? Recurrence { get; set; }
 
         [JsonPropertyName("access_conditions")]
         public List<string>? AccessConditions { get; set; }
