@@ -2186,6 +2186,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
             {
                 WatchSound(serial, sound);
             }
+
+            WatchPings(serial);
         }
 
         // Rebuilt whole: a phone no longer playing must not keep its last
@@ -2194,6 +2196,39 @@ public sealed partial class GameLauncher : IAsyncDisposable
         _strains = strains;
 
         await RetitleWithStatusAsync(serials).ConfigureAwait(false);
+    }
+
+    /// <summary>Phones whose Wi-Fi spikes are being reported, by serial.</summary>
+    private readonly HashSet<string> _spiky = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Writes in the log when a phone's Wi-Fi starts spiking, at the panel's
+    /// own threshold, and when it stops.
+    ///
+    /// **Why.** The panel showed spikes up to 350 ms on 2026-10-17 and none
+    /// could be reproduced an hour later: they were never written anywhere,
+    /// so neither their frequency nor what came with them could be read.
+    /// </summary>
+    private void WatchPings(string serial)
+    {
+        if (!_pings.TryGetValue(serial, out var spikes))
+        {
+            return;
+        }
+
+        var (count, worst) = spikes.Since(DateTimeOffset.UtcNow);
+
+        if (count >= PingSpikes.Enough)
+        {
+            if (_spiky.Add(serial))
+            {
+                LogPingSpikes(serial, count, worst);
+            }
+        }
+        else if (_spiky.Remove(serial))
+        {
+            LogPingSpikesOver(serial);
+        }
     }
 
     /// <summary>Silent readings in a row, by serial.</summary>
@@ -5407,6 +5442,16 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Information,
         Message = "Le son du jeu est revenu sur l'appareil {serial}.")]
     private partial void LogSoundBack(string serial);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "Pics de latence Wi-Fi vers l'appareil {serial} : {count} en une minute, jusqu'à {worst} ms.")]
+    private partial void LogPingSpikes(string serial, int count, long worst);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Les pics de latence Wi-Fi vers l'appareil {serial} ont cessé.")]
+    private partial void LogPingSpikesOver(string serial);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Téléphone {device} endormi au clic : réveillé.")]
     private partial void LogPhoneWoken(string device);

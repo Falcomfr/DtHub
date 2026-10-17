@@ -48,6 +48,30 @@ public sealed class DeviceRegistryTests : IDisposable
     };
 
     [Fact]
+    public async Task Une_presence_dans_la_minute_ne_reecrit_pas_le_registre()
+    {
+        // devices.json was rewritten every four to six seconds while the
+        // panel showed (2026-10-17), the last sighting moving each time.
+        var seen = new DateTimeOffset(2026, 10, 17, 12, 0, 0, TimeSpan.Zero);
+
+        await _registry.UpsertAsync(Device() with { LastSeenUtc = seen }, CancellationToken.None);
+        await _registry.UpsertAsync(Device() with { LastSeenUtc = seen.AddSeconds(30) }, CancellationToken.None);
+
+        Assert.Equal(seen, Assert.Single(await _registry.GetKnownAsync(CancellationToken.None)).LastSeenUtc);
+    }
+
+    [Fact]
+    public async Task Une_presence_plus_tardive_avance_la_date()
+    {
+        var seen = new DateTimeOffset(2026, 10, 17, 12, 0, 0, TimeSpan.Zero);
+
+        await _registry.UpsertAsync(Device() with { LastSeenUtc = seen }, CancellationToken.None);
+        await _registry.UpsertAsync(Device() with { LastSeenUtc = seen.AddMinutes(2) }, CancellationToken.None);
+
+        Assert.Equal(seen.AddMinutes(2), Assert.Single(await _registry.GetKnownAsync(CancellationToken.None)).LastSeenUtc);
+    }
+
+    [Fact]
     public async Task Un_registre_neuf_est_vide()
     {
         Assert.Empty(await _registry.GetKnownAsync(CancellationToken.None));

@@ -97,6 +97,17 @@ public sealed class DeviceRegistry : IDeviceRegistry, IDisposable
                 stored.LastKnownAddress ??= previous.LastKnownAddress;
                 stored.LastKnownPort ??= previous.LastKnownPort;
 
+                // A sighting within the minute keeps the previous one: the
+                // file is then unchanged and not rewritten, where every sweep
+                // rewrote it every four to six seconds (2026-10-17). Nothing
+                // reads it finer than a day.
+                if (previous.LastSeenUtc is { } before
+                    && stored.LastSeenUtc is { } now
+                    && now - before < TimeSpan.FromMinutes(1))
+                {
+                    stored.LastSeenUtc = before;
+                }
+
                 document.Devices[index] = stored;
             }
         }, cancellationToken).ConfigureAwait(false);
