@@ -17,15 +17,15 @@ namespace DtHub.Infrastructure.Scrcpy;
 /// the frame and never the foreground window. See
 /// <c>third_party/sdl/MODIFICATIONS.md</c>.
 ///
-/// Only scrcpy 4.1's own SDL3.dll is replaced, recognised by its digest: a
+/// Only scrcpy 5.0.1's own SDL3.dll is replaced, recognised by its digest: a
 /// later scrcpy carries another SDL, and an older one put over it would
 /// break it. And the original comes back if scrcpy no longer starts with
 /// ours: no window at all would be worse than no accents in tabs.
 /// </summary>
 public sealed partial class SdlFocusFix
 {
-    /// <summary>SDL3.dll as shipped in scrcpy-win64-v4.1.zip.</summary>
-    public const string OriginalSha256 = "0619eb2da6032984dc6e2098897aeacdbd66b0415bb87bc03e628159ba60b15d";
+    /// <summary>SDL3.dll as shipped in scrcpy-win64-v5.0.1.zip.</summary>
+    public const string OriginalSha256 = "288aaf5b4f246bd84c276351867e3132cfcd9b0a9d25fb679c8d94b30cdf333e";
 
     private const string ResourceName = "DtHub.Infrastructure.SDL3.dll";
 

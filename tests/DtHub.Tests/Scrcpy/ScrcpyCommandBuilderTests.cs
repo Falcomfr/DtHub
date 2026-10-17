@@ -243,6 +243,26 @@ public class ScrcpyCommandBuilderTests
     }
 
     [Fact]
+    public void Le_survol_de_la_souris_n_est_pas_envoye_au_jeu()
+    {
+        // A click or a drag of the left button already reaches the phone as
+        // a finger; only the hover went as a mouse, SOURCE_MOUSE in the v4.1
+        // server's Controller, which is what made Chrome behave as on a
+        // computer and select text on a drag.
+        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments("USB0001", "T", ScrcpyOptions.Default);
+
+        Assert.Contains("--no-mouse-hover", arguments);
+    }
+
+    [Fact]
+    public void Le_clavier_d_android_n_est_pas_dessine_pour_rien()
+    {
+        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments("USB0001", "T", ScrcpyOptions.Default);
+
+        Assert.Contains("--display-ime-policy=hide", arguments);
+    }
+
+    [Fact]
     public void Une_fenetre_de_jeu_ne_laisse_pas_de_nettoyeur_sur_le_telephone()
     {
         // Measured on the 13T Pro on 2026-10-17: each game session's CleanUp

@@ -132,6 +132,21 @@ public sealed partial class JsonDocumentStore<T> : IDocumentStore<T>, IDisposabl
             }
 
             var json = JsonSerializer.Serialize(document, SerializerOptions);
+
+            // Nothing new since the last write: devices.json was rewritten
+            // every four to six seconds and settings.json every thirty while
+            // the panel showed, most of the time unchanged (2026-10-17). Each
+            // write is a new file and a rename, which the antivirus scans.
+            //
+            // Compared with the file itself rather than with what this store
+            // last wrote: a restore or a hand edit in between would otherwise
+            // have had its replacement skipped.
+            if (File.Exists(FilePath)
+                && await File.ReadAllTextAsync(FilePath, cancellationToken).ConfigureAwait(false) == json)
+            {
+                return;
+            }
+
             var temporary = FilePath + ".nouveau";
 
             await File.WriteAllTextAsync(temporary, json, cancellationToken).ConfigureAwait(false);

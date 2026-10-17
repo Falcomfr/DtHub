@@ -10472,3 +10472,40 @@ colonne de détail jusque-là vide pour les quêtes. Une quête de la rubrique
 95 seulement des 128 le portent. Le catalogue embarqué reçoit les rythmes du
 jour et le schéma passe à 17, sans quoi un cache déjà fusionné aurait dit
 toutes les quêtes « faites une fois » jusqu'au prochain changement du site.
+
+## D200 - scrcpy 5.0.1, pour le décodage vidéo par la carte graphique
+
+**2026-10-17 - Acceptée, mesurée sur le 13T Pro**
+
+scrcpy 5.0 décode la vidéo sur la carte graphique du PC (D3D11VA sous
+Windows), avec repli automatique sur le processeur. Mesuré en jeu, même
+compte, même carte peuplée, 1080p à 30 ips, 30 s immobile :
+
+| | scrcpy 4.1 | scrcpy 5.0.1 |
+|---|---|---|
+| Processeur du PC, fenêtre du jeu | 9,0 % d'un cœur | 2,4 % |
+| Décodeur vidéo de la carte graphique | 0 % | 1,1 % |
+
+Ce que la montée de version a demandé :
+
+- **La première image.** Décodée sur la carte graphique, scrcpy écrit
+  « Texture (D3D11VA): 1920x1080 » au lieu de « Texture: 1920x1080 »
+  (`interop_d3d11va.c`) : sans adapter la reconnaissance, toutes les fenêtres
+  auraient passé pour noires.
+- **SDL 3.4.18.** Le correctif des accents en onglets est reconstruit sur la
+  version que porte scrcpy 5.0.1 ; `SDL_windowsevents.c` n'a pas changé depuis
+  3.4.12. Les 103 fonctions SDL qu'importe `scrcpy.exe` sont toutes exportées.
+  Vérifié en jeu : `éèà?` s'écrit en mode onglets.
+- **Rien d'autre.** Les sorties de `--list-encoders` et `--list-apps` sont
+  identiques à la 4.1, toutes les options passées existent encore.
+
+**Le son.** En 4.1, la capture `playback` ne prenait que l'usage « média » ;
+la 5.0 les demande tous (alarme, notification, sonnerie, appel, jeu...). Une
+notification envoyée pendant la capture a pourtant sonné sur le téléphone, pas
+sur le PC : Android ne laisse pas tout prendre. Le son du jeu lui-même n'a pas
+été écouté ce jour-là, le joueur l'ayant coupé dans le jeu ; l'usage « média »
+reste dans la liste.
+
+Écartée en même temps : arrêter les serveurs scrcpy orphelins. Tuer le client
+de force arrête son serveur en moins de 4 s (mesuré sur le Mi 9T Pro), et 16
+jours de journaux n'en montrent aucun resté en vie.

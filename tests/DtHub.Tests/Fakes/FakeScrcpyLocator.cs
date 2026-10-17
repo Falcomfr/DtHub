@@ -8,7 +8,7 @@ public sealed class FakeScrcpyLocator(string path = @"C:\Dev\DTHub\scrcpy\scrcpy
 {
     public string Path { get; } = path;
 
-    public string Version => "4.1.0";
+    public string Version => "5.0.1";
 
     /// <summary>
     /// What <see cref="TryGetInstalledPath"/> returns: set, by

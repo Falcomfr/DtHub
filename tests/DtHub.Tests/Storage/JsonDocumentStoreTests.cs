@@ -59,6 +59,53 @@ public sealed class JsonDocumentStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task Un_document_inchange_n_est_pas_reecrit()
+    {
+        // Seen on 2026-10-17: devices.json rewritten every four to six
+        // seconds and settings.json every thirty while the panel showed,
+        // most of the time with nothing changed.
+        using var store = Store();
+        var document = new Reglages { Nom = "Jeux" };
+
+        await store.SaveAsync(document, CancellationToken.None);
+        var old = new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        File.SetLastWriteTimeUtc(Path0, old);
+
+        await store.SaveAsync(document with { }, CancellationToken.None);
+
+        Assert.Equal(old, File.GetLastWriteTimeUtc(Path0));
+    }
+
+    [Fact]
+    public async Task Un_fichier_change_par_ailleurs_est_bien_remplace()
+    {
+        using var store = Store();
+        var document = new Reglages { Nom = "Jeux" };
+
+        await store.SaveAsync(document, CancellationToken.None);
+        await File.WriteAllTextAsync(Path0, """{ "nom": "modifié à la main" }""");
+
+        await store.SaveAsync(document, CancellationToken.None);
+
+        Assert.Equal("Jeux", (await store.LoadAsync(CancellationToken.None)).Nom);
+    }
+
+    [Fact]
+    public async Task Un_document_change_est_reecrit()
+    {
+        using var store = Store();
+
+        await store.SaveAsync(new Reglages { Nom = "Jeux" }, CancellationToken.None);
+        var old = new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        File.SetLastWriteTimeUtc(Path0, old);
+
+        await store.SaveAsync(new Reglages { Nom = "Autre" }, CancellationToken.None);
+
+        Assert.NotEqual(old, File.GetLastWriteTimeUtc(Path0));
+        Assert.Equal("Autre", (await store.LoadAsync(CancellationToken.None)).Nom);
+    }
+
+    [Fact]
     public async Task Les_dossiers_manquants_sont_crees_a_l_ecriture()
     {
         var nested = Path.Combine(_directory, "a", "b", "reglages.json");
