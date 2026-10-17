@@ -17,15 +17,6 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
-## [Unreleased]
-
-### Fixed
-
-- An account's line keeps its height when its window opens: the lines
-  below no longer jump.
-- A dragged account takes its new place in the list the moment it is
-  dropped, even several times in a row.
-
 ## [0.9.0] - 2026-10-17
 
 ### Added
@@ -42,6 +33,19 @@ belongs in the commits and in `docs/DECISIONS.md`.
   site gives a level for too few quests.
 - Quest paths head the zone they lead to, and a dungeon's path sits right
   above it.
+- DT Hub uses much less processor while the panel is shown, and almost none
+  while it is minimized.
+- Each game window takes about 160 MB less of the phone's memory.
+- A phone left aside for days no longer slows the panel down.
+
+### Fixed
+
+- An account's line keeps its height when its window opens: the lines
+  below no longer jump.
+- A dragged account takes its new place in the list the moment it is
+  dropped, even several times in a row.
+- The game's sound no longer cuts out on a busy Wi-Fi: it keeps a reserve of
+  its own, as the image does.
 
 ## [0.8.22] - 2026-10-16
 

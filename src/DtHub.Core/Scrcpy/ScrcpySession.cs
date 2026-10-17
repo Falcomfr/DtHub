@@ -102,6 +102,12 @@ public sealed class ScrcpySession
     public bool StopRequested { get; internal set; }
 
     /// <summary>
+    /// True when this window was opened with the phone's sound: only one per
+    /// phone is, the first.
+    /// </summary>
+    public bool CarriesAudio { get; init; }
+
+    /// <summary>
     /// True as soon as the session has been opened at least once.
     ///
     /// An opening failure is already handled during launch, by falling

@@ -119,7 +119,7 @@ public class ScrcpyCommandBuilderTests
         var arguments = ScrcpyCommandBuilder.BuildScreenOffArguments("USB0001");
 
         Assert.Equal(
-            ["--serial=USB0001", "--no-video", "--no-audio", "--no-window", "--turn-screen-off"],
+            ["--serial=USB0001", "--no-video", "--no-audio", "--no-window", "--no-clipboard-autosync", "--turn-screen-off"],
             arguments);
     }
 
@@ -240,6 +240,54 @@ public class ScrcpyCommandBuilderTests
 
         Assert.Contains("--audio-source=playback", arguments);
         Assert.DoesNotContain("--no-audio", arguments);
+    }
+
+    [Fact]
+    public void Une_fenetre_de_jeu_ne_laisse_pas_de_nettoyeur_sur_le_telephone()
+    {
+        // Measured on the 13T Pro on 2026-10-17: each game session's CleanUp
+        // process held 44 MB of private memory, on a phone already reclaiming
+        // with kswapd0, for nothing: a game window changes none of the
+        // settings it restores.
+        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments("USB0001", "T", ScrcpyOptions.Default);
+
+        Assert.Contains("--no-cleanup", arguments);
+    }
+
+    [Fact]
+    public void La_session_qui_eteint_l_ecran_garde_son_nettoyeur_et_ne_suit_pas_le_presse_papiers()
+    {
+        // Its CleanUp is what lights the screen back when it dies. Its
+        // clipboard listener, though, only doubled every copy.
+        var arguments = ScrcpyCommandBuilder.BuildScreenOffArguments("USB0001");
+
+        Assert.DoesNotContain("--no-cleanup", arguments);
+        Assert.Contains("--no-clipboard-autosync", arguments);
+    }
+
+    [Theory]
+    [InlineData(36)]
+    [InlineData(30)]
+    public void Le_son_garde_deux_cents_millisecondes_de_reserve(int sdk)
+    {
+        // Heard on 2026-10-17, the 13T Pro on a Wi-Fi resending a third of
+        // its packets: with scrcpy's 50 ms the sound cut out several times a
+        // minute on the PC, with 200 ms not once over the same minute.
+        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
+            "USB0001",
+            "T",
+            ScrcpyOptions.Default with { AudioEnabled = true, DeviceSdkVersion = sdk });
+
+        Assert.Contains("--audio-buffer=200", arguments);
+    }
+
+    [Fact]
+    public void Sans_son_la_reserve_ne_parait_pas()
+    {
+        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
+            "USB0001", "T", ScrcpyOptions.Default with { AudioEnabled = false });
+
+        Assert.DoesNotContain(arguments, a => a.StartsWith("--audio-buffer", StringComparison.Ordinal));
     }
 
     [Theory]

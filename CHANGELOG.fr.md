@@ -11,15 +11,6 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
-## [Unreleased]
-
-### Corrigé
-
-- La ligne d'un compte garde sa hauteur quand sa fenêtre s'ouvre : les
-  lignes du dessous ne sautent plus.
-- Un compte déplacé prend sa nouvelle place dans la liste dès qu'on le
-  lâche, même plusieurs fois de suite.
-
 ## [0.9.0] - 2026-10-17
 
 ### Ajouté
@@ -36,6 +27,20 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
   niveaux : le site en donne pour trop peu de quêtes.
 - Les chemins de quêtes ouvrent la zone où ils mènent, et le chemin d'un
   donjon se range juste avant lui.
+- DT Hub consomme beaucoup moins de processeur quand le panneau est affiché,
+  et presque rien quand il est réduit.
+- Chaque fenêtre de jeu prend environ 160 Mo de mémoire de moins sur le
+  téléphone.
+- Un téléphone laissé de côté depuis des jours ne ralentit plus le panneau.
+
+### Corrigé
+
+- La ligne d'un compte garde sa hauteur quand sa fenêtre s'ouvre : les
+  lignes du dessous ne sautent plus.
+- Un compte déplacé prend sa nouvelle place dans la liste dès qu'on le
+  lâche, même plusieurs fois de suite.
+- Le son du jeu ne se coupe plus sur un Wi-Fi chargé : il garde sa propre
+  réserve, comme l'image.
 
 ## [0.8.22] - 2026-10-16
 

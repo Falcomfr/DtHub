@@ -385,6 +385,28 @@ public partial class ConfiguratorWindow : Window
 
     private void OnMinimize(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
 
+    /// <summary>
+    /// Minimized, the panel stays visible to WPF: its sweep kept running,
+    /// some ninety adb launches a minute for a window nobody saw (measured
+    /// on 2026-10-17). It stops as when hidden, and comes back with the panel.
+    /// </summary>
+    protected override async void OnStateChanged(EventArgs e)
+    {
+        base.OnStateChanged(e);
+
+        if (WindowState == WindowState.Minimized)
+        {
+            _poll.Stop();
+            return;
+        }
+
+        if (IsVisible && !_poll.IsEnabled)
+        {
+            _poll.Start();
+            await PollSafelyAsync().ConfigureAwait(true);
+        }
+    }
+
     private void OnHeightDrag(object sender, DragDeltaEventArgs e) =>
         Height = Math.Clamp(ActualHeight + e.VerticalChange, MinHeight, MaxHeight);
 

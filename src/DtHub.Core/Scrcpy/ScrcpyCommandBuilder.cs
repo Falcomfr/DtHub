@@ -13,6 +13,9 @@ namespace DtHub.Core.Scrcpy;
 /// </summary>
 public static class ScrcpyCommandBuilder
 {
+    /// <summary>The sound's own buffer, see where it is added.</summary>
+    public const int AudioBufferMs = 200;
+
     /// <summary>
     /// Title of the game window: the name chosen by the user, alone, the
     /// icon already saying the product. No technical identifier appears in
@@ -172,12 +175,29 @@ public static class ScrcpyCommandBuilder
             {
                 arguments.Add("--audio-source=playback");
             }
+
+            // **Heard on 2026-10-17**, the 13T Pro on a Wi-Fi resending a
+            // third of its packets: with scrcpy's 50 ms the sound cut out
+            // several times a minute, with 200 ms not once. The image has its
+            // own buffer, sized on the link; the sound had none of its own.
+            // It arrives 0.15 s later, which a turn-based game does not feel,
+            // and neither the image nor the clicks go through it.
+            arguments.Add("--audio-buffer=" + AudioBufferMs.ToString(CultureInfo.InvariantCulture));
         }
 
         if (!sanitized.ClipboardSyncEnabled)
         {
             arguments.Add("--no-clipboard-autosync");
         }
+
+        // **Measured on the 13T Pro on 2026-10-17**: scrcpy leaves beside each
+        // server a CleanUp process, 44 MB of private memory each, on a phone
+        // already reclaiming memory with kswapd0. It restores at the end what
+        // the session changed: show touches, stay awake, screen timeout, IME
+        // policy, screen power. A game window changes none of them; the
+        // screen is held off by its own session, which keeps its CleanUp to
+        // light it back. Read in the v4.1 server, CleanUp.java.
+        arguments.Add("--no-cleanup");
 
         if (sanitized.KeepDeviceAwake)
         {
@@ -269,6 +289,10 @@ public static class ScrcpyCommandBuilder
             "--no-video",
             "--no-audio",
             "--no-window",
+
+            // Its clipboard listener only set every copy once more on the
+            // phone, on top of the game windows'.
+            "--no-clipboard-autosync",
             "--turn-screen-off",
         ];
     }

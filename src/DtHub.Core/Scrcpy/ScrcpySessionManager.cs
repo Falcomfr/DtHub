@@ -305,6 +305,8 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
 
         var session = new ScrcpySession(sessionId, target, windowTitle, process)
         {
+            CarriesAudio = options.AudioEnabled,
+
             // The display keeps a fixed resolution: the window is
             // computed to its ratio, on its client area.
             SourceAspectRatio = options is { UseVirtualDisplay: true, VirtualDisplayHeight: > 0 }

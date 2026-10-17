@@ -10,15 +10,6 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
-## [Unreleased]
-
-### Corregido
-
-- La línea de una cuenta conserva su altura al abrirse su ventana: las
-  líneas de abajo ya no saltan.
-- Una cuenta arrastrada ocupa su nuevo lugar en la lista en cuanto se
-  suelta, incluso varias veces seguidas.
-
 ## [0.9.0] - 2026-10-17
 
 ### Añadido
@@ -36,6 +27,19 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
   el sitio lo da para muy pocas misiones.
 - Los caminos de misiones encabezan la zona a la que llevan, y el camino de
   una mazmorra queda justo encima de ella.
+- DT Hub usa mucho menos procesador con el panel visible, y casi nada cuando
+  está minimizado.
+- Cada ventana de juego ocupa unos 160 MB menos de memoria en el teléfono.
+- Un teléfono apartado desde hace días ya no ralentiza el panel.
+
+### Corregido
+
+- La línea de una cuenta conserva su altura al abrirse su ventana: las
+  líneas de abajo ya no saltan.
+- Una cuenta arrastrada ocupa su nuevo lugar en la lista en cuanto se
+  suelta, incluso varias veces seguidas.
+- El sonido del juego ya no se corta con un Wi-Fi cargado: guarda su propia
+  reserva, como la imagen.
 
 ## [0.8.22] - 2026-10-16
 
