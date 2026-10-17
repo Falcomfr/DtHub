@@ -678,37 +678,66 @@ public class DeviceDiscoveryServiceTests
     }
 
     [Fact]
-    public async Task Une_reponse_d_ecran_incomprise_est_signalee_une_fois_par_telephone()
+    public async Task Chaque_changement_de_l_ecran_est_signale_une_fois_avec_la_reponse()
     {
-        // Two Galaxy S25 never showed the "Switch off" line: their answer
-        // has to reach the log to be read.
+        // A Galaxy S25 never showed the "Switch off" line and its log said
+        // nothing (2026-10-17): every verdict has to reach it, not only the
+        // unreadable one.
+        const string allume = "Display 1\n    powerMode=On";
+        const string eteint = "Display 1\n    powerMode=Off";
+        const string illisible = "Ecran 1\n    mode=allume";
         var adb = new FakeAdbClient()
-            .WithShell("dumpsys SurfaceFlinger --displays", "Ecran 1\n    mode=allume");
+            .WithShellChanging("dumpsys SurfaceFlinger --displays", allume, allume, eteint, illisible, illisible);
 
         using var service = new DeviceDiscoveryService(adb, new InMemoryDeviceRegistry());
-        List<(string Serial, string Dump)> signales = [];
-        service.PanelUnread += (serial, dump) => signales.Add((serial, dump));
+        List<(string Serial, PanelReading Reading)> signales = [];
+        service.PanelRead += (serial, reading) => signales.Add((serial, reading));
 
-        Assert.Null(await service.IsPanelLitAsync("USB0001"));
-        Assert.Null(await service.IsPanelLitAsync("USB0001"));
-        Assert.Null(await service.IsPanelLitAsync("USB0002"));
+        for (var i = 0; i < 5; i++)
+        {
+            _ = await service.IsPanelLitAsync("USB0001");
+        }
 
         Assert.Equal(
-            [("USB0001", "Ecran 1\n    mode=allume"), ("USB0002", "Ecran 1\n    mode=allume")],
+            [
+                ("USB0001", new PanelReading(true, allume, Failed: false)),
+                ("USB0001", new PanelReading(false, eteint, Failed: false)),
+                ("USB0001", new PanelReading(null, illisible, Failed: false)),
+            ],
             signales);
     }
 
     [Fact]
-    public async Task Une_reponse_d_ecran_comprise_n_est_pas_signalee()
+    public async Task Chaque_telephone_a_son_premier_releve_d_ecran_signale()
     {
         var adb = new FakeAdbClient()
             .WithShell("dumpsys SurfaceFlinger --displays", "Display 1\n    powerMode=On");
 
         using var service = new DeviceDiscoveryService(adb, new InMemoryDeviceRegistry());
-        var signales = 0;
-        service.PanelUnread += (_, _) => signales++;
+        List<string> signales = [];
+        service.PanelRead += (serial, _) => signales.Add(serial);
 
-        Assert.True(await service.IsPanelLitAsync("USB0001"));
-        Assert.Equal(0, signales);
+        _ = await service.IsPanelLitAsync("USB0001");
+        _ = await service.IsPanelLitAsync("USB0002");
+
+        Assert.Equal(["USB0001", "USB0002"], signales);
+    }
+
+    [Fact]
+    public async Task Une_question_d_ecran_qui_echoue_est_signalee()
+    {
+        var adb = new FakeAdbClient().FailShell("dumpsys SurfaceFlinger --displays");
+
+        using var service = new DeviceDiscoveryService(adb, new InMemoryDeviceRegistry());
+        List<PanelReading> signales = [];
+        service.PanelRead += (_, reading) => signales.Add(reading);
+
+        Assert.Null(await service.IsPanelLitAsync("USB0001"));
+        Assert.Null(await service.IsPanelLitAsync("USB0001"));
+
+        var echec = Assert.Single(signales);
+        Assert.True(echec.Failed);
+        Assert.Null(echec.Lit);
+        Assert.False(string.IsNullOrWhiteSpace(echec.Answer));
     }
 }

@@ -63,3 +63,9 @@ public static class PanelPower
         return lit;
     }
 }
+
+/// <summary>
+/// What a phone answered about its screen: the verdict, and the raw
+/// answer, or the error when the question failed.
+/// </summary>
+public sealed record PanelReading(bool? Lit, string Answer, bool Failed);

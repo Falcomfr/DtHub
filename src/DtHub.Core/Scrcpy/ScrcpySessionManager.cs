@@ -474,16 +474,22 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
             // a second: a panel sweep falling there brought back the line
             // the click had just hidden. Every release waits on this lock,
             // so none can miss it.
+            var confirmed = false;
+
             try
             {
-                await AwaitScreenOffAsync(keeper, cancellationToken).ConfigureAwait(false);
+                confirmed = await AwaitScreenOffAsync(keeper, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
+                var drained = Task.Run(() => DrainAsync(keeper), CancellationToken.None);
+
                 // The account it was started for may have closed meanwhile.
                 if (HasLiveSessionOn(deviceId, except: null))
                 {
                     _screenKeepers[deviceId] = keeper;
+                    ScreenHeld?.Invoke(deviceId, confirmed);
+                    _ = Task.Run(() => WatchScreenKeeperAsync(deviceId, keeper, drained), CancellationToken.None);
                 }
                 else
                 {
@@ -498,10 +504,34 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Waits for scrcpy to say the screen is off, or for the deadline,
-    /// then leaves the rest of its output to be read in the background.
+    /// A screen-off session now holds the phone's screen, by device id, and
+    /// whether scrcpy confirmed the screen off before the deadline. For the
+    /// log: the panel only asks held phones, and a Galaxy S25 never showed
+    /// the "Switch off" line with nothing in its log (2026-10-17).
     /// </summary>
-    private async Task AwaitScreenOffAsync(IProcessSession keeper, CancellationToken cancellationToken)
+    public event Action<string, bool>? ScreenHeld;
+
+    /// <summary>A screen-off session ended, by device id, see <see cref="ScreenRelease" />.</summary>
+    public event Action<string, ScreenRelease>? ScreenReleased;
+
+    /// <summary>
+    /// Raises <see cref="ScreenReleased" /> once the keeper's output is
+    /// over. Still listed then, nobody stopped it: every stop of ours takes
+    /// it off the list before killing it.
+    /// </summary>
+    private async Task WatchScreenKeeperAsync(string deviceId, IProcessSession keeper, Task<string> drained)
+    {
+        var lastLines = await drained.ConfigureAwait(false);
+        var onItsOwn = _screenKeepers.TryGetValue(deviceId, out var listed) && ReferenceEquals(listed, keeper);
+
+        ScreenReleased?.Invoke(deviceId, new ScreenRelease(onItsOwn, keeper.ExitCode, lastLines));
+    }
+
+    /// <summary>
+    /// Waits for scrcpy to say the screen is off, or for the deadline.
+    /// True if it said so.
+    /// </summary>
+    private async Task<bool> AwaitScreenOffAsync(IProcessSession keeper, CancellationToken cancellationToken)
     {
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(ScreenOffTimeout);
@@ -512,7 +542,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
             {
                 if (line.Text.Contains(ScreenOffLine, StringComparison.Ordinal))
                 {
-                    break;
+                    return true;
                 }
             }
         }
@@ -523,19 +553,28 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
             // goes ahead, and the screen will go dark when it can.
         }
 
-        _ = Task.Run(() => DrainAsync(keeper), CancellationToken.None);
+        return false;
     }
 
     /// <summary>
     /// Reads an output nobody needs, so that the process never waits on
-    /// a full pipe.
+    /// a full pipe, and returns its last three lines, scrcpy's reason
+    /// when it stops.
     /// </summary>
-    private static async Task DrainAsync(IProcessSession process)
+    private static async Task<string> DrainAsync(IProcessSession process)
     {
+        var last = new Queue<string>(4);
+
         try
         {
-            await foreach (var _ in process.Output.ReadAllAsync().ConfigureAwait(false))
+            await foreach (var line in process.Output.ReadAllAsync().ConfigureAwait(false))
             {
+                last.Enqueue(line.Text);
+
+                if (last.Count > 3)
+                {
+                    _ = last.Dequeue();
+                }
             }
         }
         catch (OperationCanceledException)
@@ -543,6 +582,8 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
             // The channel closed with the process: the end of the
             // reading, and nothing to report.
         }
+
+        return string.Join(" | ", last);
     }
 
     /// <summary>
@@ -1375,3 +1416,10 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         SessionChanged?.Invoke(this, session);
     }
 }
+
+/// <summary>
+/// How a screen-off session ended: on its own (a Wi-Fi drop, the phone
+/// killing it), or stopped by DT Hub when the last account closed or the
+/// screen was switched off again; its exit code and last output lines.
+/// </summary>
+public sealed record ScreenRelease(bool OnItsOwn, int? ExitCode, string LastLines);

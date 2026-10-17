@@ -341,29 +341,42 @@ public sealed class DeviceDiscoveryService : IDisposable
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            // Same silence taken deliberately as for the other side probes.
+            // Same silence taken deliberately as for the other side probes,
+            // but for the log.
+            Report(serial, new PanelReading(null, exception.Message, Failed: true));
             return null;
         }
 
         var lit = PanelPower.IsLit(dump);
 
-        if (lit is null && !string.IsNullOrWhiteSpace(dump) && _unreadPanels.TryAdd(serial, 0))
-        {
-            PanelUnread?.Invoke(serial, dump);
-        }
+        Report(serial, new PanelReading(lit, dump, Failed: false));
 
         return lit;
     }
 
     /// <summary>
-    /// A phone's screen answer that <see cref="PanelPower" /> did not
-    /// understand, raised once per phone, for the log: two Galaxy S25 never
-    /// showed the "Switch off" line (2026-10-16), and the format of One UI's
-    /// answer was never seen.
+    /// A phone's screen reading, raised on its first and each time the
+    /// verdict changes, for the log. Two Galaxy S25 never showed the
+    /// "Switch off" line, and a log that only spoke of unreadable answers
+    /// said nothing (2026-10-17). A verdict changes when the player lights
+    /// or darkens the screen: a few lines an evening.
     /// </summary>
-    public event Action<string, string>? PanelUnread;
+    public event Action<string, PanelReading>? PanelRead;
 
-    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, byte> _unreadPanels =
+    private void Report(string serial, PanelReading reading)
+    {
+        var state = (reading.Lit, reading.Failed);
+
+        if (_panelStates.TryGetValue(serial, out var last) && last == state)
+        {
+            return;
+        }
+
+        _panelStates[serial] = state;
+        PanelRead?.Invoke(serial, reading);
+    }
+
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, (bool? Lit, bool Failed)> _panelStates =
         new(StringComparer.Ordinal);
 
     /// <summary>
