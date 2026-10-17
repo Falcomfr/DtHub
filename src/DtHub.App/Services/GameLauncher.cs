@@ -114,9 +114,26 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // all: the window vanished and the log stayed silent.
         _sessions.SessionChanged += OnSessionChanged;
 
-        // Two Galaxy S25 never showed the "Switch off" line: their
-        // screen answer goes to the log, once per phone, to be read.
-        _devices.PanelUnread += LogPanelUnread;
+        // Two Galaxy S25 never showed the "Switch off" line, and a log
+        // that only spoke of unreadable answers said nothing: every step
+        // between the setting and the line goes there, on change only.
+        _devices.PanelRead += (serial, reading) => LogPanelRead(
+            serial,
+            reading switch
+            {
+                { Failed: true } => "sans réponse",
+                { Lit: true } => "allumé",
+                { Lit: false } => "éteint",
+                _ => "incompris",
+            },
+            reading.Answer);
+        _sessions.ScreenHeld += (device, confirmed) =>
+            LogScreenHeld(device, confirmed ? "confirmé par le téléphone" : "sans confirmation à l'échéance");
+        _sessions.ScreenReleased += (device, release) => LogScreenReleased(
+            device,
+            release.OnItsOwn ? "s'est arrêtée seule" : "arrêtée par DT Hub",
+            release.ExitCode,
+            release.LastLines);
 
         // Whether to stop the game on close is decided at the moment
         // of closing, not at launch: without this subscription,
@@ -4995,9 +5012,19 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     [LoggerMessage(
-        Level = LogLevel.Warning,
-        Message = "État de l'écran de {Serial} incompris, la ligne « Éteindre » ne s'affichera pas. Réponse du téléphone :\n{Dump}")]
-    private partial void LogPanelUnread(string serial, string dump);
+        Level = LogLevel.Information,
+        Message = "Écran de {Serial} lu {Verdict}. Réponse du téléphone :\n{Answer}")]
+    private partial void LogPanelRead(string serial, string verdict, string answer);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Écran de {Device} tenu éteint, {How}.")]
+    private partial void LogScreenHeld(string device, string how);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "La session qui tient l'écran de {Device} éteint {How}, code {ExitCode}, dernières lignes : {LastLines}")]
+    private partial void LogScreenReleased(string device, string how, int? exitCode, string lastLines);
 
     [LoggerMessage(
         Level = LogLevel.Information,

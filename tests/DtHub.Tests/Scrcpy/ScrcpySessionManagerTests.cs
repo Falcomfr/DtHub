@@ -376,9 +376,63 @@ public class ScrcpySessionManagerTests
             ScreenOffTimeout = TimeSpan.FromMilliseconds(100),
         };
 
+        bool? confirme = null;
+        manager.ScreenHeld += (_, confirmed) => confirme = confirmed;
+
         var session = await manager.StartAsync(Target(), DarkScreen, null, CancellationToken.None);
 
         Assert.Equal(ScrcpySessionState.Running, session.State);
+        Assert.False(confirme);
+    }
+
+    [Fact]
+    public async Task Un_gardien_mort_de_lui_meme_est_signale_avec_ses_derniers_mots()
+    {
+        // A Galaxy S25 never showed the "Switch off" line: a keeper that
+        // died unseen would explain it, the panel only asks held phones.
+        var keeper = new FakeProcessSession(9).Emit(ScreenOffLine);
+        var launcher = new FakeProcessLauncher()
+            .Prepare(new FakeProcessSession(1).Emit(NewDisplayLine))
+            .Prepare(keeper);
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        List<(string Device, bool Confirmed)> tenus = [];
+        manager.ScreenHeld += (device, confirmed) => tenus.Add((device, confirmed));
+        var fin = new TaskCompletionSource<(string, ScreenRelease)>(TaskCreationOptions.RunContinuationsAsynchronously);
+        manager.ScreenReleased += (device, release) => fin.TrySetResult((device, release));
+
+        await manager.StartAsync(Target(), DarkScreen, null, CancellationToken.None);
+
+        Assert.Equal([("MATERIEL123", true)], tenus);
+
+        keeper.Emit("ERROR: Device disconnected");
+        keeper.Exit(1);
+
+        var (appareil, release) = await fin.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+        Assert.Equal("MATERIEL123", appareil);
+        Assert.True(release.OnItsOwn);
+        Assert.Equal(1, release.ExitCode);
+        Assert.Contains("ERROR: Device disconnected", release.LastLines, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Un_gardien_arrete_par_dt_hub_est_signale_comme_tel()
+    {
+        var launcher = new FakeProcessLauncher()
+            .Prepare(new FakeProcessSession(1).Emit(NewDisplayLine))
+            .Prepare(new FakeProcessSession(9).Emit(ScreenOffLine));
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        var fin = new TaskCompletionSource<ScreenRelease>(TaskCreationOptions.RunContinuationsAsynchronously);
+        manager.ScreenReleased += (_, release) => fin.TrySetResult(release);
+
+        var session = await manager.StartAsync(Target(), DarkScreen, null, CancellationToken.None);
+        await manager.StopAsync(session.Id, CancellationToken.None);
+
+        Assert.False((await fin.Task.WaitAsync(TimeSpan.FromSeconds(5))).OnItsOwn);
     }
 
     [Fact]
