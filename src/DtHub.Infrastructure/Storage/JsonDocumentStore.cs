@@ -62,6 +62,8 @@ public sealed partial class JsonDocumentStore<T> : IDocumentStore<T>, IDisposabl
 
     public string FilePath { get; }
 
+    public bool IsUnread => _unread;
+
     public async Task<T> LoadAsync(CancellationToken cancellationToken = default)
     {
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -69,6 +71,8 @@ public sealed partial class JsonDocumentStore<T> : IDocumentStore<T>, IDisposabl
         {
             if (!File.Exists(FilePath))
             {
+                // Gone: nothing left to protect.
+                _unread = false;
                 return new T();
             }
 
@@ -85,6 +89,7 @@ public sealed partial class JsonDocumentStore<T> : IDocumentStore<T>, IDisposabl
                 catch (FileNotFoundException)
                 {
                     // Gone since the check: nothing to protect.
+                    _unread = false;
                     return new T();
                 }
                 catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)

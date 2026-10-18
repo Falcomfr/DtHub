@@ -5203,7 +5203,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private string? IconFor(ScrcpySession session) =>
         _iconDirectory is null ? null : System.IO.Path.Combine(_iconDirectory, "scrcpy.png");
 
-    /// <summary>True if a session is already open on this phone.</summary>
     /// <summary>
     /// A game already open on the phone, the one carrying its sound. A tool
     /// window does not count: it never carries the sound, and counted, it

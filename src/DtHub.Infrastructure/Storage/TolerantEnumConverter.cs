@@ -40,7 +40,7 @@ public sealed class TolerantEnumConverter<TEnum> : JsonConverter<TEnum>
     private static readonly bool IsFlags = typeof(TEnum).IsDefined(typeof(FlagsAttribute), inherit: false);
 
     private static readonly ulong DefinedBits =
-        Enum.GetValues<TEnum>().Aggregate(0UL, (bits, member) => bits | Convert.ToUInt64(member, System.Globalization.CultureInfo.InvariantCulture));
+        Enum.GetValues<TEnum>().Aggregate(0UL, (bits, member) => bits | Bits(member));
 
     /// <summary>
     /// A combination of flags has no member of its own: Control | Shift
@@ -48,8 +48,14 @@ public sealed class TolerantEnumConverter<TEnum> : JsonConverter<TEnum>
     /// set must belong to a member, which still refuses a removed one.
     /// </summary>
     private static bool IsKnown(TEnum value) =>
-        Enum.IsDefined(value)
-        || (IsFlags && (Convert.ToUInt64(value, System.Globalization.CultureInfo.InvariantCulture) & ~DefinedBits) == 0);
+        Enum.IsDefined(value) || (IsFlags && (Bits(value) & ~DefinedBits) == 0);
+
+    /// <summary>
+    /// The value's bits, a negative one included: Convert.ToUInt64 threw an
+    /// overflow on -1 from a hand-edited file, which no reader catches.
+    /// </summary>
+    private static ulong Bits(TEnum value) =>
+        unchecked((ulong)Convert.ToInt64(value, System.Globalization.CultureInfo.InvariantCulture));
 
     public override void Write(Utf8JsonWriter writer, TEnum value, JsonSerializerOptions options) =>
         writer.WriteStringValue(value.ToString());

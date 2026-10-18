@@ -22,6 +22,13 @@ public interface IDocumentStore<T>
     Task SaveAsync(T document, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// True while the file exists but its last read failed: the document
+    /// handed out is the default one, and the store refuses to write it over
+    /// the real file. The caller reads again rather than keep it.
+    /// </summary>
+    bool IsUnread => false;
+
+    /// <summary>
     /// The document as it would be written to disk.
     ///
     /// Here and not on the caller's side: it is the store that knows

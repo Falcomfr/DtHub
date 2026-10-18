@@ -277,4 +277,22 @@ public sealed class JsonDocumentStoreTests : IDisposable
 
         Assert.Contains("Jeux", await File.ReadAllTextAsync(Path0), StringComparison.Ordinal);
     }
+
+    public sealed record AvecModificateurs
+    {
+        public DtHub.Core.Hotkeys.HotkeyModifiers Modifiers { get; set; }
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(64)]
+    public void Un_modificateur_hors_des_valeurs_connues_retombe_sans_faire_tomber_la_lecture(int value)
+    {
+        // A hand-edited file: -1 used to throw an overflow, which no reader
+        // catches, and the settings did not load at all.
+        var read = System.Text.Json.JsonSerializer.Deserialize<AvecModificateurs>(
+            $"{{\"modifiers\": {value}}}", JsonDocumentStore<AvecModificateurs>.SerializerOptions);
+
+        Assert.Equal(DtHub.Core.Hotkeys.HotkeyModifiers.None, read!.Modifiers);
+    }
 }

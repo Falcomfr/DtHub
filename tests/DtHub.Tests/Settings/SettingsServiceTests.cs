@@ -1015,6 +1015,33 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Des_reglages_illisibles_au_demarrage_sont_relus_des_qu_ils_le_redeviennent()
+    {
+        // Held at startup, the file gave the defaults, which must not replace
+        // it; but the service kept them for the whole session, and every
+        // change after that was dropped without a word.
+        await _service.UpdateAsync(s => s.Language = "es", CancellationToken.None);
+
+        var path = Path.Combine(_directory, "settings.json");
+        var service = new SettingsService(new JsonDocumentStore<AppSettingsDocument>(path, NullLogger.Instance))
+        {
+            UnreadRetryDelay = TimeSpan.Zero,
+        };
+
+        using (new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.None))
+        {
+            Assert.NotEqual("es", (await service.GetAsync(CancellationToken.None)).Language);
+        }
+
+        Assert.Equal("es", (await service.GetAsync(CancellationToken.None)).Language);
+
+        await service.UpdateAsync(s => s.StopAppOnClose = true, CancellationToken.None);
+
+        var written = await File.ReadAllTextAsync(path);
+        Assert.Contains("\"es\"", written, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Un_raccourci_a_deux_modificateurs_les_garde_tous_les_deux()
     {
         // Control | Shift has no member of its own: read back as nothing,

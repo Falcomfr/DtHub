@@ -257,4 +257,14 @@ public class DeviceFactoryTests
 
         Assert.Equal("USB0001", device.Id);
     }
+
+    [Fact]
+    public void Un_autre_telephone_au_meme_port_n_herite_pas_du_premier()
+    {
+        // "adb tcpip 5555" below Android 11: the serial is the address and a
+        // fixed port, and the box handed the address to another phone.
+        var known = DeviceFactory.Create(Wireless("192.168.1.20:5555"), XiaomiProperties);
+
+        Assert.Null(DeviceFactory.Match([known], Wireless("192.168.1.20:5555"), "AUTRE456"));
+    }
 }

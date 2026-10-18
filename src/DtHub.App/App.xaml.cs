@@ -921,8 +921,10 @@ public partial class App : Application, IDisposable
     private void ShowWebTool(WebTool tool)
     {
         // Held from the opening, not from Loaded: two quick presses of the
-        // shortcut arrive before Loaded, and opened two windows.
-        if (_webTools.TryGetValue(tool, out var open))
+        // shortcut arrive before Loaded, and opened two windows. Visible and
+        // not merely registered: a window whose opening threw never closes,
+        // and would have kept the tool from ever opening again.
+        if (_webTools.TryGetValue(tool, out var open) && open.IsVisible)
         {
             open.Activate();
 
@@ -960,8 +962,9 @@ public partial class App : Application, IDisposable
     private void ShowAlmanax()
     {
         // Held from the opening, not from Loaded: two quick presses of the
-        // shortcut arrive before Loaded, and opened two windows.
-        if (_almanax is not null)
+        // shortcut arrive before Loaded, and opened two windows. Visible and
+        // not merely registered, for the same reason as the web tools'.
+        if (_almanax is { IsVisible: true })
         {
             _almanax.Activate();
 

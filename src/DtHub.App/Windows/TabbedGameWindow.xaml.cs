@@ -196,8 +196,11 @@ public partial class TabbedGameWindow : Window
         // Only the accounts that have a tab: the list also holds the free
         // windows and the closed accounts, and their places taken as tab
         // places left the bar out of order, or undid a tab dragged.
+        // Distinct: a key listed twice, a hand edit or a merge left over, ran
+        // the place past the end of the bar and threw.
         var tabbed = keys
             .Where(k => Items.Any(t => string.Equals(t.Key, k, StringComparison.Ordinal)))
+            .Distinct(StringComparer.Ordinal)
             .ToList();
 
         for (var wanted = 0; wanted < tabbed.Count; wanted++)

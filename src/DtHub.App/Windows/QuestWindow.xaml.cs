@@ -647,8 +647,9 @@ public partial class QuestWindow : Window
     private void OpenTrackerWindow(bool quests)
     {
         // Held from the opening, not from Loaded: a second click before Loaded
-        // opened a second window.
-        if (_linking is not null)
+        // opened a second window. Visible, so that one whose opening threw
+        // does not hold the place for good.
+        if (_linking is { IsVisible: true })
         {
             _linking.Activate();
 

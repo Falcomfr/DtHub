@@ -112,7 +112,12 @@ public static class AlmanaxProfessions
                 AlmanaxReading.Mentions(name, typed) || AlmanaxReading.Mentions(typed, name)));
     }
 
+    /// <summary>Case and accents aside, as <see cref="AlmanaxReading.Mentions" /> compares.</summary>
     private static bool StartsAlike(string name, string typed) =>
         name.Length > 0
-        && (name.StartsWith(typed, StringComparison.Ordinal) || typed.StartsWith(name, StringComparison.Ordinal));
+        && (Prefix(name, typed) || Prefix(typed, name));
+
+    private static bool Prefix(string text, string start) =>
+        System.Globalization.CultureInfo.InvariantCulture.CompareInfo.IsPrefix(
+            text, start, System.Globalization.CompareOptions.IgnoreCase | System.Globalization.CompareOptions.IgnoreNonSpace);
 }

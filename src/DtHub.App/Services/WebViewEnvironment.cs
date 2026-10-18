@@ -54,12 +54,9 @@ public sealed partial class WebViewEnvironment(IAppPaths paths, ILogger<WebViewE
     /// <summary>
     /// The environment, created on first need then shared. Both
     /// windows thus write into the same profile instead of each
-    /// opening one.
-    /// </summary>
-    /// <summary>
-    /// The environment, created once. A failure is not kept: WebView2 just
-    /// installed, or a user data folder no longer locked, must work at the
-    /// next window, not after a restart.
+    /// opening one. A failure is not kept: WebView2 just installed, or a
+    /// user data folder no longer locked, must work at the next window,
+    /// not after a restart.
     /// </summary>
     public Task<CoreWebView2Environment> GetAsync()
     {

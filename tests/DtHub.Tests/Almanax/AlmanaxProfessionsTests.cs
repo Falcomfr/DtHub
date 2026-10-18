@@ -93,6 +93,7 @@ public class AlmanaxProfessionsTests
     [Theory]
     [InlineData("escultor")]
     [InlineData("escultores")]
+    [InlineData("Escultor")]
     public void Un_escultor_n_est_pas_pris_pour_un_forjador(string query)
     {
         // "herreros y escultores" is the weapon smiths' Spanish name, and it

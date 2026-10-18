@@ -163,8 +163,13 @@ public static class DeviceFactory
             }
         }
 
+        // The same guard as the address's below: a wireless serial is an
+        // address and a port, fixed at 5555 with "adb tcpip", and another
+        // phone given that address carries the same one.
         var bySerial = candidates.FirstOrDefault(
-            d => string.Equals(d.Serial, entry.Serial, StringComparison.Ordinal));
+            d => string.Equals(d.Serial, entry.Serial, StringComparison.Ordinal)
+                 && (string.IsNullOrWhiteSpace(identity)
+                     || d.Id.StartsWith(FallbackIdPrefix, StringComparison.Ordinal)));
 
         if (bySerial is not null)
         {

@@ -23,16 +23,34 @@ public sealed class SettingsService : IDisposable
 
     private AppSettingsDocument? _current;
 
+    /// <summary>When <see cref="_current" /> was read.</summary>
+    private DateTimeOffset _loadedAt;
+
     public SettingsService(IDocumentStore<AppSettingsDocument> store) => _store = store;
+
+    /// <summary>
+    /// How often a file that could not be read is tried again. Held at
+    /// startup, it gave the defaults, which the store refuses to write over
+    /// it; kept for the session, every change after that was dropped without
+    /// a word. Not on every call: a file held for good would slow each one by
+    /// the store's retries.
+    /// </summary>
+    public TimeSpan UnreadRetryDelay { get; init; } = TimeSpan.FromSeconds(10);
+
+    /// <summary>The document in memory, unless it stands for a file not read yet.</summary>
+    private AppSettingsDocument? Held =>
+        _current is not null && (!_store.IsUnread || DateTimeOffset.UtcNow - _loadedAt < UnreadRetryDelay)
+            ? _current
+            : null;
 
     /// <summary>Fired after every successful write.</summary>
     public event EventHandler<AppSettingsDocument>? Changed;
 
     public async Task<AppSettingsDocument> GetAsync(CancellationToken cancellationToken = default)
     {
-        if (_current is not null)
+        if (Held is { } held)
         {
-            return _current;
+            return held;
         }
 
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -56,12 +74,13 @@ public sealed class SettingsService : IDisposable
     /// </summary>
     private async Task<AppSettingsDocument> LoadOrMigrateAsync(CancellationToken cancellationToken)
     {
-        if (_current is not null)
+        if (Held is { } held)
         {
-            return _current;
+            return held;
         }
 
         _current = await _store.LoadAsync(cancellationToken).ConfigureAwait(false);
+        _loadedAt = DateTimeOffset.UtcNow;
 
         if (Migrate(_current))
         {
