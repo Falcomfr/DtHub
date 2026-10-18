@@ -1210,50 +1210,6 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     [RelayCommand]
     private async Task RearrangeAsync() => await _launcher.StackOnActiveAsync().ConfigureAwait(true);
 
-    /// <summary>
-    /// Opens the chosen instance, without touching the others.
-    /// </summary>
-    [RelayCommand]
-    private async Task LaunchInstanceAsync(InstanceRowViewModel? row)
-    {
-        if (row is null)
-        {
-            return;
-        }
-
-        var report = await _launcher.LaunchAsync([row.Instance]).ConfigureAwait(true);
-        Instances.RefreshRunningState();
-
-        Instances.ShowBanner(report.Problems.Count > 0 ? string.Join(" ", report.Problems) : null);
-    }
-
-    /// <summary>Closes then reopens the instance, game included.</summary>
-    [RelayCommand]
-    private async Task RestartAsync(InstanceRowViewModel? row)
-    {
-        if (row is null)
-        {
-            return;
-        }
-
-        var report = await _launcher.RestartAsync(row.Instance).ConfigureAwait(true);
-        Instances.RefreshRunningState();
-
-        Instances.ShowBanner(report.Problems.Count > 0 ? string.Join(" ", report.Problems) : null);
-    }
-
-    [RelayCommand]
-    private async Task StopAsync(InstanceRowViewModel? row)
-    {
-        if (row is null)
-        {
-            return;
-        }
-
-        await _launcher.StopAsync(row.Instance).ConfigureAwait(true);
-        Instances.RefreshRunningState();
-    }
-
     [RelayCommand]
     private async Task ArrangeAsync(CancellationToken cancellationToken)
     {
