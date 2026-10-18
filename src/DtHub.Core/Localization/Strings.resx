@@ -628,8 +628,32 @@ Cross the tests: another device on this port, and this phone on another PC. You 
   <data name="ReducedRenderManual" xml:space="preserve">
     <value>If the image stays blurry, on the phone: while playing, open the game panel (Game Booster on Samsung, Game Turbo on Xiaomi), set this game's performance to Standard, then restart the account.</value>
   </data>
-  <data name="StandardModeRefused" xml:space="preserve">
-    <value>{0}: the phone refused to put back the standard game mode. On the phone, while playing, open the game panel (Game Booster on Samsung, Game Turbo on Xiaomi), set this game's performance to Standard, then restart the account.</value>
+  <data name="GameModeRefused" xml:space="preserve">
+    <value>{0}: the phone refused to change the game mode. On the phone, while playing, open the game panel (Game Booster on Samsung, Game Turbo on Xiaomi), set this game's performance to Standard, then restart the account.</value>
+  </data>
+  <data name="GameModeHeading" xml:space="preserve">
+    <value>Phone game mode</value>
+  </data>
+  <data name="GameModeStandard" xml:space="preserve">
+    <value>Standard (recommended)</value>
+  </data>
+  <data name="GameModePerformance" xml:space="preserve">
+    <value>Performance</value>
+  </data>
+  <data name="GameModeBattery" xml:space="preserve">
+    <value>Battery saving</value>
+  </data>
+  <data name="GameModeNote" xml:space="preserve">
+    <value>Applies when the game next starts (restart button). Modes other than standard can make the image blurry.</value>
+  </data>
+  <data name="QuietReducedRender" xml:space="preserve">
+    <value>Don't warn when the phone reduces the image</value>
+  </data>
+  <data name="StopReducedRenderWarning" xml:space="preserve">
+    <value>Don't warn me again for this account</value>
+  </data>
+  <data name="StandardDidNotHelp" xml:space="preserve">
+    <value>The game is in the standard mode and still reduced: the setting is elsewhere on the phone.</value>
   </data>
   <data name="GameLeftRunning" xml:space="preserve">
     <value>{0} closed, but the game is still running on the phone: it could not be reached. Close it from the phone.</value>

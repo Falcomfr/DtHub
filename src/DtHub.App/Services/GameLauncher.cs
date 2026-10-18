@@ -410,6 +410,43 @@ public sealed partial class GameLauncher : IAsyncDisposable
     public int? ReducedRenderPercent(string key) =>
         _reducedRenders.TryGetValue(key, out var percent) ? percent : null;
 
+    /// <summary>The account the banner's reduction is about, to keep it quiet on request.</summary>
+    public string? ReducedRenderKey { get; private set; }
+
+    /// <summary>
+    /// The game modes the phone offers each account, read with its window's
+    /// measure: known once its window opened in this run.
+    /// </summary>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, GameModes> _gameModes =
+        new(StringComparer.Ordinal);
+
+    public GameModes? GameModesOf(string key) => _gameModes.GetValueOrDefault(key);
+
+    /// <summary>
+    /// The accounts DT Hub put in the standard mode in this run. The mode in
+    /// use is not readable on a profile other than the main one, and this is
+    /// what tells that the standard mode did not help.
+    /// </summary>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, bool> _setStandard =
+        new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// The accounts whose last measure was taken in the standard mode. Kept
+    /// apart from the mode shown: a mode picked while the game runs only
+    /// applies at its next start, and the measure until then says nothing
+    /// of it.
+    /// </summary>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, bool> _measuredInStandard =
+        new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// True when the game is reduced although measured in the standard mode:
+    /// the reduction comes from elsewhere on the phone, and the button that
+    /// puts the standard mode back would only go round in circles.
+    /// </summary>
+    public bool StandardDidNotHelp(string key) =>
+        _reducedRenders.ContainsKey(key) && _measuredInStandard.GetValueOrDefault(key);
+
     /// <summary>
     /// Drops the recovery notice when the phone it promises a window
     /// on has gone away.
@@ -1218,9 +1255,24 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
                     _reducedRender = TimedNotice.Raised(
                         Strings.Format("ReducedRender", session.Target.DisplayName, percent), DateTimeOffset.UtcNow);
+                    ReducedRenderKey = session.Target.Key;
                     LogReducedRender(session.DisplayName, percent);
                 }
             }
+
+            var modes = await _appLauncher
+                .ReadGameModesAsync(session.Serial, session.Target.UserId, session.Target.PackageName, CancellationToken.None)
+                .ConfigureAwait(false);
+
+            if (modes is not null)
+            {
+                _gameModes[session.Target.Key] = modes;
+            }
+
+            // The main profile's mode is read; a profile's is the one DT Hub
+            // set, the only one known there.
+            _measuredInStandard[session.Target.Key] =
+                modes?.Current == "standard" || _setStandard.ContainsKey(session.Target.Key);
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
@@ -3250,21 +3302,57 @@ public sealed partial class GameLauncher : IAsyncDisposable
         ArgumentNullException.ThrowIfNull(instance);
 
         // Closed between the panel and the click: nothing left to fix.
-        if (FindSession(instance) is not { } session)
+        if (FindSession(instance) is null)
         {
             return new LaunchReport(0, []);
         }
 
-        if (!await _appLauncher
-                .SetStandardGameModeAsync(session.Serial, instance.UserId, instance.PackageName, cancellationToken)
+        var report = await SetGameModeAsync(instance, "standard", cancellationToken).ConfigureAwait(false);
+
+        return report.Problems.Count > 0
+            ? report
+            : await RestartAsync(instance, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Puts the account's game in one of the phone's game modes, chosen in
+    /// its settings. Applies at the game's next start, which is left to the
+    /// player: restarting disconnects the character.
+    /// </summary>
+    public async Task<LaunchReport> SetGameModeAsync(
+        DofusInstance instance,
+        string mode,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(instance);
+
+        var serial = FindSession(instance)?.Serial ?? _serials.GetValueOrDefault(instance.DeviceId);
+
+        if (serial is null
+            || !await _appLauncher
+                .SetGameModeAsync(serial, instance.UserId, instance.PackageName, mode, cancellationToken)
                 .ConfigureAwait(false))
         {
-            return new LaunchReport(0, [Strings.Format("StandardModeRefused", instance.DisplayName)]);
+            return new LaunchReport(0, [Strings.Format("GameModeRefused", instance.DisplayName)]);
         }
 
-        LogStandardModeSet(instance.DisplayName);
+        LogGameModeSet(instance.DisplayName, mode);
 
-        return await RestartAsync(instance, cancellationToken).ConfigureAwait(false);
+        if (mode == "standard")
+        {
+            _setStandard[instance.Key] = true;
+        }
+        else
+        {
+            _ = _setStandard.TryRemove(instance.Key, out _);
+        }
+
+        if (_gameModes.TryGetValue(instance.Key, out var known))
+        {
+            _gameModes[instance.Key] = known with { Current = mode };
+        }
+
+        return new LaunchReport(0, []);
     }
 
     /// <summary>
@@ -5463,8 +5551,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     [LoggerMessage(
         Level = LogLevel.Information,
-        Message = "{Window} : mode de jeu Android remis sur standard, relance du jeu.")]
-    private partial void LogStandardModeSet(string window);
+        Message = "{Window} : mode de jeu Android mis sur {Mode}.")]
+    private partial void LogGameModeSet(string window, string mode);
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "{Window} : le signal qui garde l'app éveillée n'est pas passé : {Reason}")]
     private partial void LogKeepAwakeFailed(string window, string reason);

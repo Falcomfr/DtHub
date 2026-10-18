@@ -840,7 +840,9 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
         // The blur the phone adds to a copy of the game: nothing else on
         // screen says it does not come from DT Hub.
-        if (_launcher.ReducedRenderNotice is { Length: > 0 } reduced)
+        // Not for an account the player asked to stop warning about.
+        if (_launcher.ReducedRenderNotice is { Length: > 0 } reduced
+            && Rows.FirstOrDefault(r => r.Key == _launcher.ReducedRenderKey) is not { QuietReducedRender: true })
         {
             lines.Add(BannerLine.Of(reduced));
         }
@@ -1143,6 +1145,43 @@ public sealed partial class InstanceListViewModel : ObservableObject
         await ActOnAsync(row, instance => _launcher.RestoreStandardGameModeAsync(instance), engageDevice: true)
             .ConfigureAwait(true);
 
+    /// <summary>A game mode picked in the account's settings.</summary>
+    private async void OnGameModeRequested(object? sender, InstanceRowViewModel row)
+    {
+        ArgumentNullException.ThrowIfNull(row);
+
+        if (row.RequestedGameMode is not { } mode)
+        {
+            return;
+        }
+
+        await ActOnAsync(row, instance => _launcher.SetGameModeAsync(instance, mode), engageDevice: false)
+            .ConfigureAwait(true);
+
+        row.GameModes = _launcher.GameModesOf(row.Key);
+    }
+
+    private async void OnQuietReducedRenderChanged(object? sender, InstanceRowViewModel row)
+    {
+        ArgumentNullException.ThrowIfNull(row);
+
+        try
+        {
+            await _settings.SetInstanceQuietReducedRenderAsync(row.Key, row.QuietReducedRender).ConfigureAwait(true);
+
+            // As for the ratio: the next sweep would give the old choice back.
+            InvalidateInstances();
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            ShowBanner(exception.Message);
+        }
+        finally
+        {
+            row.IsQuietReducedRenderPending = false;
+        }
+    }
+
     /// <summary>
     /// Takes an application added from the plus button out of the list.
     /// It stays on the phone, and can be ticked again from the same
@@ -1277,6 +1316,8 @@ public sealed partial class InstanceListViewModel : ObservableObject
                 row.ZoomChanged += OnZoomChanged;
                 row.PhoneFormatChanged += OnPhoneFormatChanged;
                 row.StandardModeRequested += OnStandardModeRequested;
+                row.QuietReducedRenderChanged += OnQuietReducedRenderChanged;
+                row.GameModeRequested += OnGameModeRequested;
                 row.ColourChanged += OnColourChanged;
                 row.NameChanged += OnNameChanged;
                 Rows.Add(row);
@@ -1294,7 +1335,17 @@ public sealed partial class InstanceListViewModel : ObservableObject
             // waiting for the next opening says so instead of looking
             // dead. Nothing to show when the window is closed.
             row.RunningZoom = row.IsRunning ? _launcher.ZoomInUse(instance.Key) : null;
-            row.ReducedRenderPercent = row.IsRunning ? _launcher.ReducedRenderPercent(instance.Key) : null;
+            row.ReducedRenderPercent = row.IsRunning && !row.QuietReducedRender
+                ? _launcher.ReducedRenderPercent(instance.Key)
+                : null;
+            row.StandardDidNotHelp = _launcher.StandardDidNotHelp(instance.Key);
+
+            // The same record until the phone says otherwise: reassigning
+            // would rebuild the list under an open settings panel.
+            if (_launcher.GameModesOf(instance.Key) is var modes && !ReferenceEquals(modes, row.GameModes))
+            {
+                row.GameModes = modes;
+            }
         }
 
         // Rows already present did not move: the saved order therefore

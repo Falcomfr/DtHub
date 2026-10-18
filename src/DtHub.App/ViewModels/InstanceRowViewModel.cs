@@ -38,6 +38,7 @@ public sealed partial class InstanceRowViewModel : ObservableObject
         // A checkbox shows its state, unlike the tier and the distance: left
         // to the sweep, a ticked box would read unticked for a few seconds.
         _phoneFormat = instance.PhoneFormat;
+        _quietReducedRender = instance.QuietReducedRender;
     }
 
     private bool _applying;
@@ -534,6 +535,79 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     public bool IsPhoneFormatPending { get; set; }
 
     /// <summary>
+    /// True when the player no longer wants to hear of a resolution reduced
+    /// by the phone for this account: a performance mode kept on purpose.
+    /// </summary>
+    [ObservableProperty]
+    private bool _quietReducedRender;
+
+    /// <summary>True while the choice is being written.</summary>
+    public bool IsQuietReducedRenderPending { get; set; }
+
+    public event EventHandler<InstanceRowViewModel>? QuietReducedRenderChanged;
+
+    partial void OnQuietReducedRenderChanged(bool value)
+    {
+        if (value)
+        {
+            ReducedRenderPercent = null;
+        }
+
+        if (_applying)
+        {
+            return;
+        }
+
+        IsQuietReducedRenderPending = true;
+        QuietReducedRenderChanged?.Invoke(this, this);
+    }
+
+    /// <summary>From the panel: no more warning for this account.</summary>
+    [RelayCommand]
+    private void StopReducedRenderWarning()
+    {
+        IsReducedRenderOpen = false;
+        QuietReducedRender = true;
+    }
+
+    /// <summary>
+    /// True when the game stays reduced in the standard mode: the button
+    /// would go round in circles, so the panel only says what to look for
+    /// on the phone.
+    /// </summary>
+    [ObservableProperty]
+    private bool _standardDidNotHelp;
+
+    /// <summary>
+    /// The phone's game modes for this account, as last read, or <c>null</c>
+    /// before its window opened in this run or on a phone without them.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(GameModeChoices))]
+    [NotifyPropertyChangedFor(nameof(HasGameModes))]
+    private GameModes? _gameModes;
+
+    public bool HasGameModes => GameModes is not null;
+
+    /// <summary>The modes to choose from, the one in use ticked when known.</summary>
+    public IReadOnlyList<GameModeChoice> GameModeChoices =>
+        GameModes is { } modes
+            ? [.. modes.Available.Select(m => new GameModeChoice(m, (m == modes.Current ? "✓ " : "") + GameModeChoice.Label(m)))]
+            : [];
+
+    /// <summary>The mode picked in the settings, for the list to apply.</summary>
+    public string? RequestedGameMode { get; private set; }
+
+    public event EventHandler<InstanceRowViewModel>? GameModeRequested;
+
+    [RelayCommand]
+    private void PickGameMode(string mode)
+    {
+        RequestedGameMode = mode;
+        GameModeRequested?.Invoke(this, this);
+    }
+
+    /// <summary>
     /// True as long as the entered name is not written. The periodic scan must
     /// not replace it with the old one in the meantime: the input would seem
     /// to cancel itself out.
@@ -632,6 +706,21 @@ public sealed partial class InstanceRowViewModel : ObservableObject
             try
             {
                 PhoneFormat = instance.PhoneFormat;
+            }
+            finally
+            {
+                _applying = false;
+            }
+        }
+
+        if (!IsQuietReducedRenderPending && QuietReducedRender != instance.QuietReducedRender)
+        {
+            // Write coming from settings, as for the ratio.
+            _applying = true;
+
+            try
+            {
+                QuietReducedRender = instance.QuietReducedRender;
             }
             finally
             {
@@ -774,4 +863,20 @@ public sealed partial class InstanceRowViewModel : ObservableObject
         IsRenaming = true;
         NameChanged?.Invoke(this, this);
     }
+}
+
+/// <summary>A game mode offered in an account's settings.</summary>
+public sealed record GameModeChoice(string Mode, string Text)
+{
+    /// <summary>
+    /// The mode's name for the player. Standard is recommended: the others
+    /// can draw the game at a reduced resolution (D202).
+    /// </summary>
+    public static string Label(string mode) => mode switch
+    {
+        "standard" => Strings.Get("GameModeStandard"),
+        "performance" => Strings.Get("GameModePerformance"),
+        "battery" => Strings.Get("GameModeBattery"),
+        _ => mode,
+    };
 }

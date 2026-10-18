@@ -571,15 +571,29 @@
                                          TextWrapping="Wrap" Margin="0,0,0,6" />
                               <TextBlock Text="{loc:T ReducedRenderExplain}" TextWrapping="Wrap"
                                          FontSize="{StaticResource FontSmall}" />
-                              <Button Content="{loc:T RestoreStandardMode}" Style="{StaticResource PrimaryButton}"
-                                      HorizontalAlignment="Left" Margin="0,10,0,4"
-                                      Command="{Binding RestoreStandardModeCommand}" />
-                              <TextBlock Text="{loc:T RestoreStandardModeNote}" TextWrapping="Wrap"
+                              <!-- Already standard and still reduced: the
+                                   button would only go round in circles. -->
+                              <StackPanel Visibility="{Binding StandardDidNotHelp,
+                                                       Converter={StaticResource InverseBoolToVisibility}}">
+                                <Button Content="{loc:T RestoreStandardMode}" Style="{StaticResource PrimaryButton}"
+                                        HorizontalAlignment="Left" Margin="0,10,0,4"
+                                        Command="{Binding RestoreStandardModeCommand}" />
+                                <TextBlock Text="{loc:T RestoreStandardModeNote}" TextWrapping="Wrap"
+                                           FontSize="{StaticResource FontSmall}"
+                                           Foreground="{DynamicResource TextMutedBrush}" />
+                              </StackPanel>
+                              <TextBlock Text="{loc:T StandardDidNotHelp}" TextWrapping="Wrap" Margin="0,10,0,0"
                                          FontSize="{StaticResource FontSmall}"
-                                         Foreground="{DynamicResource TextMutedBrush}" />
+                                         Foreground="{DynamicResource WarningBrush}"
+                                         Visibility="{Binding StandardDidNotHelp,
+                                                      Converter={StaticResource BoolToVisibility}}" />
                               <TextBlock Text="{loc:T ReducedRenderManual}" TextWrapping="Wrap" Margin="0,10,0,0"
                                          FontSize="{StaticResource FontSmall}"
                                          Foreground="{DynamicResource TextMutedBrush}" />
+                              <Button Style="{StaticResource LinkButton}" Content="{loc:T StopReducedRenderWarning}"
+                                      HorizontalAlignment="Left" Margin="0,10,0,0"
+                                      FontSize="{StaticResource FontSmall}"
+                                      Command="{Binding StopReducedRenderWarningCommand}" />
                             </StackPanel>
                           </Border>
                         </Popup>
@@ -822,6 +836,38 @@
                                         IsChecked="{Binding PhoneFormat}"
                                         ToolTip="{loc:T PhoneFormatTip}">
                                 <TextBlock Text="{loc:T PhoneFormat}" TextWrapping="Wrap" MaxWidth="220" />
+                              </CheckBox>
+
+                              <!-- Android's game mode, which can draw the game
+                                   at a reduced resolution (D202). Known once
+                                   the window opened in this run. -->
+                              <StackPanel Visibility="{Binding HasGameModes,
+                                                       Converter={StaticResource BoolToVisibility}}">
+                                <Control Style="{StaticResource Groove}" Margin="0,6" />
+
+                                <TextBlock Text="{loc:T GameModeHeading}" Style="{StaticResource SectionLabel}"
+                                           Margin="8,0,0,4" />
+
+                                <ItemsControl ItemsSource="{Binding GameModeChoices}">
+                                  <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                      <Button Style="{StaticResource QuietButton}" Padding="8,5"
+                                              HorizontalContentAlignment="Left"
+                                              Content="{Binding Text}"
+                                              Command="{Binding DataContext.PickGameModeCommand,
+                                                                RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                              CommandParameter="{Binding Mode}" />
+                                    </DataTemplate>
+                                  </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <TextBlock Text="{loc:T GameModeNote}" TextWrapping="Wrap" MaxWidth="220"
+                                           Margin="8,2,8,4" FontSize="{StaticResource FontSmall}"
+                                           Foreground="{DynamicResource TextMutedBrush}" />
+                              </StackPanel>
+
+                              <CheckBox Margin="8,2,8,4" IsChecked="{Binding QuietReducedRender}">
+                                <TextBlock Text="{loc:T QuietReducedRender}" TextWrapping="Wrap" MaxWidth="220" />
                               </CheckBox>
                             </StackPanel>
                           </Border>

@@ -80,6 +80,9 @@ public sealed record DofusInstance
     /// <summary>True to show the game at its phone's own screen ratio.</summary>
     public bool PhoneFormat { get; init; }
 
+    /// <summary>True to say nothing of a resolution reduced by the phone.</summary>
+    public bool QuietReducedRender { get; init; }
+
     /// <summary>
     /// The colour marking this account, or <c>null</c> for none.
     /// Decoration with a job, and severable: it is not part of the key,

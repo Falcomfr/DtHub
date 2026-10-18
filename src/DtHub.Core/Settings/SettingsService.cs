@@ -704,6 +704,28 @@ public sealed class SettingsService : IDisposable
             },
             cancellationToken);
 
+    /// <summary>Stops or resumes warning of a resolution reduced by the phone.</summary>
+    public Task SetInstanceQuietReducedRenderAsync(
+        string key,
+        bool quiet,
+        CancellationToken cancellationToken = default) =>
+        UpdateIfChangedAsync(
+            settings =>
+            {
+                var instance = settings.Instances
+                    .FirstOrDefault(i => string.Equals(i.Key, key, StringComparison.Ordinal));
+
+                if (instance is null || instance.QuietReducedRender == quiet)
+                {
+                    return false;
+                }
+
+                instance.QuietReducedRender = quiet;
+
+                return true;
+            },
+            cancellationToken);
+
     /// <summary>
     /// The accounts that chose a distance of their own. Not the same
     /// question as <see cref="GetInstanceZoomsAsync"/>, which gives every
@@ -1235,6 +1257,7 @@ public sealed class SettingsService : IDisposable
                     Quality = i.Quality,
                     Zoom = i.GameZoom,
                     PhoneFormat = i.PhoneFormat,
+                    QuietReducedRender = i.QuietReducedRender,
                     Colour = i.Colour,
                     PlayedThisWeek = PlaytimeLog.Week(i.Playtime, DateOnly.FromDateTime(DateTime.Now)),
                     IsDeviceConnected = live.Contains(i.Key),

@@ -468,6 +468,13 @@ public sealed class StoredInstance
     public bool PhoneFormat { get; set; }
 
     /// <summary>
+    /// True when the player no longer wants to hear that the phone draws
+    /// this account's game at a reduced resolution: a performance mode kept
+    /// on purpose (D202).
+    /// </summary>
+    public bool QuietReducedRender { get; set; }
+
+    /// <summary>
     /// The colour that marks this account, or <c>null</c> for none.
     ///
     /// **Here <c>null</c> does not mean "follow the shared setting"**,

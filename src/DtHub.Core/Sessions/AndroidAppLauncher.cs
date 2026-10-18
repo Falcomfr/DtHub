@@ -114,7 +114,38 @@ public sealed partial class AndroidAppLauncher : IAppLauncher
     /// mode to `STANDARD`" and refuses an unknown package or mode with exit
     /// code 255.
     /// </summary>
-    public async Task<bool> SetStandardGameModeAsync(
+    public async Task<bool> SetGameModeAsync(
+        string serial,
+        int userId,
+        string packageName,
+        string mode,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var output = await _adb.ShellAsync(
+                serial,
+                ["cmd", "game", "mode", "--user", Text(userId), mode, packageName],
+                null,
+                cancellationToken).ConfigureAwait(false);
+
+            return output.Contains($"`{mode.ToUpperInvariant()}`", StringComparison.Ordinal);
+        }
+        catch (AdbException)
+        {
+            // The refusal is told by the caller, with the way to do it on
+            // the phone, which the phone's reason would not give.
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// "cmd game list-modes" has no --user: it answers for the main profile
+    /// only (13T Pro, 2026-10-18), and neither does "dumpsys game" tell a
+    /// profile's mode. The modes offered are the game's, the same on every
+    /// profile; the one in use is only known on the main one.
+    /// </summary>
+    public async Task<GameModes?> ReadGameModesAsync(
         string serial,
         int userId,
         string packageName,
@@ -124,19 +155,45 @@ public sealed partial class AndroidAppLauncher : IAppLauncher
         {
             var output = await _adb.ShellAsync(
                 serial,
-                ["cmd", "game", "mode", "--user", Text(userId), "standard", packageName],
+                ["cmd", "game", "list-modes", packageName],
                 null,
                 cancellationToken).ConfigureAwait(false);
 
-            return output.Contains("STANDARD", StringComparison.Ordinal);
+            var modes = ParseGameModes(output);
+
+            return userId == 0 ? modes : modes is null ? null : modes with { Current = null };
         }
         catch (AdbException)
         {
-            // The refusal is told by the caller, with the way to do it on
-            // the phone, which the phone's reason would not give.
-            return false;
+            // No game service before Android 13: nothing to choose from,
+            // which the settings show by leaving the section out.
+            return null;
         }
     }
+
+    /// <summary>
+    /// Reads "current mode: performance, available game modes:
+    /// [standard,performance,battery,custom]". "custom" is left out: it only
+    /// holds what "cmd game set" puts there, nothing a player would pick.
+    /// </summary>
+    public static GameModes? ParseGameModes(string output)
+    {
+        var match = GameModesPattern().Match(output);
+
+        if (!match.Success)
+        {
+            return null;
+        }
+
+        string[] available = [.. match.Groups[2].Value
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(m => m != "custom")];
+
+        return available.Length == 0 ? null : new GameModes(match.Groups[1].Value, available);
+    }
+
+    [GeneratedRegex(@"current mode: (\w+), available game modes: \[([^\]]*)\]")]
+    private static partial Regex GameModesPattern();
 
     /// <summary>
     /// Prepares the Android profile, or says why it cannot host a

@@ -628,8 +628,32 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
   <data name="ReducedRenderManual" xml:space="preserve">
     <value>Si l'image reste floue, sur le téléphone : pendant la partie, ouvrez le panneau de jeu (Game Booster chez Samsung, Game Turbo chez Xiaomi), mettez les performances de ce jeu sur Standard, puis relancez le compte.</value>
   </data>
-  <data name="StandardModeRefused" xml:space="preserve">
-    <value>{0} : le téléphone a refusé de remettre le mode jeu standard. Sur le téléphone, pendant la partie, ouvrez le panneau de jeu (Game Booster chez Samsung, Game Turbo chez Xiaomi), mettez les performances de ce jeu sur Standard, puis relancez le compte.</value>
+  <data name="GameModeRefused" xml:space="preserve">
+    <value>{0} : le téléphone a refusé de changer le mode jeu. Sur le téléphone, pendant la partie, ouvrez le panneau de jeu (Game Booster chez Samsung, Game Turbo chez Xiaomi), mettez les performances de ce jeu sur Standard, puis relancez le compte.</value>
+  </data>
+  <data name="GameModeHeading" xml:space="preserve">
+    <value>Mode jeu du téléphone</value>
+  </data>
+  <data name="GameModeStandard" xml:space="preserve">
+    <value>Standard (recommandé)</value>
+  </data>
+  <data name="GameModePerformance" xml:space="preserve">
+    <value>Performance</value>
+  </data>
+  <data name="GameModeBattery" xml:space="preserve">
+    <value>Économie d'énergie</value>
+  </data>
+  <data name="GameModeNote" xml:space="preserve">
+    <value>S'applique au prochain lancement du jeu (bouton Relancer). Les modes autres que standard peuvent rendre l'image floue.</value>
+  </data>
+  <data name="QuietReducedRender" xml:space="preserve">
+    <value>Ne pas prévenir si le téléphone réduit l'image</value>
+  </data>
+  <data name="StopReducedRenderWarning" xml:space="preserve">
+    <value>Ne plus me prévenir pour ce compte</value>
+  </data>
+  <data name="StandardDidNotHelp" xml:space="preserve">
+    <value>Le jeu est en mode standard et reste réduit : le réglage se trouve ailleurs sur le téléphone.</value>
   </data>
   <data name="GameLeftRunning" xml:space="preserve">
     <value>{0} s'est fermé, mais le jeu tourne encore sur le téléphone : il est resté injoignable. Arrêtez-le depuis le téléphone.</value>

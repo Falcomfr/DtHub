@@ -10,6 +10,12 @@ public sealed record AppLaunchResult(bool Succeeded, string? UserMessage = null,
 }
 
 /// <summary>
+/// Android's game modes for a game: the one in use, when known, and those
+/// a player can choose, "standard" first when offered.
+/// </summary>
+public sealed record GameModes(string? Current, IReadOnlyList<string> Available);
+
+/// <summary>
 /// Opens an application on a given Android profile and display.
 /// This is the piece that makes any modification to scrcpy
 /// unnecessary: the launch goes through ADB, which accepts
@@ -57,10 +63,21 @@ public interface IAppLauncher
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Puts the game back in Android's standard game mode on a profile, and
-    /// says whether the phone accepted. Takes effect at the next start.
+    /// Puts the game in one of Android's game modes on a profile, and says
+    /// whether the phone accepted. Takes effect at the next start.
     /// </summary>
-    Task<bool> SetStandardGameModeAsync(
+    Task<bool> SetGameModeAsync(
+        string serial,
+        int userId,
+        string packageName,
+        string mode,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// The game modes the phone offers for the game, or <c>null</c> when it
+    /// has none to offer (before Android 13, or no answer).
+    /// </summary>
+    Task<GameModes?> ReadGameModesAsync(
         string serial,
         int userId,
         string packageName,

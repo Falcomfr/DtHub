@@ -10611,3 +10611,22 @@ ne réduit pas forcément l'image sur un autre téléphone : alerter sur le nom
 retirerait au joueur un mode qu'il a choisi pour rien. Le bouton n'est pas
 automatique pour la même raison, et parce que la relance déconnecte le
 personnage.
+
+**Le mode se choisit aussi dans les réglages du compte**, à la demande de
+l'utilisateur : les modes que le téléphone propose (`cmd game list-modes`,
+sans `custom`, qui ne tient que ce que pose `cmd game set`), « Standard
+(recommandé) » en tête, appliqués au prochain lancement du jeu. `list-modes`
+n'accepte pas `--user` et `dumpsys game` ne dit pas le mode d'un profil :
+le mode en cours n'est coché que sur le profil principal, ou quand DT Hub
+l'a posé lui-même.
+
+**« Ne plus me prévenir pour ce compte »** masque la puce et le bandeau pour
+un joueur qui garde un mode performance exprès ; une case des réglages du
+compte le défait.
+
+**Standard sans effet.** Si une mesure prise en mode standard trouve encore
+une réduction, elle vient d'ailleurs sur le téléphone : le panneau retire
+son bouton, qui tournerait en rond, et ne garde que la marche à suivre. Le
+constat repose sur le mode au moment de la mesure, pas sur le mode affiché :
+choisi pendant la partie, il ne compte qu'au lancement suivant. Non vérifié
+sur un téléphone : le 13T Pro ne réduit jamais en standard.

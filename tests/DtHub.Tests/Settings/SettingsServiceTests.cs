@@ -650,6 +650,20 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Un_compte_peut_ne_plus_etre_prevenu_d_une_image_reduite()
+    {
+        // A player who keeps Game Booster's performance mode on purpose.
+        await _service.MergeInstancesAsync([Instance(0)], CancellationToken.None);
+        var key = Instance(0).Key;
+
+        await _service.SetInstanceQuietReducedRenderAsync(key, true, CancellationToken.None);
+        Assert.True(Assert.Single(await _service.MergeInstancesAsync([Instance(0)], CancellationToken.None)).QuietReducedRender);
+
+        await _service.SetInstanceQuietReducedRenderAsync(key, false, CancellationToken.None);
+        Assert.False(Assert.Single(await _service.MergeInstancesAsync([Instance(0)], CancellationToken.None)).QuietReducedRender);
+    }
+
+    [Fact]
     public async Task Seuls_les_comptes_qui_ont_choisi_leur_distance_en_ont_une_propre()
     {
         // The launcher let the custom density give way to an account's own

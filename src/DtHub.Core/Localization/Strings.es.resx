@@ -628,8 +628,32 @@ Cruza las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC.
   <data name="ReducedRenderManual" xml:space="preserve">
     <value>Si la imagen sigue borrosa, en el teléfono: durante la partida, abre el panel de juego (Game Booster en Samsung, Game Turbo en Xiaomi), pon el rendimiento de este juego en Estándar y reinicia la cuenta.</value>
   </data>
-  <data name="StandardModeRefused" xml:space="preserve">
-    <value>{0}: el teléfono se negó a volver al modo de juego estándar. En el teléfono, durante la partida, abre el panel de juego (Game Booster en Samsung, Game Turbo en Xiaomi), pon el rendimiento de este juego en Estándar y reinicia la cuenta.</value>
+  <data name="GameModeRefused" xml:space="preserve">
+    <value>{0}: el teléfono se negó a cambiar el modo de juego. En el teléfono, durante la partida, abre el panel de juego (Game Booster en Samsung, Game Turbo en Xiaomi), pon el rendimiento de este juego en Estándar y reinicia la cuenta.</value>
+  </data>
+  <data name="GameModeHeading" xml:space="preserve">
+    <value>Modo de juego del teléfono</value>
+  </data>
+  <data name="GameModeStandard" xml:space="preserve">
+    <value>Estándar (recomendado)</value>
+  </data>
+  <data name="GameModePerformance" xml:space="preserve">
+    <value>Rendimiento</value>
+  </data>
+  <data name="GameModeBattery" xml:space="preserve">
+    <value>Ahorro de energía</value>
+  </data>
+  <data name="GameModeNote" xml:space="preserve">
+    <value>Se aplica la próxima vez que se inicie el juego (botón Reiniciar). Los modos distintos del estándar pueden volver borrosa la imagen.</value>
+  </data>
+  <data name="QuietReducedRender" xml:space="preserve">
+    <value>No avisar si el teléfono reduce la imagen</value>
+  </data>
+  <data name="StopReducedRenderWarning" xml:space="preserve">
+    <value>No volver a avisarme para esta cuenta</value>
+  </data>
+  <data name="StandardDidNotHelp" xml:space="preserve">
+    <value>El juego está en modo estándar y sigue reducido: el ajuste está en otra parte del teléfono.</value>
   </data>
   <data name="GameLeftRunning" xml:space="preserve">
     <value>{0} se cerró, pero el juego sigue abierto en el teléfono: no se pudo contactar. Ciérralo desde el teléfono.</value>

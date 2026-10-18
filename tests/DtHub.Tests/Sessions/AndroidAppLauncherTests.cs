@@ -398,13 +398,13 @@ public class AndroidAppLauncherTests
     }
 
     [Fact]
-    public async Task Le_mode_standard_est_demande_pour_le_profil_de_la_copie()
+    public async Task Le_mode_choisi_est_demande_pour_le_profil_de_la_copie()
     {
         // Answer of the 13T Pro on 2026-10-18, profile 10.
         var adb = new FakeAdbClient()
             .WithShell("cmd game mode", "Set game mode to `STANDARD` for user `10` in game `com.ankama.dofustouch`");
 
-        Assert.True(await Build(adb).SetStandardGameModeAsync(Serial, 10, Package));
+        Assert.True(await Build(adb).SetGameModeAsync(Serial, 10, Package, "standard"));
         Assert.Contains($"cmd game mode --user 10 standard {Package}", adb.ShellCalls);
     }
 
@@ -414,7 +414,36 @@ public class AndroidAppLauncherTests
         // Same phone: exit code 255 with the reason on the output.
         var adb = new FakeAdbClient().FailShell("cmd game mode", AdbErrorKind.Unknown);
 
-        Assert.False(await Build(adb).SetStandardGameModeAsync(Serial, 0, Package));
+        Assert.False(await Build(adb).SetGameModeAsync(Serial, 0, Package, "performance"));
+    }
+
+    [Fact]
+    public void Les_modes_du_telephone_sans_le_mode_des_commandes()
+    {
+        // A player's Galaxy S25 Ultra on 2026-10-17.
+        var modes = AndroidAppLauncher.ParseGameModes(
+            "com.ankama.dofustouch current mode: performance, available game modes: [standard,performance,battery,custom]");
+
+        Assert.Equal("performance", modes?.Current);
+        Assert.Equal(["standard", "performance", "battery"], modes?.Available);
+    }
+
+    [Fact]
+    public void Un_telephone_sans_mode_de_jeu_n_en_propose_aucun() =>
+        Assert.Null(AndroidAppLauncher.ParseGameModes("Can't find service: game"));
+
+    [Fact]
+    public async Task Le_mode_en_cours_d_un_autre_profil_n_est_pas_connu()
+    {
+        // "cmd game list-modes" has no --user: it answers for the main profile.
+        var adb = new FakeAdbClient().WithShell(
+            "cmd game list-modes",
+            "com.ankama.dofustouch current mode: performance, available game modes: [standard,performance,battery,custom]");
+
+        var modes = await Build(adb).ReadGameModesAsync(Serial, 10, Package);
+
+        Assert.Null(modes?.Current);
+        Assert.Equal(["standard", "performance", "battery"], modes?.Available);
     }
 
     [Fact]
