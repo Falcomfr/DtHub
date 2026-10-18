@@ -99,4 +99,46 @@ public sealed class SdlFocusFixTests : IDisposable
         Assert.Equal("MZ"u8.ToArray(), embedded[..2]);
         Assert.NotEqual(SdlFocusFix.OriginalSha256, Convert.ToHexStringLower(SHA256.HashData(embedded)));
     }
+
+    /// <summary>The launch is cancelled while scrcpy --version runs.</summary>
+    private sealed class CancelledMeanwhile(CancellationTokenSource launch) : DtHub.Core.Processes.IProcessRunner
+    {
+        public Task<DtHub.Core.Processes.ProcessResult> RunAsync(
+            DtHub.Core.Processes.ProcessRequest request, CancellationToken cancellationToken = default)
+        {
+            launch.Cancel();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(new DtHub.Core.Processes.ProcessResult
+            {
+                ExitCode = 0,
+                StandardOutput = " - SDL: 3.4.18 / 3.4.18",
+                StandardError = string.Empty,
+                Duration = TimeSpan.Zero,
+            });
+        }
+
+        public Task<DtHub.Core.Processes.ProcessBytes> RunForBytesAsync(
+            DtHub.Core.Processes.ProcessRequest request, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+    }
+
+    [Fact]
+    public async Task Une_annulation_pendant_la_verification_ne_laisse_pas_le_SDL3_sans_controle()
+    {
+        // Cancelled during the check, the swapped DLL stayed in place
+        // unverified, and the next launch, seeing a digest no longer the
+        // original, never checked it again.
+        File.WriteAllBytes(Sdl, Original);
+        using var launch = new CancellationTokenSource();
+
+        await new SdlFocusFix(
+                Convert.ToHexStringLower(SHA256.HashData(Original)),
+                Fixed,
+                new CancelledMeanwhile(launch),
+                NullLogger<SdlFocusFix>.Instance)
+            .ApplyAsync(Path.Combine(_root, "scrcpy.exe"), launch.Token);
+
+        Assert.Equal(Fixed, File.ReadAllBytes(Sdl));
+    }
 }

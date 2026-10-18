@@ -104,7 +104,15 @@ public static class AlmanaxProfessions
             return null;
         }
 
-        return All.FirstOrDefault(p => p.Names.Any(name =>
-            AlmanaxReading.Mentions(name, typed) || AlmanaxReading.Mentions(typed, name)));
+        // A name that starts like the word typed comes first: the weapon
+        // smiths' Spanish name, "herreros y escultores", contains "escultor",
+        // and the carvers' search took the smiths' days.
+        return All.FirstOrDefault(p => p.Names.Any(name => StartsAlike(AlmanaxReading.Clean(name), typed)))
+            ?? All.FirstOrDefault(p => p.Names.Any(name =>
+                AlmanaxReading.Mentions(name, typed) || AlmanaxReading.Mentions(typed, name)));
     }
+
+    private static bool StartsAlike(string name, string typed) =>
+        name.Length > 0
+        && (name.StartsWith(typed, StringComparison.Ordinal) || typed.StartsWith(name, StringComparison.Ordinal));
 }

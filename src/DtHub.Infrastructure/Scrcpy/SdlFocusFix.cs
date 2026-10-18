@@ -80,7 +80,12 @@ public sealed partial class SdlFocusFix
 
             // "--version" loads SDL3.dll and prints its version: what fails
             // here is what would keep every window from opening.
-            if (await StartsAsync(scrcpyPath, cancellationToken).ConfigureAwait(false))
+            //
+            // Never cancelled once the DLL is swapped: a launch cancelled
+            // meanwhile left it in place unverified, and the next one, seeing
+            // a digest no longer the original, never checked it again. The
+            // check is bounded by its own ten seconds.
+            if (await StartsAsync(scrcpyPath, CancellationToken.None).ConfigureAwait(false))
             {
                 LogApplied(target);
                 return;

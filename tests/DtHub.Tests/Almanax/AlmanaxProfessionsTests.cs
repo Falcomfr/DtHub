@@ -89,4 +89,16 @@ public class AlmanaxProfessionsTests
     {
         Assert.False(AlmanaxProfessions.Matches(With("Minerai abondant", "par les Mineurs"), query));
     }
+
+    [Theory]
+    [InlineData("escultor")]
+    [InlineData("escultores")]
+    public void Un_escultor_n_est_pas_pris_pour_un_forjador(string query)
+    {
+        // "herreros y escultores" is the weapon smiths' Spanish name, and it
+        // contains "escultor": the carvers' search took the smiths' days.
+        var smiths = With("Economía de ingredientes", "Los forjadores ahorran un 10 % de sus ingredientes al fabricar objetos.");
+
+        Assert.False(AlmanaxProfessions.Matches(smiths, query));
+    }
 }
