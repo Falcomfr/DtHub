@@ -287,7 +287,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// the second one inherited a buffer computed for a link that
     /// was not its own.
     /// </summary>
-    private readonly Dictionary<string, int> _videoBuffers = new(StringComparer.Ordinal);
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, int> _videoBuffers = new(StringComparer.Ordinal);
 
     /// <summary>Pace of controls and polling, based on quality.</summary>
     public QualityProfile Quality => _quality;
@@ -311,7 +311,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// window is still running with the old one, rather than let
     /// the setting seem dead.
     /// </summary>
-    private readonly Dictionary<string, GameZoom> _zoomsInUse = new(StringComparer.Ordinal);
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, GameZoom> _zoomsInUse = new(StringComparer.Ordinal);
 
     /// <summary>
     /// Recovery attempts per instance, and time of the last one.
@@ -682,13 +682,13 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private readonly ConcurrentBag<Task> _playtimeWrites = [];
 
     /// <summary>Video encoders known per device, once asked for.</summary>
-    private readonly Dictionary<string, IReadOnlyList<VideoEncoder>> _encoders = new(StringComparer.Ordinal);
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, IReadOnlyList<VideoEncoder>> _encoders = new(StringComparer.Ordinal);
 
     /// <summary>
     /// Devices whose list has already been asked for, whether it
     /// succeeded or not.
     /// </summary>
-    private readonly HashSet<string> _encodersAsked = new(StringComparer.Ordinal);
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, byte> _encodersAsked = new(StringComparer.Ordinal);
 
     /// <summary>
     /// Asks, in the background, what the devices know how to encode.
@@ -709,7 +709,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
                      .DistinctBy(p => p.Serial, StringComparer.Ordinal)
                      .ToList())
         {
-            if (!_encodersAsked.Add(serial!))
+            if (!_encodersAsked.TryAdd(serial!, 0))
             {
                 continue;
             }
@@ -2230,7 +2230,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         foreach (var gone in _pings.Keys.Where(k => !phones.Contains(k, StringComparer.Ordinal)))
         {
             _ = _pings.TryRemove(gone, out _);
-            _spiky.Remove(gone);
+            _ = _spiky.TryRemove(gone, out _);
         }
 
         var strainDue = _sinceStrain is null || _sinceStrain.Elapsed >= StrainInterval;
@@ -2325,7 +2325,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>Phones whose Wi-Fi spikes are being reported, by serial.</summary>
-    private readonly HashSet<string> _spiky = new(StringComparer.Ordinal);
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, byte> _spiky = new(StringComparer.Ordinal);
 
     /// <summary>
     /// Writes in the log when a phone's Wi-Fi starts spiking, at the panel's
@@ -2346,12 +2346,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         if (count >= PingSpikes.Enough)
         {
-            if (_spiky.Add(serial))
+            if (_spiky.TryAdd(serial, 0))
             {
                 LogPingSpikes(serial, count, worst);
             }
         }
-        else if (_spiky.Remove(serial))
+        else if (_spiky.TryRemove(serial, out _))
         {
             LogPingSpikesOver(serial);
         }
@@ -5118,9 +5118,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
         _iconDirectory is null ? null : System.IO.Path.Combine(_iconDirectory, "scrcpy.png");
 
     /// <summary>True if a session is already open on this phone.</summary>
+    /// <summary>
+    /// A game already open on the phone, the one carrying its sound. A tool
+    /// window does not count: it never carries the sound, and counted, it
+    /// left the game opened next silent for its whole session.
+    /// </summary>
     private bool HasOpenSessionOn(string deviceId) =>
         _sessions.ActiveSessions.Any(
-            s => string.Equals(s.Target.DeviceId, deviceId, StringComparison.Ordinal));
+            s => string.Equals(s.Target.DeviceId, deviceId, StringComparison.Ordinal) && !s.Target.IsTransient);
 
     private async Task ApplyWindowSettingsAsync(CancellationToken cancellationToken)
     {

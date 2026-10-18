@@ -122,7 +122,14 @@ public sealed partial class AppIconProvider : IAppIconProvider
             }
 
             var work = ExtractAsync(request, key, cancellationToken);
-            _running[key] = work;
+
+            // An extraction failing at once has already left the table in
+            // its finally: stored now, the finished task would be handed
+            // back for good, and the icon never asked again.
+            if (!work.IsCompleted)
+            {
+                _running[key] = work;
+            }
 
             return work;
         }

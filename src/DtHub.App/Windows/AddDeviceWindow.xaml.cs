@@ -22,6 +22,12 @@ public partial class AddDeviceWindow : Window
     private readonly DispatcherTimer _poll = new() { Interval = TimeSpan.FromSeconds(2) };
     private bool _scanning;
 
+    /// <summary>
+    /// Set on close: the first scan can outlast the window, adb taking up to
+    /// forty-five seconds to start, and its end would restart the timer.
+    /// </summary>
+    private bool _closed;
+
     public AddDeviceWindow(AddDeviceViewModel viewModel)
     {
         _viewModel = viewModel;
@@ -35,6 +41,12 @@ public partial class AddDeviceWindow : Window
         {
             await _viewModel.ScanAsync(CancellationToken.None).ConfigureAwait(true);
             await _viewModel.WatchCableAsync(CancellationToken.None).ConfigureAwait(true);
+
+            if (_closed)
+            {
+                return;
+            }
+
             _poll.Start();
 
             Code.Focus();
@@ -152,6 +164,7 @@ public partial class AddDeviceWindow : Window
 
     protected override void OnClosed(EventArgs e)
     {
+        _closed = true;
         _poll.Stop();
         _viewModel.DevicePaired -= OnDevicePaired;
 

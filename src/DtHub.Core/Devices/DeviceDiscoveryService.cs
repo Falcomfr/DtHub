@@ -21,8 +21,11 @@ public sealed class DeviceDiscoveryService : IDisposable
     /// <summary>How long a link reading stays valid.</summary>
     private static readonly TimeSpan LinkFreshness = TimeSpan.FromMinutes(1);
 
-    /// <summary>Last link reading per device, with its age.</summary>
-    private readonly Dictionary<string, (WifiLink? Link, System.Diagnostics.Stopwatch Vu)> _link =
+    /// <summary>
+    /// Last link reading per device, with its age. Concurrent: the health
+    /// sweep and a launch both read the link, each from the thread pool.
+    /// </summary>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, (WifiLink? Link, System.Diagnostics.Stopwatch Vu)> _link =
         new(StringComparer.Ordinal);
     private readonly IDeviceRegistry _registry;
     private readonly SemaphoreSlim _gate = new(1, 1);

@@ -193,11 +193,18 @@ public partial class TabbedGameWindow : Window
     {
         ArgumentNullException.ThrowIfNull(keys);
 
-        for (var wanted = 0; wanted < keys.Count; wanted++)
-        {
-            var present = Items.ToList().FindIndex(t => string.Equals(t.Key, keys[wanted], StringComparison.Ordinal));
+        // Only the accounts that have a tab: the list also holds the free
+        // windows and the closed accounts, and their places taken as tab
+        // places left the bar out of order, or undid a tab dragged.
+        var tabbed = keys
+            .Where(k => Items.Any(t => string.Equals(t.Key, k, StringComparison.Ordinal)))
+            .ToList();
 
-            if (present >= 0 && present != wanted && wanted < Items.Count)
+        for (var wanted = 0; wanted < tabbed.Count; wanted++)
+        {
+            var present = Items.ToList().FindIndex(t => string.Equals(t.Key, tabbed[wanted], StringComparison.Ordinal));
+
+            if (present != wanted)
             {
                 Items.Move(present, wanted);
             }

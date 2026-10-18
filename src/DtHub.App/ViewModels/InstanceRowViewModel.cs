@@ -39,6 +39,7 @@ public sealed partial class InstanceRowViewModel : ObservableObject
         // to the sweep, a ticked box would read unticked for a few seconds.
         _phoneFormat = instance.PhoneFormat;
         _quietReducedRender = instance.QuietReducedRender;
+        _isTabbed = instance.IsTabbed;
     }
 
     private bool _applying;

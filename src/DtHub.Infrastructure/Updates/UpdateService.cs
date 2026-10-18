@@ -242,7 +242,9 @@ public sealed partial class UpdateService(
             {
                 File.Move(staged, current);
             }
-            catch (IOException)
+            // Denied too, by an antivirus blocking the new executable: the
+            // old one must come back, or nothing would be left to start.
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
             {
                 File.Move(retired, current);
 

@@ -455,6 +455,10 @@ public sealed partial class InstanceListViewModel : ObservableObject
             await _launcher.CloseAllAsync().ConfigureAwait(true);
             await _settings.ApplyLaunchProfileAsync(profile.Name).ConfigureAwait(true);
 
+            // The profile rewrote each account's tab and windows: the cached
+            // accounts would push the old state back on the rows.
+            InvalidateInstances();
+
             var report = await _launcher.LaunchEnabledAsync().ConfigureAwait(true);
 
             if (report.Problems.Count > 0)
@@ -1762,6 +1766,11 @@ public sealed partial class InstanceListViewModel : ObservableObject
         catch (AdbException exception)
         {
             ShowBanner(exception.UserMessage);
+        }
+        catch (Exception exception) when (exception is System.IO.IOException or UnauthorizedAccessException)
+        {
+            // The settings file written first, held by an antivirus.
+            ShowBanner(exception.Message);
         }
         finally
         {

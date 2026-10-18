@@ -144,6 +144,10 @@ public partial class AlmanaxWindow : Window
             Handles.Remove(handle);
         }
 
+        // A batch still reading would reach the disposed view on its next
+        // day, and surface as the fault window after the close.
+        _model.StopBatchCommand.Execute(null);
+
         View.Dispose();
         WeekView.Dispose();
 

@@ -214,4 +214,23 @@ public sealed class AppIconProviderTests : IDisposable
 
         Assert.Empty(adb.ShellCalls);
     }
+
+    [Fact]
+    public async Task Un_echec_immediat_n_empeche_pas_de_redemander_l_icone()
+    {
+        // Failing before its first real wait, the extraction finished before
+        // it was even filed, and the finished task was handed back for good.
+        var appels = 0;
+        var adb = new FakeAdbClient()
+            .WithShell("pm path", () => appels++ == 0
+                ? throw new DtHub.Core.Adb.AdbException(DtHub.Core.Adb.AdbErrorKind.DeviceOffline, "hors ligne")
+                : Chemins)
+            .WithShell("unzip -l", Listage)
+            .WithExecOut("unzip -p", Png);
+
+        var provider = new AppIconProvider(adb, _paths, NullLogger<AppIconProvider>.Instance) { RetryDelay = TimeSpan.Zero };
+
+        Assert.Null(await provider.GetAsync(Demande(), CancellationToken.None));
+        Assert.NotNull(await provider.GetAsync(Demande(), CancellationToken.None));
+    }
 }

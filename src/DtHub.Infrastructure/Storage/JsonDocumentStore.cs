@@ -43,6 +43,17 @@ public sealed partial class JsonDocumentStore<T> : IDocumentStore<T>, IDisposabl
     private readonly ILogger _logger;
     private readonly SemaphoreSlim _gate = new(1, 1);
 
+    /// <summary>
+    /// True while the file exists but could not be read: the defaults
+    /// handed out instead must never replace it. Measured cause, a file
+    /// held at startup by an antivirus or by the other copy of DT Hub.
+    /// </summary>
+    private bool _unread;
+
+    private const int ReadAttempts = 4;
+
+    private static readonly TimeSpan ReadRetryDelay = TimeSpan.FromMilliseconds(250);
+
     public JsonDocumentStore(string filePath, ILogger logger)
     {
         FilePath = filePath;
@@ -62,19 +73,31 @@ public sealed partial class JsonDocumentStore<T> : IDocumentStore<T>, IDisposabl
             }
 
             string json;
-            try
+
+            for (var attempt = 1; ; attempt++)
             {
-                json = await File.ReadAllTextAsync(FilePath, cancellationToken).ConfigureAwait(false);
-            }
-            catch (IOException exception)
-            {
-                LogUnreadable(FilePath, exception.Message);
-                return new T();
-            }
-            catch (UnauthorizedAccessException exception)
-            {
-                LogUnreadable(FilePath, exception.Message);
-                return new T();
+                try
+                {
+                    json = await File.ReadAllTextAsync(FilePath, cancellationToken).ConfigureAwait(false);
+                    _unread = false;
+                    break;
+                }
+                catch (FileNotFoundException)
+                {
+                    // Gone since the check: nothing to protect.
+                    return new T();
+                }
+                catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+                {
+                    if (attempt == ReadAttempts)
+                    {
+                        _unread = true;
+                        LogUnreadable(FilePath, exception.Message);
+                        return new T();
+                    }
+
+                    await Task.Delay(ReadRetryDelay, cancellationToken).ConfigureAwait(false);
+                }
             }
 
             if (string.IsNullOrWhiteSpace(json))
@@ -125,6 +148,12 @@ public sealed partial class JsonDocumentStore<T> : IDocumentStore<T>, IDisposabl
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
+            if (_unread)
+            {
+                LogSaveSkipped(FilePath);
+                return;
+            }
+
             var directory = Path.GetDirectoryName(FilePath);
             if (!string.IsNullOrEmpty(directory))
             {
@@ -149,7 +178,14 @@ public sealed partial class JsonDocumentStore<T> : IDocumentStore<T>, IDisposabl
 
             var temporary = FilePath + ".nouveau";
 
-            await File.WriteAllTextAsync(temporary, json, cancellationToken).ConfigureAwait(false);
+            // Flushed to the disk before the rename: after a power cut,
+            // NTFS keeps the rename but not always the data, and the file
+            // came back full of zeros, the good one already gone.
+            await using (var stream = new FileStream(temporary, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                await stream.WriteAsync(System.Text.Encoding.UTF8.GetBytes(json), cancellationToken).ConfigureAwait(false);
+                stream.Flush(flushToDisk: true);
+            }
 
             // Replacement in a single operation: the final file is
             // either the old one or the new one, never a mix of the
@@ -194,6 +230,11 @@ public sealed partial class JsonDocumentStore<T> : IDocumentStore<T>, IDisposabl
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "{path} est illisible ({reason}) ; configuration par défaut utilisée.")]
     private partial void LogUnreadable(string path, string reason);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "{path} n'a pas pu être lu : rien n'y sera écrit tant qu'il n'aura pas été relu, pour ne pas le remplacer.")]
+    private partial void LogSaveSkipped(string path);
 
     [LoggerMessage(
         Level = LogLevel.Error,

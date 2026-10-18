@@ -251,4 +251,30 @@ public sealed class JsonDocumentStoreTests : IDisposable
         // The file was not quarantined: it was not corrupted.
         Assert.Empty(Directory.GetFiles(_directory, "*.corrompu-*"));
     }
+
+    [Fact]
+    public async Task Un_fichier_illisible_n_est_jamais_ecrase_par_les_valeurs_par_defaut()
+    {
+        // Held by an antivirus or by the other copy of DT Hub at startup:
+        // the defaults it yields must not replace the real file on the
+        // first save.
+        using (var writer = Store())
+        {
+            await writer.SaveAsync(new Reglages { Nom = "Jeux" }, CancellationToken.None);
+        }
+
+        using var store = Store();
+        Reglages loaded;
+
+        using (new FileStream(Path0, FileMode.Open, FileAccess.Read, FileShare.None))
+        {
+            loaded = await store.LoadAsync(CancellationToken.None);
+        }
+
+        Assert.Equal("défaut", loaded.Nom);
+
+        await store.SaveAsync(loaded, CancellationToken.None);
+
+        Assert.Contains("Jeux", await File.ReadAllTextAsync(Path0), StringComparison.Ordinal);
+    }
 }

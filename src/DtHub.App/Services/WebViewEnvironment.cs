@@ -56,7 +56,20 @@ public sealed partial class WebViewEnvironment(IAppPaths paths, ILogger<WebViewE
     /// windows thus write into the same profile instead of each
     /// opening one.
     /// </summary>
-    public Task<CoreWebView2Environment> GetAsync() => _ready ??= CreateAsync();
+    /// <summary>
+    /// The environment, created once. A failure is not kept: WebView2 just
+    /// installed, or a user data folder no longer locked, must work at the
+    /// next window, not after a restart.
+    /// </summary>
+    public Task<CoreWebView2Environment> GetAsync()
+    {
+        if (_ready is { IsFaulted: true })
+        {
+            _ready = null;
+        }
+
+        return _ready ??= CreateAsync();
+    }
 
     private async Task<CoreWebView2Environment> CreateAsync()
     {

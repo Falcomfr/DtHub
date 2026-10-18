@@ -282,7 +282,17 @@ public partial class InstanceListControl : UserControl
 
         model.ClearDropHints();
 
-        await model.ReorderAsync(dragged, onto, above).ConfigureAwait(true);
+        // An async void handler: a locked settings file or adb failing during
+        // the reopen would otherwise surface as the fault window. The tab
+        // drag already guards the same move this way.
+        try
+        {
+            await model.ReorderAsync(dragged, onto, above).ConfigureAwait(true);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            model.ShowBanner(exception.Message);
+        }
     }
 
     /// <summary>True if the cursor is in the target's upper half.</summary>
