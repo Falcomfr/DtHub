@@ -920,7 +920,9 @@ public partial class App : Application, IDisposable
     /// </summary>
     private void ShowWebTool(WebTool tool)
     {
-        if (_webTools.TryGetValue(tool, out var open) && open.IsLoaded)
+        // Held from the opening, not from Loaded: two quick presses of the
+        // shortcut arrive before Loaded, and opened two windows.
+        if (_webTools.TryGetValue(tool, out var open))
         {
             open.Activate();
 
@@ -933,7 +935,13 @@ public partial class App : Application, IDisposable
         }
 
         window.Tool = tool;
-        window.Closed += (_, _) => _webTools.Remove(tool);
+        window.Closed += (_, _) =>
+        {
+            if (_webTools.TryGetValue(tool, out var current) && ReferenceEquals(current, window))
+            {
+                _ = _webTools.Remove(tool);
+            }
+        };
         _webTools[tool] = window;
         window.Show();
     }
@@ -951,23 +959,30 @@ public partial class App : Application, IDisposable
     /// </summary>
     private void ShowAlmanax()
     {
-        if (_almanax is { IsLoaded: true })
+        // Held from the opening, not from Loaded: two quick presses of the
+        // shortcut arrive before Loaded, and opened two windows.
+        if (_almanax is not null)
         {
             _almanax.Activate();
 
             return;
         }
 
-        _almanax = _host?.Services.GetRequiredService<AlmanaxWindow>();
-
-        if (_almanax is null)
+        if (_host?.Services.GetRequiredService<AlmanaxWindow>() is not { } window)
         {
             return;
         }
 
-        _almanax.Closed += (_, _) => _almanax = null;
+        _almanax = window;
+        window.Closed += (_, _) =>
+        {
+            if (ReferenceEquals(_almanax, window))
+            {
+                _almanax = null;
+            }
+        };
 
-        _ = _almanax.ShowAlmanaxAsync();
+        _ = window.ShowAlmanaxAsync();
     }
 
     /// <summary>

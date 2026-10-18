@@ -48,7 +48,7 @@ public partial class AlmanaxWindow : Window
     /// </summary>
     private readonly Dictionary<DateOnly, AlmanaxDay> _read = [];
 
-    private DateOnly _wanted = DateOnly.FromDateTime(DateTime.Now);
+    private DateOnly _wanted = AlmanaxCalendar.Today();
     private string _url = string.Empty;
     /// <summary>
     /// The setup, once and only once.
@@ -160,7 +160,7 @@ public partial class AlmanaxWindow : Window
         Show();
         Activate();
 
-        await LoadAsync(DateOnly.FromDateTime(DateTime.Now)).ConfigureAwait(true);
+        await LoadAsync(AlmanaxCalendar.Today()).ConfigureAwait(true);
 
         await LoadWeekAsync().ConfigureAwait(true);
     }
