@@ -836,7 +836,7 @@
                               </CheckBox>
 
                               <!-- Android's game mode, which can draw the game
-                                   at a reduced resolution (D202). Known once
+                                   at a reduced resolution (D203). Known once
                                    the window opened in this run. -->
                               <StackPanel Visibility="{Binding HasGameModeChoice,
                                                        Converter={StaticResource BoolToVisibility}}">

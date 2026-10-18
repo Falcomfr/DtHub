@@ -19,6 +19,11 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
   sont pas dans la langue de l'application : la page s'ouvre dans votre
   navigateur, traduite dans cette langue.
 
+- Quand le téléphone fait tourner un jeu en résolution réduite, donc flou (le
+  mode « performance » de Game Booster, par exemple), un triangle sur la ligne
+  du compte remet le mode standard en un clic. Le mode jeu du téléphone se
+  choisit aussi dans les réglages du compte.
+
 ### Corrigé
 
 - Changer la qualité ou l'image plus nette ne relance plus les jeux aussitôt :

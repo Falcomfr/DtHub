@@ -883,7 +883,7 @@ public sealed record GameModeChoice(string Mode, string Text)
 {
     /// <summary>
     /// The mode's name for the player. Standard is recommended: the others
-    /// can draw the game at a reduced resolution (D202).
+    /// can draw the game at a reduced resolution (D203).
     /// </summary>
     public static string Label(string mode) => mode switch
     {

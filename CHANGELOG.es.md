@@ -18,6 +18,11 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
   en francés: la página se abre en tu navegador, traducida al idioma de la
   aplicación.
 
+- Cuando el teléfono ejecuta un juego a una resolución reducida, borroso (el
+  modo «rendimiento» de Game Booster, por ejemplo), un triángulo en la línea
+  de la cuenta vuelve al modo estándar con un clic. El modo de juego del
+  teléfono también se elige en los ajustes de la cuenta.
+
 ### Corregido
 
 - Cambiar la calidad o la imagen más nítida ya no relanza los juegos al

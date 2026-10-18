@@ -25,6 +25,11 @@ belongs in the commits and in `docs/DECISIONS.md`.
   only in French: the page opens in your browser, translated into the
   application's language.
 
+- When the phone runs a game at a reduced resolution, blurry (Game Booster's
+  "performance" mode, for instance), a warning sign on the account's row puts
+  the standard mode back in one click. The phone's game mode can also be
+  chosen in the account's settings.
+
 ### Fixed
 
 - Changing the quality or the sharp image no longer relaunches the games at

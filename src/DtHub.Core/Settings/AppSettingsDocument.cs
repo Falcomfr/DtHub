@@ -470,7 +470,7 @@ public sealed class StoredInstance
     /// <summary>
     /// True when the player no longer wants to hear that the phone draws
     /// this account's game at a reduced resolution: a performance mode kept
-    /// on purpose (D202).
+    /// on purpose (D203).
     /// </summary>
     public bool QuietReducedRender { get; set; }
 
