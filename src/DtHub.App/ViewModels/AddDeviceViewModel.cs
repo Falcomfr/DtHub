@@ -138,21 +138,39 @@ public sealed partial class AddDeviceViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Watches for the phone at the end of the cable. Called in a loop
-    /// whatever the side shown, so that the phones already there are
-    /// known from the opening and not from the moment the cable was
-    /// chosen; only the cable side reports.
+    /// Watches for the phone at the end of the cable. The phones already
+    /// there are taken at the opening, whatever the side shown; after that
+    /// only the cable side asks, a full discovery every two seconds being
+    /// too much for a side that has no use for it.
     /// </summary>
     public async Task WatchCableAsync(CancellationToken cancellationToken = default)
     {
+        if (_cableBefore is not null && !ByCable)
+        {
+            return;
+        }
+
         try
         {
-            var devices = (await _devices.RefreshAsync(cancellationToken).ConfigureAwait(true)).Devices;
+            var result = await _devices.RefreshAsync(cancellationToken).ConfigureAwait(true);
+
+            // Without adb the list is the remembered phones, not the plugged
+            // ones: taken as the opening's, a phone already accepted would
+            // pass for one just plugged once adb answers.
+            if (result.AdbFailed)
+            {
+                CableStatus = result.Warnings[0];
+                return;
+            }
+
+            var devices = result.Devices;
 
             _cableBefore ??= devices
                 .Where(d => d.ConnectionKind == AdbConnectionKind.Usb && d.IsConnected)
                 .Select(d => d.Serial)
                 .ToHashSet(StringComparer.Ordinal);
+
+            CableArrival.ForgetUnplugged(_cableBefore, devices);
 
             if (!ByCable)
             {

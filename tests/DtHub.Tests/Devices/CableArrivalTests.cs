@@ -57,4 +57,41 @@ public class CableArrivalTests
             Phone("192.168.1.16:41234", AdbConnectionKind.Wireless, AdbDeviceState.Unauthorized),
         ]));
     }
+
+    [Fact]
+    public void Un_telephone_debranche_puis_rebranche_compte_comme_arrive()
+    {
+        // Plugged and accepted before the window opened, then unplugged and
+        // plugged back: that is the arrival a player makes to be seen.
+        HashSet<string> before = ["USB_DEJA_LA"];
+
+        CableArrival.ForgetUnplugged(before, []);
+
+        Assert.Equal("USB_DEJA_LA", CableArrival.Arrived(before,
+            [Phone("USB_DEJA_LA", AdbConnectionKind.Usb, AdbDeviceState.Device)])?.Serial);
+    }
+
+    [Theory]
+    [InlineData(AdbDeviceState.Device)]
+    [InlineData(AdbDeviceState.Unauthorized)]
+    public void Un_telephone_toujours_branche_reste_connu(AdbDeviceState state)
+    {
+        HashSet<string> before = ["USB_DEJA_LA"];
+
+        CableArrival.ForgetUnplugged(before, [Phone("USB_DEJA_LA", AdbConnectionKind.Usb, state)]);
+
+        Assert.Contains("USB_DEJA_LA", before);
+    }
+
+    [Fact]
+    public void Un_telephone_retenu_hors_ligne_n_est_plus_branche()
+    {
+        // Discovery also returns the remembered phones, unplugged ones
+        // included, as offline.
+        HashSet<string> before = ["USB_DEJA_LA"];
+
+        CableArrival.ForgetUnplugged(before, [Phone("USB_DEJA_LA", AdbConnectionKind.Usb, AdbDeviceState.Offline)]);
+
+        Assert.Empty(before);
+    }
 }

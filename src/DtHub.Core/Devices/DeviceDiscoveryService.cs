@@ -946,7 +946,7 @@ public sealed class DeviceDiscoveryService : IDisposable
             // than an empty screen.
             warnings.Add(exception.UserMessage);
             var stored = await _registry.GetKnownAsync(cancellationToken).ConfigureAwait(false);
-            return new DeviceDiscoveryResult(stored, warnings);
+            return new DeviceDiscoveryResult(stored, warnings) { AdbFailed = true };
         }
 
         // Remembered and discarded devices come together: the scan needs both,

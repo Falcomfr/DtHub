@@ -117,6 +117,7 @@ public class DeviceDiscoveryServiceTests
 
         Assert.Single(result.Devices);
         Assert.Single(result.Warnings);
+        Assert.False(result.AdbFailed);
     }
 
     [Fact]
@@ -202,6 +203,10 @@ public class DeviceDiscoveryServiceTests
 
         Assert.Single(result.Devices);
         Assert.Single(result.Warnings);
+
+        // The remembered phones are not what adb sees: the pairing window
+        // must not take them for the phones plugged at its opening.
+        Assert.True(result.AdbFailed);
     }
 
     [Fact]

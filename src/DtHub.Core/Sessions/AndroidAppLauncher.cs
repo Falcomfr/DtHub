@@ -185,9 +185,11 @@ public sealed partial class AndroidAppLauncher : IAppLauncher
             return null;
         }
 
+        // Standard first, as GameModes promises: it is the one recommended.
         string[] available = [.. match.Groups[2].Value
             .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Where(m => m != "custom")];
+            .Where(m => m != "custom")
+            .OrderBy(m => m != "standard")];
 
         return available.Length == 0 ? null : new GameModes(match.Groups[1].Value, available);
     }

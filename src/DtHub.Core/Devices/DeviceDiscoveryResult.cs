@@ -12,4 +12,10 @@ public sealed record DeviceDiscoveryResult(
     public static readonly DeviceDiscoveryResult Empty = new([], []);
 
     public IEnumerable<AndroidDevice> Connected => Devices.Where(d => d.IsConnected);
+
+    /// <summary>
+    /// True when adb did not answer: the devices are then the remembered
+    /// ones, not what is plugged in.
+    /// </summary>
+    public bool AdbFailed { get; init; }
 }

@@ -1264,10 +1264,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 _gameModes[session.Target.Key] = modes;
             }
 
-            // The main profile's mode is read; a profile's is the one DT Hub
-            // set, the only one known there.
-            _measuredInStandard[session.Target.Key] =
-                modes?.Current == "standard" || _setStandard.ContainsKey(session.Target.Key);
+            // The main profile's mode is read, and the read wins: switched
+            // back on the phone, it would otherwise still pass for standard.
+            // A profile's is the one DT Hub set, the only one known there.
+            _measuredInStandard[session.Target.Key] = modes?.Current is { } current
+                ? current == "standard"
+                : _setStandard.ContainsKey(session.Target.Key);
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
@@ -3027,7 +3029,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             // A new window is measured anew: an old reduction would show
             // on the row until then, though fixed on the phone meanwhile.
-            _ = _reducedRenders.TryRemove(instance.Key, out _);
+            // Its banner goes with it, which the clean measure could no
+            // longer take away once the reduction is gone.
+            lock (_reducedRenders)
+            {
+                ForgetReducedRender(instance.Key);
+            }
 
             var display = WithDisplayFor(gameOptions, placement, stored, quality, zoom, layoutHeight, phoneAspect ?? 0) with
             {
@@ -3302,33 +3309,44 @@ public sealed partial class GameLauncher : IAsyncDisposable
             return new LaunchReport(0, []);
         }
 
+        // Taken as fixed right away, before the phone is even asked: the
+        // measure that confirms it comes ten seconds after the restart, and
+        // a warning showing until then, or brought back by the list's sweep
+        // during the adb call, made a player click a second time
+        // (2026-10-18). Still reduced, the measure brings it back, as having
+        // not helped; refused, it is put back at once.
+        int? percent;
+
+        lock (_reducedRenders)
+        {
+            percent = ReducedRenderPercent(instance.Key);
+            ForgetReducedRender(instance.Key);
+        }
+
         var report = await SetGameModeAsync(instance, "standard", cancellationToken).ConfigureAwait(false);
 
         if (report.Problems.Count > 0)
         {
-            return report;
-        }
+            if (percent is { } kept)
+            {
+                _reducedRenders[instance.Key] = kept;
+            }
 
-        // Taken as fixed right away: the measure that confirms it comes ten
-        // seconds after the restart, and until then the warning still showing
-        // made a player click a second time (2026-10-18). Still reduced, the
-        // measure brings it back, as having not helped.
-        lock (_reducedRenders)
-        {
-            ForgetReducedRender(instance.Key);
+            return report;
         }
 
         return await RestartAsync(instance, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
-    /// Drops an account's reduction, and the banner with it when no other
-    /// account is reduced: it would otherwise keep saying it for its two
-    /// minutes. Called under the lock on <see cref="_reducedRenders" />.
+    /// Drops an account's reduction, and the banner with it when the banner
+    /// names this account: it would otherwise keep saying it for its two
+    /// minutes, another account still reduced or not. That one keeps its
+    /// row's chip. Called under the lock on <see cref="_reducedRenders" />.
     /// </summary>
     private void ForgetReducedRender(string key)
     {
-        if (_reducedRenders.TryRemove(key, out _) && _reducedRenders.IsEmpty)
+        if (_reducedRenders.TryRemove(key, out _) && key == ReducedRenderKey)
         {
             _reducedRender = default;
         }

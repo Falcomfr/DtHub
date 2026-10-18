@@ -499,4 +499,15 @@ public class AndroidAppLauncherTests
 
         Assert.Contains("device offline", state, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void Le_mode_standard_vient_en_tete_quel_que_soit_l_ordre_du_telephone()
+    {
+        // The settings list the modes in this order, and standard is the
+        // one recommended (D203).
+        var modes = AndroidAppLauncher.ParseGameModes(
+            "com.ankama.dofustouch current mode: performance, available game modes: [performance,standard,battery]");
+
+        Assert.Equal(["standard", "performance", "battery"], modes?.Available);
+    }
 }
