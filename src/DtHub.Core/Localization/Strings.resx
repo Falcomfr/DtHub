@@ -2638,7 +2638,7 @@ In the meantime, the button at the bottom opens the page in your browser.</value
     <value>• Try another cable: many only charge.</value>
   </data>
   <data name="HelpFixCableMode" xml:space="preserve">
-    <value>• In the phone's USB notification, pick “File transfer”.</value>
+    <value>• In the phone's USB notification, try “File transfer”.</value>
   </data>
   <data name="HelpFixCableRevoke" xml:space="preserve">
     <value>• Developer options: “Revoke USB debugging authorisations”, then plug it back in.</value>
@@ -2648,5 +2648,20 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   </data>
   <data name="HelpFixWifiRestart" xml:space="preserve">
     <value>• After a restart, turn “Wireless debugging” back on: the pairing is kept.</value>
+  </data>
+  <data name="BrandSamsungFixCable" xml:space="preserve">
+    <value>• Samsung: turn off “Auto Blocker” (Settings › Security and privacy), then “Block USB connections”: they hide the phone from the PC.</value>
+  </data>
+  <data name="BrandHonorFixCable" xml:space="preserve">
+    <value>• Honor, Huawei: also turn on “Allow ADB debugging in charge only mode” in the developer options, if your version offers it.</value>
+  </data>
+  <data name="BrandHonorFixWifi" xml:space="preserve">
+    <value>• Honor, Huawei: without Google services, wireless debugging is sometimes missing. Use the cable then.</value>
+  </data>
+  <data name="HelpFixCableUnlock" xml:space="preserve">
+    <value>• Unlock the phone: the request only shows on an unlocked screen.</value>
+  </data>
+  <data name="HelpFixWifiScreen" xml:space="preserve">
+    <value>• To pair, keep the code screen open on the phone: it only shows itself to the PC meanwhile.</value>
   </data>
 </root>

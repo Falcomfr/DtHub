@@ -23,6 +23,19 @@
         <RadioButton Style="{StaticResource Tab}" Content="{loc:T ByCable}" GroupName="HelpMode"
                      IsChecked="{Binding OnCable}" />
       </StackPanel>
+
+      <!-- Above the scrolling, so that the fixes reached by "Nothing shows
+           up?" are still read for a brand that can be seen and changed. -->
+      <ComboBox ItemsSource="{Binding Brands}" SelectedItem="{Binding Brand}" Margin="0,12,22,0">
+        <ComboBox.ItemTemplate>
+          <DataTemplate>
+            <TextBlock Text="{Binding Name}" />
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
+
+      <TextBlock Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}" Margin="2,4,0,0"
+                 Text="{loc:T FrenchLabelsShort}" />
     </StackPanel>
 
     <Border DockPanel.Dock="Bottom" Margin="0,14,0,0">
@@ -32,17 +45,6 @@
 
     <ScrollViewer x:Name="Scroller" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,10,0">
       <StackPanel x:Name="Steps" Margin="0,0,12,0">
-
-        <ComboBox ItemsSource="{Binding Brands}" SelectedItem="{Binding Brand}">
-          <ComboBox.ItemTemplate>
-            <DataTemplate>
-              <TextBlock Text="{Binding Name}" />
-            </DataTemplate>
-          </ComboBox.ItemTemplate>
-        </ComboBox>
-
-        <TextBlock Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}" Margin="2,4,0,12"
-                   Text="{loc:T FrenchLabelsShort}" />
 
         <Border Style="{StaticResource Card}">
           <StackPanel>
@@ -95,17 +97,23 @@
           <StackPanel>
             <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="{loc:T HelpFixes}" />
             <StackPanel Visibility="{Binding OnCable, Converter={StaticResource BoolToVisibility}}">
+              <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,3" Text="{loc:T HelpFixCableUnlock}" />
               <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,3" Text="{loc:T HelpFixCableWire}" />
               <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,3" Text="{loc:T HelpFixCableMode}" />
               <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,3" Text="{loc:T HelpFixCableRevoke}" />
               <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Text="{loc:T HelpFixCableWindows}" />
+              <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,3,0,0" Text="{Binding Brand.FixCable}"
+                         Visibility="{Binding Brand.FixCable, Converter={StaticResource EmptyToVisibility}, ConverterParameter=inverse}" />
             </StackPanel>
             <StackPanel Visibility="{Binding OnCable, Converter={StaticResource InverseBoolToVisibility}}">
+              <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,3" Text="{loc:T HelpFixWifiScreen}" />
               <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,3" Text="{loc:T HelpFixWifiRestart}" />
               <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,3" Text="{loc:T StaysOfflineSameBand}" />
               <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,3" Text="{loc:T StaysOfflinePrivate}" />
               <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,3" Text="{loc:T StaysOfflineFirewall}" />
               <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,3" Text="{loc:T StaysOfflineVpn}" />
+              <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,3" Text="{Binding Brand.FixWifi}"
+                         Visibility="{Binding Brand.FixWifi, Converter={StaticResource EmptyToVisibility}, ConverterParameter=inverse}" />
               <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Text="{loc:T StaysOfflineByHand}" />
             </StackPanel>
           </StackPanel>

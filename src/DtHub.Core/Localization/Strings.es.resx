@@ -2638,7 +2638,7 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
     <value>• Prueba otro cable: muchos solo cargan.</value>
   </data>
   <data name="HelpFixCableMode" xml:space="preserve">
-    <value>• En la notificación USB del teléfono, elige «Transferencia de archivos».</value>
+    <value>• En la notificación USB del teléfono, prueba «Transferencia de archivos».</value>
   </data>
   <data name="HelpFixCableRevoke" xml:space="preserve">
     <value>• Opciones de desarrollador: «Revocar autorizaciones de depuración USB», y vuelve a conectarlo.</value>
@@ -2648,5 +2648,20 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   </data>
   <data name="HelpFixWifiRestart" xml:space="preserve">
     <value>• Tras un reinicio, vuelve a activar «Depuración inalámbrica»: la vinculación se conserva.</value>
+  </data>
+  <data name="BrandSamsungFixCable" xml:space="preserve">
+    <value>• Samsung: desactiva «Bloqueador automático» (Ajustes › Seguridad y privacidad), y después «Bloquear conexiones USB»: ocultan el teléfono al PC.</value>
+  </data>
+  <data name="BrandHonorFixCable" xml:space="preserve">
+    <value>• Honor, Huawei: activa también «Depuración ADB en modo Solo carga» en las opciones de desarrollador, si tu versión lo ofrece.</value>
+  </data>
+  <data name="BrandHonorFixWifi" xml:space="preserve">
+    <value>• Honor, Huawei: sin servicios de Google, la depuración inalámbrica a veces no existe. Usa entonces el cable.</value>
+  </data>
+  <data name="HelpFixCableUnlock" xml:space="preserve">
+    <value>• Desbloquea el teléfono: la petición solo aparece con la pantalla desbloqueada.</value>
+  </data>
+  <data name="HelpFixWifiScreen" xml:space="preserve">
+    <value>• Para vincular, mantén abierta la pantalla del código en el teléfono: solo se muestra al PC mientras tanto.</value>
   </data>
 </root>

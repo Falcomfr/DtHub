@@ -202,4 +202,24 @@ public class PhoneBrandsTests
         Assert.Contains("Island", path, StringComparison.Ordinal);
         Assert.DoesNotContain(dossier, path, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void Les_pistes_propres_a_une_marque_restent_de_leur_cote()
+    {
+        // Reached by "Nothing shows up?", the fixes are read far from the
+        // brand's own warning: what only this brand needs has to be there.
+        var samsung = PhoneBrands.All.Single(b => b.Key == "Samsung");
+        var honor = PhoneBrands.All.Single(b => b.Key == "Honor");
+
+        Assert.NotNull(samsung.FixCable);
+        Assert.NotNull(honor.FixCable);
+        Assert.NotNull(honor.FixWifi);
+        Assert.Null(PhoneBrands.Standard.FixCable);
+        Assert.Null(PhoneBrands.Standard.FixWifi);
+
+        foreach (var brand in PhoneBrands.All)
+        {
+            Assert.DoesNotContain("Wi-Fi", brand.FixCable ?? string.Empty, StringComparison.OrdinalIgnoreCase);
+        }
+    }
 }

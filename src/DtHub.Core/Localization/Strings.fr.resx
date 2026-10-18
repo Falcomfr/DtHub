@@ -2638,7 +2638,7 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
     <value>• Essayez un autre câble : beaucoup ne font que charger.</value>
   </data>
   <data name="HelpFixCableMode" xml:space="preserve">
-    <value>• Dans la notification USB du téléphone, choisissez « Transfert de fichiers ».</value>
+    <value>• Dans la notification USB du téléphone, essayez « Transfert de fichiers ».</value>
   </data>
   <data name="HelpFixCableRevoke" xml:space="preserve">
     <value>• Options pour les développeurs : « Révoquer les autorisations de débogage USB », puis rebranchez.</value>
@@ -2648,5 +2648,20 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   </data>
   <data name="HelpFixWifiRestart" xml:space="preserve">
     <value>• Après un redémarrage, rallumez « Débogage sans fil » : l'association reste acquise.</value>
+  </data>
+  <data name="BrandSamsungFixCable" xml:space="preserve">
+    <value>• Samsung : désactivez « Bloqueur automatique » (Paramètres › Sécurité et confidentialité), puis « Bloquer les connexions USB » : ils cachent le téléphone au PC.</value>
+  </data>
+  <data name="BrandHonorFixCable" xml:space="preserve">
+    <value>• Honor, Huawei : activez aussi « Débogage ADB en mode Charger uniquement » dans les options pour les développeurs, si votre version le propose.</value>
+  </data>
+  <data name="BrandHonorFixWifi" xml:space="preserve">
+    <value>• Honor, Huawei : sans services Google, le débogage sans fil manque parfois. Passez alors par le câble.</value>
+  </data>
+  <data name="HelpFixCableUnlock" xml:space="preserve">
+    <value>• Déverrouillez le téléphone : la demande ne s'affiche que sur un écran déverrouillé.</value>
+  </data>
+  <data name="HelpFixWifiScreen" xml:space="preserve">
+    <value>• Pour associer, gardez l'écran du code ouvert sur le téléphone : il ne se montre au PC que pendant ce temps.</value>
   </data>
 </root>

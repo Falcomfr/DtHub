@@ -64,6 +64,16 @@ public sealed record PhoneBrand
     /// <summary>Second setting to disable, when the brand adds one.</summary>
     public string? BatteryNote => Maybe(nameof(BatteryNote));
 
+    /// <summary>
+    /// What only this brand needs when a cable phone does not show up. It
+    /// sits with the fixes, which the help scrolls to far below the
+    /// brand's own warning.
+    /// </summary>
+    public string? FixCable => Maybe(nameof(FixCable));
+
+    /// <summary>The same, for a phone that does not show up over Wi-Fi.</summary>
+    public string? FixWifi => Maybe(nameof(FixWifi));
+
     private string Text(string field) => Strings.Get($"Brand{Key}{field}");
 
     private string? Maybe(string field) => Strings.Optional($"Brand{Key}{field}");
