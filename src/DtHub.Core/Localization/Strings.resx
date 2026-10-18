@@ -2664,4 +2664,7 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="HelpFixWifiScreen" xml:space="preserve">
     <value>• To pair, keep the code screen open on the phone: it only shows itself to the PC meanwhile.</value>
   </data>
+  <data name="DownloadStalled" xml:space="preserve">
+    <value>Nothing received for {0} s: the connection froze.</value>
+  </data>
 </root>

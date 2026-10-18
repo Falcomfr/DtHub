@@ -983,6 +983,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
+    /// The phones one of whose profiles did not answer the last search, which
+    /// no account found does not prove lack the game.
+    /// </summary>
+    public IReadOnlySet<string> DevicesNotFullyRead => _instances.DevicesNotFullyRead;
+
+    /// <summary>
     /// Which connected phones have each MakeInTouch app, as of the last
     /// sweep. Main profile only: the apps are opened from user 0.
     /// </summary>
@@ -3038,6 +3044,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             var display = WithDisplayFor(gameOptions, placement, stored, quality, zoom, layoutHeight, phoneAspect ?? 0) with
             {
+                // The account's own tier, not the shared one the options
+                // were built from: a custom account under a fixed shared tier
+                // streamed in H.264, a fixed one under a custom tier in H.265.
+                VideoCodec = quality.VideoCodec,
+
                 // Specific to the device: two phones on different
                 // bands do not need the same buffer.
                 VideoBufferMs = _videoBuffers.TryGetValue(device.Serial, out var buffer)

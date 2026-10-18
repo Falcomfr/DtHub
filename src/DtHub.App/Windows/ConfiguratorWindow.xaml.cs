@@ -616,7 +616,7 @@ public partial class ConfiguratorWindow : Window
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
     {
         // The close button hides, it does not quit: the game keeps running.
-        if (!_quitting)
+        if (!_quitting && Application.Current is not App { IsQuitting: true })
         {
             e.Cancel = true;
             Vanish();

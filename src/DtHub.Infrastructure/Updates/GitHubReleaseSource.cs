@@ -126,8 +126,8 @@ public sealed partial class GitHubReleaseSource(
 
         while (true)
         {
-            var read = await source
-                .ReadAsync(buffer, cancellationToken)
+            var read = await DtHub.Infrastructure.Dependencies.DownloadRead
+                .NextAsync(source, buffer, DtHub.Infrastructure.Dependencies.DownloadRead.StallTimeout, cancellationToken)
                 .ConfigureAwait(false);
 
             if (read == 0)

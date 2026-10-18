@@ -69,6 +69,13 @@ public partial class App : Application, IDisposable
     private static readonly TimeSpan ShutdownLimit = TimeSpan.FromSeconds(8);
 
     private bool _quitting;
+
+    /// <summary>
+    /// True once the application is on its way out, by whatever path: the
+    /// panel's own guard only knew its Quit button, and a quit by shortcut
+    /// or at session end had it hide instead, against a closed window.
+    /// </summary>
+    public bool IsQuitting => _quitting;
     private bool _started;
     private Mutex? _instance;
     private EventWaitHandle? _wake;

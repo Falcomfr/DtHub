@@ -2664,4 +2664,7 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="HelpFixWifiScreen" xml:space="preserve">
     <value>• Para vincular, mantén abierta la pantalla del código en el teléfono: solo se muestra al PC mientras tanto.</value>
   </data>
+  <data name="DownloadStalled" xml:space="preserve">
+    <value>Nada recibido desde hace {0} s: la conexión se ha quedado bloqueada.</value>
+  </data>
 </root>

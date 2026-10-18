@@ -202,6 +202,12 @@ public sealed class QuestCatalogService : IDisposable
 
         try
         {
+            // Taken before the read, not after: a quest edited during the
+            // read would otherwise be stamped as seen, and every later check
+            // would find the stamp unchanged for the seven days of freshness.
+            // Older than the data, it makes the next check read again.
+            var stamp = await _client.GetStampAsync(cancellationToken).ConfigureAwait(false);
+
             var quests = await _client.GetQuestsAsync(progress, cancellationToken).ConfigureAwait(false);
 
             if (quests.Count == 0)
@@ -210,10 +216,6 @@ public sealed class QuestCatalogService : IDisposable
                 // had rather than take it for a site without quests.
                 return previous;
             }
-
-            // Captured during the read, not before: what we keep must
-            // describe the site as it was just read.
-            var stamp = await _client.GetStampAsync(cancellationToken).ConfigureAwait(false);
 
             progress?.Report(new QuestIndexingProgress(0, 0, QuestIndexingPhase.Dungeons));
 

@@ -104,6 +104,20 @@ public sealed class DofusInstanceService
     /// </summary>
     private readonly Dictionary<string, IReadOnlyList<int>> _without = new(StringComparer.Ordinal);
 
+    /// <summary>
+    /// The devices one of whose profiles could not be asked, or was stopped
+    /// or paused: finding no account on them does not say the game is
+    /// missing. It may sit in that profile, a locked Secure Folder for one,
+    /// and the phone was shown "game not installed".
+    ///
+    /// A copy swapped whole at the end of each phone: the list reads it on
+    /// the UI thread while the next search may be filling the set.
+    /// </summary>
+    public IReadOnlySet<string> DevicesNotFullyRead { get; private set; } =
+        System.Collections.Frozen.FrozenSet<string>.Empty;
+
+    private readonly HashSet<string> _unread = new(StringComparer.Ordinal);
+
     public async Task<IReadOnlyList<DofusInstance>> DiscoverAsync(
         IEnumerable<AndroidDevice> devices,
         CancellationToken cancellationToken = default)
@@ -114,6 +128,7 @@ public sealed class DofusInstanceService
         _warnings.Clear();
         _profiles.Clear();
         _without.Clear();
+        _unread.Clear();
 
         foreach (var device in devices.Where(d => d.IsConnected))
         {
@@ -142,8 +157,11 @@ public sealed class DofusInstanceService
         var users = await _users.GetUsersAsync(device.Serial, refresh: true, cancellationToken)
             .ConfigureAwait(false);
 
+        _ = _unread.Remove(device.Id);
+
         if (AndroidUserService.IsFallback(users))
         {
+            _ = _unread.Add(device.Id);
             _warnings.Add(
                 Strings.Format("ProfileListUnreadable", device.DisplayName));
         }
@@ -175,6 +193,11 @@ public sealed class DofusInstanceService
             if (packages is { Count: 0 } && user is { IsRunning: true, IsPaused: false })
             {
                 sansJeu.Add(user.Id);
+            }
+
+            if (packages is null || user is not { IsRunning: true, IsPaused: false })
+            {
+                _ = _unread.Add(device.Id);
             }
 
             if (packages is not null)
@@ -217,6 +240,8 @@ public sealed class DofusInstanceService
         {
             _without[device.Id] = sansJeu;
         }
+
+        DevicesNotFullyRead = System.Collections.Frozen.FrozenSet.ToFrozenSet(_unread, StringComparer.Ordinal);
 
         return instances;
     }

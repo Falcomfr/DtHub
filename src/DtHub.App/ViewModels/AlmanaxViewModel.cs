@@ -150,11 +150,11 @@ public sealed partial class AlmanaxViewModel : ObservableObject
     /// </summary>
     private const int Span = 7;
 
-    private DateOnly _anchor = DateOnly.FromDateTime(DateTime.Now);
+    private DateOnly _anchor = AlmanaxCalendar.Today();
 
     public AlmanaxViewModel()
     {
-        Selected = DateOnly.FromDateTime(DateTime.Now);
+        Selected = AlmanaxCalendar.Today();
 
         RebuildDays();
     }
@@ -243,7 +243,7 @@ public sealed partial class AlmanaxViewModel : ObservableObject
     /// True when the chosen day is not today: the return option is then
     /// offered.
     /// </summary>
-    public bool CanGoToday => Selected != DateOnly.FromDateTime(DateTime.Now);
+    public bool CanGoToday => Selected != AlmanaxCalendar.Today();
 
     /// <summary>
     /// The wait alone, as long as nothing has ever been read. Once a day
@@ -388,7 +388,7 @@ public sealed partial class AlmanaxViewModel : ObservableObject
     private async Task Search()
     {
         var query = SearchQuery.Trim();
-        var from = DateOnly.FromDateTime(DateTime.Now).AddDays(1);
+        var from = AlmanaxCalendar.Today().AddDays(1);
 
         Found.Clear();
         SearchResult = string.Empty;
@@ -551,7 +551,7 @@ public sealed partial class AlmanaxViewModel : ObservableObject
     /// </summary>
     public void Go(DateOnly date)
     {
-        var today = DateOnly.FromDateTime(DateTime.Now);
+        var today = AlmanaxCalendar.Today();
 
         // Nothing outside the bounds goes to the portal: when asked about a
         // date it does not know how to handle, it returns today's day
@@ -589,7 +589,7 @@ public sealed partial class AlmanaxViewModel : ObservableObject
     /// The month shown by the calendar, which is not necessarily that of
     /// the chosen day.
     /// </summary>
-    private DateOnly _month = new(DateTime.Now.Year, DateTime.Now.Month, 1);
+    private DateOnly _month = new(AlmanaxCalendar.Today().Year, AlmanaxCalendar.Today().Month, 1);
 
     /// <summary>The forty-two cells of the shown month.</summary>
     public ObservableCollection<AlmanaxCell> MonthDays { get; } = [];
@@ -630,7 +630,7 @@ public sealed partial class AlmanaxViewModel : ObservableObject
     [RelayCommand]
     private void PreviousMonth()
     {
-        _month = AlmanaxRange.ShiftMonth(_month, -1, DateOnly.FromDateTime(DateTime.Now));
+        _month = AlmanaxRange.ShiftMonth(_month, -1, AlmanaxCalendar.Today());
 
         RebuildMonth();
     }
@@ -638,7 +638,7 @@ public sealed partial class AlmanaxViewModel : ObservableObject
     [RelayCommand]
     private void NextMonth()
     {
-        _month = AlmanaxRange.ShiftMonth(_month, 1, DateOnly.FromDateTime(DateTime.Now));
+        _month = AlmanaxRange.ShiftMonth(_month, 1, AlmanaxCalendar.Today());
 
         RebuildMonth();
     }
@@ -664,7 +664,7 @@ public sealed partial class AlmanaxViewModel : ObservableObject
     {
         var culture = DisplayCulture.Current;
         var first = culture.DateTimeFormat.FirstDayOfWeek;
-        var today = DateOnly.FromDateTime(DateTime.Now);
+        var today = AlmanaxCalendar.Today();
 
         MonthLabel = _month.ToDateTime(TimeOnly.MinValue).ToString("MMMM yyyy", culture);
 
@@ -691,21 +691,21 @@ public sealed partial class AlmanaxViewModel : ObservableObject
     /// <summary>
     /// True as long as a day remains backward within the bounds.
     /// </summary>
-    public bool CanGoPrevious => Selected > AlmanaxRange.Earliest(DateOnly.FromDateTime(DateTime.Now));
+    public bool CanGoPrevious => Selected > AlmanaxRange.Earliest(AlmanaxCalendar.Today());
 
     /// <summary>
     /// True as long as a day remains forward within the bounds.
     /// </summary>
-    public bool CanGoNext => Selected < AlmanaxRange.Latest(DateOnly.FromDateTime(DateTime.Now));
+    public bool CanGoNext => Selected < AlmanaxRange.Latest(AlmanaxCalendar.Today());
 
     [RelayCommand(CanExecute = nameof(CanGoPrevious))]
-    private void Previous() => Go(AlmanaxRange.Clamp(Selected.AddDays(-1), DateOnly.FromDateTime(DateTime.Now)));
+    private void Previous() => Go(AlmanaxRange.Clamp(Selected.AddDays(-1), AlmanaxCalendar.Today()));
 
     [RelayCommand(CanExecute = nameof(CanGoNext))]
-    private void Next() => Go(AlmanaxRange.Clamp(Selected.AddDays(1), DateOnly.FromDateTime(DateTime.Now)));
+    private void Next() => Go(AlmanaxRange.Clamp(Selected.AddDays(1), AlmanaxCalendar.Today()));
 
     [RelayCommand]
-    private void Today() => Go(DateOnly.FromDateTime(DateTime.Now));
+    private void Today() => Go(AlmanaxCalendar.Today());
 
     [RelayCommand]
     private void Pick(AlmanaxChip? chip)
@@ -750,7 +750,7 @@ public sealed partial class AlmanaxViewModel : ObservableObject
 
     private void RebuildDays()
     {
-        var today = DateOnly.FromDateTime(DateTime.Now);
+        var today = AlmanaxCalendar.Today();
 
         Days.Clear();
 

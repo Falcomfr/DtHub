@@ -1183,6 +1183,14 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
 
             if (verdict == BackupVerdict.Usable)
             {
+                // The whole document was replaced: the panel only rereads
+                // it on its first opening, the shortcuts stayed registered
+                // and the accounts cached, all on the old values until a
+                // restart.
+                await _launcher.ReloadHotkeysAsync().ConfigureAwait(true);
+                Instances.InvalidateInstances();
+                await LoadAsync().ConfigureAwait(true);
+
                 _dialogs.ShowInformation(message);
             }
             else
@@ -1374,8 +1382,27 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     [RelayCommand]
     private void OpenLogs() => _dialogs.OpenFolder(_paths.LogsDirectory);
 
-    private Task SaveAsync(Action<AppSettingsDocument> mutate) =>
-        _loading ? Task.CompletedTask : _settings.UpdateAsync(mutate);
+    /// <summary>
+    /// Saves one setting of the panel. Most callers fire and forget from a
+    /// setter: a write that threw left the switch on a value never saved,
+    /// and only the garbage collector saw it. The banner says it instead.
+    /// </summary>
+    private async Task SaveAsync(Action<AppSettingsDocument> mutate)
+    {
+        if (_loading)
+        {
+            return;
+        }
+
+        try
+        {
+            await _settings.UpdateAsync(mutate).ConfigureAwait(true);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            Instances.ShowBanner(exception.Message);
+        }
+    }
 
     partial void OnGameAnchorChanged(WindowAnchor value)
     {

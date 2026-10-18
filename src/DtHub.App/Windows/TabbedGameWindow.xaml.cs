@@ -117,10 +117,10 @@ public partial class TabbedGameWindow : Window
         tab.PropertyChanged -= OnTabChanged;
         Items.Remove(tab);
 
-        if (reveal)
-        {
-            _windows.SetVisible(tab.Window, true);
-        }
+        // Hidden too, not only left as it was: the selected tab's window is
+        // visible, and it came out of the frame on screen at its old place
+        // until scrcpy stopped, some 600 ms.
+        _windows.SetVisible(tab.Window, reveal);
 
         _windows.Undock(tab.Window);
 

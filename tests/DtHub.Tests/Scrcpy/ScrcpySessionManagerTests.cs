@@ -504,6 +504,26 @@ public class ScrcpySessionManagerTests
         request.Arguments.Contains("--no-window") && !request.Arguments.Contains("--no-audio");
 
     [Fact]
+    public async Task Deux_comptes_ouverts_ensemble_ne_portent_pas_le_son_tous_les_deux()
+    {
+        // A Wi-Fi drop ends both accounts of a phone at once, and both are
+        // reopened together: each was asked "sound already carried?" before
+        // the other was registered, and the phone's sound played twice.
+        var launcher = new FakeProcessLauncher()
+            .Prepare(new FakeProcessSession(1).Emit(NewDisplayLine))
+            .Prepare(new FakeProcessSession(2).Emit(NewDisplayLine));
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        var opened = await Task.WhenAll(
+            manager.StartAsync(Target(0), WithSound, null, CancellationToken.None),
+            manager.StartAsync(Target(999), WithSound, null, CancellationToken.None));
+
+        Assert.Single(opened, s => s.CarriesAudio);
+        Assert.Single(launcher.Requests, r => !r.Arguments.Contains("--no-audio"));
+    }
+
+    [Fact]
     public async Task Fermer_le_compte_qui_porte_le_son_le_rend_aux_comptes_restes_ouverts()
     {
         // Reported on 2026-10-17: A and B open, A closed with its window's

@@ -114,4 +114,20 @@ public sealed class WindowGeometryRestoreTests
         Assert.NotNull(restored);
         Assert.True(restored!.Value.X >= 1920);
     }
+
+    [Fact]
+    public void Un_ecran_renumerote_garde_sa_fenetre_sur_le_bon_ecran()
+    {
+        // The 2560 screen was DISPLAY2 when the window was saved; after a
+        // reconnect it is DISPLAY3, and DISPLAY2 is now another screen. The
+        // name alone sent the window, rescaled, onto that other screen.
+        var big = Monitor(@"\\.\DISPLAY3", 1920, 0, 2560, 1440, primary: false);
+        var other = Monitor(@"\\.\DISPLAY2", -1920, 0, 1920, 1080, primary: false);
+        var main = Monitor(@"\\.\DISPLAY1", 0, 0, 1920, 1080);
+
+        var restored = WindowLayoutCalculator.RestoreRemembered(
+            new ScreenRect(2200, 100, 900, 900), @"\\.\DISPLAY2", new ScreenRect(1920, 0, 2560, 1440), [main, other, big]);
+
+        Assert.Equal(new ScreenRect(2200, 100, 900, 900), restored);
+    }
 }

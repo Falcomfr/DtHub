@@ -138,4 +138,24 @@ public class GamePresenceReadingTests
         Assert.Equal(GamePresence.Present, read["avec"]);
         Assert.Equal(GamePresence.Absent, read["sans"]);
     }
+
+    [Fact]
+    public void Un_telephone_dont_un_profil_n_a_pas_repondu_garde_son_verdict()
+    {
+        // The game only in a locked Secure Folder, or a profile whose package
+        // listing timed out: finding no account there proves nothing.
+        var known = new Dictionary<string, GamePresence>(StringComparer.Ordinal) { ["tel"] = GamePresence.Present };
+
+        var read = GamePresenceReading.After(known, [Phone("tel")], [], unread: new HashSet<string>(StringComparer.Ordinal) { "tel" });
+
+        Assert.Equal(GamePresence.Present, read["tel"]);
+    }
+
+    [Fact]
+    public void Un_compte_trouve_suffit_meme_si_un_autre_profil_s_est_tu()
+    {
+        var read = GamePresenceReading.After(Nothing(), [Phone("tel")], [Account("tel")], unread: new HashSet<string>(StringComparer.Ordinal) { "tel" });
+
+        Assert.Equal(GamePresence.Present, read["tel"]);
+    }
 }

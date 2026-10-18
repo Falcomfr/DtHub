@@ -82,8 +82,12 @@ public sealed partial class ArchiveDependencyProvisioner : IDependencyProvisione
             progress?.Report(new ProvisioningProgress(ProvisioningStage.Extracting));
             Extract(dependency, archivePath, installRoot);
         }
+        // A cancellation only goes up as such when it was asked for:
+        // HttpClient's own timeout throws one too, and it escaped the callers,
+        // which only expect this exception, instead of failing the window.
         catch (Exception exception) when (exception is not DependencyProvisioningException
-                                          and not OperationCanceledException)
+                                          && !(exception is OperationCanceledException
+                                               && cancellationToken.IsCancellationRequested))
         {
             throw new DependencyProvisioningException(
                 dependency.Key,
@@ -152,7 +156,8 @@ public sealed partial class ArchiveDependencyProvisioner : IDependencyProvisione
 
         while (true)
         {
-            var read = await source.ReadAsync(buffer, cancellationToken).ConfigureAwait(false);
+            var read = await DownloadRead.NextAsync(source, buffer, DownloadRead.StallTimeout, cancellationToken)
+                .ConfigureAwait(false);
             if (read == 0)
             {
                 break;

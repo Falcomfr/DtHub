@@ -2664,4 +2664,7 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="HelpFixWifiScreen" xml:space="preserve">
     <value>• Pour associer, gardez l'écran du code ouvert sur le téléphone : il ne se montre au PC que pendant ce temps.</value>
   </data>
+  <data name="DownloadStalled" xml:space="preserve">
+    <value>Rien reçu depuis {0} s : la connexion s'est figée.</value>
+  </data>
 </root>

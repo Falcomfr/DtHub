@@ -74,6 +74,41 @@ public static class AlmanaxCalendar
     }
 
     /// <summary>
+    /// Paris, where the game's servers turn the day at midnight. Windows names
+    /// it "Romance Standard Time"; the IANA name serves the other systems.
+    /// </summary>
+    private static readonly TimeZoneInfo? Paris = FindParis();
+
+    private static TimeZoneInfo? FindParis()
+    {
+        foreach (var id in new[] { "Romance Standard Time", "Europe/Paris" })
+        {
+            try
+            {
+                return TimeZoneInfo.FindSystemTimeZoneById(id);
+            }
+            catch (Exception exception) when (exception is TimeZoneNotFoundException or InvalidTimeZoneException)
+            {
+                // Try the other name.
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Today in the game: the date in Paris, not on the PC. A player in
+    /// Montreal sees the Almanax change at six in the evening, and the PC's
+    /// own date showed until midnight the offering the game no longer asked
+    /// for. Without the time zone, the PC's date is all there is.
+    /// </summary>
+    public static DateOnly Today(DateTimeOffset now) =>
+        DateOnly.FromDateTime(Paris is null ? now.LocalDateTime : TimeZoneInfo.ConvertTime(now, Paris).DateTime);
+
+    /// <summary>Today in the game, now.</summary>
+    public static DateOnly Today() => Today(DateTimeOffset.UtcNow);
+
+    /// <summary>
     /// The address of a specific day.
     ///
     /// The portal accepts the date in the path, in ISO format. It is

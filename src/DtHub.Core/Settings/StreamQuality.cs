@@ -179,6 +179,14 @@ public sealed record QualityProfile(
     public int LayoutHeight { get; init; }
 
     /// <summary>
+    /// The codec this tier asks for, only at the custom tier. Elsewhere it
+    /// stays null and scrcpy decides, it is the one that knows what the
+    /// phone encodes in hardware. Carried here so that it follows each
+    /// account's own tier, and not the shared one only.
+    /// </summary>
+    public string? VideoCodec { get; init; }
+
+    /// <summary>
     /// What the tier sets, in one line for its tooltip: the definition, the
     /// frame rate, and the bitrate of a full window at the 16:9 the panel
     /// already counts with.
@@ -287,6 +295,7 @@ public sealed record QualityProfile(
             MaximumDisplayHeight = wanted.MaximumDisplayHeight,
             BitsPerPixel = wanted.BitsPerPixel,
             LayoutHeight = wanted.LayoutHeight,
+            VideoCodec = wanted.VideoCodec,
 
             // The ceiling stays, and it is that of the highest tier. It
             // protects not from the user but from the link: several open

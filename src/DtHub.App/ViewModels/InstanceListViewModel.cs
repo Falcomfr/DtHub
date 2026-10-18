@@ -113,7 +113,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// Drops the accounts found, so that the next sweep asks the phones
     /// again: something was just changed that they alone can confirm.
     /// </summary>
-    private void InvalidateInstances()
+    internal void InvalidateInstances()
     {
         _instances = null;
         _invalidations++;
@@ -781,7 +781,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
             StringComparer.Ordinal);
 
         foreach (var (id, presence) in
-            Core.Dofus.GamePresenceReading.After(known, devices, instances))
+            Core.Dofus.GamePresenceReading.After(known, devices, instances, _launcher.DevicesNotFullyRead))
         {
             if (_devices.TryGetValue(id, out var view))
             {

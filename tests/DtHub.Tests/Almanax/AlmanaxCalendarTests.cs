@@ -111,4 +111,19 @@ public class AlmanaxCalendarTests
     {
         Assert.False(AlmanaxCalendar.Owns(url));
     }
+
+    [Theory]
+    [InlineData("2026-10-18T21:30:00Z", "2026-10-18")]
+    [InlineData("2026-10-18T22:30:00Z", "2026-10-19")]
+    [InlineData("2026-01-15T22:30:00Z", "2026-01-15")]
+    [InlineData("2026-01-15T23:30:00Z", "2026-01-16")]
+    public void Le_jour_de_l_almanax_est_celui_de_paris(string utc, string expected)
+    {
+        // The game's day turns at midnight on its servers, in Paris: a player
+        // in Montreal sees it change at six in the evening. The PC's own date
+        // showed the offering the game no longer asked for.
+        var now = DateTimeOffset.Parse(utc, System.Globalization.CultureInfo.InvariantCulture);
+
+        Assert.Equal(DateOnly.Parse(expected, System.Globalization.CultureInfo.InvariantCulture), AlmanaxCalendar.Today(now));
+    }
 }

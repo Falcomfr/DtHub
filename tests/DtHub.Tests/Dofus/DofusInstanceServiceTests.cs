@@ -325,6 +325,9 @@ public class DofusInstanceServiceTests
         _ = await service.DiscoverOnDeviceAsync(Device(), CancellationToken.None);
 
         Assert.Empty(service.ProfilesWithoutGame["MATERIEL123"]);
+
+        // Nor can the phone be said to lack the game.
+        Assert.Contains("MATERIEL123", service.DevicesNotFullyRead);
     }
 
     [Fact]
@@ -338,6 +341,7 @@ public class DofusInstanceServiceTests
         _ = await service.DiscoverOnDeviceAsync(Device(), CancellationToken.None);
 
         Assert.Equal([0], service.ProfilesWithoutGame["MATERIEL123"]);
+        Assert.DoesNotContain("MATERIEL123", service.DevicesNotFullyRead);
     }
 
     [Fact]

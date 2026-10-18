@@ -214,6 +214,13 @@ public static class WindowLayoutCalculator
             return remembered;
         }
 
+        // The same screen under another name: a reconnect renumbered it,
+        // and the name now designates a different one. Its bounds tell.
+        if (monitors.FirstOrDefault(m => m.Bounds == monitorBounds && IsMostlyOn(remembered, m)) is not null)
+        {
+            return remembered;
+        }
+
         // Resolution or layout changed: we transpose proportionally.
         if (named is not null && named.Bounds != monitorBounds && !monitorBounds.IsEmpty)
         {

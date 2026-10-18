@@ -43,10 +43,15 @@ public static class GamePresenceReading
     /// The accounts the search found, or <c>null</c> when it has not
     /// answered. An empty list is an answer; <c>null</c> is not.
     /// </param>
+    /// <param name="unread">
+    /// The devices one of whose profiles did not answer, which nothing found
+    /// on them proves nothing about.
+    /// </param>
     public static Dictionary<string, GamePresence> After(
         IReadOnlyDictionary<string, GamePresence> known,
         IReadOnlyList<AndroidDevice> devices,
-        IReadOnlyList<DofusInstance>? instances)
+        IReadOnlyList<DofusInstance>? instances,
+        IReadOnlySet<string>? unread = null)
     {
         ArgumentNullException.ThrowIfNull(known);
         ArgumentNullException.ThrowIfNull(devices);
@@ -59,9 +64,14 @@ public static class GamePresenceReading
 
         foreach (var device in devices)
         {
+            // A phone one of whose profiles did not answer keeps its verdict
+            // when nothing was found on it: the game may sit in that profile,
+            // a locked Secure Folder for instance (DofusInstanceService).
             read[device.Id] = withGame is null || !device.IsConnected
                 ? Kept(known, device.Id)
-                : withGame.Contains(device.Id) ? GamePresence.Present : GamePresence.Absent;
+                : withGame.Contains(device.Id) ? GamePresence.Present
+                : unread?.Contains(device.Id) == true ? Kept(known, device.Id)
+                : GamePresence.Absent;
         }
 
         return read;

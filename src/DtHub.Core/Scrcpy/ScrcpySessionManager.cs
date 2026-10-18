@@ -297,6 +297,21 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
             .EnterAsync(target.DeviceId, cancellationToken)
             .ConfigureAwait(false);
 
+        // Asked again under the phone's lock: two accounts of one phone
+        // reopened together were each told by the caller that no game
+        // carried the sound yet, the other not being registered, and the
+        // phone's sound played twice. A tool window never carries it.
+        if (options.AudioEnabled
+            && _sessions.Values.Any(s => s.IsAlive && s.CarriesAudio
+                                         && string.Equals(s.Target.DeviceId, target.DeviceId, StringComparison.Ordinal)))
+        {
+            options = options with { AudioEnabled = false };
+            request = request with
+            {
+                Arguments = ScrcpyCommandBuilder.BuildMirrorArguments(serial, windowTitle, options, placement),
+            };
+        }
+
         IProcessSession process;
         try
         {

@@ -284,6 +284,26 @@ public class DevicePairingServiceTests
     }
 
     [Fact]
+    public async Task Deux_annonces_sous_la_meme_adresse_se_departagent_par_le_port_qui_repond()
+    {
+        // Two phones announcing: adb lists both under the address of the
+        // one being paired, the other's first. Taken at its word, the first
+        // announcement sent the connection to the other phone's port.
+        var adb = new FakeAdbClient();
+        adb.MdnsOutputs.Enqueue("""
+            List of discovered mdns services
+            adb-AUTRE-xx	_adb-tls-connect._tcp	192.168.1.23:41000
+            adb-MATERIEL123-nJyLWZ	_adb-tls-connect._tcp	192.168.1.23:37845
+            """);
+
+        var probe = new FakeAddressProbe().Answering("192.168.1.23:37845");
+
+        var found = await Service(adb, probe).WaitForConnectServiceAsync("192.168.1.23", CancellationToken.None);
+
+        Assert.Equal("192.168.1.23:37845", found?.Address);
+    }
+
+    [Fact]
     public async Task Une_connexion_manuelle_reussie_est_rapportee_comme_telle()
     {
         var adb = new FakeAdbClient();

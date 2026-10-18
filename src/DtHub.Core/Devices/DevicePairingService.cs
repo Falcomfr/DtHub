@@ -200,15 +200,22 @@ public sealed class DevicePairingService
 
             var announced = services.Where(s => s.IsConnect).ToList();
 
-            var match = announced.FirstOrDefault(
-                s => string.Equals(s.Host, host, StringComparison.Ordinal));
+            List<MdnsService> sameHost =
+            [
+                .. announced.Where(s => string.Equals(s.Host, host, StringComparison.Ordinal)),
+            ];
 
-            if (match is not null)
+            // Alone under this address, the announcement is this phone's.
+            // Several, adb gave them all the address of one phone: only the
+            // port that answers tells which is which, and the first one
+            // listed was often the other phone's.
+            if (sameHost.Count == 1 || (sameHost.Count > 1 && _probe is null))
             {
-                return match;
+                return sameHost[0];
             }
 
-            match = await PortAnsweringOnAsync(host, announced, tried, cancellationToken).ConfigureAwait(false);
+            var match = await PortAnsweringOnAsync(
+                host, sameHost.Count > 1 ? sameHost : announced, tried, cancellationToken).ConfigureAwait(false);
 
             if (match is not null)
             {

@@ -88,4 +88,16 @@ public class InstanceQualityTests
         Assert.Equal(37, InstanceQuality.ProfileFor(null, StreamQuality.Custom, commun).MaxFps);
         Assert.Equal(37, InstanceQuality.ProfileFor(StreamQuality.Custom, StreamQuality.Medium, commun).MaxFps);
     }
+
+    [Fact]
+    public void Le_codec_suit_le_palier_du_compte()
+    {
+        // Only the custom tier chooses a codec. An account set to it while
+        // the shared tier is fixed used to stream in H.264, and an account
+        // on a fixed tier under a shared custom one was forced to H.265.
+        var custom = CustomQuality.Default with { VideoCodec = "h265" };
+
+        Assert.Equal("h265", InstanceQuality.ProfileFor(StreamQuality.Custom, StreamQuality.Medium, custom).VideoCodec);
+        Assert.Null(InstanceQuality.ProfileFor(StreamQuality.Low, StreamQuality.Custom, custom).VideoCodec);
+    }
 }
