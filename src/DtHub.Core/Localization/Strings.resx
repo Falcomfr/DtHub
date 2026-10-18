@@ -1333,9 +1333,6 @@ On a {0} device, the manual copy goes through: {1}.</value>
   <data name="ProfileListUnreadable" xml:space="preserve">
     <value>{0}: the list of Android profiles could not be read. Only the main profile is visible; a game installed in a second space will not appear.</value>
   </data>
-  <data name="ProfileLimitReached" xml:space="preserve">
-    <value>This phone accepts only {0} profiles, and all {0} are taken. Delete one in its settings to make room.</value>
-  </data>
   <data name="NoPrimaryProfile" xml:space="preserve">
     <value>The phone did not say which is its main profile. Reconnect it, then try again.</value>
   </data>

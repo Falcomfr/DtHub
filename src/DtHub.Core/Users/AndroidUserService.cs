@@ -143,33 +143,6 @@ public sealed class AndroidUserService
     }
 
     /// <summary>
-    /// Number of profiles the device accepts in total, or <c>null</c>
-    /// if it does not say. The primary user counts in this total.
-    /// </summary>
-    public async Task<int?> GetMaxUsersAsync(
-        string serial,
-        CancellationToken cancellationToken = default)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(serial);
-
-        try
-        {
-            var output = await _adb
-                .ShellAsync(serial, ["pm", "get-max-users"], null, cancellationToken)
-                .ConfigureAwait(false);
-
-            return AndroidUserParser.ParseMaxUsers(output);
-        }
-        catch (AdbException)
-        {
-            // Silence assumed: empty means "this phone does not state
-            // its limit", which is also true of those that do not
-            // know the command. Adding an account is then not refused.
-            return null;
-        }
-    }
-
-    /// <summary>
     /// Creates an Android profile attached to
     /// <paramref name="parentUserId"/> and returns its identifier.
     ///

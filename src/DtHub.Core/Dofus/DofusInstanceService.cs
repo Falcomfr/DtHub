@@ -393,9 +393,10 @@ public sealed class DofusInstanceService
     /// however, with its own data space, empty: the game will ask it again for
     /// its resources and its connection.
     ///
-    /// The room is checked first. A phone caps the number of profiles, four on
-    /// the reference one, and letting creation fail would return an ADB
-    /// message that nobody understands.
+    /// The room is the phone's per-owner caps, one clone and one work profile,
+    /// checked below. Not "pm get-max-users": Android only holds full users to
+    /// that maximum, never a profile attached to the owner, and a phone
+    /// without multi-user, which states 1, was refused a clone it would take.
     /// </summary>
     public async Task<AccountAddition> AddAccountAsync(
         string serial,
@@ -407,15 +408,6 @@ public sealed class DofusInstanceService
 
         var existing = await _users.GetUsersAsync(serial, refresh: true, cancellationToken)
             .ConfigureAwait(false);
-
-        var maximum = await _users.GetMaxUsersAsync(serial, cancellationToken).ConfigureAwait(false);
-
-        if (maximum is { } limit && existing.Count >= limit)
-        {
-            return new AccountAddition(
-                false,
-                Strings.Format("ProfileLimitReached", limit));
-        }
 
         // The profile attaches to the main user. No identifier is assumed: it
         // is the phone that says which of its accounts is the main one.

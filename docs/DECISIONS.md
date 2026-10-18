@@ -10630,3 +10630,36 @@ son bouton, qui tournerait en rond, et ne garde que la marche à suivre. Le
 constat repose sur le mode au moment de la mesure, pas sur le mode affiché :
 choisi pendant la partie, il ne compte qu'au lancement suivant. Non vérifié
 sur un téléphone : le 13T Pro ne réduit jamais en standard.
+
+## D204 - Le maximum d'utilisateurs ne retient pas un profil rattaché
+
+**2026-10-18 - Acceptée, déduite du code d'Android, non vérifiée sur un téléphone sans multi-utilisateur**
+
+Ajouter un compte refusait d'emblée quand `pm get-max-users` était atteint,
+profils rattachés compris. Or Android n'applique ce maximum qu'aux
+utilisateurs complets : la création ne le vérifie que pour un utilisateur qui
+n'est ni invité, ni démo, ni profil. Un téléphone sans multi-utilisateur, qui
+annonce 1, se voyait refuser un clone qu'il aurait pris. Le Mi 9T Pro annonce
+4 et tient le principal plus un profil géré, ce qui ne tranche rien.
+
+Les vraies places restent celles de D98 et D102 : un clone et un profil
+professionnel par compte principal, vérifiés après. `pm get-max-users` n'est
+plus lu, et son message disparaît avec lui.
+
+## D205 - Un compte en lancement garde son indicateur jusqu'au bout
+
+**2026-10-18 - Acceptée, mesurée sur le Mi 9T Pro**
+
+Signalé par l'utilisateur : l'indicateur d'un lancement s'éteignait puis
+repartait. La ligne ne suivait que le verrou d'ouverture du téléphone, qu'un
+lancement prend et relâche jusqu'à trois fois (sondage des encodeurs,
+ouverture, écran tenu éteint). Au démarrage, à une reprise, une réouverture,
+un profil ou après une fenêtre perdue, aucun bouton ne tenait la ligne entre
+les trois (journal du 18/10 à 12:19 : éteint 0,6 s, rallumé 1,7 s).
+
+Le lanceur tient désormais chaque compte du début à la fin de son lancement,
+et une réouverture dès avant la fermeture de ses fenêtres, pause de D202
+comprise. Mesuré sur deux réouvertures : occupé sans trou 12 s puis 9,9 s.
+
+Les autres comptes du même téléphone suivent toujours le verrou, comme D97
+l'a choisi : les tenir plus longtemps est ce que D97 a mesuré et écarté.

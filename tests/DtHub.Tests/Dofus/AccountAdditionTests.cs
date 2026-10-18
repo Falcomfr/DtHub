@@ -32,7 +32,6 @@ public sealed class AccountAdditionTests
     private static FakeAdbClient Sain() =>
         new FakeAdbClient()
             .WithShell("pm list users", DeuxProfils)
-            .WithShell("pm get-max-users", "Maximum supported users: 4")
             .WithShell("pm create-user", "Success: created user id 10")
             .WithShell("install-existing", "Package com.ankama.dofustouch installed for user: 10")
             .WithShell("pm list packages", "package:com.ankama.dofustouch")
@@ -67,7 +66,6 @@ public sealed class AccountAdditionTests
     {
         var adb = new FakeAdbClient()
             .WithShell("pm list users", AucunProfil)
-            .WithShell("pm get-max-users", "Maximum supported users: 4")
             .WithShell("pm create-user", "Success: created user id 10")
             .WithShell("install-existing", "Package com.ankama.dofustouch installed for user: 10")
             .WithShell("pm list packages", "package:com.ankama.dofustouch")
@@ -87,7 +85,6 @@ public sealed class AccountAdditionTests
         // The managed profile, by contrast, arrives pre-loaded.
         var adb = new FakeAdbClient()
             .WithShell("pm list users", AucunProfil)
-            .WithShell("pm get-max-users", "Maximum supported users: 4")
             .WithShell("pm create-user", "Success: created user id 10")
             .WithShell("install-existing", "Package com.ankama.dofustouch installed for user: 10")
             .WithShell("pm list packages", "package:com.ankama.dofustouch")
@@ -120,20 +117,23 @@ public sealed class AccountAdditionTests
     }
 
     [Fact]
-    public async Task Un_telephone_plein_refuse_avant_d_essayer()
+    public async Task Le_maximum_d_utilisateurs_ne_retient_pas_un_profil_rattache()
     {
+        // Android checks that maximum for full users only, never for a profile
+        // attached to the owner. A phone without multi-user states 1, and it
+        // was refused a clone it would have taken.
         var adb = new FakeAdbClient()
-            .WithShell("pm list users", DeuxProfils)
-            .WithShell("pm get-max-users", "Maximum supported users: 2");
+            .WithShell("pm list users", AucunProfil)
+            .WithShell("pm get-max-users", "Maximum supported users: 1")
+            .WithShell("pm create-user", "Success: created user id 10")
+            .WithShell("install-existing", "Package com.ankama.dofustouch installed for user: 10")
+            .WithShell("pm list packages", "package:com.ankama.dofustouch")
+            .WithShell("am start-user", "Success: user started");
 
-        var result = await Service(adb).AddAccountAsync("USB0001", "Troisième", CancellationToken.None);
+        var result = await Service(adb).AddAccountAsync("USB0001", "Deuxième", CancellationToken.None);
 
-        Assert.False(result.Succeeded);
-        Assert.Contains("2 profils", result.Message, StringComparison.Ordinal);
-
-        // Nothing was attempted: the refusal comes from the lack of room, not
-        // from a failure.
-        Assert.DoesNotContain(adb.ShellCalls, c => c.Contains("create-user", StringComparison.Ordinal));
+        Assert.True(result.Succeeded, result.Message);
+        Assert.Contains(adb.ShellCalls, c => c.Contains("create-user", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -141,7 +141,6 @@ public sealed class AccountAdditionTests
     {
         var adb = new FakeAdbClient()
             .WithShell("pm list users", DeuxProfils)
-            .WithShell("pm get-max-users", "Maximum supported users: 4")
             .WithShell("pm create-user", "Error: couldn't create User.");
 
         var result = await Service(adb).AddAccountAsync("USB0001", "Troisième", CancellationToken.None);
@@ -159,7 +158,6 @@ public sealed class AccountAdditionTests
     {
         var adb = new FakeAdbClient()
             .WithShell("pm list users", DeuxProfils)
-            .WithShell("pm get-max-users", "Maximum supported users: 4")
             .WithShell("pm create-user", "Success: created user id 10")
             .WithShell("install-existing", "Package com.ankama.dofustouch installed for user: 10")
             .WithShell("pm list packages", string.Empty);
@@ -169,20 +167,6 @@ public sealed class AccountAdditionTests
         Assert.False(result.Succeeded);
         Assert.Equal(10, result.UserId);
         Assert.Contains("ne s'y trouve pas", result.Message, StringComparison.Ordinal);
-    }
-
-    /// <summary>
-    /// A phone that does not state its limit must not block the addition: we
-    /// try, and it is the one that decides.
-    /// </summary>
-    [Fact]
-    public async Task Une_limite_inconnue_n_empeche_pas_d_essayer()
-    {
-        var adb = Sain().WithShell("pm get-max-users", "commande inconnue");
-
-        var result = await Service(adb).AddAccountAsync("USB0001", "Troisième", CancellationToken.None);
-
-        Assert.True(result.Succeeded, result.Message);
     }
 
     [Theory]
@@ -199,19 +183,6 @@ public sealed class AccountAdditionTests
     [InlineData("Success")]
     public void Une_reponse_sans_identifiant_ne_cree_rien(string? sortie) =>
         Assert.Null(AndroidUserParser.ParseCreatedUserId(sortie));
-
-    [Theory]
-    [InlineData("Maximum supported users: 4", 4)]
-    [InlineData("Maximum supported users: 1", 1)]
-    public void La_limite_de_profils_se_lit(string sortie, int attendu) =>
-        Assert.Equal(attendu, AndroidUserParser.ParseMaxUsers(sortie));
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("Unknown command")]
-    public void Une_limite_illisible_rend_rien(string? sortie) =>
-        Assert.Null(AndroidUserParser.ParseMaxUsers(sortie));
 
     /// <summary>
     /// Recorded on the reference phone: the managed profile carries the 0x20
@@ -234,7 +205,6 @@ public sealed class AccountAdditionTests
         // so adding a second one on "pm list users" replaces nothing.
         var adb = new FakeAdbClient()
             .WithShell("pm list users", AvecProfilGere)
-            .WithShell("pm get-max-users", "Maximum supported users: 4")
             .WithShell("pm list packages", "package:com.ankama.dofustouch");
 
         var ajout = await Service(adb).AddAccountAsync("SERIE1", "Compte 4");
@@ -253,7 +223,6 @@ public sealed class AccountAdditionTests
             .WithShellChanging(
                 "list packages --user 10", string.Empty, "package:com.ankama.dofustouch")
             .WithShell("pm list users", AvecProfilGere)
-            .WithShell("pm get-max-users", "Maximum supported users: 4")
             .WithShell("install-existing", "Package com.ankama.dofustouch installed for user: 10")
             .WithShell("pm list packages", "package:com.ankama.dofustouch")
             .WithShell("am start-user", "Success: user started");

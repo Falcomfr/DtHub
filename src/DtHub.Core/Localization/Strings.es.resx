@@ -1333,9 +1333,6 @@ En un dispositivo {0}, la copia manual se hace por: {1}.</value>
   <data name="ProfileListUnreadable" xml:space="preserve">
     <value>{0}: no se ha podido leer la lista de perfiles de Android. Solo se ve el perfil principal; un juego instalado en un segundo espacio no aparecerá.</value>
   </data>
-  <data name="ProfileLimitReached" xml:space="preserve">
-    <value>Este teléfono solo acepta {0} perfiles, y los {0} están ocupados. Borra uno en sus ajustes para hacer sitio.</value>
-  </data>
   <data name="NoPrimaryProfile" xml:space="preserve">
     <value>El teléfono no ha dicho cuál es su perfil principal. Vuelve a conectarlo e inténtalo de nuevo.</value>
   </data>

@@ -260,34 +260,8 @@ public static partial class AndroidUserParser
             : null;
     }
 
-    /// <summary>
-    /// Number of profiles the device accepts, returned by
-    /// <c>pm get-max-users</c>, or <c>null</c> if it does not say.
-    ///
-    /// The response is "Maximum supported users: 4". We read it to
-    /// refuse early and clearly, rather than letting the creation
-    /// fail on an ADB message that nobody understands.
-    /// </summary>
-    public static int? ParseMaxUsers(string? output)
-    {
-        if (string.IsNullOrWhiteSpace(output))
-        {
-            return null;
-        }
-
-        var match = MaxUsersPattern().Match(output);
-
-        return match.Success
-               && int.TryParse(match.Groups["count"].Value, CultureInfo.InvariantCulture, out var count)
-            ? count
-            : null;
-    }
-
     [GeneratedRegex(@"created\s+user\s+id\s+(?<id>\d+)", RegexOptions.IgnoreCase)]
     private static partial Regex CreatedUserPattern();
-
-    [GeneratedRegex(@"Maximum\s+supported\s+users\s*:\s*(?<count>\d+)", RegexOptions.IgnoreCase)]
-    private static partial Regex MaxUsersPattern();
 
     private static int ParseFlags(string raw)
     {
