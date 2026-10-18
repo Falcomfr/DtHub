@@ -1240,12 +1240,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
             {
                 if (AndroidAppLauncher.Upscale(state) is not { } scale)
                 {
-                    // Fixed from the row: the banner would otherwise keep
-                    // saying it for its two minutes.
-                    if (_reducedRenders.TryRemove(session.Target.Key, out _) && _reducedRenders.IsEmpty)
-                    {
-                        _reducedRender = default;
-                    }
+                    ForgetReducedRender(session.Target.Key);
                 }
                 else
                 {
@@ -3309,9 +3304,34 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         var report = await SetGameModeAsync(instance, "standard", cancellationToken).ConfigureAwait(false);
 
-        return report.Problems.Count > 0
-            ? report
-            : await RestartAsync(instance, cancellationToken).ConfigureAwait(false);
+        if (report.Problems.Count > 0)
+        {
+            return report;
+        }
+
+        // Taken as fixed right away: the measure that confirms it comes ten
+        // seconds after the restart, and until then the warning still showing
+        // made a player click a second time (2026-10-18). Still reduced, the
+        // measure brings it back, as having not helped.
+        lock (_reducedRenders)
+        {
+            ForgetReducedRender(instance.Key);
+        }
+
+        return await RestartAsync(instance, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Drops an account's reduction, and the banner with it when no other
+    /// account is reduced: it would otherwise keep saying it for its two
+    /// minutes. Called under the lock on <see cref="_reducedRenders" />.
+    /// </summary>
+    private void ForgetReducedRender(string key)
+    {
+        if (_reducedRenders.TryRemove(key, out _) && _reducedRenders.IsEmpty)
+        {
+            _reducedRender = default;
+        }
     }
 
     /// <summary>

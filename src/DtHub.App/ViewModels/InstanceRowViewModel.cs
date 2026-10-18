@@ -196,7 +196,11 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     [RelayCommand]
     private void RestoreStandardMode()
     {
+        // Gone from the row on the click, not ten seconds later when the
+        // game is measured again: a warning still there invited a second
+        // click, and a second restart.
         IsReducedRenderOpen = false;
+        ReducedRenderPercent = null;
         StandardModeRequested?.Invoke(this, this);
     }
 
