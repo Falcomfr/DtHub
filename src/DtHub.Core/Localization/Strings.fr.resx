@@ -333,7 +333,7 @@
     <value>Associer un nouvel appareil</value>
   </data>
   <data name="PairDeviceTip" xml:space="preserve">
-    <value>À faire une seule fois par appareil. Les appareils déjà associés se connectent tout seuls. Seulement pour le sans-fil : en USB, il suffit de brancher le câble.</value>
+    <value>À faire une seule fois par appareil, par câble ou sans fil. Les appareils déjà associés se connectent tout seuls.</value>
   </data>
   <data name="Profiles" xml:space="preserve">
     <value>Profils</value>
@@ -450,13 +450,13 @@
     <value>Activez « Débogage USB » et « Débogage sans fil ».</value>
   </data>
   <data name="CableIsSimplest" xml:space="preserve">
-    <value>3. Par câble, le plus simple</value>
+    <value>3. Brancher le câble</value>
   </data>
   <data name="CableSteps" xml:space="preserve">
-    <value>Branchez le câble et acceptez la demande affichée sur l'appareil. Il apparaît tout seul dans la fenêtre principale, il n'y a rien d'autre à faire.</value>
+    <value>Branchez le câble. Si l'appareil demande le mode de connexion, choisissez « Transfert de fichiers » et non « Recharge ». Acceptez ensuite la demande de débogage en cochant « Toujours autoriser sur cet ordinateur » : sans cette case, elle revient à chaque branchement. L'appareil apparaît alors tout seul dans la fenêtre principale.</value>
   </data>
   <data name="WirelessFirstTime" xml:space="preserve">
-    <value>4. Sans fil, la première fois</value>
+    <value>3. Associer, la première fois</value>
   </data>
   <data name="WirelessMenuPath" xml:space="preserve">
     <value>Débogage sans fil  ›  Associer l'appareil avec un code d'association</value>
@@ -2622,5 +2622,58 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   </data>
   <data name="PathTo" xml:space="preserve">
     <value>Chemin vers {0}</value>
+  </data>
+  <data name="ByCable" xml:space="preserve">
+    <value>Par câble</value>
+  </data>
+  <data name="ByWifi" xml:space="preserve">
+    <value>Sans fil (Wi-Fi)</value>
+  </data>
+  <data name="EnableUsbDebugging" xml:space="preserve">
+    <value>Activez « Débogage USB ».</value>
+  </data>
+  <data name="CableNoRequest" xml:space="preserve">
+    <value>4. La demande n'apparaît pas, ou l'appareil reste hors ligne</value>
+  </data>
+  <data name="CableNoRequestCable" xml:space="preserve">
+    <value>• un autre câble et un autre port, à l'arrière du PC : beaucoup de câbles livrés avec un chargeur ne font que charger, et rien ne le signale ;</value>
+  </data>
+  <data name="CableNoRequestMode" xml:space="preserve">
+    <value>• dans la notification USB de l'appareil, le mode « Transfert de fichiers » plutôt que « Recharge » ;</value>
+  </data>
+  <data name="CableNoRequestRevoke" xml:space="preserve">
+    <value>• dans les options pour les développeurs, « Révoquer les autorisations de débogage USB », puis débrancher, rebrancher et accepter de nouveau ;</value>
+  </data>
+  <data name="CableNoRequestWindows" xml:space="preserve">
+    <value>• si Windows ne lit pas l'appareil, l'onglet Appareils dit ce qu'il voit, et quel pilote installer s'il en manque un.</value>
+  </data>
+  <data name="WirelessKeepOpen" xml:space="preserve">
+    <value>Gardez cet écran ouvert jusqu'à la fin : une fois fermé, il oublie son code et en affiche un nouveau à sa réouverture.</value>
+  </data>
+  <data name="WirelessAfterRestart" xml:space="preserve">
+    <value>4. Après un redémarrage ou un changement de Wi-Fi</value>
+  </data>
+  <data name="WirelessAfterRestartSteps" xml:space="preserve">
+    <value>Beaucoup d'appareils coupent le débogage sans fil en redémarrant ou en changeant de réseau. Rallumez-le dans les options pour les développeurs : l'association reste acquise, il n'y a rien à refaire. Si l'appareil demande d'autoriser le débogage sur ce réseau, cochez « Toujours autoriser sur ce réseau ».</value>
+  </data>
+  <data name="StaysOfflineGuest" xml:space="preserve">
+    <value>• pas sur le Wi-Fi invité de la box : il isole les appareils les uns des autres ;</value>
+  </data>
+  <data name="PairCableIntro" xml:space="preserve">
+    <value>Rien à associer par câble : l'appareil apparaît dès qu'il a accepté ce PC. Son débogage USB doit d'abord être actif, l'Aide dit où.</value>
+  </data>
+  <data name="PairCableSteps" xml:space="preserve">
+    <value>1. Branchez le câble sur le PC.
+2. Si l'appareil demande le mode de connexion, choisissez « Transfert de fichiers ».
+3. Acceptez la demande de débogage en cochant « Toujours autoriser sur cet ordinateur ».</value>
+  </data>
+  <data name="PairCableWaiting" xml:space="preserve">
+    <value>En attente d'un appareil branché.</value>
+  </data>
+  <data name="PairCableApprove" xml:space="preserve">
+    <value>L'appareil est branché : déverrouillez-le et acceptez la demande de débogage, en cochant « Toujours autoriser sur cet ordinateur ».</value>
+  </data>
+  <data name="PairCableConnected" xml:space="preserve">
+    <value>{0} est connecté en USB.</value>
   </data>
 </root>

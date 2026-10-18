@@ -46,4 +46,12 @@ public static class OfflineAdvice
         AdbConnectionKind.Wireless => "OfflineTipWireless",
         _ => "OfflineTip",
     };
+
+    /// <summary>
+    /// Whether the help opened from this phone shows the cable's steps
+    /// rather than the network's. The unknown goes to the cable, as its
+    /// tip already says: plugging it back in is the shortest way back.
+    /// </summary>
+    public static bool HelpOpensOnCable(AdbConnectionKind connection) =>
+        connection != AdbConnectionKind.Wireless;
 }

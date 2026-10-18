@@ -15,6 +15,16 @@
       <TextBlock Text="{loc:T PrepareDevice}" Style="{StaticResource Title}" />
       <TextBlock Style="{StaticResource Muted}" Margin="0,6,0,0"
                  Text="{loc:T BrandsDiffer}" />
+
+      <!-- One version per way of being attached: the steps used to follow
+           one another in a single list, cable and network mixed, and a
+           cable owner read the Wi-Fi's troubles as if they were theirs. -->
+      <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+        <RadioButton Style="{StaticResource Tab}" Content="{loc:T ByWifi}" GroupName="HelpMode"
+                     IsChecked="{Binding OnCable, Converter={StaticResource InverseBool}}" />
+        <RadioButton Style="{StaticResource Tab}" Content="{loc:T ByCable}" GroupName="HelpMode"
+                     IsChecked="{Binding OnCable}" />
+      </StackPanel>
     </StackPanel>
 
     <Border DockPanel.Dock="Bottom" Margin="0,14,0,0">
@@ -54,8 +64,10 @@
             <TextBlock FontWeight="SemiBold" Margin="0,0,0,4"
                        Text="{loc:T OpenDeveloperOptions}" />
             <w:MenuPathControl Path="{Binding Brand.DeveloperOptionsPath}" Margin="0,2,0,4" />
-            <TextBlock Style="{StaticResource Muted}"
-                       Text="{loc:T EnableDebugging}" />
+            <TextBlock Style="{StaticResource Muted}" Text="{loc:T EnableUsbDebugging}"
+                       Visibility="{Binding OnCable, Converter={StaticResource BoolToVisibility}}" />
+            <TextBlock Style="{StaticResource Muted}" Text="{loc:T EnableDebugging}"
+                       Visibility="{Binding OnCable, Converter={StaticResource InverseBoolToVisibility}}" />
 
             <Border Background="{DynamicResource SurfaceAltBrush}" CornerRadius="{StaticResource Radius}" Padding="10" Margin="0,10,0,0"
                     Visibility="{Binding HasWarning, Converter={StaticResource BoolToVisibility}}">
@@ -65,46 +77,79 @@
           </StackPanel>
         </Border>
 
-        <Border Style="{StaticResource Card}">
-          <StackPanel>
-            <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="{loc:T CableIsSimplest}" />
-            <TextBlock Style="{StaticResource Muted}"
-                       Text="{loc:T CableSteps}" />
-          </StackPanel>
-        </Border>
+        <StackPanel Visibility="{Binding OnCable, Converter={StaticResource BoolToVisibility}}">
+          <Border Style="{StaticResource Card}">
+            <StackPanel>
+              <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="{loc:T CableIsSimplest}" />
+              <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap"
+                         Text="{loc:T CableSteps}" />
+            </StackPanel>
+          </Border>
 
-        <Border Style="{StaticResource Card}">
-          <StackPanel>
-            <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="{loc:T WirelessFirstTime}" />
-            <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,3"
-                       Text="{loc:T WirelessMenuPath}" />
-            <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,3"
-                       Text="{loc:T WirelessCodeShown}" />
-            <TextBlock Style="{StaticResource Muted}"
-                       Text="{loc:T SameNetworkNotice}" />
-          </StackPanel>
-        </Border>
+          <!-- The cable's own failures, gathered here from the places that
+               only spoke of them after the fact: the dead input panel and
+               the devices tab. -->
+          <Border Style="{StaticResource Card}">
+            <StackPanel>
+              <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="{loc:T CableNoRequest}" />
+              <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,3"
+                         Text="{loc:T CableNoRequestCable}" />
+              <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,3"
+                         Text="{loc:T CableNoRequestMode}" />
+              <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,3"
+                         Text="{loc:T CableNoRequestRevoke}" />
+              <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap"
+                         Text="{loc:T CableNoRequestWindows}" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
 
-        <!-- Paired, yet offline: the pairing reached the phone, but its
-             mDNS announcement never reached the PC. This is where the
-             device row's help link lands. -->
-        <Border Style="{StaticResource Card}">
-          <StackPanel>
-            <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="{loc:T StaysOffline}" />
-            <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,3"
-                       Text="{loc:T StaysOfflineCause}" />
-            <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,3"
-                       Text="{loc:T StaysOfflineSameBand}" />
-            <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,3"
-                       Text="{loc:T StaysOfflinePrivate}" />
-            <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,3"
-                       Text="{loc:T StaysOfflineFirewall}" />
-            <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,3"
-                       Text="{loc:T StaysOfflineVpn}" />
-            <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap"
-                       Text="{loc:T StaysOfflineByHand}" />
-          </StackPanel>
-        </Border>
+        <StackPanel Visibility="{Binding OnCable, Converter={StaticResource InverseBoolToVisibility}}">
+          <Border Style="{StaticResource Card}">
+            <StackPanel>
+              <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="{loc:T WirelessFirstTime}" />
+              <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,3"
+                         Text="{loc:T WirelessMenuPath}" />
+              <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,3"
+                         Text="{loc:T WirelessCodeShown}" />
+              <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,3"
+                         Text="{loc:T WirelessKeepOpen}" />
+              <TextBlock Style="{StaticResource Muted}"
+                         Text="{loc:T SameNetworkNotice}" />
+            </StackPanel>
+          </Border>
+
+          <Border Style="{StaticResource Card}">
+            <StackPanel>
+              <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="{loc:T WirelessAfterRestart}" />
+              <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap"
+                         Text="{loc:T WirelessAfterRestartSteps}" />
+            </StackPanel>
+          </Border>
+
+          <!-- Paired, yet offline: the pairing reached the phone, but its
+               mDNS announcement never reached the PC. This is where the
+               device row's help link lands. -->
+          <Border Style="{StaticResource Card}">
+            <StackPanel>
+              <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="{loc:T StaysOffline}" />
+              <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,3"
+                         Text="{loc:T StaysOfflineCause}" />
+              <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,3"
+                         Text="{loc:T StaysOfflineSameBand}" />
+              <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,3"
+                         Text="{loc:T StaysOfflineGuest}" />
+              <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,3"
+                         Text="{loc:T StaysOfflinePrivate}" />
+              <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,3"
+                         Text="{loc:T StaysOfflineFirewall}" />
+              <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,3"
+                         Text="{loc:T StaysOfflineVpn}" />
+              <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap"
+                         Text="{loc:T StaysOfflineByHand}" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
 
         <!-- The battery help's other door: the alert can be hidden, and
              what it pointed to must stay findable. -->

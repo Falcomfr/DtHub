@@ -7,6 +7,7 @@ using System.Windows.Media;
 
 using DtHub.App.ViewModels;
 using DtHub.Core.Devices;
+using DtHub.Core.Guidance;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -350,6 +351,7 @@ public partial class InstanceListControl : UserControl
         var help = AppHost.Services.GetRequiredService<HelpWindow>();
 
         help.OpenFor(device.Manufacturer);
+        help.OpenOn(OfflineAdvice.HelpOpensOnCable(device.Connection));
         help.Owner = Window.GetWindow(this);
         help.ShowDialog();
     }

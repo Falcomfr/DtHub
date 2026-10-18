@@ -51,14 +51,32 @@ public sealed partial class PairingCandidateViewModel : ObservableObject
 }
 
 /// <summary>
-/// Window for pairing a new phone. It serves only that purpose: the
-/// connection of already paired phones happens on its own, in the main
-/// window.
+/// Window for pairing a new phone, by cable or over Wi-Fi. It serves only
+/// that purpose: the connection of already paired phones happens on its
+/// own, in the main window.
 /// </summary>
 public sealed partial class AddDeviceViewModel : ObservableObject
 {
     private readonly DevicePairingService _pairing;
     private readonly IDeviceRegistry _registry;
+    private readonly DeviceDiscoveryService _devices;
+
+    /// <summary>
+    /// The phones already answering by cable when the window opened: the
+    /// one awaited is the one plugged in since.
+    /// </summary>
+    private HashSet<string>? _cableBefore;
+
+    /// <summary>
+    /// The cable rather than the code. It used to be only the code, and
+    /// the window said nothing to whoever came with a cable.
+    /// </summary>
+    [ObservableProperty]
+    private bool _byCable;
+
+    /// <summary>What the cable side sees: nothing yet, a request to accept, or the phone.</summary>
+    [ObservableProperty]
+    private string _cableStatus = Strings.Get("PairCableWaiting");
 
     /// <summary>
     /// Host of the phone that just accepted the code, as long as it is
@@ -112,10 +130,48 @@ public sealed partial class AddDeviceViewModel : ObservableObject
             ? (host, port)
             : null;
 
-    public AddDeviceViewModel(DevicePairingService pairing, IDeviceRegistry registry)
+    public AddDeviceViewModel(DevicePairingService pairing, IDeviceRegistry registry, DeviceDiscoveryService devices)
     {
         _pairing = pairing;
         _registry = registry;
+        _devices = devices;
+    }
+
+    /// <summary>
+    /// Watches for the phone at the end of the cable. Called in a loop
+    /// whatever the side shown, so that the phones already there are
+    /// known from the opening and not from the moment the cable was
+    /// chosen; only the cable side reports.
+    /// </summary>
+    public async Task WatchCableAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var devices = (await _devices.RefreshAsync(cancellationToken).ConfigureAwait(true)).Devices;
+
+            _cableBefore ??= devices
+                .Where(d => d.ConnectionKind == AdbConnectionKind.Usb && d.IsConnected)
+                .Select(d => d.Serial)
+                .ToHashSet(StringComparer.Ordinal);
+
+            if (!ByCable)
+            {
+                return;
+            }
+
+            if (CableArrival.Arrived(_cableBefore, devices) is { } phone)
+            {
+                CableStatus = Strings.Format("PairCableConnected", phone.DisplayName);
+                DevicePaired?.Invoke(this, EventArgs.Empty);
+                return;
+            }
+
+            CableStatus = Strings.Get(CableArrival.AwaitsApproval(devices) ? "PairCableApprove" : "PairCableWaiting");
+        }
+        catch (AdbException exception)
+        {
+            CableStatus = exception.UserMessage;
+        }
     }
 
     /// <summary>Phones that display a pairing code.</summary>

@@ -30,6 +30,9 @@ public partial class HelpWindow : Window
     /// </summary>
     public void OpenFor(string? manufacturer) => _viewModel.OpenedFor = manufacturer;
 
+    /// <summary>Opens on the cable's steps, or on the network's.</summary>
+    public void OpenOn(bool cable) => _viewModel.OnCable = cable;
+
     private void OnClose(object sender, RoutedEventArgs e) => Close();
 
     private void OnSleepHelp(object sender, RoutedEventArgs e)

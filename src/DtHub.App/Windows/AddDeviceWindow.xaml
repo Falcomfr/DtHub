@@ -12,8 +12,22 @@
 
     <StackPanel DockPanel.Dock="Top" Margin="0,0,0,14">
       <TextBlock Text="{loc:T PairDevice}" Style="{StaticResource Title}" />
-      <TextBlock Style="{StaticResource Muted}" Margin="0,6,0,0"
-                 Text="{loc:T PairCodeIntro}" />
+
+      <!-- Wi-Fi first: it is the side that needs this window, a cable
+           phone shows up in the main one on its own. -->
+      <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+        <RadioButton Style="{StaticResource Tab}" Content="{loc:T ByWifi}" GroupName="PairMode"
+                     IsChecked="{Binding ByCable, Converter={StaticResource InverseBool}}" />
+        <RadioButton Style="{StaticResource Tab}" Content="{loc:T ByCable}" GroupName="PairMode"
+                     IsChecked="{Binding ByCable}" />
+      </StackPanel>
+
+      <TextBlock Style="{StaticResource Muted}" Margin="0,10,0,0"
+                 Text="{loc:T PairCodeIntro}"
+                 Visibility="{Binding ByCable, Converter={StaticResource InverseBoolToVisibility}}" />
+      <TextBlock Style="{StaticResource Muted}" Margin="0,10,0,0" TextWrapping="Wrap"
+                 Text="{loc:T PairCableIntro}"
+                 Visibility="{Binding ByCable, Converter={StaticResource BoolToVisibility}}" />
     </StackPanel>
 
     <Border DockPanel.Dock="Bottom" Margin="0,14,0,0">
@@ -31,7 +45,16 @@
       </Grid>
     </Border>
 
-    <StackPanel>
+    <Border Style="{StaticResource Card}" VerticalAlignment="Top"
+            Visibility="{Binding ByCable, Converter={StaticResource BoolToVisibility}}">
+      <StackPanel>
+        <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Text="{loc:T PairCableSteps}" />
+        <TextBlock Text="{Binding CableStatus}" TextWrapping="Wrap" FontWeight="SemiBold"
+                   Margin="0,12,0,0" Foreground="{DynamicResource TextBrush}" />
+      </StackPanel>
+    </Border>
+
+    <StackPanel Visibility="{Binding ByCable, Converter={StaticResource InverseBoolToVisibility}}">
 
       <ItemsControl ItemsSource="{Binding Candidates}" Margin="0,0,0,12">
         <ItemsControl.ItemTemplate>

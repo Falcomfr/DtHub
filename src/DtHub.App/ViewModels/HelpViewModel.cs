@@ -29,6 +29,13 @@ public sealed partial class HelpViewModel : ObservableObject
     public bool HasWarning => !string.IsNullOrWhiteSpace(Brand.Warning);
 
     /// <summary>
+    /// The cable's steps rather than the network's. The two used to share
+    /// one numbered list, and whoever came for one read through the other.
+    /// </summary>
+    [ObservableProperty]
+    private bool _onCable;
+
+    /// <summary>
     /// The maker of the phone this help was opened for, when it was
     /// opened from one rather than from the pairing window.
     /// </summary>

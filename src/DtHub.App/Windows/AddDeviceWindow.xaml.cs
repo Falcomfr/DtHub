@@ -34,6 +34,7 @@ public partial class AddDeviceWindow : Window
         Loaded += async (_, _) =>
         {
             await _viewModel.ScanAsync(CancellationToken.None).ConfigureAwait(true);
+            await _viewModel.WatchCableAsync(CancellationToken.None).ConfigureAwait(true);
             _poll.Start();
 
             Code.Focus();
@@ -58,6 +59,7 @@ public partial class AddDeviceWindow : Window
             try
             {
                 await _viewModel.ScanAsync(CancellationToken.None).ConfigureAwait(true);
+                await _viewModel.WatchCableAsync(CancellationToken.None).ConfigureAwait(true);
             }
             catch (Exception exception) when (exception is not OutOfMemoryException)
             {
@@ -126,6 +128,7 @@ public partial class AddDeviceWindow : Window
     private void OnHelp(object sender, RoutedEventArgs e)
     {
         var help = AppHost.Services.GetRequiredService<HelpWindow>();
+        help.OpenOn(_viewModel.ByCable);
         help.Owner = this;
         help.ShowDialog();
     }

@@ -333,7 +333,7 @@
     <value>Pair a new device</value>
   </data>
   <data name="PairDeviceTip" xml:space="preserve">
-    <value>To be done once per device. Devices already paired connect on their own. Wireless only: over USB, plugging in the cable is enough.</value>
+    <value>To be done once per device, by cable or wireless. Devices already paired connect on their own.</value>
   </data>
   <data name="Profiles" xml:space="preserve">
     <value>Profiles</value>
@@ -450,13 +450,13 @@
     <value>Turn on “USB debugging” and “Wireless debugging”.</value>
   </data>
   <data name="CableIsSimplest" xml:space="preserve">
-    <value>3. By cable, the simplest way</value>
+    <value>3. Plug in the cable</value>
   </data>
   <data name="CableSteps" xml:space="preserve">
-    <value>Plug in the cable and accept the request shown on the device. It appears on its own in the main window, there is nothing else to do.</value>
+    <value>Plug in the cable. If the device asks for the connection mode, pick “File transfer”, not “Charging”. Then accept the debugging request and tick “Always allow from this computer”: without it, the request comes back at every plug-in. The device then appears on its own in the main window.</value>
   </data>
   <data name="WirelessFirstTime" xml:space="preserve">
-    <value>4. Wireless, the first time</value>
+    <value>3. Pair it, the first time</value>
   </data>
   <data name="WirelessMenuPath" xml:space="preserve">
     <value>Wireless debugging  ›  Pair device with pairing code</value>
@@ -2622,5 +2622,58 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   </data>
   <data name="PathTo" xml:space="preserve">
     <value>Path to {0}</value>
+  </data>
+  <data name="ByCable" xml:space="preserve">
+    <value>By cable</value>
+  </data>
+  <data name="ByWifi" xml:space="preserve">
+    <value>Wireless (Wi-Fi)</value>
+  </data>
+  <data name="EnableUsbDebugging" xml:space="preserve">
+    <value>Turn on “USB debugging”.</value>
+  </data>
+  <data name="CableNoRequest" xml:space="preserve">
+    <value>4. The request does not show up, or the device stays offline</value>
+  </data>
+  <data name="CableNoRequestCable" xml:space="preserve">
+    <value>• another cable and another port, at the back of the PC: many cables shipped with a charger only charge, and nothing says so;</value>
+  </data>
+  <data name="CableNoRequestMode" xml:space="preserve">
+    <value>• in the device's USB notification, the “File transfer” mode rather than “Charging”;</value>
+  </data>
+  <data name="CableNoRequestRevoke" xml:space="preserve">
+    <value>• in the developer options, “Revoke USB debugging authorisations”, then unplug, plug back in and accept again;</value>
+  </data>
+  <data name="CableNoRequestWindows" xml:space="preserve">
+    <value>• if Windows cannot read the device, the Devices tab says what it sees, and which driver to install if one is missing.</value>
+  </data>
+  <data name="WirelessKeepOpen" xml:space="preserve">
+    <value>Keep this screen open until the end: once closed, it forgets its code and shows a new one when reopened.</value>
+  </data>
+  <data name="WirelessAfterRestart" xml:space="preserve">
+    <value>4. After a restart or a change of Wi-Fi</value>
+  </data>
+  <data name="WirelessAfterRestartSteps" xml:space="preserve">
+    <value>Many devices turn wireless debugging off when they restart or change network. Turn it back on in the developer options: the pairing is kept, there is nothing to redo. If the device asks to allow debugging on this network, tick “Always allow on this network”.</value>
+  </data>
+  <data name="StaysOfflineGuest" xml:space="preserve">
+    <value>• not on the router's guest Wi-Fi: it keeps the devices apart from one another;</value>
+  </data>
+  <data name="PairCableIntro" xml:space="preserve">
+    <value>Nothing to pair by cable: the device shows up as soon as it has accepted this PC. Its USB debugging must be on first, the Help says where.</value>
+  </data>
+  <data name="PairCableSteps" xml:space="preserve">
+    <value>1. Plug the cable into the PC.
+2. If the device asks for the connection mode, pick “File transfer”.
+3. Accept the debugging request and tick “Always allow from this computer”.</value>
+  </data>
+  <data name="PairCableWaiting" xml:space="preserve">
+    <value>Waiting for a plugged-in device.</value>
+  </data>
+  <data name="PairCableApprove" xml:space="preserve">
+    <value>The device is plugged in: unlock it and accept the debugging request, ticking “Always allow from this computer”.</value>
+  </data>
+  <data name="PairCableConnected" xml:space="preserve">
+    <value>{0} is connected by USB.</value>
   </data>
 </root>

@@ -333,7 +333,7 @@
     <value>Vincular un aparato nuevo</value>
   </data>
   <data name="PairDeviceTip" xml:space="preserve">
-    <value>Se hace una sola vez por aparato. Los aparatos ya vinculados se conectan solos. Solo para la conexión inalámbrica: por USB, basta con conectar el cable.</value>
+    <value>Se hace una sola vez por aparato, por cable o sin cables. Los aparatos ya vinculados se conectan solos.</value>
   </data>
   <data name="Profiles" xml:space="preserve">
     <value>Perfiles</value>
@@ -450,13 +450,13 @@
     <value>Activa «Depuración por USB» y «Depuración inalámbrica».</value>
   </data>
   <data name="CableIsSimplest" xml:space="preserve">
-    <value>3. Por cable, lo más sencillo</value>
+    <value>3. Conectar el cable</value>
   </data>
   <data name="CableSteps" xml:space="preserve">
-    <value>Conecta el cable y acepta la petición que aparece en el aparato. Aparece solo en la ventana principal, no hay nada más que hacer.</value>
+    <value>Conecta el cable. Si el aparato pregunta por el modo de conexión, elige «Transferencia de archivos» y no «Carga». Acepta después la petición de depuración marcando «Permitir siempre desde este ordenador»: sin esa casilla, vuelve en cada conexión. El aparato aparece entonces solo en la ventana principal.</value>
   </data>
   <data name="WirelessFirstTime" xml:space="preserve">
-    <value>4. Sin cables, la primera vez</value>
+    <value>3. Vincular, la primera vez</value>
   </data>
   <data name="WirelessMenuPath" xml:space="preserve">
     <value>Depuración inalámbrica  ›  Vincular dispositivo con código de vinculación</value>
@@ -2622,5 +2622,58 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   </data>
   <data name="PathTo" xml:space="preserve">
     <value>Camino a {0}</value>
+  </data>
+  <data name="ByCable" xml:space="preserve">
+    <value>Por cable</value>
+  </data>
+  <data name="ByWifi" xml:space="preserve">
+    <value>Inalámbrico (Wi-Fi)</value>
+  </data>
+  <data name="EnableUsbDebugging" xml:space="preserve">
+    <value>Activa «Depuración por USB».</value>
+  </data>
+  <data name="CableNoRequest" xml:space="preserve">
+    <value>4. La petición no aparece, o el aparato sigue sin conexión</value>
+  </data>
+  <data name="CableNoRequestCable" xml:space="preserve">
+    <value>• otro cable y otro puerto, en la parte trasera del PC: muchos cables que vienen con un cargador solo cargan, y nada lo indica;</value>
+  </data>
+  <data name="CableNoRequestMode" xml:space="preserve">
+    <value>• en la notificación USB del aparato, el modo «Transferencia de archivos» en lugar de «Carga»;</value>
+  </data>
+  <data name="CableNoRequestRevoke" xml:space="preserve">
+    <value>• en las opciones de desarrollador, «Revocar autorizaciones de depuración USB», luego desconectar, volver a conectar y aceptar de nuevo;</value>
+  </data>
+  <data name="CableNoRequestWindows" xml:space="preserve">
+    <value>• si Windows no lee el aparato, la pestaña Dispositivos dice lo que ve, y qué controlador instalar si falta uno.</value>
+  </data>
+  <data name="WirelessKeepOpen" xml:space="preserve">
+    <value>Mantén esta pantalla abierta hasta el final: una vez cerrada, olvida su código y muestra uno nuevo al reabrirla.</value>
+  </data>
+  <data name="WirelessAfterRestart" xml:space="preserve">
+    <value>4. Tras un reinicio o un cambio de Wi-Fi</value>
+  </data>
+  <data name="WirelessAfterRestartSteps" xml:space="preserve">
+    <value>Muchos aparatos desactivan la depuración inalámbrica al reiniciarse o al cambiar de red. Vuelve a activarla en las opciones de desarrollador: la vinculación se conserva, no hay nada que rehacer. Si el aparato pide permitir la depuración en esta red, marca «Permitir siempre en esta red».</value>
+  </data>
+  <data name="StaysOfflineGuest" xml:space="preserve">
+    <value>• no en la Wi-Fi de invitados del router: aísla los aparatos unos de otros;</value>
+  </data>
+  <data name="PairCableIntro" xml:space="preserve">
+    <value>Nada que vincular por cable: el aparato aparece en cuanto ha aceptado este PC. Antes, su depuración por USB debe estar activa, la Ayuda dice dónde.</value>
+  </data>
+  <data name="PairCableSteps" xml:space="preserve">
+    <value>1. Conecta el cable al PC.
+2. Si el aparato pregunta por el modo de conexión, elige «Transferencia de archivos».
+3. Acepta la petición de depuración marcando «Permitir siempre desde este ordenador».</value>
+  </data>
+  <data name="PairCableWaiting" xml:space="preserve">
+    <value>Esperando un aparato conectado.</value>
+  </data>
+  <data name="PairCableApprove" xml:space="preserve">
+    <value>El aparato está conectado: desbloquéalo y acepta la petición de depuración, marcando «Permitir siempre desde este ordenador».</value>
+  </data>
+  <data name="PairCableConnected" xml:space="preserve">
+    <value>{0} está conectado por USB.</value>
   </data>
 </root>

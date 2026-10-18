@@ -116,4 +116,16 @@ public class OfflineAdviceTests
             }
         }
     }
+
+    [Theory]
+    [InlineData(AdbConnectionKind.Usb, true)]
+    [InlineData(AdbConnectionKind.Unknown, true)]
+    [InlineData(AdbConnectionKind.Wireless, false)]
+    public void L_aide_s_ouvre_sur_la_maniere_dont_le_telephone_etait_relie(
+        AdbConnectionKind connexion, bool cable)
+    {
+        // The unknown goes to the cable, as its tip already says: plugging
+        // the phone back in is the shortest way to see it again.
+        Assert.Equal(cable, OfflineAdvice.HelpOpensOnCable(connexion));
+    }
 }
