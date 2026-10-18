@@ -608,13 +608,13 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
     <value>{0} n'a pas pu être rouvert après plusieurs tentatives. Vérifiez le téléphone, puis relancez-le vous-même.</value>
   </data>
   <data name="ReducedRender" xml:space="preserve">
-    <value>{0} : le téléphone fait tourner le jeu en résolution réduite ({1} %), d'où une image floue. Cela vient d'un réglage du téléphone, le mode jeu de cette copie de l'application : la marque {1} % sur sa ligne le remet en standard.</value>
+    <value>{0} : le téléphone fait tourner le jeu en résolution réduite ({1} %), d'où une image floue. Cela vient d'un réglage du téléphone, le mode jeu de cette copie de l'application : le triangle sur sa ligne le remet en standard.</value>
   </data>
   <data name="ReducedRenderTip" xml:space="preserve">
     <value>Le téléphone dessine ce jeu en résolution réduite : cliquez pour corriger</value>
   </data>
   <data name="ReducedRenderHeading" xml:space="preserve">
-    <value>Image réduite par le téléphone</value>
+    <value>Image réduite à {0} % par le téléphone</value>
   </data>
   <data name="ReducedRenderExplain" xml:space="preserve">
     <value>Le mode jeu Android de cette copie du jeu (performance, économie d'énergie…) le fait dessiner plus petit, puis l'agrandit : l'image est floue. Le mode standard le dessine en taille réelle.</value>

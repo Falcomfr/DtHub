@@ -608,13 +608,13 @@ Cruza las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC.
     <value>{0} no pudo reabrirse tras varios intentos. Revisa el teléfono y vuelve a lanzarlo tú mismo.</value>
   </data>
   <data name="ReducedRender" xml:space="preserve">
-    <value>{0}: el teléfono ejecuta el juego a una resolución reducida ({1} %), de ahí la imagen borrosa. Viene de un ajuste del teléfono, el modo de juego de esta copia de la aplicación: la marca {1} % de su línea lo devuelve a estándar.</value>
+    <value>{0}: el teléfono ejecuta el juego a una resolución reducida ({1} %), de ahí la imagen borrosa. Viene de un ajuste del teléfono, el modo de juego de esta copia de la aplicación: el triángulo de su línea lo devuelve a estándar.</value>
   </data>
   <data name="ReducedRenderTip" xml:space="preserve">
     <value>El teléfono dibuja este juego a una resolución reducida: haz clic para corregirlo</value>
   </data>
   <data name="ReducedRenderHeading" xml:space="preserve">
-    <value>Imagen reducida por el teléfono</value>
+    <value>Imagen reducida al {0} % por el teléfono</value>
   </data>
   <data name="ReducedRenderExplain" xml:space="preserve">
     <value>El modo de juego de Android de esta copia del juego (rendimiento, ahorro de energía…) lo dibuja más pequeño y luego lo amplía: la imagen sale borrosa. El modo estándar lo dibuja a tamaño completo.</value>

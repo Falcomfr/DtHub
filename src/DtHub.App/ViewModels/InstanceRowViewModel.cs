@@ -172,10 +172,15 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     /// fixable from the row. <c>null</c> otherwise.
     /// </summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ReducedRenderLabel))]
+    [NotifyPropertyChangedFor(nameof(HasReducedRender))]
+    [NotifyPropertyChangedFor(nameof(ReducedRenderHeading))]
     private int? _reducedRenderPercent;
 
-    public string? ReducedRenderLabel => ReducedRenderPercent is { } percent ? $"{percent} %" : null;
+    public bool HasReducedRender => ReducedRenderPercent is not null;
+
+    /// <summary>The panel's title, which carries the percentage the row leaves out.</summary>
+    public string? ReducedRenderHeading =>
+        ReducedRenderPercent is { } percent ? Strings.Format("ReducedRenderHeading", percent) : null;
 
     /// <summary>True while the panel explaining the reduction is open.</summary>
     [ObservableProperty]
@@ -584,10 +589,14 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(GameModeChoices))]
-    [NotifyPropertyChangedFor(nameof(HasGameModes))]
+    [NotifyPropertyChangedFor(nameof(HasGameModeChoice))]
     private GameModes? _gameModes;
 
-    public bool HasGameModes => GameModes is not null;
+    /// <summary>
+    /// True when the phone offers a choice. A lone standard mode, as on the
+    /// 13T Pro, would only take room in the settings.
+    /// </summary>
+    public bool HasGameModeChoice => GameModes is { Available.Count: > 1 };
 
     /// <summary>The modes to choose from, the one in use ticked when known.</summary>
     public IReadOnlyList<GameModeChoice> GameModeChoices =>
