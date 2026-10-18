@@ -171,10 +171,15 @@ public static class DeviceFactory
             return bySerial;
         }
 
+        // The address only stands for a phone whose number is unknown on
+        // one side: a box hands a remembered phone's address to another
+        // one, which its own number tells apart.
         if (entry.Host is { Length: > 0 } host)
         {
             return candidates.FirstOrDefault(
-                d => string.Equals(d.LastKnownAddress, host, StringComparison.Ordinal));
+                d => string.Equals(d.LastKnownAddress, host, StringComparison.Ordinal)
+                     && (string.IsNullOrWhiteSpace(identity)
+                         || d.Id.StartsWith(FallbackIdPrefix, StringComparison.Ordinal)));
         }
 
         return null;

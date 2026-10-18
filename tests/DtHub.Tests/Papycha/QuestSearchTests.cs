@@ -10,6 +10,8 @@ public class QuestSearchTests
     [InlineData("Dans les pas du Chevalier de l’Automne", "dans les pas du chevalier de l automne")]
     [InlineData("Un nouveau Dofus ?", "un nouveau dofus")]
     [InlineData("  Étape   1/61  ", "etape 1 61")]
+    [InlineData("Cœur brisé", "coeur brise")]
+    [InlineData("L’œuf ou la Cawotte ?", "l oeuf ou la cawotte")]
     public void Un_titre_se_reduit_a_une_forme_comparable(string title, string expected)
     {
         // The site's titles carry accents and curly apostrophes;
@@ -180,5 +182,13 @@ public class QuestSearchTests
         // catalog as soon as the field is emptied.
         Assert.True(QuestSearch.Search([Quete("Une quête")], [], [], [], "  ").IsEmpty);
         Assert.True(QuestSearch.Search([Quete("Une quête")], [], [], [], null).IsEmpty);
+    }
+
+    [Fact]
+    public void Une_cle_d_avant_les_ligatures_se_trouve_aussi()
+    {
+        // The embedded catalog and the players' caches carry keys built
+        // before "œ" became "oe": they must answer without a rebuild.
+        Assert.True(QuestSearch.Matches("cœur brise", QuestSearch.Terms("coeur")));
     }
 }

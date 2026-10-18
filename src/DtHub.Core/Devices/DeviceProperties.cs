@@ -121,5 +121,7 @@ public static class DeviceProperties
     private static bool IsMeaningful(string? value) =>
         !string.IsNullOrWhiteSpace(value)
         && !string.Equals(value, "unknown", StringComparison.OrdinalIgnoreCase)
-        && !string.Equals(value, "0", StringComparison.Ordinal);
+        && !string.Equals(value, "0", StringComparison.Ordinal)
+        // The factory serial of many MediaTek tablets: two would merge.
+        && !string.Equals(value, "0123456789ABCDEF", StringComparison.OrdinalIgnoreCase);
 }

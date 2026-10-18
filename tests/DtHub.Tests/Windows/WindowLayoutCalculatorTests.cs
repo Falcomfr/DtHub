@@ -176,6 +176,7 @@ public class WindowLayoutCalculatorTests
     [InlineData(2, 1, 0)]
     [InlineData(4, 0, 3)]
     [InlineData(4, 2, 1)]
+    [InlineData(2, 3, 1)]
     public void Le_parcours_arriere_est_circulaire(int count, int current, int expected)
     {
         Assert.Equal(expected, WindowLayoutCalculator.PreviousIndex(count, current));

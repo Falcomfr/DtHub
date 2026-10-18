@@ -78,10 +78,33 @@ public static partial class LogDigest
             kept.Add(i);
         }
 
+        // Newest first while there is room: what was happening at the
+        // moment of the report is what counts, and old warnings go first.
+        // The 5 counts a gap marker.
+        List<int> chosen = [];
+        var room = MaxLength;
+
+        foreach (var i in kept.OrderDescending())
+        {
+            room -= entries[i].Length + 6;
+
+            if (room < 0 && chosen.Count > 0)
+            {
+                break;
+            }
+
+            chosen.Add(i);
+        }
+
         var text = new StringBuilder();
         var previous = -1;
 
-        foreach (var i in kept.Order())
+        if (chosen.Count < kept.Count)
+        {
+            text.Append("[…]\n");
+        }
+
+        foreach (var i in chosen.Order())
         {
             // A blank indicates that lines were skipped: without it,
             // two faults an hour apart would read as two faults in a
@@ -93,12 +116,6 @@ public static partial class LogDigest
 
             text.Append(entries[i]).Append('\n');
             previous = i;
-
-            if (text.Length > MaxLength)
-            {
-                text.Append("[…]\n");
-                break;
-            }
         }
 
         return text.ToString().TrimEnd('\n');

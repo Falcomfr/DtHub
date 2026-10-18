@@ -27,15 +27,29 @@ public sealed class TolerantEnumConverter<TEnum> : JsonConverter<TEnum>
         {
             var value = (TEnum)Enum.ToObject(typeof(TEnum), number);
 
-            return Enum.IsDefined(value) ? value : Fallback;
+            return IsKnown(value) ? value : Fallback;
         }
 
         var name = reader.GetString();
 
-        return Enum.TryParse<TEnum>(name, ignoreCase: true, out var parsed) && Enum.IsDefined(parsed)
+        return Enum.TryParse<TEnum>(name, ignoreCase: true, out var parsed) && IsKnown(parsed)
             ? parsed
             : Fallback;
     }
+
+    private static readonly bool IsFlags = typeof(TEnum).IsDefined(typeof(FlagsAttribute), inherit: false);
+
+    private static readonly ulong DefinedBits =
+        Enum.GetValues<TEnum>().Aggregate(0UL, (bits, member) => bits | Convert.ToUInt64(member, System.Globalization.CultureInfo.InvariantCulture));
+
+    /// <summary>
+    /// A combination of flags has no member of its own: Control | Shift
+    /// read back as the fallback made Ctrl+Shift+Tab a bare Tab. Every bit
+    /// set must belong to a member, which still refuses a removed one.
+    /// </summary>
+    private static bool IsKnown(TEnum value) =>
+        Enum.IsDefined(value)
+        || (IsFlags && (Convert.ToUInt64(value, System.Globalization.CultureInfo.InvariantCulture) & ~DefinedBits) == 0);
 
     public override void Write(Utf8JsonWriter writer, TEnum value, JsonSerializerOptions options) =>
         writer.WriteStringValue(value.ToString());

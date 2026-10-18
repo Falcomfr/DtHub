@@ -124,4 +124,16 @@ public class AdbTransportChoiceTests
     [Fact]
     public void Une_liste_vide_ne_leve_pas() =>
         Assert.Empty(AdbTransportChoice.WithoutDoubles([], [Memorise()]));
+
+    [Fact]
+    public void Une_adresse_morte_ne_cache_pas_le_nom_mdns_qui_marche()
+    {
+        // Wireless debugging restarted on a new port: the old address line
+        // lingers offline while adb joins again through the mDNS name.
+        var gardes = AdbTransportChoice.WithoutDoubles(
+            [Ligne("192.168.1.14:40187 offline transport_id:5"), Ligne(Nom)],
+            [Memorise()]);
+
+        Assert.Contains(gardes, e => e.Serial.StartsWith("adb-MATERIEL123", StringComparison.Ordinal));
+    }
 }

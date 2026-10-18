@@ -47,7 +47,10 @@ public static class AdbTransportChoice
 
         foreach (var entry in entries)
         {
-            if (MdnsDeviceName.IsMdnsName(entry.Serial))
+            // A dead address line hides nothing: after a restart of wireless
+            // debugging the old port lingers offline, and the mDNS name is
+            // the line that works.
+            if (MdnsDeviceName.IsMdnsName(entry.Serial) || !entry.IsReady)
             {
                 continue;
             }

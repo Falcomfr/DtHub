@@ -42,6 +42,15 @@ public static class QuestSearch
                 continue;
             }
 
+            // FormD leaves the ligatures whole, and no French keyboard
+            // types them: "coeur" must find "Cœur brisé".
+            if (character is 'œ' or 'Œ' or 'æ' or 'Æ')
+            {
+                builder.Append(character is 'œ' or 'Œ' ? "oe" : "ae");
+                space = false;
+                continue;
+            }
+
             if (char.IsLetterOrDigit(character))
             {
                 builder.Append(char.ToLowerInvariant(character));
@@ -72,6 +81,8 @@ public static class QuestSearch
         {
             return true;
         }
+
+        searchKey = Unligated(searchKey);
 
         foreach (var term in terms)
         {
@@ -111,9 +122,16 @@ public static class QuestSearch
     /// starts with an article.
     /// </summary>
     private static int Rank(QuestSummary quest, IReadOnlyList<string> terms) =>
-        terms.Count > 0 && quest.SearchKey.StartsWith(terms[0], StringComparison.Ordinal)
+        terms.Count > 0 && Unligated(quest.SearchKey).StartsWith(terms[0], StringComparison.Ordinal)
             ? 0
             : 1;
+
+    /// <summary>
+    /// A key built before the ligatures were spelled out, as the embedded
+    /// catalog's and the players' caches are, read as one built after.
+    /// </summary>
+    private static string Unligated(string searchKey) =>
+        searchKey.Replace("œ", "oe", StringComparison.Ordinal).Replace("æ", "ae", StringComparison.Ordinal);
 
     /// <summary>Splits an input into comparable words.</summary>
     public static IReadOnlyList<string> Terms(string? query)

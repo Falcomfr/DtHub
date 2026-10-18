@@ -263,6 +263,8 @@ public static class WindowLayoutCalculator
             return -1;
         }
 
-        return currentIndex <= 0 ? count - 1 : currentIndex - 1;
+        // Past the end too: the remembered index outlives the windows that
+        // closed since.
+        return currentIndex <= 0 || currentIndex > count ? count - 1 : currentIndex - 1;
     }
 }

@@ -225,4 +225,36 @@ public class DeviceFactoryTests
 
         Assert.Null(DeviceFactory.Match([known], Usb("AUTRE9999")));
     }
+
+    [Fact]
+    public void Un_autre_telephone_a_la_meme_adresse_n_herite_pas_du_premier()
+    {
+        // The box handed a remembered phone's address to another one: its
+        // own hardware number says it is not the same phone.
+        var known = DeviceFactory.Create(Wireless("192.168.1.25:37845"), XiaomiProperties);
+
+        Assert.Null(DeviceFactory.Match([known], Wireless("192.168.1.25:41231"), "AUTRE456"));
+    }
+
+    [Fact]
+    public void Un_telephone_connu_sans_son_numero_materiel_est_retrouve_quand_il_le_donne()
+    {
+        // First seen over Wi-Fi with getprop refused, it was remembered
+        // under its address: the number read later must find it again.
+        var known = DeviceFactory.Create(Wireless("192.168.1.25:37845"), new Dictionary<string, string>(StringComparer.Ordinal));
+
+        Assert.Same(known, DeviceFactory.Match([known], Wireless("192.168.1.25:41231"), "MATERIEL123"));
+    }
+
+    [Fact]
+    public void Le_numero_de_serie_d_usine_des_tablettes_ne_sert_pas_d_identite()
+    {
+        // Many MediaTek tablets ship this one: two of them would merge.
+        var device = DeviceFactory.Create(Usb(), new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["ro.serialno"] = "0123456789ABCDEF",
+        });
+
+        Assert.Equal("USB0001", device.Id);
+    }
 }

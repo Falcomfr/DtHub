@@ -111,4 +111,20 @@ public sealed class LogDigestTests
     [InlineData("   ")]
     public void Un_journal_vide_ne_fait_rien_echouer(string? journal) =>
         Assert.Equal(string.Empty, LogDigest.Of(journal, session: null));
+
+    [Fact]
+    public void Trop_long_on_garde_le_plus_recent()
+    {
+        // What was happening at the moment of the report is what counts:
+        // the old warnings go first when the digest runs out of room.
+        var lines = Enumerable.Range(0, 400)
+            .Select(i => $"2026-09-03 10:{i / 60:00}:{i % 60:00}.000 [WRN] [a1b2c3] Avertissement ancien numéro {i}.")
+            .Append("2026-09-03 11:00:00.000 [ERR] [a1b2c3] La panne qui a motivé le rapport.");
+
+        var digest = LogDigest.Of(string.Join('\n', lines), session: null);
+
+        Assert.Contains("La panne qui a motivé le rapport.", digest, StringComparison.Ordinal);
+        Assert.DoesNotContain("Avertissement ancien numéro 0.", digest, StringComparison.Ordinal);
+        Assert.True(digest.Length <= LogDigest.MaxLength + 200);
+    }
 }

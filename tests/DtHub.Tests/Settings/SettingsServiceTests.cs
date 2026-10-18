@@ -1015,6 +1015,27 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Un_raccourci_a_deux_modificateurs_les_garde_tous_les_deux()
+    {
+        // Control | Shift has no member of its own: read back as nothing,
+        // Ctrl+Shift+Tab became a bare Tab grabbed from every window.
+        var modified = HotkeySet.Default.With(
+            HotkeyAction.Rearrange, VirtualKeys.F9, HotkeyModifiers.Control | HotkeyModifiers.Alt);
+
+        await _service.SaveHotkeysAsync(modified, CancellationToken.None);
+        _service.Invalidate();
+
+        var reloaded = await _service.GetHotkeysAsync(CancellationToken.None);
+
+        Assert.Equal(
+            HotkeyModifiers.Control | HotkeyModifiers.Alt,
+            reloaded.For(HotkeyAction.Rearrange)!.Modifiers);
+        Assert.Equal(
+            HotkeyModifiers.Control | HotkeyModifiers.Shift,
+            reloaded.For(HotkeyAction.PreviousInstance)!.Modifiers);
+    }
+
+    [Fact]
     public async Task Une_action_inconnue_dans_le_fichier_est_ignoree_sans_tout_perdre()
     {
         await _service.UpdateAsync(s => s.Hotkeys =
