@@ -755,6 +755,52 @@ public sealed partial class GameLauncher : IAsyncDisposable
     public bool IsDeviceBusy(string deviceId) => _sessions.IsDeviceBusy(deviceId);
 
     /// <summary>
+    /// Accounts being launched, by key, counted: a reopen holds its accounts
+    /// and the launch it calls holds them again.
+    ///
+    /// The row's indicator used to follow the phone's opening lock alone,
+    /// which a launch takes and releases up to three times: the encoder
+    /// probe, the opening, then holding the screen off. At startup, on a
+    /// resume, a reopen or a profile, where no button holds the row, it went
+    /// off and on again within one launch (log of 2026-10-18 12:19).
+    /// </summary>
+    private readonly Dictionary<string, int> _launching = new(StringComparer.Ordinal);
+
+    /// <summary>True from the start of an account's launch to its end.</summary>
+    public bool IsLaunching(string key)
+    {
+        lock (_launching)
+        {
+            return _launching.ContainsKey(key);
+        }
+    }
+
+    /// <summary>Raised when an account starts or ends being launched, from any thread.</summary>
+    public event EventHandler? LaunchingChanged;
+
+    private void HoldLaunching(IEnumerable<string> keys, bool held)
+    {
+        lock (_launching)
+        {
+            foreach (var key in keys)
+            {
+                var count = _launching.GetValueOrDefault(key) + (held ? 1 : -1);
+
+                if (count > 0)
+                {
+                    _launching[key] = count;
+                }
+                else
+                {
+                    _ = _launching.Remove(key);
+                }
+            }
+        }
+
+        LaunchingChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>
     /// Raised when a device becomes busy, or stops being so.
     /// </summary>
     public event EventHandler<DeviceBusyChangedEventArgs>? DeviceBusyChanged
@@ -2872,6 +2918,26 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         ArgumentNullException.ThrowIfNull(instances);
 
+        string[] keys = [.. instances.Select(i => i.Key)];
+
+        HoldLaunching(keys, held: true);
+
+        try
+        {
+            return await LaunchHeldAsync(instances, remembered, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            HoldLaunching(keys, held: false);
+        }
+    }
+
+    private async Task<LaunchReport> LaunchHeldAsync(
+        IReadOnlyList<DofusInstance> instances,
+        IReadOnlyDictionary<string, StoredWindowRect>? remembered,
+        CancellationToken cancellationToken)
+    {
+
         // A launch is when the player has most likely just been in the
         // phone's settings: the battery question is asked again at the next
         // sweep, not up to fifteen seconds later.
@@ -3657,6 +3723,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // lack of having captured anything.
         await _reopening.WaitAsync(cancellationToken).ConfigureAwait(false);
 
+        string[] reopened = [];
+
         try
         {
             var instances = _sessions.ActiveSessions
@@ -3667,6 +3735,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
             {
                 return new LaunchReport(0, []);
             }
+
+            // Held from before the windows close to the end of their
+            // relaunch, the five seconds' pause included: no session is
+            // alive then, and the rows showed nothing between the two.
+            reopened = [.. instances.Select(t => t.Key)];
+            HoldLaunching(reopened, held: true);
 
             // Geometry is kept at hand and passed as is to the
             // launch, rather than reread from the settings: an
@@ -3729,6 +3803,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }
         finally
         {
+            HoldLaunching(reopened, held: false);
             _reopening.Release();
         }
     }

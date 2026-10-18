@@ -41,6 +41,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
         // no longer existed.
         _launcher.SessionChanged += OnSessionChanged;
         _launcher.DeviceBusyChanged += OnDeviceBusyChanged;
+        _launcher.LaunchingChanged += OnLaunchingChanged;
         _launcher.LitPanelsChanged += OnLitPanelsChanged;
     }
 
@@ -1067,6 +1068,9 @@ public sealed partial class InstanceListViewModel : ObservableObject
         });
     }
 
+    private void OnLaunchingChanged(object? sender, EventArgs args) =>
+        _ = System.Windows.Application.Current?.Dispatcher.BeginInvoke(RefreshBusyState);
+
     /// <summary>
     /// Turns the indicator back on for rows whose phone is busy.
     ///
@@ -1078,7 +1082,11 @@ public sealed partial class InstanceListViewModel : ObservableObject
     {
         foreach (var row in Rows)
         {
-            row.IsDeviceBusy = _launcher.IsDeviceBusy(row.DeviceId) || _engages.Contains(row.DeviceId);
+            // Its own launch holds the row from start to end: the phone's lock
+            // alone is taken and released up to three times within it.
+            row.IsDeviceBusy = _launcher.IsDeviceBusy(row.DeviceId)
+                || _engages.Contains(row.DeviceId)
+                || _launcher.IsLaunching(row.Key);
         }
     }
 
