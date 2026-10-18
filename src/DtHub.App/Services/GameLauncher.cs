@@ -1197,24 +1197,29 @@ public sealed partial class GameLauncher : IAsyncDisposable
             _windowStates[session.Id] = $"{session.DisplayName} ({DisplaySize(session)}) : {state}";
             LogGameWindow(session.DisplayName, DisplaySize(session), state);
 
-            if (AndroidAppLauncher.Upscale(state) is not { } scale)
+            // Locked: two accounts measured together, one clean and one
+            // reduced, could otherwise clear the other's banner.
+            lock (_reducedRenders)
             {
-                // Fixed from the row: the banner would otherwise keep
-                // saying it for its two minutes.
-                if (_reducedRenders.TryRemove(session.Target.Key, out _) && _reducedRenders.IsEmpty)
+                if (AndroidAppLauncher.Upscale(state) is not { } scale)
                 {
-                    _reducedRender = default;
+                    // Fixed from the row: the banner would otherwise keep
+                    // saying it for its two minutes.
+                    if (_reducedRenders.TryRemove(session.Target.Key, out _) && _reducedRenders.IsEmpty)
+                    {
+                        _reducedRender = default;
+                    }
                 }
-            }
-            else
-            {
-                var percent = (int)Math.Round(100 / scale);
+                else
+                {
+                    var percent = (int)Math.Round(100 / scale);
 
-                _reducedRenders[session.Target.Key] = percent;
+                    _reducedRenders[session.Target.Key] = percent;
 
-                _reducedRender = TimedNotice.Raised(
-                    Strings.Format("ReducedRender", session.Target.DisplayName, percent), DateTimeOffset.UtcNow);
-                LogReducedRender(session.DisplayName, percent);
+                    _reducedRender = TimedNotice.Raised(
+                        Strings.Format("ReducedRender", session.Target.DisplayName, percent), DateTimeOffset.UtcNow);
+                    LogReducedRender(session.DisplayName, percent);
+                }
             }
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
@@ -2973,6 +2978,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             _zoomsInUse[instance.Key] = zoom;
 
+            // A new window is measured anew: an old reduction would show
+            // on the row until then, though fixed on the phone meanwhile.
+            _ = _reducedRenders.TryRemove(instance.Key, out _);
+
             var display = WithDisplayFor(gameOptions, placement, stored, quality, zoom, layoutHeight, phoneAspect ?? 0) with
             {
                 // Specific to the device: two phones on different
@@ -3240,8 +3249,13 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         ArgumentNullException.ThrowIfNull(instance);
 
-        if (FindSession(instance) is not { } session
-            || !await _appLauncher
+        // Closed between the panel and the click: nothing left to fix.
+        if (FindSession(instance) is not { } session)
+        {
+            return new LaunchReport(0, []);
+        }
+
+        if (!await _appLauncher
                 .SetStandardGameModeAsync(session.Serial, instance.UserId, instance.PackageName, cancellationToken)
                 .ConfigureAwait(false))
         {
