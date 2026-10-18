@@ -1062,6 +1062,12 @@ public sealed partial class InstanceListViewModel : ObservableObject
             if (args.IsBusy)
             {
                 _ = _engages.Remove(args.DeviceId);
+                _ = _releasedAt.Remove(args.DeviceId);
+            }
+            else
+            {
+                _releasedAt[args.DeviceId] = DateTimeOffset.UtcNow;
+                _ = RefreshAfterGraceAsync();
             }
 
             RefreshBusyState();
@@ -1086,7 +1092,8 @@ public sealed partial class InstanceListViewModel : ObservableObject
             // alone is taken and released up to three times within it.
             row.IsDeviceBusy = _launcher.IsDeviceBusy(row.DeviceId)
                 || _engages.Contains(row.DeviceId)
-                || _launcher.IsLaunching(row.Key);
+                || _launcher.IsLaunching(row.Key)
+                || JustReleased(row.DeviceId);
         }
     }
 
@@ -1108,6 +1115,28 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// what is already decided.
     /// </summary>
     private readonly HashSet<string> _engages = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// When each phone's opening lock was last released. A launch takes and
+    /// releases it up to three times, the encoder probe, the opening, then
+    /// holding the screen off, with some 0.6 s between: the other accounts of
+    /// the phone went off and on again with it, for a pause in which a click
+    /// would only have waited for the next taking (D206).
+    /// </summary>
+    private readonly Dictionary<string, DateTimeOffset> _releasedAt = new(StringComparer.Ordinal);
+
+    /// <summary>Longer than the pauses inside a launch, short of feeling slow at its end.</summary>
+    private static readonly TimeSpan ReleaseGrace = TimeSpan.FromSeconds(1);
+
+    private bool JustReleased(string deviceId) =>
+        _releasedAt.TryGetValue(deviceId, out var at) && DateTimeOffset.UtcNow - at < ReleaseGrace;
+
+    /// <summary>Turns the indicator off once the grace has run out, if nothing took the lock again.</summary>
+    private async Task RefreshAfterGraceAsync()
+    {
+        await Task.Delay(ReleaseGrace + TimeSpan.FromMilliseconds(50)).ConfigureAwait(true);
+        RefreshBusyState();
+    }
 
     /// <summary>
     /// Refreshes what each instance is doing, and how long it has been

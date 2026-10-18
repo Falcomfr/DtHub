@@ -10663,3 +10663,20 @@ comprise. Mesuré sur deux réouvertures : occupé sans trou 12 s puis 9,9 s.
 
 Les autres comptes du même téléphone suivent toujours le verrou, comme D97
 l'a choisi : les tenir plus longtemps est ce que D97 a mesuré et écarté.
+
+## D206 - Les autres comptes du téléphone ne clignotent plus pendant un lancement
+
+**2026-10-18 - Acceptée, mesurée sur le Mi 9T Pro**
+
+D97 fait suivre aux autres comptes d'un téléphone son verrou d'ouverture, pour
+qu'ils redeviennent cliquables dès qu'il se libère. Écrite quand un lancement ne
+le prenait qu'une fois. Depuis, le sondage des encodeurs et l'écran tenu éteint
+le prennent aussi : occupé, libre 0,6 s, occupé, libre. Les voisins clignotaient
+avec lui, pour une pause où un clic n'aurait fait qu'attendre la prise suivante.
+
+Un verrou rendu laisse le téléphone occupé une seconde de plus à l'écran ; repris
+dans ce délai, l'indicateur ne s'éteint pas. Le verrou reste seul juge de qui
+passe. Coût : les voisins reviennent une seconde après la fin du lancement,
+choisi par l'utilisateur contre l'option de les tenir pendant tout le lancement,
+ce que D97 avait écarté. Mesuré : les deux comptes du téléphone occupés dès le
+clic, libres ensemble à 4,5 s, sans trou entre les deux.
