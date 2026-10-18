@@ -27,6 +27,10 @@ belongs in the commits and in `docs/DECISIONS.md`.
 
 ### Fixed
 
+- Changing the quality or the sharp image no longer relaunches the games at
+  once: they get a few seconds first. If the sound still does not come back,
+  the panel says so and tells you to restart the phone.
+
 - In English or Spanish on a French Windows, the Almanax shows its
   offering, bonus and days in the application's language.
 

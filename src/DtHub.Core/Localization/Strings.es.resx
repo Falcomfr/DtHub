@@ -2225,6 +2225,9 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="DeadInputFound" xml:space="preserve">
     <value>Este teléfono rechaza los clics y las teclas que vienen del PC: sus ventanas muestran el juego y no responden a nada. El ajuste se llama «Depuración USB (ajustes de seguridad)», y el enlace Ayuda dice dónde. En las versiones antiguas de Xiaomi, medido en Android 11, exige además una tarjeta SIM y no sobrevive a un reinicio sin ella.</value>
   </data>
+  <data name="SoundStuckAfterReopen" xml:space="preserve">
+    <value>El sonido del juego no volvió tras reabrir las ventanas. Reinicia el teléfono para recuperarlo.</value>
+  </data>
   <data name="SimulatedMouse" xml:space="preserve">
     <value>Ratón físico simulado</value>
   </data>

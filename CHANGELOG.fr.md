@@ -21,6 +21,10 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
 ### Corrigé
 
+- Changer la qualité ou l'image plus nette ne relance plus les jeux aussitôt :
+  ils ont quelques secondes d'abord. Si le son ne revient toujours pas, le
+  panneau le dit et vous conseille de redémarrer le téléphone.
+
 - En anglais ou en espagnol sur un Windows français, l'Almanax affiche son
   offrande, son bonus et ses jours dans la langue de l'application.
 

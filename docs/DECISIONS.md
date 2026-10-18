@@ -10545,3 +10545,39 @@ hors du contexte de démarrage (voir `App.ApplyLanguage`). Le même défaut
 servait l'Almanax en français et ses jours en « sam., dim. » dans une
 application en anglais : `AlmanaxWindow` et `DisplayCulture` lisent désormais
 `Strings.Spoken`, et l'Almanax s'affiche en anglais (vérifié le 17/10/2026).
+
+## D202 - Une pause avant de relancer les jeux d'une réouverture, et le son bloqué dit
+
+**2026-10-18 - Acceptée, vérifiée sur le 13T Pro, à confirmer sur Samsung**
+
+Un joueur sur Galaxy S25+ (4 comptes, son du jeu sur le seul compte du profil
+principal) a décoché « Image plus nette » puis choisi la qualité Haute : deux
+réouvertures à 6 s d'écart. Son journal dit ensuite « Le jeu ne joue plus
+aucun son… 4 jeu(x), capture du son pour le PC true » : la capture tourne,
+aucun lecteur du jeu n'est actif. Plus de son ni sur le PC ni sur le
+téléphone, et seul un redémarrage du téléphone l'a ramené (durée d'allumage
+de 1,7 j à 0 j dans son journal). Sur le 13T Pro, la même manipulation à un
+puis deux comptes, à 1,5 et 4 s d'écart, garde le son.
+
+**Chaque ouverture relance le jeu**, voulu : `am start --display` ne déplace
+pas une tâche (voir le lancement dans `ScrcpySessionManager`). Une
+réouverture arrête donc les jeux et les relance dans la seconde. Elle les
+arrête maintenant elle-même, même « Fermer aussi le jeu » décoché (la relance
+les arrêtait de toute façon), puis attend 5 s. **La pause n'est pas prouvée
+suffisante** : la cause côté Samsung n'est pas trouvée.
+
+**Le son bloqué est dit, pas réparé.** Un téléphone dont le jeu jouait juste
+avant la réouverture et ne joue rien sur trois relevés (environ une minute et
+demie) affiche « redémarrez le téléphone », le seul geste qui ait marché, et
+le journal reçoit l'état du son du téléphone (serveurs scrcpy présents,
+lecteurs et captures, coupures Android « Hardening enforcement », focus
+audio) pour trouver la vraie cause à la prochaine panne. Un jeu muet par ses
+options n'est jamais armé ; un jeu relancé n'est pas muet sur son écran de
+connexion (lecteurs actifs en 15 s sur le 13T Pro). L'alerte ne vit que
+tant qu'une fenêtre de jeu est ouverte sur le téléphone.
+
+Écartés : un serveur scrcpy orphelin (un client tué de force en Wi-Fi n'en
+laisse pas sur le 13T Pro) ; la coupure « Hardening » d'Android 16 (niveau
+`partial` pour DOFUS sur le 13T Pro, et le joueur n'avait aucun lecteur
+actif, pas des lecteurs coupés) ; réparer seul en relançant le jeu, qui peut
+couper une partie et dont rien ne dit qu'il ramène le son.

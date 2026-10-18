@@ -1670,7 +1670,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 heat, battery, storage, locked, unprepared, dead, memory,
                 strain,
                 playing.Count > 0 && serial == playing[0] ? pcBusy : null,
-                unpreparedTools);
+                unpreparedTools,
+                running.Any(s => !s.Target.IsTransient) && _soundAfterReopen.IsStuck(serial));
 
             if (DeviceHealth.Every(seen) is { } said)
             {
@@ -1735,6 +1736,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Forget(_batteries, connected);
         Forget(_vitals, connected);
         Forget(_loggedMemory, connected);
+        _soundAfterReopen.ForgetGone(connected);
 
         // The input verdict says it is "kept until the device
         // disappears", and nothing made that true: a phone that
@@ -2229,6 +2231,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
             if (await _devices.GetGameSoundAsync(serial).ConfigureAwait(false) is { } sound)
             {
                 WatchSound(serial, sound);
+
+                if (_soundAfterReopen.Read(serial, sound, DateTimeOffset.UtcNow))
+                {
+                    await LogStuckSoundAsync(serial).ConfigureAwait(false);
+                }
             }
 
             WatchPings(serial);
@@ -2270,6 +2277,29 @@ public sealed partial class GameLauncher : IAsyncDisposable
         else if (_spiky.Remove(serial))
         {
             LogPingSpikesOver(serial);
+        }
+    }
+
+    private readonly SoundAfterReopen _soundAfterReopen = new();
+
+    /// <summary>
+    /// Writes what the phone says of its sound once it is found stuck since
+    /// a reopen, beside the windows DT Hub has open on it: a scrcpy server
+    /// more than these is one no window owns.
+    /// </summary>
+    private async Task LogStuckSoundAsync(string serial)
+    {
+        var windows = _sessions.ActiveSessions.Count(s =>
+            !s.Target.IsTransient && string.Equals(Routable(s.Target), serial, StringComparison.Ordinal));
+
+        try
+        {
+            var state = await _adb.ShellAsync(serial, [SoundAfterReopen.Probe], TimeSpan.FromSeconds(10)).ConfigureAwait(false);
+            LogSoundStuck(serial, windows, state.Trim());
+        }
+        catch (AdbException exception)
+        {
+            LogSoundStuck(serial, windows, exception.UserMessage);
         }
     }
 
@@ -3401,6 +3431,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
         LogDeviceForgotten(device?.DisplayName ?? deviceId);
     }
 
+    /// <summary>Between the stop of the games and their relaunch, in a reopen.</summary>
+    private static readonly TimeSpan ReopenPause = TimeSpan.FromSeconds(5);
+
     /// <summary>
     /// Closes then reopens the open windows, at their place and
     /// their size.
@@ -3439,8 +3472,31 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             var remembered = await _settings.GetWindowRectsAsync(cancellationToken).ConfigureAwait(false);
 
+            var targets = _sessions.ActiveSessions.Select(s => s.Target).Where(t => !t.IsTransient).ToList();
+
+            _soundAfterReopen.Reopened(targets.Select(Routable), DateTimeOffset.UtcNow);
+
             await _sessions.StopAllAsync(cancellationToken).ConfigureAwait(false);
             _sessions.PruneFinished();
+
+            // The games are stopped here, closing a window leaves them
+            // running when the player asked so, and they are relaunched only
+            // after a pause. Stopped and relaunched within the second, the
+            // four games of a Galaxy S25+ came back without a sound until the
+            // phone restarted (2026-10-18).
+            // ponytail: fixed pause, not proven to be enough; the stuck sound
+            // is told and its state logged, see SoundAfterReopen.
+            foreach (var target in targets)
+            {
+                _ = await _appLauncher
+                    .ForceStopAsync(Routable(target), target.UserId, target.PackageName, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+
+            if (targets.Count > 0)
+            {
+                await Task.Delay(ReopenPause, cancellationToken).ConfigureAwait(false);
+            }
 
             // Targets carry the identity of a session, not of an
             // instance: it is the up to date instance list that
@@ -5556,6 +5612,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Information,
         Message = "Le son du jeu est revenu sur l'appareil {serial}.")]
     private partial void LogSoundBack(string serial);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "Le son du jeu n'est pas revenu sur l'appareil {serial} depuis la réouverture des fenêtres ({windows} fenêtre(s) de DT Hub). Son du téléphone :\n{state}")]
+    private partial void LogSoundStuck(string serial, int windows, string state);
 
     [LoggerMessage(
         Level = LogLevel.Warning,

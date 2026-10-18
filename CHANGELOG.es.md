@@ -20,6 +20,10 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 
 ### Corregido
 
+- Cambiar la calidad o la imagen más nítida ya no relanza los juegos al
+  instante: primero esperan unos segundos. Si el sonido sigue sin volver, el
+  panel lo dice y te aconseja reiniciar el teléfono.
+
 - En inglés o en español con un Windows en francés, el Almanax muestra su
   ofrenda, su bonificación y sus días en el idioma de la aplicación.
 

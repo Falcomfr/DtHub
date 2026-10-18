@@ -89,6 +89,10 @@ public static class DeviceHealth
     /// only: the PC is shared, and saying it under every phone would be
     /// lines too many.
     /// </param>
+    /// <param name="soundStuck">
+    /// True when the games played before their windows reopened and have
+    /// played nothing since. See <see cref="SoundAfterReopen" />.
+    /// </param>
     /// <param name="lockedWindows">
     /// True when this device's game windows show its lock screen
     /// instead of the game, that is, when its virtual display follows
@@ -104,7 +108,8 @@ public static class DeviceHealth
         MemoryReading? memory = null,
         PhoneStrain? strain = null,
         int? pcBusyPercent = null,
-        IReadOnlyList<string>? unpreparedTools = null)
+        IReadOnlyList<string>? unpreparedTools = null,
+        bool soundStuck = false)
     {
         List<HealthFinding> findings = [];
 
@@ -124,6 +129,13 @@ public static class DeviceHealth
         if (deadInput)
         {
             findings.Add(new HealthFinding(HealthSeverity.Serious, Strings.Get("DeadInputFound"), HealthHelp.Input));
+        }
+
+        // The game still plays, without a sound. Only a restart of the phone
+        // brought it back on the Galaxy S25+ where it was seen.
+        if (soundStuck)
+        {
+            findings.Add(new HealthFinding(HealthSeverity.Warning, Strings.Get("SoundStuckAfterReopen")));
         }
 
         if (battery?.Describe() is { } power && battery.Concern is { } level)

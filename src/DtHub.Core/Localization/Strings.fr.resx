@@ -2225,6 +2225,9 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="DeadInputFound" xml:space="preserve">
     <value>Ce téléphone refuse les clics et les frappes venus du PC : ses fenêtres montrent le jeu et ne répondent à rien. Le réglage s'appelle « Débogage USB (paramètres de sécurité) », et le lien Aide dit où. Sur les anciennes versions de Xiaomi, relevé sur Android 11, il réclame en plus une carte SIM et ne survit pas à un redémarrage sans elle.</value>
   </data>
+  <data name="SoundStuckAfterReopen" xml:space="preserve">
+    <value>Le son du jeu n'est pas revenu après la réouverture des fenêtres. Redémarrez le téléphone pour le retrouver.</value>
+  </data>
   <data name="SimulatedMouse" xml:space="preserve">
     <value>Souris physique simulée</value>
   </data>

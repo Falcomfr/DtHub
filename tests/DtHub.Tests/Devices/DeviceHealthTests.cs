@@ -301,4 +301,13 @@ public class DeviceHealthTests
     [Fact]
     public void Les_clics_refuses_ouvrent_l_aide_souris() =>
         Assert.Equal(HealthHelp.Input, Assert.Single(DeviceHealth.Review(null, null, null, deadInput: true)).Help);
+
+    [Fact]
+    public void Le_son_bloque_apres_une_reouverture_dit_de_redemarrer_le_telephone()
+    {
+        var finding = Assert.Single(DeviceHealth.Review(null, null, null, soundStuck: true));
+
+        Assert.Equal(HealthSeverity.Warning, finding.Severity);
+        Assert.Equal(Strings.Get("SoundStuckAfterReopen"), finding.Message);
+    }
 }
