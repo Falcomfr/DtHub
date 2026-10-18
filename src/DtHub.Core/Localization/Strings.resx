@@ -608,7 +608,28 @@ Cross the tests: another device on this port, and this phone on another PC. You 
     <value>{0} could not be reopened after several tries. Check the phone, then relaunch it yourself.</value>
   </data>
   <data name="ReducedRender" xml:space="preserve">
-    <value>{0}: the phone runs the game at a reduced resolution ({1} %), hence a blurry image. It comes from a phone setting, such as the game mode of this copy of the app, not from DT Hub.</value>
+    <value>{0}: the phone runs the game at a reduced resolution ({1} %), hence a blurry image. It comes from a phone setting, the game mode of this copy of the app: the {1} % mark on its row puts it back to standard.</value>
+  </data>
+  <data name="ReducedRenderTip" xml:space="preserve">
+    <value>The phone draws this game at a reduced resolution: click to fix</value>
+  </data>
+  <data name="ReducedRenderHeading" xml:space="preserve">
+    <value>Image reduced by the phone</value>
+  </data>
+  <data name="ReducedRenderExplain" xml:space="preserve">
+    <value>Android's game mode for this copy of the game (performance, battery saving…) has it drawn smaller, then stretched: the image is blurry. The standard mode draws it at full size.</value>
+  </data>
+  <data name="RestoreStandardMode" xml:space="preserve">
+    <value>Put back the standard mode</value>
+  </data>
+  <data name="RestoreStandardModeNote" xml:space="preserve">
+    <value>The game restarts: the character is disconnected for a few seconds.</value>
+  </data>
+  <data name="ReducedRenderManual" xml:space="preserve">
+    <value>If the image stays blurry, on the phone: while playing, open the game panel (Game Booster on Samsung, Game Turbo on Xiaomi), set this game's performance to Standard, then restart the account.</value>
+  </data>
+  <data name="StandardModeRefused" xml:space="preserve">
+    <value>{0}: the phone refused to put back the standard game mode. On the phone, while playing, open the game panel (Game Booster on Samsung, Game Turbo on Xiaomi), set this game's performance to Standard, then restart the account.</value>
   </data>
   <data name="GameLeftRunning" xml:space="preserve">
     <value>{0} closed, but the game is still running on the phone: it could not be reached. Close it from the phone.</value>

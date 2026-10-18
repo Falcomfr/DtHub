@@ -399,6 +399,18 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private static readonly TimeSpan ReducedRenderNoticeLife = TimeSpan.FromMinutes(2);
 
     /// <summary>
+    /// The percentage at which the phone draws each account's game, by
+    /// account key, for the accounts it draws smaller than their display.
+    /// Unlike the banner it lasts as long as the reduction does: the row
+    /// offers the fix, and a measure without reduction takes it away.
+    /// </summary>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, int> _reducedRenders =
+        new(StringComparer.Ordinal);
+
+    public int? ReducedRenderPercent(string key) =>
+        _reducedRenders.TryGetValue(key, out var percent) ? percent : null;
+
+    /// <summary>
     /// Drops the recovery notice when the phone it promises a window
     /// on has gone away.
     ///
@@ -1185,9 +1197,20 @@ public sealed partial class GameLauncher : IAsyncDisposable
             _windowStates[session.Id] = $"{session.DisplayName} ({DisplaySize(session)}) : {state}";
             LogGameWindow(session.DisplayName, DisplaySize(session), state);
 
-            if (AndroidAppLauncher.Upscale(state) is { } scale)
+            if (AndroidAppLauncher.Upscale(state) is not { } scale)
+            {
+                // Fixed from the row: the banner would otherwise keep
+                // saying it for its two minutes.
+                if (_reducedRenders.TryRemove(session.Target.Key, out _) && _reducedRenders.IsEmpty)
+                {
+                    _reducedRender = default;
+                }
+            }
+            else
             {
                 var percent = (int)Math.Round(100 / scale);
+
+                _reducedRenders[session.Target.Key] = percent;
 
                 _reducedRender = TimedNotice.Raised(
                     Strings.Format("ReducedRender", session.Target.DisplayName, percent), DateTimeOffset.UtcNow);
@@ -3187,6 +3210,13 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         if (restart.Outcome == AppRestartOutcome.Restarted)
         {
+            // The game started again in the same window: measured again,
+            // or a reduction just fixed would stay on the row.
+            if (!session.Target.IsTransient && session.Target.StartUri is null)
+            {
+                _ = RecordGameWindowAsync(session);
+            }
+
             return new LaunchReport(1, []);
         }
 
@@ -3197,6 +3227,30 @@ public sealed partial class GameLauncher : IAsyncDisposable
         await StopSessionAsync(session, cancellationToken).ConfigureAwait(false);
 
         return await LaunchAsync([instance], cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Puts the account's game back in Android's standard game mode, then
+    /// restarts it, the mode only applying at the start. When the phone
+    /// refuses, says how to do it on the phone itself.
+    /// </summary>
+    public async Task<LaunchReport> RestoreStandardGameModeAsync(
+        DofusInstance instance,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(instance);
+
+        if (FindSession(instance) is not { } session
+            || !await _appLauncher
+                .SetStandardGameModeAsync(session.Serial, instance.UserId, instance.PackageName, cancellationToken)
+                .ConfigureAwait(false))
+        {
+            return new LaunchReport(0, [Strings.Format("StandardModeRefused", instance.DisplayName)]);
+        }
+
+        LogStandardModeSet(instance.DisplayName);
+
+        return await RestartAsync(instance, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -5392,6 +5446,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Warning,
         Message = "{Window} : le téléphone dessine le jeu à {Percent} % de son afficheur puis l'agrandit, d'où une image floue. Réglage du téléphone (mode jeu de cette copie), pas de DT Hub.")]
     private partial void LogReducedRender(string window, int percent);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "{Window} : mode de jeu Android remis sur standard, relance du jeu.")]
+    private partial void LogStandardModeSet(string window);
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "{Window} : le signal qui garde l'app éveillée n'est pas passé : {Reason}")]
     private partial void LogKeepAwakeFailed(string window, string reason);

@@ -165,6 +165,35 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     [ObservableProperty]
     private bool _dropBelow;
 
+    /// <summary>
+    /// The percentage at which the phone draws this account's open game, when
+    /// it draws it smaller than its display and stretches it: blurry, and
+    /// fixable from the row. <c>null</c> otherwise.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ReducedRenderLabel))]
+    private int? _reducedRenderPercent;
+
+    public string? ReducedRenderLabel => ReducedRenderPercent is { } percent ? $"{percent} %" : null;
+
+    /// <summary>True while the panel explaining the reduction is open.</summary>
+    [ObservableProperty]
+    private bool _isReducedRenderOpen;
+
+    /// <summary>
+    /// Raised by the panel's button: the list owns the launcher. A command
+    /// on the list could not be reached from the panel, a popup being
+    /// outside the row's visual tree.
+    /// </summary>
+    public event EventHandler<InstanceRowViewModel>? StandardModeRequested;
+
+    [RelayCommand]
+    private void RestoreStandardMode()
+    {
+        IsReducedRenderOpen = false;
+        StandardModeRequested?.Invoke(this, this);
+    }
+
     public string DeviceId => Instance.DeviceId;
 
     /// <summary>

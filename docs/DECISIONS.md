@@ -10581,3 +10581,33 @@ laisse pas sur le 13T Pro) ; la coupure « Hardening » d'Android 16 (niveau
 `partial` pour DOFUS sur le 13T Pro, et le joueur n'avait aucun lecteur
 actif, pas des lecteurs coupés) ; réparer seul en relançant le jeu, qui peut
 couper une partie et dont rien ne dit qu'il ramène le son.
+
+## D203 - Une image réduite par le mode jeu Android se corrige depuis la ligne
+
+Un joueur sur Galaxy S25 Ultra (17/10/2026) avait une seule copie du jeu
+floue, sous DT Hub comme sous TabDesk : la couche du jeu portait
+`toDisplayTransform={ scale x=1.3333 }`, donc un jeu dessiné à 75 % puis
+agrandi. `cmd game list-modes` a donné `current mode: performance` : le mode
+jeu d'Android, choisi par Game Booster, porte une réduction de résolution sur
+ce téléphone. Désinstaller Gaming Hub n'y changeait rien, Game Booster et GOS
+sont des services système.
+
+**Reproduit sur le 13T Pro le 18/10/2026.** `cmd game set --downscale 0.75`
+donne exactement la même échelle 1.3333 ; `cmd game mode standard` puis une
+relance du jeu la fait disparaître. La forme `cmd game mode --user N standard
+<paquet>` répond « Set game mode to `STANDARD` » et sort en code 255 sur un
+mode ou un paquet refusé.
+
+**Sur la ligne, pas seulement dans le bandeau.** La réduction concerne une
+copie du jeu, et le bandeau s'efface au bout de deux minutes. La ligne porte
+une puce « 75 % » tant que la dernière mesure trouve une réduction ; son
+panneau explique, propose « Remettre le mode standard » (mode puis relance
+courte, le mode ne s'appliquant qu'au démarrage) et donne la marche à suivre
+sur le téléphone si l'image reste floue. La relance courte remesure la
+fenêtre, sinon la puce resterait après la correction.
+
+**Déclenché par la mesure, pas par le nom du mode.** Un mode « performance »
+ne réduit pas forcément l'image sur un autre téléphone : alerter sur le nom
+retirerait au joueur un mode qu'il a choisi pour rien. Le bouton n'est pas
+automatique pour la même raison, et parce que la relance déconnecte le
+personnage.

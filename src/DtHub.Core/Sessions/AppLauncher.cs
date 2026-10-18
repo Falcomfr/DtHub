@@ -55,4 +55,14 @@ public interface IAppLauncher
         int displayId,
         string packageName,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Puts the game back in Android's standard game mode on a profile, and
+    /// says whether the phone accepted. Takes effect at the next start.
+    /// </summary>
+    Task<bool> SetStandardGameModeAsync(
+        string serial,
+        int userId,
+        string packageName,
+        CancellationToken cancellationToken = default);
 }

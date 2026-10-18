@@ -398,6 +398,26 @@ public class AndroidAppLauncherTests
     }
 
     [Fact]
+    public async Task Le_mode_standard_est_demande_pour_le_profil_de_la_copie()
+    {
+        // Answer of the 13T Pro on 2026-10-18, profile 10.
+        var adb = new FakeAdbClient()
+            .WithShell("cmd game mode", "Set game mode to `STANDARD` for user `10` in game `com.ankama.dofustouch`");
+
+        Assert.True(await Build(adb).SetStandardGameModeAsync(Serial, 10, Package));
+        Assert.Contains($"cmd game mode --user 10 standard {Package}", adb.ShellCalls);
+    }
+
+    [Fact]
+    public async Task Un_mode_refuse_par_le_telephone_est_un_echec()
+    {
+        // Same phone: exit code 255 with the reason on the output.
+        var adb = new FakeAdbClient().FailShell("cmd game mode", AdbErrorKind.Unknown);
+
+        Assert.False(await Build(adb).SetStandardGameModeAsync(Serial, 0, Package));
+    }
+
+    [Fact]
     public void Une_fenetre_reduite_ou_sans_transformation_n_est_pas_agrandie()
     {
         // The Xiaomi floating window shrunk by scaling, and a plain layer.

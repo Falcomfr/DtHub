@@ -1136,6 +1136,14 @@ public sealed partial class InstanceListViewModel : ObservableObject
         ActOnAsync(row, instance => _launcher.RestartAsync(instance), engageDevice: true);
 
     /// <summary>
+    /// Puts the game back in the phone's standard game mode and restarts it,
+    /// for a row the phone draws at a reduced resolution.
+    /// </summary>
+    private async void OnStandardModeRequested(object? sender, InstanceRowViewModel row) =>
+        await ActOnAsync(row, instance => _launcher.RestoreStandardGameModeAsync(instance), engageDevice: true)
+            .ConfigureAwait(true);
+
+    /// <summary>
     /// Takes an application added from the plus button out of the list.
     /// It stays on the phone, and can be ticked again from the same
     /// window: no confirmation, since nothing is lost.
@@ -1268,6 +1276,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
                 row.QualityChanged += OnQualityChanged;
                 row.ZoomChanged += OnZoomChanged;
                 row.PhoneFormatChanged += OnPhoneFormatChanged;
+                row.StandardModeRequested += OnStandardModeRequested;
                 row.ColourChanged += OnColourChanged;
                 row.NameChanged += OnNameChanged;
                 Rows.Add(row);
@@ -1285,6 +1294,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
             // waiting for the next opening says so instead of looking
             // dead. Nothing to show when the window is closed.
             row.RunningZoom = row.IsRunning ? _launcher.ZoomInUse(instance.Key) : null;
+            row.ReducedRenderPercent = row.IsRunning ? _launcher.ReducedRenderPercent(instance.Key) : null;
         }
 
         // Rows already present did not move: the saved order therefore

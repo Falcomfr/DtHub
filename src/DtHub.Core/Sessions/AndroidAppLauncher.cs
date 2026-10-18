@@ -108,6 +108,37 @@ public sealed partial class AndroidAppLauncher : IAppLauncher
     }
 
     /// <summary>
+    /// A game mode other than standard can carry a reduced resolution:
+    /// "performance" on a player's Galaxy S25 Ultra on 2026-10-17 drew the
+    /// game at 75 %. Measured on the 13T Pro, the phone answers "Set game
+    /// mode to `STANDARD`" and refuses an unknown package or mode with exit
+    /// code 255.
+    /// </summary>
+    public async Task<bool> SetStandardGameModeAsync(
+        string serial,
+        int userId,
+        string packageName,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var output = await _adb.ShellAsync(
+                serial,
+                ["cmd", "game", "mode", "--user", Text(userId), "standard", packageName],
+                null,
+                cancellationToken).ConfigureAwait(false);
+
+            return output.Contains("STANDARD", StringComparison.Ordinal);
+        }
+        catch (AdbException)
+        {
+            // The refusal is told by the caller, with the way to do it on
+            // the phone, which the phone's reason would not give.
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Prepares the Android profile, or says why it cannot host a
     /// window. Returns <c>null</c> when the way is clear, and
     /// otherwise a showable sentence.

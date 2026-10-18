@@ -99,4 +99,11 @@ public sealed class FakeAppLauncher : IAppLauncher
         string packageName,
         CancellationToken cancellationToken = default) =>
         Task.FromResult("état simulé");
+
+    public Task<bool> SetStandardGameModeAsync(
+        string serial,
+        int userId,
+        string packageName,
+        CancellationToken cancellationToken = default) =>
+        Task.FromResult(true);
 }
