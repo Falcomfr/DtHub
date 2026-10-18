@@ -22,11 +22,11 @@
                      IsChecked="{Binding ByCable}" />
       </StackPanel>
 
-      <TextBlock Style="{StaticResource Muted}" Margin="0,10,0,0"
+      <TextBlock Style="{StaticResource Muted}" Margin="0,12,0,0" TextWrapping="Wrap" LineHeight="20"
                  Text="{loc:T PairCodeIntro}"
                  Visibility="{Binding ByCable, Converter={StaticResource InverseBoolToVisibility}}" />
-      <TextBlock Style="{StaticResource Muted}" Margin="0,10,0,0" TextWrapping="Wrap"
-                 Text="{loc:T PairCableIntro}"
+      <TextBlock Style="{StaticResource Muted}" Margin="0,12,0,0" TextWrapping="Wrap" LineHeight="20"
+                 Text="{loc:T PairCableSteps}"
                  Visibility="{Binding ByCable, Converter={StaticResource BoolToVisibility}}" />
     </StackPanel>
 
@@ -45,12 +45,14 @@
       </Grid>
     </Border>
 
-    <Border Style="{StaticResource Card}" VerticalAlignment="Top"
+    <Border DockPanel.Dock="Top" Style="{StaticResource Card}"
             Visibility="{Binding ByCable, Converter={StaticResource BoolToVisibility}}">
       <StackPanel>
-        <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Text="{loc:T PairCableSteps}" />
         <TextBlock Text="{Binding CableStatus}" TextWrapping="Wrap" FontWeight="SemiBold"
-                   Margin="0,12,0,0" Foreground="{DynamicResource TextBrush}" />
+                   Foreground="{DynamicResource TextBrush}" />
+        <Button Style="{StaticResource LinkButton}" Margin="0,8,0,0" HorizontalAlignment="Left"
+                FontSize="{StaticResource FontSmall}"
+                Content="{loc:T NotDetectedOpenHelp}" Click="OnFixes" />
       </StackPanel>
     </Border>
 
@@ -73,18 +75,14 @@
       <Border Style="{StaticResource Card}"
               Visibility="{Binding Candidates.Count, Converter={StaticResource EmptyToVisibility}}">
         <StackPanel>
-          <TextBlock Style="{StaticResource Muted}"
-                     Text="{loc:T WaitingForDevice}" />
+          <TextBlock Text="{loc:T WaitingForDevice}" FontWeight="SemiBold"
+                     Foreground="{DynamicResource TextBrush}" />
           <!-- Typed by hand, the address pairs the phone, but the network
                that hid its announcement keeps hiding it, and the phone never
-               reconnects on its own: the help's step 5 comes first. -->
-          <TextBlock Style="{StaticResource Muted}" Margin="0,10,0,0"
-                     FontSize="{StaticResource FontSmall}"
-                     Text="{loc:T NotDetectedSeeHelp}"
-                     Visibility="{Binding OffersManualEntry, Converter={StaticResource BoolToVisibility}}" />
-          <Button Style="{StaticResource LinkButton}" Margin="0,4,0,0" HorizontalAlignment="Left"
+               reconnects on its own: the help's fixes come first. -->
+          <Button Style="{StaticResource LinkButton}" Margin="0,8,0,0" HorizontalAlignment="Left"
                   FontSize="{StaticResource FontSmall}"
-                  Content="{loc:T NotDetectedOpenHelp}" Click="OnHelp"
+                  Content="{loc:T NotDetectedOpenHelp}" Click="OnFixes"
                   Visibility="{Binding OffersManualEntry, Converter={StaticResource BoolToVisibility}}" />
           <Button Style="{StaticResource LinkButton}" Margin="0,6,0,0" HorizontalAlignment="Left"
                   FontSize="{StaticResource FontSmall}"

@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using System.Windows.Threading;
 
 using DtHub.App.ViewModels;
 
@@ -12,6 +13,7 @@ namespace DtHub.App.Windows;
 public partial class HelpWindow : Window
 {
     private readonly HelpViewModel _viewModel;
+    private bool _toFixes;
 
     public HelpWindow(HelpViewModel viewModel)
     {
@@ -20,7 +22,19 @@ public partial class HelpWindow : Window
         InitializeComponent();
         DataContext = viewModel;
 
-        Loaded += async (_, _) => await _viewModel.InitializeAsync(CancellationToken.None).ConfigureAwait(true);
+        Loaded += async (_, _) =>
+        {
+            await _viewModel.InitializeAsync(CancellationToken.None).ConfigureAwait(true);
+
+            // Opened because nothing showed up: the fixes sit under the three
+            // steps, out of sight. Only once the brand is settled, since its
+            // warning moves everything below it, and once laid out again.
+            if (_toFixes)
+            {
+                _ = Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () =>
+                    Scroller.ScrollToVerticalOffset(Fixes.TranslatePoint(default, Steps).Y));
+            }
+        };
     }
 
     /// <summary>
@@ -30,8 +44,15 @@ public partial class HelpWindow : Window
     /// </summary>
     public void OpenFor(string? manufacturer) => _viewModel.OpenedFor = manufacturer;
 
-    /// <summary>Opens on the cable's steps, or on the network's.</summary>
-    public void OpenOn(bool cable) => _viewModel.OnCable = cable;
+    /// <summary>
+    /// Opens on the cable's steps or on the network's, with the fixes
+    /// in sight when the help is opened because something went wrong.
+    /// </summary>
+    public void OpenOn(bool cable, bool fixes = false)
+    {
+        _viewModel.OnCable = cable;
+        _toFixes = fixes;
+    }
 
     private void OnClose(object sender, RoutedEventArgs e) => Close();
 

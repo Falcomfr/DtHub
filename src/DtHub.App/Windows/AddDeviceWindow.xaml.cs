@@ -125,10 +125,15 @@ public partial class AddDeviceWindow : Window
     /// <summary>
     /// Opens help, where the steps to follow adapt to the brand.
     /// </summary>
-    private void OnHelp(object sender, RoutedEventArgs e)
+    private void OnHelp(object sender, RoutedEventArgs e) => ShowHelp(fixes: false);
+
+    /// <summary>"Nothing shows up?": the help, straight on its fixes.</summary>
+    private void OnFixes(object sender, RoutedEventArgs e) => ShowHelp(fixes: true);
+
+    private void ShowHelp(bool fixes)
     {
         var help = AppHost.Services.GetRequiredService<HelpWindow>();
-        help.OpenOn(_viewModel.ByCable);
+        help.OpenOn(_viewModel.ByCable, fixes);
         help.Owner = this;
         help.ShowDialog();
     }

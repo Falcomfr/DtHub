@@ -408,13 +408,14 @@
     <value>Les libellés ci-dessous sont ceux d'un appareil réglé en français. Sur un appareil dans une autre langue, les mots diffèrent mais les menus se suivent dans le même ordre.</value>
   </data>
   <data name="PairCodeIntro" xml:space="preserve">
-    <value>Sur l'appareil, ouvrez « Associer l'appareil avec un code d'association ». Il apparaîtra ci-dessous.</value>
+    <value>1. Sur le téléphone : Débogage sans fil  ›  Associer l'appareil avec un code d'association.
+2. Il apparaît ici : tapez le code à six chiffres.</value>
   </data>
   <data name="HelpTip" xml:space="preserve">
     <value>Où trouver ces réglages sur votre téléphone</value>
   </data>
   <data name="WaitingForDevice" xml:space="preserve">
-    <value>En attente d'un appareil. La liste se remplit toute seule dès que l'écran d'association est ouvert sur l'appareil.</value>
+    <value>En attente du téléphone…</value>
   </data>
   <data name="PairingCodeTip" xml:space="preserve">
     <value>Le code à six chiffres affiché sur l'appareil</value>
@@ -431,9 +432,6 @@
   <data name="PrepareDevice" xml:space="preserve">
     <value>Préparer l'appareil</value>
   </data>
-  <data name="BrandsDiffer" xml:space="preserve">
-    <value>Les menus ne portent pas le même nom d'une marque à l'autre. Choisissez la vôtre.</value>
-  </data>
   <data name="UnlockDeveloperOptions" xml:space="preserve">
     <value>1. Débloquer les options pour les développeurs</value>
   </data>
@@ -444,49 +442,40 @@
     <value>». Un message confirme que vous êtes développeur.</value>
   </data>
   <data name="OpenDeveloperOptions" xml:space="preserve">
-    <value>2. Ouvrir les options pour les développeurs</value>
+    <value>2. Activer le débogage</value>
   </data>
   <data name="EnableDebugging" xml:space="preserve">
-    <value>Activez « Débogage USB » et « Débogage sans fil ».</value>
+    <value>Activez « Débogage sans fil ».</value>
   </data>
   <data name="CableIsSimplest" xml:space="preserve">
     <value>3. Brancher le câble</value>
   </data>
   <data name="CableSteps" xml:space="preserve">
-    <value>Branchez le câble. Si l'appareil demande le mode de connexion, choisissez « Transfert de fichiers » et non « Recharge ». Acceptez ensuite la demande de débogage en cochant « Toujours autoriser sur cet ordinateur » : sans cette case, elle revient à chaque branchement. L'appareil apparaît alors tout seul dans la fenêtre principale.</value>
+    <value>Branchez le câble, puis acceptez la demande sur le téléphone en cochant « Toujours autoriser ». Il apparaît alors tout seul dans DT Hub.</value>
   </data>
   <data name="WirelessFirstTime" xml:space="preserve">
-    <value>3. Associer, la première fois</value>
+    <value>3. Associer</value>
   </data>
   <data name="WirelessMenuPath" xml:space="preserve">
     <value>Débogage sans fil  ›  Associer l'appareil avec un code d'association</value>
   </data>
   <data name="WirelessCodeShown" xml:space="preserve">
-    <value>L'appareil affiche un code à six chiffres et apparaît dans la fenêtre d'association.</value>
-  </data>
-  <data name="SameNetworkNotice" xml:space="preserve">
-    <value>L'appareil et le PC doivent être sur le même réseau Wi-Fi, et Android 11 au minimum. Ensuite, la connexion se refait toute seule à chaque lancement, si le réseau laisse passer l'annonce de l'appareil (voir 5).</value>
-  </data>
-  <data name="StaysOffline" xml:space="preserve">
-    <value>5. L'appareil n'apparaît pas, ou reste hors ligne</value>
-  </data>
-  <data name="StaysOfflineCause" xml:space="preserve">
-    <value>Le PC ne reçoit pas l'annonce de l'appareil sur le réseau. Vérifiez dans l'ordre :</value>
+    <value>Tapez dans DT Hub le code à six chiffres affiché. Le PC et le téléphone doivent être sur le même Wi-Fi, avec Android 11 au minimum.</value>
   </data>
   <data name="StaysOfflineSameBand" xml:space="preserve">
-    <value>• le PC et l'appareil sur le même Wi-Fi : pas l'un en 2,4 GHz et l'autre en 5 GHz, ni le PC en câble si la box sépare les deux ;</value>
+    <value>• Le PC et le téléphone sur le même Wi-Fi, pas sur le Wi-Fi invité de la box.</value>
   </data>
   <data name="StaysOfflinePrivate" xml:space="preserve">
-    <value>• dans Windows, le profil du réseau sur « Privé » (Paramètres › Réseau et Internet) ;</value>
+    <value>• Windows : le réseau en « Privé » (Paramètres › Réseau et Internet).</value>
   </data>
   <data name="StaysOfflineFirewall" xml:space="preserve">
-    <value>• dans le pare-feu Windows, « Android Debug Bridge » autorisé en Privé et en Public ;</value>
+    <value>• Pare-feu Windows : autorisez « Android Debug Bridge » en Privé et en Public.</value>
   </data>
   <data name="StaysOfflineVpn" xml:space="preserve">
-    <value>• le VPN du PC coupé, s'il y en a un.</value>
+    <value>• Coupez le VPN du PC, s'il y en a un.</value>
   </data>
   <data name="StaysOfflineByHand" xml:space="preserve">
-    <value>En attendant, l'association marche à la main : après le code, saisissez le nombre qui suit les « : » dans « Adresse IP et port », sur l'écran Débogage sans fil. Il change à chaque redémarrage de l'appareil.</value>
+    <value>• En dernier recours : « Saisir l'adresse à la main », dans la fenêtre d'association.</value>
   </data>
   <data name="AndroidOnly" xml:space="preserve">
     <value>Seuls les appareils Android conviennent. iOS ne permet ni d'ouvrir un écran supplémentaire, ni d'y installer deux fois la même application.</value>
@@ -2416,14 +2405,11 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="ManualPairingHint" xml:space="preserve">
     <value>Sur l'écran d'association de l'appareil, recopiez ci-dessous « Adresse IP et port », puis le code à six chiffres.</value>
   </data>
-  <data name="NotDetectedSeeHelp" xml:space="preserve">
-    <value>L'appareil n'apparaît pas ? Suivez d'abord l'étape 5 de l'Aide : sans elle, une saisie à la main associe l'appareil, mais la connexion ne se refera pas toute seule.</value>
-  </data>
   <data name="NotDetectedOpenHelp" xml:space="preserve">
-    <value>Ouvrir l'Aide, étape 5</value>
+    <value>Rien n'apparaît ? Ouvrir l'aide</value>
   </data>
   <data name="ManualPairingLink" xml:space="preserve">
-    <value>Toujours rien ? Saisir son adresse à la main</value>
+    <value>Saisir l'adresse à la main</value>
   </data>
   <data name="ToolCalcofusName" xml:space="preserve">
     <value>Calcofus</value>
@@ -2581,11 +2567,8 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="UnmuteBatteryAlerts" xml:space="preserve">
     <value>Réafficher les alertes batterie masquées</value>
   </data>
-  <data name="WindowFreezesHelpEntry" xml:space="preserve">
-    <value>Android endort les applications dont la batterie est restreinte. Cette aide montre où lever la restriction selon votre marque.</value>
-  </data>
   <data name="OpenSleepHelp" xml:space="preserve">
-    <value>Ouvrir l'aide batterie</value>
+    <value>Une fenêtre se fige au bout d'un moment ?</value>
   </data>
   <data name="AddAppTip" xml:space="preserve">
     <value>Afficher une application de cet appareil.</value>
@@ -2632,48 +2615,38 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="EnableUsbDebugging" xml:space="preserve">
     <value>Activez « Débogage USB ».</value>
   </data>
-  <data name="CableNoRequest" xml:space="preserve">
-    <value>4. La demande n'apparaît pas, ou l'appareil reste hors ligne</value>
-  </data>
-  <data name="CableNoRequestCable" xml:space="preserve">
-    <value>• un autre câble et un autre port, à l'arrière du PC : beaucoup de câbles livrés avec un chargeur ne font que charger, et rien ne le signale ;</value>
-  </data>
-  <data name="CableNoRequestMode" xml:space="preserve">
-    <value>• dans la notification USB de l'appareil, le mode « Transfert de fichiers » plutôt que « Recharge » ;</value>
-  </data>
-  <data name="CableNoRequestRevoke" xml:space="preserve">
-    <value>• dans les options pour les développeurs, « Révoquer les autorisations de débogage USB », puis débrancher, rebrancher et accepter de nouveau ;</value>
-  </data>
-  <data name="CableNoRequestWindows" xml:space="preserve">
-    <value>• si Windows ne lit pas l'appareil, l'onglet Appareils dit ce qu'il voit, et quel pilote installer s'il en manque un.</value>
-  </data>
-  <data name="WirelessKeepOpen" xml:space="preserve">
-    <value>Gardez cet écran ouvert jusqu'à la fin : une fois fermé, il oublie son code et en affiche un nouveau à sa réouverture.</value>
-  </data>
-  <data name="WirelessAfterRestart" xml:space="preserve">
-    <value>4. Après un redémarrage ou un changement de Wi-Fi</value>
-  </data>
-  <data name="WirelessAfterRestartSteps" xml:space="preserve">
-    <value>Beaucoup d'appareils coupent le débogage sans fil en redémarrant ou en changeant de réseau. Rallumez-le dans les options pour les développeurs : l'association reste acquise, il n'y a rien à refaire. Si l'appareil demande d'autoriser le débogage sur ce réseau, cochez « Toujours autoriser sur ce réseau ».</value>
-  </data>
-  <data name="StaysOfflineGuest" xml:space="preserve">
-    <value>• pas sur le Wi-Fi invité de la box : il isole les appareils les uns des autres ;</value>
-  </data>
-  <data name="PairCableIntro" xml:space="preserve">
-    <value>Rien à associer par câble : l'appareil apparaît dès qu'il a accepté ce PC. Son débogage USB doit d'abord être actif, l'Aide dit où.</value>
-  </data>
   <data name="PairCableSteps" xml:space="preserve">
-    <value>1. Branchez le câble sur le PC.
-2. Si l'appareil demande le mode de connexion, choisissez « Transfert de fichiers ».
-3. Acceptez la demande de débogage en cochant « Toujours autoriser sur cet ordinateur ».</value>
+    <value>1. Branchez le câble.
+2. Sur le téléphone, acceptez la demande en cochant « Toujours autoriser ».</value>
   </data>
   <data name="PairCableWaiting" xml:space="preserve">
-    <value>En attente d'un appareil branché.</value>
+    <value>En attente du téléphone…</value>
   </data>
   <data name="PairCableApprove" xml:space="preserve">
-    <value>L'appareil est branché : déverrouillez-le et acceptez la demande de débogage, en cochant « Toujours autoriser sur cet ordinateur ».</value>
+    <value>Acceptez la demande sur le téléphone.</value>
   </data>
   <data name="PairCableConnected" xml:space="preserve">
     <value>{0} est connecté en USB.</value>
+  </data>
+  <data name="FrenchLabelsShort" xml:space="preserve">
+    <value>Libellés d'un téléphone réglé en français.</value>
+  </data>
+  <data name="HelpFixes" xml:space="preserve">
+    <value>Ça ne marche pas ?</value>
+  </data>
+  <data name="HelpFixCableWire" xml:space="preserve">
+    <value>• Essayez un autre câble : beaucoup ne font que charger.</value>
+  </data>
+  <data name="HelpFixCableMode" xml:space="preserve">
+    <value>• Dans la notification USB du téléphone, choisissez « Transfert de fichiers ».</value>
+  </data>
+  <data name="HelpFixCableRevoke" xml:space="preserve">
+    <value>• Options pour les développeurs : « Révoquer les autorisations de débogage USB », puis rebranchez.</value>
+  </data>
+  <data name="HelpFixCableWindows" xml:space="preserve">
+    <value>• Windows ne voit pas le téléphone ? L'onglet Appareils dit quoi faire.</value>
+  </data>
+  <data name="HelpFixWifiRestart" xml:space="preserve">
+    <value>• Après un redémarrage, rallumez « Débogage sans fil » : l'association reste acquise.</value>
   </data>
 </root>

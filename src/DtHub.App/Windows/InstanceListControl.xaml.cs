@@ -351,7 +351,7 @@ public partial class InstanceListControl : UserControl
         var help = AppHost.Services.GetRequiredService<HelpWindow>();
 
         help.OpenFor(device.Manufacturer);
-        help.OpenOn(OfflineAdvice.HelpOpensOnCable(device.Connection));
+        help.OpenOn(OfflineAdvice.HelpOpensOnCable(device.Connection), fixes: true);
         help.Owner = Window.GetWindow(this);
         help.ShowDialog();
     }

@@ -408,13 +408,14 @@
     <value>Las etiquetas de abajo son las de un aparato configurado en francés. En un aparato en otro idioma las palabras cambian, pero los menús se suceden en el mismo orden.</value>
   </data>
   <data name="PairCodeIntro" xml:space="preserve">
-    <value>En el aparato, abre «Vincular dispositivo con código de vinculación». Aparecerá abajo.</value>
+    <value>1. En el teléfono: Depuración inalámbrica  ›  Vincular dispositivo con código de vinculación.
+2. Aparece aquí: escribe el código de seis cifras.</value>
   </data>
   <data name="HelpTip" xml:space="preserve">
     <value>Dónde encontrar estos ajustes en tu teléfono</value>
   </data>
   <data name="WaitingForDevice" xml:space="preserve">
-    <value>Esperando un aparato. La lista se rellena sola en cuanto la pantalla de vinculación está abierta en el aparato.</value>
+    <value>Esperando el teléfono…</value>
   </data>
   <data name="PairingCodeTip" xml:space="preserve">
     <value>El código de seis cifras que muestra el aparato</value>
@@ -431,9 +432,6 @@
   <data name="PrepareDevice" xml:space="preserve">
     <value>Preparar el aparato</value>
   </data>
-  <data name="BrandsDiffer" xml:space="preserve">
-    <value>Los menús no se llaman igual de una marca a otra. Elige la tuya.</value>
-  </data>
   <data name="UnlockDeveloperOptions" xml:space="preserve">
     <value>1. Desbloquear las opciones para desarrolladores</value>
   </data>
@@ -444,49 +442,40 @@
     <value>». Un mensaje confirma que eres desarrollador.</value>
   </data>
   <data name="OpenDeveloperOptions" xml:space="preserve">
-    <value>2. Abrir las opciones para desarrolladores</value>
+    <value>2. Activar la depuración</value>
   </data>
   <data name="EnableDebugging" xml:space="preserve">
-    <value>Activa «Depuración por USB» y «Depuración inalámbrica».</value>
+    <value>Activa «Depuración inalámbrica».</value>
   </data>
   <data name="CableIsSimplest" xml:space="preserve">
     <value>3. Conectar el cable</value>
   </data>
   <data name="CableSteps" xml:space="preserve">
-    <value>Conecta el cable. Si el aparato pregunta por el modo de conexión, elige «Transferencia de archivos» y no «Carga». Acepta después la petición de depuración marcando «Permitir siempre desde este ordenador»: sin esa casilla, vuelve en cada conexión. El aparato aparece entonces solo en la ventana principal.</value>
+    <value>Conecta el cable y acepta la petición en el teléfono marcando «Permitir siempre». Aparece entonces solo en DT Hub.</value>
   </data>
   <data name="WirelessFirstTime" xml:space="preserve">
-    <value>3. Vincular, la primera vez</value>
+    <value>3. Vincular</value>
   </data>
   <data name="WirelessMenuPath" xml:space="preserve">
     <value>Depuración inalámbrica  ›  Vincular dispositivo con código de vinculación</value>
   </data>
   <data name="WirelessCodeShown" xml:space="preserve">
-    <value>El aparato muestra un código de seis cifras y aparece en la ventana de vinculación.</value>
-  </data>
-  <data name="SameNetworkNotice" xml:space="preserve">
-    <value>El aparato y el PC deben estar en la misma red Wi-Fi, y Android 11 como mínimo. Después, la conexión se rehace sola en cada arranque, si la red deja pasar el anuncio del aparato (ver 5).</value>
-  </data>
-  <data name="StaysOffline" xml:space="preserve">
-    <value>5. El aparato no aparece, o sigue sin conexión</value>
-  </data>
-  <data name="StaysOfflineCause" xml:space="preserve">
-    <value>El PC no recibe el anuncio del aparato en la red. Comprueba, por este orden:</value>
+    <value>Escribe en DT Hub el código de seis cifras que aparece. El PC y el teléfono deben estar en la misma Wi-Fi, con Android 11 como mínimo.</value>
   </data>
   <data name="StaysOfflineSameBand" xml:space="preserve">
-    <value>• el PC y el aparato en la misma Wi-Fi: no uno en 2,4 GHz y el otro en 5 GHz, ni el PC por cable si el router separa ambos;</value>
+    <value>• El PC y el teléfono en la misma Wi-Fi, no en la Wi-Fi de invitados del router.</value>
   </data>
   <data name="StaysOfflinePrivate" xml:space="preserve">
-    <value>• en Windows, el perfil de red en «Privada» (Configuración › Red e Internet);</value>
+    <value>• Windows: la red en «Privada» (Configuración › Red e Internet).</value>
   </data>
   <data name="StaysOfflineFirewall" xml:space="preserve">
-    <value>• en el firewall de Windows, «Android Debug Bridge» permitido en Privada y en Pública;</value>
+    <value>• Firewall de Windows: permite «Android Debug Bridge» en Privada y Pública.</value>
   </data>
   <data name="StaysOfflineVpn" xml:space="preserve">
-    <value>• la VPN del PC desactivada, si la hay.</value>
+    <value>• Desactiva la VPN del PC, si la hay.</value>
   </data>
   <data name="StaysOfflineByHand" xml:space="preserve">
-    <value>Mientras tanto, la vinculación funciona a mano: después del código, escribe el número que sigue a los «:» en «Dirección IP y puerto», en la pantalla Depuración inalámbrica. Cambia cada vez que el aparato se reinicia.</value>
+    <value>• Como último recurso: «Escribir la dirección a mano», en la ventana de vinculación.</value>
   </data>
   <data name="AndroidOnly" xml:space="preserve">
     <value>Solo sirven los aparatos Android. iOS no permite abrir una pantalla adicional ni instalar dos veces la misma aplicación.</value>
@@ -2416,14 +2405,11 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="ManualPairingHint" xml:space="preserve">
     <value>En la pantalla de vinculación del dispositivo, copia abajo «Dirección IP y puerto» y luego el código de seis dígitos.</value>
   </data>
-  <data name="NotDetectedSeeHelp" xml:space="preserve">
-    <value>¿No aparece el dispositivo? Sigue primero el paso 5 de la Ayuda: sin él, escribir la dirección a mano lo vincula, pero la conexión no se rehará sola.</value>
-  </data>
   <data name="NotDetectedOpenHelp" xml:space="preserve">
-    <value>Abrir la Ayuda, paso 5</value>
+    <value>¿No aparece nada? Abrir la ayuda</value>
   </data>
   <data name="ManualPairingLink" xml:space="preserve">
-    <value>¿Sigue sin aparecer? Escribe su dirección a mano</value>
+    <value>Escribir la dirección a mano</value>
   </data>
   <data name="ToolCalcofusName" xml:space="preserve">
     <value>Calcofus</value>
@@ -2581,11 +2567,8 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="UnmuteBatteryAlerts" xml:space="preserve">
     <value>Volver a mostrar las alertas de batería ocultas</value>
   </data>
-  <data name="WindowFreezesHelpEntry" xml:space="preserve">
-    <value>Android duerme las aplicaciones cuya batería está restringida. Esta ayuda muestra dónde quitar la restricción según tu marca.</value>
-  </data>
   <data name="OpenSleepHelp" xml:space="preserve">
-    <value>Abrir la ayuda de batería</value>
+    <value>¿Una ventana se congela al cabo de un rato?</value>
   </data>
   <data name="AddAppTip" xml:space="preserve">
     <value>Mostrar una aplicación de este dispositivo.</value>
@@ -2632,48 +2615,38 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="EnableUsbDebugging" xml:space="preserve">
     <value>Activa «Depuración por USB».</value>
   </data>
-  <data name="CableNoRequest" xml:space="preserve">
-    <value>4. La petición no aparece, o el aparato sigue sin conexión</value>
-  </data>
-  <data name="CableNoRequestCable" xml:space="preserve">
-    <value>• otro cable y otro puerto, en la parte trasera del PC: muchos cables que vienen con un cargador solo cargan, y nada lo indica;</value>
-  </data>
-  <data name="CableNoRequestMode" xml:space="preserve">
-    <value>• en la notificación USB del aparato, el modo «Transferencia de archivos» en lugar de «Carga»;</value>
-  </data>
-  <data name="CableNoRequestRevoke" xml:space="preserve">
-    <value>• en las opciones de desarrollador, «Revocar autorizaciones de depuración USB», luego desconectar, volver a conectar y aceptar de nuevo;</value>
-  </data>
-  <data name="CableNoRequestWindows" xml:space="preserve">
-    <value>• si Windows no lee el aparato, la pestaña Dispositivos dice lo que ve, y qué controlador instalar si falta uno.</value>
-  </data>
-  <data name="WirelessKeepOpen" xml:space="preserve">
-    <value>Mantén esta pantalla abierta hasta el final: una vez cerrada, olvida su código y muestra uno nuevo al reabrirla.</value>
-  </data>
-  <data name="WirelessAfterRestart" xml:space="preserve">
-    <value>4. Tras un reinicio o un cambio de Wi-Fi</value>
-  </data>
-  <data name="WirelessAfterRestartSteps" xml:space="preserve">
-    <value>Muchos aparatos desactivan la depuración inalámbrica al reiniciarse o al cambiar de red. Vuelve a activarla en las opciones de desarrollador: la vinculación se conserva, no hay nada que rehacer. Si el aparato pide permitir la depuración en esta red, marca «Permitir siempre en esta red».</value>
-  </data>
-  <data name="StaysOfflineGuest" xml:space="preserve">
-    <value>• no en la Wi-Fi de invitados del router: aísla los aparatos unos de otros;</value>
-  </data>
-  <data name="PairCableIntro" xml:space="preserve">
-    <value>Nada que vincular por cable: el aparato aparece en cuanto ha aceptado este PC. Antes, su depuración por USB debe estar activa, la Ayuda dice dónde.</value>
-  </data>
   <data name="PairCableSteps" xml:space="preserve">
-    <value>1. Conecta el cable al PC.
-2. Si el aparato pregunta por el modo de conexión, elige «Transferencia de archivos».
-3. Acepta la petición de depuración marcando «Permitir siempre desde este ordenador».</value>
+    <value>1. Conecta el cable.
+2. En el teléfono, acepta la petición marcando «Permitir siempre».</value>
   </data>
   <data name="PairCableWaiting" xml:space="preserve">
-    <value>Esperando un aparato conectado.</value>
+    <value>Esperando el teléfono…</value>
   </data>
   <data name="PairCableApprove" xml:space="preserve">
-    <value>El aparato está conectado: desbloquéalo y acepta la petición de depuración, marcando «Permitir siempre desde este ordenador».</value>
+    <value>Acepta la petición en el teléfono.</value>
   </data>
   <data name="PairCableConnected" xml:space="preserve">
     <value>{0} está conectado por USB.</value>
+  </data>
+  <data name="FrenchLabelsShort" xml:space="preserve">
+    <value>Textos de un teléfono configurado en español.</value>
+  </data>
+  <data name="HelpFixes" xml:space="preserve">
+    <value>¿No funciona?</value>
+  </data>
+  <data name="HelpFixCableWire" xml:space="preserve">
+    <value>• Prueba otro cable: muchos solo cargan.</value>
+  </data>
+  <data name="HelpFixCableMode" xml:space="preserve">
+    <value>• En la notificación USB del teléfono, elige «Transferencia de archivos».</value>
+  </data>
+  <data name="HelpFixCableRevoke" xml:space="preserve">
+    <value>• Opciones de desarrollador: «Revocar autorizaciones de depuración USB», y vuelve a conectarlo.</value>
+  </data>
+  <data name="HelpFixCableWindows" xml:space="preserve">
+    <value>• ¿Windows no ve el teléfono? La pestaña Dispositivos dice qué hacer.</value>
+  </data>
+  <data name="HelpFixWifiRestart" xml:space="preserve">
+    <value>• Tras un reinicio, vuelve a activar «Depuración inalámbrica»: la vinculación se conserva.</value>
   </data>
 </root>
