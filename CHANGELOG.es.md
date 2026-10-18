@@ -23,6 +23,11 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
   de la cuenta vuelve al modo estándar con un clic. El modo de juego del
   teléfono también se elige en los ajustes de la cuenta.
 
+- «Vincular un nuevo dispositivo» y la Ayuda tienen cada uno una pestaña Cable
+  y una pestaña Wi-Fi, en pocos pasos cortos. Por cable, la ventana espera el
+  teléfono y se cierra en cuanto está. «¿No aparece nada?» lleva directo a las
+  soluciones, para tu marca.
+
 ### Corregido
 
 - Cambiar la calidad o la imagen más nítida ya no relanza los juegos al
@@ -31,6 +36,41 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 
 - En inglés o en español con un Windows en francés, el Almanax muestra su
   ofrenda, su bonificación y sus días en el idioma de la aplicación.
+
+- El indicador de carga de una cuenta, y el de las demás cuentas del mismo
+  teléfono, ya no se apaga y vuelve a empezar mientras se abre.
+
+- Los atajos con dos teclas modificadoras, como Ctrl+Mayús+Tab, las conservan
+  tras un reinicio, y Ctrl+Mayús+Tab vuelve a funcionar tras cerrar ventanas.
+
+- Unos ajustes bloqueados un instante al arrancar, por un antivirus por
+  ejemplo, ya no se sustituyen por los ajustes por defecto.
+
+- Un juego abierto después de DTStuff o de Play Store tiene su sonido en el
+  PC, y dos cuentas del mismo teléfono reabiertas a la vez ya no hacen eco.
+
+- Importar ajustes los aplica al instante, atajos incluidos, sin reiniciar.
+
+- Un teléfono con la Carpeta segura bloqueada ya no aparece como «juego no
+  instalado».
+
+- Añadir una cuenta ya no se rechaza de entrada en los teléfonos sin varios
+  usuarios.
+
+- Con dos teléfonos, la vinculación ya no se equivoca de teléfono, y un
+  teléfono que recibe la dirección de otro ya no toma su nombre.
+
+- El códec de vídeo sigue la calidad elegida para cada cuenta.
+
+- El Almanax sigue el día del juego, a la hora de París, estés donde estés, y
+  dos pulsaciones rápidas ya no lo abren dos veces.
+
+- Cerrar el marco con pestañas ya no muestra el juego un instante, y las
+  pestañas mantienen el orden de la lista.
+
+- Una descarga de herramienta que se bloquea falla al cabo de un minuto en
+  lugar de girar sin fin, y una actualización bloqueada por un antivirus ya no
+  deja DT Hub sin su programa.
 
 ## [0.9.2] - 2026-10-17
 

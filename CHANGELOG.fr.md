@@ -24,6 +24,11 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
   du compte remet le mode standard en un clic. Le mode jeu du téléphone se
   choisit aussi dans les réglages du compte.
 
+- « Associer un nouvel appareil » et l'Aide ont chacun un onglet Câble et un
+  onglet Wi-Fi, en quelques étapes courtes. Par câble, la fenêtre attend le
+  téléphone et se ferme dès qu'il est là. « Rien n'apparaît ? » mène droit aux
+  solutions, pour votre marque.
+
 ### Corrigé
 
 - Changer la qualité ou l'image plus nette ne relance plus les jeux aussitôt :
@@ -32,6 +37,43 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
 - En anglais ou en espagnol sur un Windows français, l'Almanax affiche son
   offrande, son bonus et ses jours dans la langue de l'application.
+
+- L'indicateur de chargement d'un compte, et celui des autres comptes du même
+  téléphone, ne s'éteint plus pour repartir pendant son ouverture.
+
+- Les raccourcis à deux touches de modification, comme Ctrl+Maj+Tab, les
+  gardent après un redémarrage, et Ctrl+Maj+Tab remarche après la fermeture de
+  fenêtres.
+
+- Des réglages bloqués un instant au démarrage, par un antivirus par exemple,
+  ne sont plus remplacés par les réglages par défaut.
+
+- Un jeu ouvert après DTStuff ou le Play Store a bien son son sur le PC, et
+  deux comptes du même téléphone rouverts ensemble ne font plus d'écho.
+
+- Importer des réglages les applique tout de suite, raccourcis compris, sans
+  redémarrer.
+
+- Un téléphone dont le Dossier sécurisé est verrouillé n'est plus affiché «
+  jeu non installé ».
+
+- Ajouter un compte n'est plus refusé d'emblée sur les téléphones sans
+  multi-utilisateur.
+
+- Avec deux téléphones, l'association ne se trompe plus de téléphone, et un
+  téléphone qui reprend l'adresse d'un autre ne prend plus son nom.
+
+- Le codec vidéo suit la qualité choisie pour chaque compte.
+
+- L'Almanax suit le jour du jeu, à l'heure de Paris, où que vous soyez, et
+  deux appuis rapides ne l'ouvrent plus deux fois.
+
+- Fermer le cadre à onglets ne montre plus le jeu un instant, et les onglets
+  gardent l'ordre de la liste.
+
+- Un téléchargement d'outil qui se fige échoue au bout d'une minute au lieu de
+  tourner sans fin, et une mise à jour bloquée par un antivirus ne laisse plus
+  DT Hub sans son programme.
 
 ## [0.9.2] - 2026-10-17
 

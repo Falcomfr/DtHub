@@ -30,6 +30,10 @@ belongs in the commits and in `docs/DECISIONS.md`.
   the standard mode back in one click. The phone's game mode can also be
   chosen in the account's settings.
 
+- "Pair a new device" and the Help each have a Cable tab and a Wi-Fi tab, in a
+  few short steps. By cable, the window waits for the phone and closes once it
+  is in. "Nothing shows up?" leads straight to the fixes, for your brand.
+
 ### Fixed
 
 - Changing the quality or the sharp image no longer relaunches the games at
@@ -38,6 +42,42 @@ belongs in the commits and in `docs/DECISIONS.md`.
 
 - In English or Spanish on a French Windows, the Almanax shows its
   offering, bonus and days in the application's language.
+
+- An account's loading indicator, and those of the other accounts of its
+  phone, no longer go off and on again while it opens.
+
+- Shortcuts with two modifier keys, such as Ctrl+Shift+Tab, keep them after a
+  restart, and Ctrl+Shift+Tab works again once windows have closed.
+
+- Settings held for a moment at startup, by an antivirus for instance, are no
+  longer replaced by the default ones.
+
+- A game opened after DTStuff or the Play Store has its sound on the PC, and
+  two accounts of one phone reopened together no longer echo.
+
+- Importing settings applies them at once, shortcuts included, without a
+  restart.
+
+- A phone whose Secure Folder is locked is no longer shown "game not
+  installed".
+
+- Adding an account is no longer refused at once on phones without multiple
+  users.
+
+- With two phones, pairing no longer picks the other one, and a phone given
+  another's address no longer takes its name.
+
+- The video codec follows each account's own quality.
+
+- The Almanax follows the game's day, Paris time, wherever you are, and two
+  quick presses no longer open it twice.
+
+- Closing the tabbed frame no longer shows the game for an instant, and the
+  tabs keep the list's order.
+
+- A tool download that freezes fails after a minute instead of spinning
+  forever, and an update blocked by an antivirus no longer leaves DT Hub
+  without its program.
 
 ## [0.9.2] - 2026-10-17
 
