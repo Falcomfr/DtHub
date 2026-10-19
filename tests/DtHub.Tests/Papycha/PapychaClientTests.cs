@@ -184,6 +184,31 @@ public class PapychaClientTests
     }
 
     [Fact]
+    public async Task La_pierre_d_ame_donnee_en_niveau_se_lit_comme_sa_taille()
+    {
+        // Seen on 2026-10-19: the API sends the level the stone captures
+        // up to, 200, where it sent "Gigantesque", and the whole catalog
+        // refresh failed on the first dungeon.
+        var (client, _) = Create(new()
+        {
+            ["dungeons?per_page=100&page=1"] = """
+                {"items":[
+                  {"id":1,"name":"[Donjon] A","kind":"dungeon","soul_stone_size":50},
+                  {"id":2,"name":"[Donjon] B","kind":"dungeon","soul_stone_size":100},
+                  {"id":3,"name":"[Donjon] C","kind":"dungeon","soul_stone_size":150},
+                  {"id":4,"name":"[Donjon] D","kind":"dungeon","soul_stone_size":200},
+                  {"id":5,"name":"[Donjon] E","kind":"dungeon","soul_stone_size":75},
+                  {"id":6,"name":"[Donjon] F","kind":"dungeon","soul_stone_size":null}
+                ],"total":6,"total_pages":1}
+                """,
+        });
+
+        var stones = (await client.GetDungeonsAsync()).Select(d => d.SoulStone);
+
+        Assert.Equal(["Petite", "Moyenne", "Grande", "Gigantesque", "", ""], stones);
+    }
+
+    [Fact]
     public async Task Les_chemins_perdent_leur_prefixe()
     {
         var (client, _) = Create(new()

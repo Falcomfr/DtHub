@@ -242,9 +242,31 @@ public sealed partial class PapychaClient : IPapychaClient
             Position = item.EntranceCoordinates?.Trim() ?? string.Empty,
             Person = Decode(item.ContactNpc),
             Key = Decode(item.Key?.Name),
-            SoulStone = Decode(item.SoulStoneSize),
+            SoulStone = SoulStone(item.SoulStoneSize),
         };
     }
+
+    /// <summary>
+    /// The soul stone's size, as the list names it.
+    ///
+    /// **Seen on 2026-10-19**: the API sends the level the stone captures
+    /// up to, 200, where it sent its name, "Gigantesque". Read as a string,
+    /// the number failed the whole catalog refresh on the first dungeon.
+    /// Both are read, in case it goes back.
+    /// </summary>
+    private static string SoulStone(JsonElement size) => size.ValueKind switch
+    {
+        JsonValueKind.String => Decode(size.GetString()),
+        JsonValueKind.Number when size.TryGetInt32(out var level) => level switch
+        {
+            50 => "Petite",
+            100 => "Moyenne",
+            150 => "Grande",
+            200 => "Gigantesque",
+            _ => string.Empty,
+        },
+        _ => string.Empty,
+    };
 
     /// <summary>
     /// The API still sends some names with their HTML entities, "Bonta
@@ -330,7 +352,7 @@ public sealed partial class PapychaClient : IPapychaClient
         public TermPayload? Key { get; set; }
 
         [JsonPropertyName("soul_stone_size")]
-        public string? SoulStoneSize { get; set; }
+        public JsonElement SoulStoneSize { get; set; }
     }
 
     private sealed class PathPayload
