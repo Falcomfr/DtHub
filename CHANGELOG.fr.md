@@ -11,6 +11,18 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Corrigé
+
+- Sous les réglages fins de la qualité, la note dit comment obtenir une
+  définition plus haute : agrandir la fenêtre de jeu, puis la rouvrir. Elle ne
+  dit plus le plafond inutile quand c'est lui qui limite un compte au format du
+  téléphone.
+
+- Le débit affiché dans les réglages fins se calcule sur la définition de la
+  fenêtre ouverte, et non plus sur un plafond qu'elle n'atteint pas.
+
 ## [0.9.3] - 2026-10-18
 
 ### Ajouté

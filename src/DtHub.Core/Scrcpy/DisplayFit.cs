@@ -69,10 +69,36 @@ public static partial class DisplayFit
         // The ceiling can only lower: above what is actually used,
         // it has no effect, and saying so avoids paying for nothing
         // by raising it.
-        return chosenHeight > display.Height
+        return CeilingUnused(chosenHeight, display)
             ? phrase + Strings.Get("DisplayFitCapped")
             : phrase;
     }
+
+    /// <summary>
+    /// Resolution the bitrate is judged on: the open window's when the
+    /// ceiling does not reach it, the ceiling's otherwise.
+    ///
+    /// Judged on the ceiling alone, a window at 1080 under a ceiling of
+    /// 1440 was announced at 0.113 bit per pixel where 0.16 was served,
+    /// right beside the sentence saying it runs at 1080.
+    /// </summary>
+    public static (int Width, int Height) Planned(int chosenHeight, (int Width, int Height)? used) =>
+        used is { } display && CeilingUnused(chosenHeight, display)
+            ? display
+            : (chosenHeight * 16 / 9, chosenHeight);
+
+    /// <summary>
+    /// Whether the chosen ceiling stays above the window's resolution.
+    ///
+    /// A wide ratio may be the phone's, whose ceiling DisplayLadder
+    /// lowers: it is assumed to be, so a wide PC screen may go without
+    /// the sentence, but a ceiling that decides is never called useless.
+    /// The ratio read back is rounded to the encoder's alignment, hence
+    /// the step of margin.
+    /// </summary>
+    private static bool CeilingUnused(int chosenHeight, (int Width, int Height) display) =>
+        display.Width > 0 && display.Height > 0
+        && DisplayLadder.Ceiling(chosenHeight, (double)display.Width / display.Height) > display.Height + 8;
 
     [GeneratedRegex(@"--new-display=(?<w>\d+)x(?<h>\d+)")]
     private static partial Regex DisplayPattern();

@@ -551,19 +551,27 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     /// believes to gain detail where nothing is gained, and sometimes
     /// pays dearly to find out.
     /// </summary>
-    public string DisplayFitSummary => Core.Scrcpy.DisplayFit.Describe(
-        CustomHeight,
-        Core.Scrcpy.DisplayFit.FromCommandLine(
-            _launcher.ActiveSessions.FirstOrDefault(s => s.IsAlive)?.CommandLine));
+    public string DisplayFitSummary => Core.Scrcpy.DisplayFit.Describe(CustomHeight, OpenDisplay);
 
-    private BitratePlan CurrentPlan => BitrateAdvice.Plan(
-        CustomBitsPerPixel,
-        CustomWidth,
-        CustomHeight,
-        CustomFps,
-        CustomCodec,
-        OpenWindowsOnBusiestDevice,
-        QualityProfile.For(StreamQuality.Custom).CeilingKbps);
+    private (int Width, int Height)? OpenDisplay => Core.Scrcpy.DisplayFit.FromCommandLine(
+        _launcher.ActiveSessions.FirstOrDefault(s => s.IsAlive)?.CommandLine);
+
+    private BitratePlan CurrentPlan
+    {
+        get
+        {
+            var (width, height) = Core.Scrcpy.DisplayFit.Planned(CustomHeight, OpenDisplay);
+
+            return BitrateAdvice.Plan(
+                CustomBitsPerPixel,
+                width,
+                height,
+                CustomFps,
+                CustomCodec,
+                OpenWindowsOnBusiestDevice,
+                QualityProfile.For(StreamQuality.Custom).CeilingKbps);
+        }
+    }
 
     /// <summary>
     /// Windows open on the phone that carries the most of them.
@@ -585,18 +593,6 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
                     .Max(g => g.Count());
         }
     }
-
-    /// <summary>
-    /// The width that goes with the chosen height. The game displays
-    /// in landscape and the virtual display follows 16:9: asking for
-    /// it separately would be one more setting for a value that can
-    /// be derived.
-    ///
-    /// This is a <b>ceiling</b>, not the resolution retained: that
-    /// one follows the window size and can be lower. The reported
-    /// bitrate is therefore the highest this setting can ask for.
-    /// </summary>
-    private int CustomWidth => CustomHeight * 16 / 9;
 
     /// <summary>
     /// The heights on offer. The game displays in 16:9 and the width

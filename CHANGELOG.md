@@ -17,6 +17,18 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Fixed
+
+- Under the quality's fine settings, the note now says how to get a higher
+  definition: enlarge the game window, then reopen it. It no longer calls the
+  ceiling useless when that ceiling is what limits an account set to the
+  phone's format.
+
+- The bitrate shown in the fine settings is worked out on the open window's
+  definition, no longer on a ceiling that window does not reach.
+
 ## [0.9.3] - 2026-10-18
 
 ### Added

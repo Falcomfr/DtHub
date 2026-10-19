@@ -162,19 +162,25 @@ public static class DisplayLadder
 
         // The width from the aligned height: aligning both on their own
         // drifts the ratio.
-        var ceiling = Math.Max(360, maximumHeight);
-
-        // A tier names a load, the pixels of its height in 16:9. A longer
-        // phone gets the same pixels at its own ratio, so a lower height:
-        // 20:9 used to get 2400x1080 in the medium tier, a quarter more.
-        if (phoneAspect > 16.0 / 9 && ceiling < int.MaxValue)
-        {
-            ceiling = (int)(ceiling * Math.Sqrt(16.0 / 9 / phoneAspect));
-        }
-
-        var height = Even(Math.Min(Choose(clientHeight, fits), ceiling));
+        var height = Even(Math.Min(Choose(clientHeight, fits), Ceiling(maximumHeight, phoneAspect)));
 
         return (Even((int)Math.Round(height * aspect)), height);
+    }
+
+    /// <summary>
+    /// Height the chosen quality really allows, before alignment.
+    ///
+    /// A tier names a load, the pixels of its height in 16:9. A longer
+    /// phone gets the same pixels at its own ratio, so a lower height:
+    /// 20:9 used to get 2400x1080 in the medium tier, a quarter more.
+    /// </summary>
+    public static int Ceiling(int maximumHeight, double phoneAspect)
+    {
+        var ceiling = Math.Max(360, maximumHeight);
+
+        return phoneAspect > 16.0 / 9 && ceiling < int.MaxValue
+            ? (int)(ceiling * Math.Sqrt(16.0 / 9 / phoneAspect))
+            : ceiling;
     }
 
     /// <summary>

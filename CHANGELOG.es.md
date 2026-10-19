@@ -10,6 +10,18 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Corregido
+
+- Bajo los ajustes finos de la calidad, la nota dice cómo conseguir una
+  definición más alta: agrandar la ventana del juego y volver a abrirla. Ya no
+  llama inútil al tope cuando es él quien limita una cuenta con el formato del
+  teléfono.
+
+- La tasa de bits de los ajustes finos se calcula con la definición de la
+  ventana abierta, y ya no con un tope que esa ventana no alcanza.
+
 ## [0.9.3] - 2026-10-18
 
 ### Añadido
