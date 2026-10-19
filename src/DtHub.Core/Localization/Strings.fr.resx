@@ -1709,7 +1709,7 @@ Le reste de l'application fonctionne sans lui.</value>
     <value>vos fenêtres tournent en {0} × {1}</value>
   </data>
   <data name="DisplayFitCapped" xml:space="preserve">
-    <value>. Pour monter plus haut, agrandissez la fenêtre puis rouvrez-la.</value>
+    <value>. Pour une définition plus haute, agrandissez la fenêtre puis rouvrez-la ; si elle remplit déjà l'écran, il faut un écran plus grand.</value>
   </data>
   <data name="AnchorTopLeft" xml:space="preserve">
     <value>En haut à gauche</value>

@@ -22,7 +22,8 @@ belongs in the commits and in `docs/DECISIONS.md`.
 ### Fixed
 
 - Under the quality's fine settings, the note now says how to get a higher
-  definition: enlarge the game window, then reopen it. It no longer calls the
+  definition: enlarge the game window, then reopen it, or use a bigger screen
+  if the window already fills it. It no longer calls the
   ceiling useless when that ceiling is what limits an account set to the
   phone's format.
 

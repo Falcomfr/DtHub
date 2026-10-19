@@ -15,7 +15,8 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 ### Corregido
 
 - Bajo los ajustes finos de la calidad, la nota dice cómo conseguir una
-  definición más alta: agrandar la ventana del juego y volver a abrirla. Ya no
+  definición más alta: agrandar la ventana del juego y volver a abrirla, o
+  pasar a una pantalla más grande si ya la llena. Ya no
   llama inútil al tope cuando es él quien limita una cuenta con el formato del
   teléfono.
 

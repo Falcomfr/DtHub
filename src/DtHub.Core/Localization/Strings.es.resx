@@ -1709,7 +1709,7 @@ El resto de la aplicación funciona sin él.</value>
     <value>tus ventanas van a {0} × {1}</value>
   </data>
   <data name="DisplayFitCapped" xml:space="preserve">
-    <value>. Para subir más, agranda la ventana y vuelve a abrirla.</value>
+    <value>. Para una definición más alta, agranda la ventana y vuelve a abrirla; si ya llena la pantalla, hace falta una pantalla más grande.</value>
   </data>
   <data name="AnchorTopLeft" xml:space="preserve">
     <value>Arriba a la izquierda</value>

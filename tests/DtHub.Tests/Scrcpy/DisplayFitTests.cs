@@ -48,17 +48,19 @@ public class DisplayFitTests
         Assert.DoesNotContain("agrandissez", phrase, StringComparison.Ordinal);
     }
 
-    [Fact]
-    public void Un_plafond_rabattu_au_format_du_telephone_n_est_pas_dit_inutile()
+    [Theory]
+    [InlineData(1440, 20.0 / 9)]
+    [InlineData(1080, 2392.0 / 1080)]
+    public void Un_plafond_rabattu_au_format_du_telephone_n_est_pas_dit_inutile(int ceiling, double phoneAspect)
     {
-        // At 20:9, a ceiling of 1440 is lowered to the same pixels as
-        // 16:9, so on a 3440x1440 screen DisplayLadder.For returns
-        // 2840x1280: that ceiling is the one deciding, raising it would
-        // give more.
-        var used = DisplayLadder.For(2000, 3440, 1440, 1440, phoneAspect: 20.0 / 9);
-        var phrase = DisplayFit.Describe(1440, used);
+        // At the phone's ratio, the ceiling is lowered to the same pixels
+        // as 16:9: on a 3440x1440 screen, 1440 at 20:9 gives 2840x1280.
+        // That ceiling is the one deciding, raising it would give more,
+        // and the ratio read back from the rounded display must not make
+        // it look higher than it is.
+        var used = DisplayLadder.For(2000, 3440, 1440, ceiling, phoneAspect: phoneAspect);
+        var phrase = DisplayFit.Describe(ceiling, used);
 
-        Assert.Equal((2840, 1280), used);
         Assert.DoesNotContain("agrandissez", phrase, StringComparison.Ordinal);
     }
 

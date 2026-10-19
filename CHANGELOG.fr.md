@@ -16,7 +16,8 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 ### Corrigé
 
 - Sous les réglages fins de la qualité, la note dit comment obtenir une
-  définition plus haute : agrandir la fenêtre de jeu, puis la rouvrir. Elle ne
+  définition plus haute : agrandir la fenêtre de jeu, puis la rouvrir, ou
+  passer à un écran plus grand si elle le remplit déjà. Elle ne
   dit plus le plafond inutile quand c'est lui qui limite un compte au format du
   téléphone.
 

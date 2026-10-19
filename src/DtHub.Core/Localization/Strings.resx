@@ -1709,7 +1709,7 @@ The rest of the application works without it.</value>
     <value>your windows run at {0} × {1}</value>
   </data>
   <data name="DisplayFitCapped" xml:space="preserve">
-    <value>. To go higher, enlarge the window and reopen it.</value>
+    <value>. For a higher definition, enlarge the window and reopen it; if it already fills the screen, a bigger screen is needed.</value>
   </data>
   <data name="AnchorTopLeft" xml:space="preserve">
     <value>Top left</value>

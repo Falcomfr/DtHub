@@ -66,9 +66,9 @@ public static partial class DisplayFit
 
         var phrase = Strings.Format("DisplayFitSentence", display.Width, display.Height);
 
-        // The ceiling can only lower: above what is actually used,
-        // it has no effect, and saying so avoids paying for nothing
-        // by raising it.
+        // The ceiling can only lower: above what is actually used, it
+        // has no effect, and only a taller window, on a screen tall
+        // enough, gets more.
         return CeilingUnused(chosenHeight, display)
             ? phrase + Strings.Get("DisplayFitCapped")
             : phrase;
@@ -93,12 +93,13 @@ public static partial class DisplayFit
     /// A wide ratio may be the phone's, whose ceiling DisplayLadder
     /// lowers: it is assumed to be, so a wide PC screen may go without
     /// the sentence, but a ceiling that decides is never called useless.
-    /// The ratio read back is rounded to the encoder's alignment, hence
-    /// the step of margin.
+    /// The display read back is rounded to the encoder's alignment on
+    /// both sides, which can lift the computed ceiling by up to two
+    /// steps, hence the margin.
     /// </summary>
     private static bool CeilingUnused(int chosenHeight, (int Width, int Height) display) =>
         display.Width > 0 && display.Height > 0
-        && DisplayLadder.Ceiling(chosenHeight, (double)display.Width / display.Height) > display.Height + 8;
+        && DisplayLadder.Ceiling(chosenHeight, (double)display.Width / display.Height) > display.Height + 16;
 
     [GeneratedRegex(@"--new-display=(?<w>\d+)x(?<h>\d+)")]
     private static partial Regex DisplayPattern();
