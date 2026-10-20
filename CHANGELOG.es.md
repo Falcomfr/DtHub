@@ -10,6 +10,13 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Corregido
+
+- Una ventana de juego reabierta en pantalla completa funciona ahora a la
+  definición de la pantalla, y ya no a la de su tamaño anterior.
+
 ## [0.9.4] - 2026-10-19
 
 ### Corregido

@@ -11,6 +11,13 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Corrigé
+
+- Une fenêtre de jeu rouverte en plein écran tourne désormais à la définition
+  de l'écran, et non plus à celle de sa taille d'avant le plein écran.
+
 ## [0.9.4] - 2026-10-19
 
 ### Corrigé

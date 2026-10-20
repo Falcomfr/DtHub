@@ -4697,11 +4697,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         var monitors = _windows.GetMonitors();
 
-        var rect = remembered is not null
-            ? WindowLayoutCalculator.RestoreRemembered(
-                  remembered.Bounds, remembered.MonitorDeviceName, remembered.Monitor, monitors)
-              ?? _windows.PreviewGameArea(aspect)
-            : _windows.PreviewGameArea(aspect);
+        var rect = _windows.PreviewGameArea(aspect, remembered);
 
         // Logged: the layout depends on the screen and its scaling,
         // and an unexpected figure shows up right away here.

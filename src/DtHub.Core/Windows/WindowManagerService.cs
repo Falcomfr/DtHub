@@ -113,13 +113,26 @@ public sealed class WindowManagerService
     /// <summary>
     /// Rectangle the game windows will occupy, without moving
     /// anything. Used to place the configurator elsewhere.
+    ///
+    /// A window's <paramref name="remembered"/> place wins, except in
+    /// full screen, as in <see cref="Resolve"/>: the display is sized on
+    /// this rectangle, and a window remembered small reopened in full
+    /// screen at the definition of its small size (seen on 2026-10-20).
     /// </summary>
-    public ScreenRect? PreviewGameArea(double sourceAspectRatio)
+    public ScreenRect? PreviewGameArea(double sourceAspectRatio, StoredWindowRect? remembered = null)
     {
         var monitors = _controller.GetMonitors();
         if (monitors.Count == 0)
         {
             return null;
+        }
+
+        if (!IsFullscreen
+            && remembered is not null
+            && WindowLayoutCalculator.RestoreRemembered(
+                remembered.Bounds, remembered.MonitorDeviceName, remembered.Monitor, monitors) is { } restored)
+        {
+            return restored;
         }
 
         var monitor = WindowLayoutCalculator.ChooseMonitor(monitors, preferredDeviceName: null);
@@ -660,7 +673,7 @@ public sealed class WindowManagerService
     /// taskbar included.
     ///
     /// This is the screen of its remembered geometry, and the main
-    /// screen otherwise. Taking a single reference screen would give
+    /// screen otherwise or in full screen. Taking a single reference screen would give
     /// the wrong aspect ratio to the display of a window left on a
     /// second screen of a different shape, and it would be born
     /// malformed.
@@ -674,7 +687,8 @@ public sealed class WindowManagerService
             return null;
         }
 
-        var restored = remembered is null
+        // Full screen opens on the main screen, see Resolve.
+        var restored = remembered is null || IsFullscreen
             ? null
             : WindowLayoutCalculator.RestoreRemembered(
                   remembered.Bounds, remembered.MonitorDeviceName, remembered.Monitor, monitors);

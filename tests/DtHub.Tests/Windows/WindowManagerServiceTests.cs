@@ -1040,6 +1040,46 @@ public class WindowManagerServiceTests
     }
 
     [Fact]
+    public void Une_fenetre_memorisee_rouvre_a_sa_place()
+    {
+        var desktop = new FakeWindowController();
+        var service = new WindowManagerService(desktop, NoDelay);
+        var small = new ScreenRect(0, 0, 1431, 835);
+
+        var area = service.PreviewGameArea(16.0 / 9, StoredWindowRect.From(small, FakeWindowController.PrimaryMonitor));
+
+        Assert.Equal(small, area);
+    }
+
+    [Fact]
+    public async Task En_plein_ecran_une_fenetre_memorisee_petite_rouvre_a_la_taille_de_l_ecran()
+    {
+        // Seen on 2026-10-20: an account remembered at 1431x835 reopened in
+        // full screen at 1920x1080 on a 2560x1440 screen, every time, since
+        // nothing is remembered in full screen. The other account ran at 1440.
+        var principal = FakeWindowController.PrimaryMonitor;
+        var second = new MonitorInfo
+        {
+            DeviceName = @"\\.\DISPLAY2",
+            Bounds = new ScreenRect(1920, 0, 2560, 1600),
+            WorkArea = new ScreenRect(1920, 0, 2560, 1560),
+        };
+
+        var desktop = new FakeWindowController(principal, second);
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.ApplySizeAsync([], service.Presets.FullscreenIndex, CancellationToken.None);
+
+        var onPrincipal = StoredWindowRect.From(new ScreenRect(0, 0, 1431, 835), principal);
+        var onSecond = StoredWindowRect.From(new ScreenRect(2000, 100, 1200, 750), second);
+
+        Assert.Equal(principal.Bounds, service.PreviewGameArea(16.0 / 9, onPrincipal));
+
+        // The full screen opens on the main screen whatever was remembered,
+        // see Resolve: the display must take that screen's shape.
+        Assert.Equal(principal.Bounds, service.MonitorBoundsFor(onSecond));
+    }
+
+    [Fact]
     public void La_taille_transmise_a_scrcpy_est_celle_de_la_zone_client()
     {
         // This is what scrcpy gives to the display, and the game locks the

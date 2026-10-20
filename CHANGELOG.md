@@ -17,6 +17,13 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Fixed
+
+- A game window reopened in full screen now runs at the screen's definition,
+  no longer at that of the smaller size it had before full screen.
+
 ## [0.9.4] - 2026-10-19
 
 ### Fixed
