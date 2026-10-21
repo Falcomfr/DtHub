@@ -218,6 +218,14 @@ public class DeviceHealthTests
     }
 
     [Fact]
+    public void Un_telephone_qui_libere_un_peu_de_memoire_sans_ralentir_ne_dit_rien()
+    {
+        // 2026-10-21: two accounts open, four and a half days without a
+        // restart, kswapd0 between 10 and 15 % of a core, and no lag at all.
+        Assert.Empty(DeviceHealth.Review(null, null, null, strain: Strain(reclaim: 0.15, days: 4.5)));
+    }
+
+    [Fact]
     public void Redemarre_recemment_le_message_ne_parle_pas_de_jours()
     {
         var finding = Assert.Single(DeviceHealth.Review(null, null, null, strain: Strain(reclaim: 0.38, days: 1)));

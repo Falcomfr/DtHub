@@ -138,9 +138,11 @@ public sealed record PhoneStrain(double BusyShare, double GameShare, double Recl
 {
     /// <summary>
     /// kswapd0's time from which the memory is said to be short. Measured at
-    /// 0.38 on the lagging phone of 2026-10-03.
+    /// 0.38 on the lagging phone of 2026-10-03, and between 0.10 and 0.15 on
+    /// the same phone running two accounts without any lag on 2026-10-21:
+    /// 0.10 then called it saturated. Halfway between the two.
     /// </summary>
-    public const double ReclaimLimit = 0.10;
+    public const double ReclaimLimit = 0.20;
 
     /// <summary>Share of all cores at work from which the processor is said to be full.</summary>
     public const double BusyLimit = 0.80;
