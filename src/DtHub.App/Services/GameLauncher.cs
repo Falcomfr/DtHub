@@ -2289,10 +2289,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// nothing at all without it, silently, and the player who pressed it
     /// could not tell why.
     ///
-    /// It switches a screen DT Hub holds off back on, like the line under
-    /// the phone, which shows Light up then. A held phone that does not say
-    /// counts as dark, as for that line: a Galaxy S25 never answered, and
-    /// the shortcut must do what the line it shows says.
+    /// A dark screen is lit, a lit one switched off. A held phone that does
+    /// not say counts as dark, as for the line under the phone: a Galaxy
+    /// S25 never answered, and the shortcut must do what that line says.
     /// </summary>
     private async Task TogglePanelsAsync()
     {
@@ -2319,18 +2318,38 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         foreach (var (deviceId, serial) in phones)
         {
-            var lit = await _devices.IsPanelLitAsync(serial).ConfigureAwait(false);
-
-            if (_sessions.HoldsScreenOff(deviceId) && lit != true)
+            // One change at a time per phone, claimed before the screen is
+            // read: a burst of presses started an off while an on was under
+            // way, and ended dark but no longer held (2026-10-21).
+            if (!_toggling.TryAdd(deviceId, 0))
             {
-                await LightPanelAsync(deviceId).ConfigureAwait(false);
+                continue;
             }
-            else if (lit != false)
+
+            try
             {
-                await TurnPanelOffAsync(deviceId).ConfigureAwait(false);
+                var lit = await _devices.IsPanelLitAsync(serial).ConfigureAwait(false);
+
+                // The screen as it is decides, the guard only when the phone
+                // does not say: dark but no longer held, a press did nothing.
+                if (lit == false || (lit is null && _sessions.HoldsScreenOff(deviceId)))
+                {
+                    await LightPanelAsync(deviceId).ConfigureAwait(false);
+                }
+                else
+                {
+                    await TurnPanelOffAsync(deviceId).ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                _ = _toggling.TryRemove(deviceId, out _);
             }
         }
     }
+
+    /// <summary>The phones whose screen the shortcut is changing right now.</summary>
+    private readonly ConcurrentDictionary<string, byte> _toggling = new(StringComparer.Ordinal);
 
     /// <summary>
     /// When each playing Wi-Fi phone was last asked to keep its Wi-Fi awake,
