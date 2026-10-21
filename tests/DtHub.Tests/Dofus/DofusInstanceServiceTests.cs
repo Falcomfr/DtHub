@@ -475,7 +475,8 @@ public class DofusInstanceServiceTests
 
     /// <summary>
     /// Whoever opens this list comes for something to play alongside the
-    /// game: its companions come before the alphabet.
+    /// game: its companions come before the alphabet. DTStuff and OcrApp are
+    /// not offered at all, they have their own buttons.
     /// </summary>
     [Fact]
     public async Task La_liste_a_choisir_met_les_applications_de_dofus_en_tete()
@@ -502,7 +503,7 @@ public class DofusInstanceServiceTests
             CancellationToken.None);
 
         Assert.Equal(
-            ["Carte", "DTStuff", "AIMP", "Banque"],
+            ["Carte", "AIMP", "Banque"],
             profiles.Single(p => p.UserId == 0).Apps.Select(a => a.Label));
     }
 
