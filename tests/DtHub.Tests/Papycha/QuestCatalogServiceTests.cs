@@ -40,9 +40,11 @@ public class QuestCatalogServiceTests
 
             await service.GetAsync(cancellationToken: CancellationToken.None);
             Assert.Equal("Le dragon d'Astrub", service.Catalog.Quests.Single(q => q.Id == 1).Title);
+            Assert.False(service.UsesGameNames);
 
             await service.RefreshNamesAsync();
 
+            Assert.True(service.UsesGameNames);
             Assert.Equal("nom 10 en", service.Catalog.Quests.Single(q => q.Id == 1).Title);
             Assert.Equal("Le dragon d'Astrub", service.Source.Quests.Single(q => q.Id == 1).Title);
             Assert.Equal("Le dragon d'Astrub", (await store.LoadAsync(CancellationToken.None)).Quests.Single(q => q.Id == 1).Title);
@@ -98,6 +100,7 @@ public class QuestCatalogServiceTests
 
             Assert.Equal("Le dragon d'Astrub", catalog.Quests.Single(q => q.Id == 1).Title);
             Assert.Equal("Le dragon d'Astrub", service.Catalog.Quests.Single(q => q.Id == 1).Title);
+            Assert.False(service.UsesGameNames);
             Assert.NotNull(touch.LastFailure);
         }
         finally

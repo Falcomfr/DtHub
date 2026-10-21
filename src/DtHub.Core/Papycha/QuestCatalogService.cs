@@ -65,6 +65,9 @@ public sealed class QuestCatalogService : IDisposable
     /// </summary>
     public QuestCatalogDocument Catalog => _view ?? Source;
 
+    /// <summary>True when <see cref="Catalog"/> carries the game's names, so the window credits the game only then.</summary>
+    public bool UsesGameNames => _view is not null;
+
     /// <summary>
     /// Returns the catalog served (<see cref="Catalog"/>, possibly localized),
     /// indexing it if it is missing or has gone stale.

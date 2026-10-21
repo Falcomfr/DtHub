@@ -361,8 +361,11 @@ public sealed partial class QuestViewModel : ObservableObject
     /// </summary>
     public bool ShowsPage => !IsListOpen && !IsLoadingPage && IsWindowVisible && !ShowsOfficialSteps;
 
-    /// <summary>The list shows the game's names in any language but French, where Papycha's own are kept: the credit goes with them.</summary>
-    public bool ShowsOfficialNamesCredit => TouchNameService.CurrentLanguage != "fr";
+    /// <summary>
+    /// The list shows the game's names in any language but French, where
+    /// Papycha's own are kept: the credit goes with them, once they are read.
+    /// </summary>
+    public bool ShowsOfficialNamesCredit => TouchNameService.CurrentLanguage != "fr" && _catalog.UsesGameNames;
 
     /// <summary>The guide is Papycha's, in French: the game's own wording only exists to compare, in another language.</summary>
     public bool OffersOfficialSteps =>
@@ -512,6 +515,7 @@ public sealed partial class QuestViewModel : ObservableObject
         Settle(catalog, before);
         CountSections();
         ShowRoot();
+        OnPropertyChanged(nameof(ShowsOfficialNamesCredit));
 
         // Not awaited: names that arrive later show at the next opening.
         NamesRead = ReadNamesAsync();
@@ -525,6 +529,10 @@ public sealed partial class QuestViewModel : ObservableObject
     {
         await _catalog.RefreshNamesAsync(CancellationToken.None).ConfigureAwait(true);
         _tree.Chain = new QuestChainIndex(_catalog.Catalog.Quests);
+
+        // The rows drawn before hold the French records: clicking one would open it outside the localized chain.
+        RedrawAfterRead();
+        OnPropertyChanged(nameof(ShowsOfficialNamesCredit));
     }
 
     /// <summary>The names refresh started by the last load; never faults.</summary>
@@ -1136,6 +1144,9 @@ public sealed partial class QuestViewModel : ObservableObject
     {
         ArgumentNullException.ThrowIfNull(quest);
 
+        // A row or a link may still carry the record from before the names arrived.
+        quest = _catalog.Catalog.Quests.FirstOrDefault(q => q.Id == quest.Id) ?? quest;
+
         Tracker.ShowQuest(quest.Id);
 
         _current = quest;
@@ -1172,6 +1183,9 @@ public sealed partial class QuestViewModel : ObservableObject
     public void SetCurrent(DungeonSummary dungeon, bool anchor = true)
     {
         ArgumentNullException.ThrowIfNull(dungeon);
+
+        // See the quests overload.
+        dungeon = _catalog.Catalog.Dungeons.FirstOrDefault(d => d.Id == dungeon.Id) ?? dungeon;
 
         Tracker.ShowQuest(null);
 
@@ -1728,19 +1742,37 @@ public sealed partial class QuestViewModel : ObservableObject
     /// path and the key on a dungeon. The step's rank used to appear there
     /// first; that is a numbering that exists only in this window, and so it
     /// designated nothing to whoever receives the report.
+    ///
+    /// The report goes to Papycha, in French: the quest, its series, the
+    /// dungeon and the zone are named as Papycha wrote them, not as shown.
     /// </summary>
-    public (string Url, string Location)? ErrorReport() =>
-        CanReport
-            ? (CurrentUrl!, PapychaReport.Location(ZoneName(), QuestTitle, _current?.SuccessName, CurrentUrl))
-            : null;
+    public (string Url, string Location)? ErrorReport()
+    {
+        if (!CanReport)
+        {
+            return null;
+        }
+
+        var quest = _current is { } shown ? _catalog.Source.Quests.FirstOrDefault(q => q.Id == shown.Id) : null;
+        var title = quest?.Title
+            ?? (_currentDungeon is { } place ? _catalog.Source.Dungeons.FirstOrDefault(d => d.Id == place.Id)?.Title : null)
+            ?? QuestTitle;
+
+        return (CurrentUrl!, PapychaReport.Location(ZoneName(), title, quest?.SuccessName ?? _current?.SuccessName, CurrentUrl));
+    }
 
     /// <summary>
     /// The name of the section we are reading under, or empty when the page
     /// has none. The same rule as the list: the one being browsed if the quest
-    /// is in it, otherwise the one the catalogue has kept for it.
+    /// is in it, otherwise the one the catalogue has kept for it. A site
+    /// section keeps its French name, for the report.
     /// </summary>
     private string ZoneName() =>
-        SectionOfPage() is { } id ? _tree.NameOf(id) : string.Empty;
+        SectionOfPage() is not { } id
+            ? string.Empty
+            : _catalog.Source.Sections.FirstOrDefault(s => s.Id == id) is { } section
+                ? QuestZoneOrder.DisplayName(section.Name)
+                : _tree.NameOf(id);
 
     /// <summary>
     /// The section of the page we are reading, whatever its kind.
