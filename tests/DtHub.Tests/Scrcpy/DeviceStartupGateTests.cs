@@ -58,6 +58,31 @@ public sealed class DeviceStartupGateTests
     }
 
     [Fact]
+    public async Task Un_passage_discret_garde_son_tour_sans_dire_le_telephone_occupe()
+    {
+        // The screen-off guard queues like an opening, but greyed the play
+        // buttons of the whole phone each time the screen was switched off
+        // (2026-10-21). An opening clicked meanwhile just waits its turn.
+        using var gate = new DeviceStartupGate(NoDelay);
+
+        List<bool> seen = [];
+        gate.BusyChanged += (_, e) => seen.Add(e.IsBusy);
+
+        var discreet = await gate.EnterQuietlyAsync("PHONE-A", CancellationToken.None);
+
+        Assert.False(gate.IsBusy("PHONE-A"));
+
+        var next = gate.EnterAsync("PHONE-A", CancellationToken.None);
+
+        Assert.False(next.IsCompleted);
+
+        await discreet.DisposeAsync();
+        await (await next).DisposeAsync();
+
+        Assert.Equal([true, false], seen);
+    }
+
+    [Fact]
     public async Task Le_repos_est_applique_avant_de_rendre_la_place()
     {
         // The next one truly waits, and the busy indicator stays lit

@@ -472,9 +472,11 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
 
             // It pushes a server like an opening does, so it takes its
             // turn in the same queue, and holds it until the screen is
-            // off: two pushes that overlap break.
+            // off: two pushes that overlap break. Without saying the phone
+            // busy, which greyed its play buttons at every switch-off: an
+            // opening clicked meanwhile waits its turn all the same.
             await using var lease = await _gate
-                .EnterAsync(deviceId, cancellationToken)
+                .EnterQuietlyAsync(deviceId, cancellationToken)
                 .ConfigureAwait(false);
 
             IProcessSession keeper;

@@ -55,18 +55,30 @@ public sealed class DeviceStartupGate : IDisposable
     /// Waits its turn on this device. The returned token releases the
     /// slot, after the rest period, when it is disposed.
     /// </summary>
-    public async Task<IAsyncDisposable> EnterAsync(
-        string deviceId,
-        CancellationToken cancellationToken = default)
+    public Task<IAsyncDisposable> EnterAsync(string deviceId, CancellationToken cancellationToken = default) =>
+        EnterAsync(deviceId, announce: true, cancellationToken);
+
+    /// <summary>
+    /// Waits its turn like <see cref="EnterAsync(string, CancellationToken)" />,
+    /// without saying the device busy: a short passage the player did not
+    /// start an opening for, during which an opening clicked just waits.
+    /// </summary>
+    public Task<IAsyncDisposable> EnterQuietlyAsync(string deviceId, CancellationToken cancellationToken = default) =>
+        EnterAsync(deviceId, announce: false, cancellationToken);
+
+    private async Task<IAsyncDisposable> EnterAsync(string deviceId, bool announce, CancellationToken cancellationToken)
     {
         var key = string.IsNullOrWhiteSpace(deviceId) ? "?" : deviceId;
         var gate = _gates.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
 
         await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
 
-        Mark(key, busy: true);
+        if (announce)
+        {
+            Mark(key, busy: true);
+        }
 
-        return new Lease(this, key, gate);
+        return new Lease(this, key, gate, announce);
     }
 
     public void Dispose()
@@ -97,7 +109,7 @@ public sealed class DeviceStartupGate : IDisposable
     /// releasing the slot, not after: the next one therefore really
     /// waits, and the activity indicator stays lit during that time.
     /// </summary>
-    private sealed class Lease(DeviceStartupGate gate, string deviceId, SemaphoreSlim semaphore)
+    private sealed class Lease(DeviceStartupGate gate, string deviceId, SemaphoreSlim semaphore, bool announced)
         : IAsyncDisposable
     {
         public async ValueTask DisposeAsync()
@@ -111,7 +123,11 @@ public sealed class DeviceStartupGate : IDisposable
             }
             finally
             {
-                gate.Mark(deviceId, busy: false);
+                if (announced)
+                {
+                    gate.Mark(deviceId, busy: false);
+                }
+
                 semaphore.Release();
             }
         }
