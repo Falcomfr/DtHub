@@ -269,7 +269,7 @@ public class DeviceDiscoveryServiceTests
         {
             DevicesOutput = """
                 List of devices attached
-                adb-CMBU79RCINVSFYUO-1V3FXQ._adb-tls-connect._tcp  offline product:corot_global model:23078PND5G
+                adb-MATERIEL123-1V3FXQ._adb-tls-connect._tcp  offline product:corot_global model:23078PND5G
                 """,
         };
 
