@@ -45,6 +45,12 @@ public sealed partial class DofusTouchClient : IDofusTouchClient
         string language,
         CancellationToken cancellationToken = default)
     {
+        // An empty set must never reach the server: it may answer the whole class.
+        if (ids is { Count: 0 })
+        {
+            return new Dictionary<int, JsonElement>();
+        }
+
         var body = new Dictionary<string, object> { ["class"] = dataClass };
 
         if (ids is not null)
@@ -60,7 +66,9 @@ public sealed partial class DofusTouchClient : IDofusTouchClient
         IReadOnlyCollection<int> ids,
         string language,
         CancellationToken cancellationToken = default) =>
-        PostAsync("text", new { ids }, language, element => element.GetString() ?? string.Empty, cancellationToken);
+        ids.Count == 0
+            ? Task.FromResult<IReadOnlyDictionary<int, string>>(new Dictionary<int, string>())
+            : PostAsync("text", new { ids }, language, element => element.GetString() ?? string.Empty, cancellationToken);
 
     private async Task<IReadOnlyDictionary<int, T>> PostAsync<T>(
         string route,

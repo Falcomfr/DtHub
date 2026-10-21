@@ -100,24 +100,23 @@ public sealed class TouchNameService(
         var items = await GetAsync("Items", [.. dungeons.Values.Select(d => Int(d, "dungeonKey")).Where(id => id != 0)], language, ct).ConfigureAwait(false);
         var achievements = await GetAsync("Achievements", [.. Table.Series.Values.Concat(Table.Links.Values)], language, ct).ConfigureAwait(false);
 
-        var textIds = new[] { quests, dungeons, monsters, items, achievements }
-            .SelectMany(rows => rows.Values.Select(row => Int(row, "nameId")))
-            .Where(id => id != 0)
-            .ToHashSet();
-        var texts = await client.GetTextsAsync(textIds, language, ct).ConfigureAwait(false);
-
-        string? Name(JsonElement row) => texts.GetValueOrDefault(Int(row, "nameId"));
-
         Dictionary<int, string> Names(IReadOnlyDictionary<int, JsonElement> rows) =>
             rows.Select(r => (r.Key, Name: Name(r.Value)))
                 .Where(r => r.Name is not null)
                 .ToDictionary(r => r.Key, r => r.Name!);
 
+        var questNames = quests.Where(r => Name(r.Value) is not null).ToArray();
+
+        if (questNames.Length == 0)
+        {
+            // Reachable but empty: caching nothing for a week would hide the names.
+            throw new InvalidOperationException("The game's server returned no quest name.");
+        }
+
         return (previous ?? new TouchLanguageNames()) with
         {
             ReadUtc = DateTimeOffset.UtcNow,
-            Quests = quests
-                .Where(r => Name(r.Value) is not null)
+            Quests = questNames
                 .ToDictionary(
                     r => r.Key,
                     r => new TouchQuest(
@@ -131,9 +130,18 @@ public sealed class TouchNameService(
         };
     }
 
-    private Task<IReadOnlyDictionary<int, JsonElement>> GetAsync(
+    /// <summary>An empty set returns nothing without asking: the server may answer the whole class.</summary>
+    private async Task<IReadOnlyDictionary<int, JsonElement>> GetAsync(
         string dataClass, int[] ids, string language, CancellationToken ct) =>
-        client.GetAsync(dataClass, [.. ids.Distinct()], language, ct);
+        ids.Length == 0
+            ? new Dictionary<int, JsonElement>()
+            : await client.GetAsync(dataClass, [.. ids.Distinct()], language, ct).ConfigureAwait(false);
+
+    /// <summary>The server sends the localized name itself in nameId.</summary>
+    private static string? Name(JsonElement row) =>
+        row.TryGetProperty("nameId", out var value) && value.ValueKind == JsonValueKind.String
+            ? value.GetString()
+            : null;
 
     private static int Int(JsonElement row, string name) =>
         row.TryGetProperty(name, out var value) && value.TryGetInt32(out var number) ? number : 0;

@@ -16,6 +16,15 @@ public class TouchNameServiceTests
         };
     }
 
+    private sealed class NoMonsterTable : ITouchIdTableSource
+    {
+        public TouchIdTable Load() => new()
+        {
+            Quests = new() { [1] = [10] },
+            Dungeons = new() { [6] = new([60]) },
+        };
+    }
+
     private readonly FakeDofusTouchClient _client = new();
     private readonly InMemoryDocumentStore<TouchNamesDocument> _store = new();
 
@@ -85,6 +94,27 @@ public class TouchNameServiceTests
         Assert.Same(old, await service.RefreshAsync("en"));
         Assert.Null(await service.RefreshAsync("fr"));
         Assert.NotNull(service.LastFailure);
+    }
+
+    [Fact]
+    public async Task Un_tableau_sans_monstre_ne_demande_aucun_monstre()
+    {
+        using var service = new TouchNameService(_client, _store, new NoMonsterTable());
+
+        _ = await service.RefreshAsync("en");
+
+        Assert.False(_client.Requested.ContainsKey("Monsters"));
+    }
+
+    [Fact]
+    public async Task Une_lecture_sans_aucun_nom_est_un_echec_et_n_est_pas_gardee()
+    {
+        using var service = Service();
+        _client.Nameless = true;
+
+        Assert.Null(await service.RefreshAsync("en"));
+        Assert.NotNull(service.LastFailure);
+        Assert.Equal(0, _store.Writes);
     }
 
     [Fact]

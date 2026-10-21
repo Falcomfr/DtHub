@@ -71,6 +71,16 @@ public class DofusTouchClientTests
     }
 
     [Fact]
+    public async Task Une_liste_d_ids_vide_n_envoie_aucune_requete()
+    {
+        var (client, answer) = Create(HttpStatusCode.OK, "{}");
+
+        Assert.Empty(await client.GetAsync("Monsters", [], "en"));
+        Assert.Empty(await client.GetTextsAsync([], "en"));
+        Assert.Null(answer.Asked);
+    }
+
+    [Fact]
     public async Task Un_refus_403_leve_une_exception()
     {
         var (client, _) = Create(HttpStatusCode.Forbidden, "<html>403 Forbidden</html>");
