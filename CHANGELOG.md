@@ -28,6 +28,7 @@ belongs in the commits and in `docs/DECISIONS.md`.
 - Game displays now match the window's client area when opened, avoiding black margins caused by the window frame.
 - Tabbed games now appear directly in their restored frame, without briefly showing a large standalone window.
 - An account closed while it was reconnecting, or left by opening another team, no longer comes back a few seconds later.
+- An account whose phone dropped during play now waits for it and reopens, instead of staying closed.
 
 ## [0.9.6] - 2026-10-21
 

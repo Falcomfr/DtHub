@@ -22,6 +22,7 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 - À l'ouverture, l'affichage du jeu s'adapte à la zone intérieure de la fenêtre, évitant les bandes noires dues au cadre.
 - Les jeux en onglets apparaissent directement dans leur cadre restauré, sans afficher brièvement une grande fenêtre indépendante.
 - Un compte fermé pendant sa reconnexion, ou laissé en ouvrant une autre team, ne revient plus quelques secondes après.
+- Un compte dont le téléphone a décroché en jeu attend son retour et se rouvre, au lieu de rester fermé.
 
 ## [0.9.6] - 2026-10-21
 

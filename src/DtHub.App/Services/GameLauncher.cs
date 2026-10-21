@@ -5374,6 +5374,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         var discovery = await _devices.RefreshAsync(cancellationToken).ConfigureAwait(false);
 
+        // The panel's sweep stops while it is hidden, which is how one
+        // plays: a reopening that found the phone gone then read a stale
+        // address in AwaitPhoneIfGone, and the account never came back.
+        RememberSerials(discovery);
+
         return discovery.Devices
             .Where(d => d.IsConnected)
             .ToDictionary(d => d.Id, d => d, StringComparer.Ordinal);
