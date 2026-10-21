@@ -374,12 +374,6 @@
   <data name="CreateProfileTip" xml:space="preserve">
     <value>Retenir les comptes ouverts, leurs positions et les réglages actuels sous un nom.</value>
   </data>
-  <data name="AccountsHeading" xml:space="preserve">
-    <value>COMPTES DOFUS TOUCH</value>
-  </data>
-  <data name="AccountsTip" xml:space="preserve">
-    <value>Un compte par profil Android où le jeu est installé.</value>
-  </data>
   <data name="LanguageHeading" xml:space="preserve">
     <value>LANGUE</value>
   </data>

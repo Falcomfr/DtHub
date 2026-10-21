@@ -1143,9 +1143,6 @@
                 </Popup>
               </Grid>
 
-              <TextBlock Text="{loc:T AccountsHeading}" Style="{StaticResource SectionLabel}"
-                         ToolTip="{loc:T AccountsTip}" />
-
               <w:InstanceListControl DataContext="{Binding Instances}"
                                      ShowDeviceStatus="True" />
 
