@@ -256,6 +256,28 @@ public class DeviceDiscoveryServiceTests
 
         Assert.Equal(1, await service.PruneStaleWirelessTransportsAsync(CancellationToken.None));
         Assert.Equal(["192.168.1.16:33805"], adb.Disconnected);
+        Assert.DoesNotContain("reconnect offline", adb.ExecuteCalls);
+    }
+
+    [Fact]
+    public async Task Une_connexion_morte_sous_son_nom_reseau_est_relancee()
+    {
+        // Real case, 2026-10-21: the phone connected under its mDNS name went
+        // offline and stayed listed so. "adb disconnect" cannot cut it, it
+        // reads the name as a host and looks for port 5555.
+        var adb = new FakeAdbClient
+        {
+            DevicesOutput = """
+                List of devices attached
+                adb-CMBU79RCINVSFYUO-1V3FXQ._adb-tls-connect._tcp  offline product:corot_global model:23078PND5G
+                """,
+        };
+
+        using var service = new DeviceDiscoveryService(adb, new InMemoryDeviceRegistry());
+
+        Assert.Equal(1, await service.PruneStaleWirelessTransportsAsync(CancellationToken.None));
+        Assert.Empty(adb.Disconnected);
+        Assert.Contains("reconnect offline", adb.ExecuteCalls);
     }
 
     [Fact]

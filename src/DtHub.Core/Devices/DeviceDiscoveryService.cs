@@ -67,12 +67,29 @@ public sealed class DeviceDiscoveryService : IDisposable
             return 0;
         }
 
-        var stale = entries
-            .Where(e => e.ConnectionKind == AdbConnectionKind.Wireless
-                        && e.State == AdbDeviceState.Offline
-                        && e.Host is { Length: > 0 }
-                        && e.Port is > 0)
+        var dead = entries
+            .Where(e => e.ConnectionKind == AdbConnectionKind.Wireless && e.State == AdbDeviceState.Offline)
             .ToList();
+
+        var stale = dead.Where(e => e.Host is { Length: > 0 } && e.Port is > 0).ToList();
+
+        // A connection made under the phone's mDNS name has no address to
+        // disconnect: "adb disconnect" reads the name as a host and looks
+        // for port 5555. Measured on 2026-10-21, such a connection stayed
+        // offline for good. "reconnect offline" drops every dead one, and
+        // touches nothing else.
+        if (dead.Count > stale.Count)
+        {
+            try
+            {
+                _ = await _adb.ExecuteAsync(null, ["reconnect", "offline"], cancellationToken: cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (AdbException)
+            {
+                // Same silence as below: the next pass tries again.
+            }
+        }
 
         foreach (var entry in stale)
         {
@@ -89,7 +106,7 @@ public sealed class DeviceDiscoveryService : IDisposable
             }
         }
 
-        return stale.Count;
+        return dead.Count;
     }
 
     /// <summary>Scans devices and updates the registry.</summary>
