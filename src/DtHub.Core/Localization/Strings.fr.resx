@@ -708,7 +708,7 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
     <value>Processeur du téléphone saturé par d'autres applications{0} : fermez-les ou redémarrez le téléphone.</value>
   </data>
   <data name="PhoneWifiSpikes" xml:space="preserve">
-    <value>Wi-Fi instable : {0} pics de latence en une minute, jusqu'à {1} ms. Rapprochez le téléphone de la box ou branchez-le en USB.</value>
+    <value>Wi-Fi instable : {0} pics de latence en une minute, jusqu'à {1} ms. Loin de la box, rapprochez le téléphone. Déjà à côté, c'est le téléphone qui met son Wi-Fi en veille entre deux échanges : seul le câble USB l'évite.</value>
   </data>
   <data name="PcBusy" xml:space="preserve">
     <value>Le PC est chargé à {0} % : fermez les programmes lourds ou passez la qualité en Basse.</value>

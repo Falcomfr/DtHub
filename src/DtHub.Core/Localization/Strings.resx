@@ -708,7 +708,7 @@ Cross the tests: another device on this port, and this phone on another PC. You 
     <value>The phone's processor is saturated by other apps{0}: close them or restart the phone.</value>
   </data>
   <data name="PhoneWifiSpikes" xml:space="preserve">
-    <value>Unstable Wi-Fi: {0} latency spikes in a minute, up to {1} ms. Move the phone closer to the router or plug it in over USB.</value>
+    <value>Unstable Wi-Fi: {0} latency spikes in a minute, up to {1} ms. Far from the router, move the phone closer. Already next to it, the phone is putting its Wi-Fi to sleep between exchanges: only the USB cable avoids that.</value>
   </data>
   <data name="PcBusy" xml:space="preserve">
     <value>The PC is {0} % busy: close heavy programs or set the quality to Low.</value>

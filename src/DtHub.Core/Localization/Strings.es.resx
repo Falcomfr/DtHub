@@ -708,7 +708,7 @@ Cruza las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC.
     <value>Procesador del teléfono saturado por otras aplicaciones{0}: ciérralas o reinicia el teléfono.</value>
   </data>
   <data name="PhoneWifiSpikes" xml:space="preserve">
-    <value>Wi-Fi inestable: {0} picos de latencia en un minuto, hasta {1} ms. Acerca el teléfono al router o conéctalo por USB.</value>
+    <value>Wi-Fi inestable: {0} picos de latencia en un minuto, hasta {1} ms. Lejos del router, acerca el teléfono. Si ya está al lado, es el teléfono el que pone su Wi-Fi en reposo entre dos intercambios: solo el cable USB lo evita.</value>
   </data>
   <data name="PcBusy" xml:space="preserve">
     <value>El PC está ocupado al {0} %: cierra los programas pesados o pon la calidad en Baja.</value>
