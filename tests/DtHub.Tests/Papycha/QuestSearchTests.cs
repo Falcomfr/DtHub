@@ -142,6 +142,23 @@ public class QuestSearchTests
     }
 
     [Fact]
+    public void En_anglais_le_nom_francais_d_une_rubrique_la_trouve_encore()
+    {
+        Strings.Speak(CultureInfo.GetCultureInfo("en"));
+
+        try
+        {
+            var trouve = QuestSearch.Search([], [new QuestSection { Id = 135, Name = "Île de Frigost" }], [], [], "ile de frigost");
+
+            Assert.Single(trouve.Zones);
+        }
+        finally
+        {
+            Strings.Speak(null);
+        }
+    }
+
+    [Fact]
     public void La_recherche_distingue_les_zones_les_succes_et_les_quetes()
     {
         QuestSummary[] quetes =
