@@ -821,6 +821,10 @@
             </StackPanel>
           </Button>
 
+          <TextBlock DockPanel.Dock="Bottom" Style="{StaticResource Muted}" Margin="12,6,12,8"
+                     Text="{loc:T OfficialNamesCredit}"
+                     Visibility="{Binding ShowsOfficialNamesCredit, Converter={StaticResource BoolToVisibility}}" />
+
           <ListBox x:Name="NodeList" ItemsSource="{Binding Nodes}" Grid.IsSharedSizeScope="True"
                    SelectedItem="{Binding SelectedNode, Mode=TwoWay}"
                    Background="Transparent" BorderThickness="0"

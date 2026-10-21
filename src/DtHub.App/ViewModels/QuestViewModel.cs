@@ -361,6 +361,9 @@ public sealed partial class QuestViewModel : ObservableObject
     /// </summary>
     public bool ShowsPage => !IsListOpen && !IsLoadingPage && IsWindowVisible && !ShowsOfficialSteps;
 
+    /// <summary>The list shows the game's names in any language but French, where Papycha's own are kept: the credit goes with them.</summary>
+    public bool ShowsOfficialNamesCredit => TouchNameService.CurrentLanguage != "fr";
+
     /// <summary>The guide is Papycha's, in French: the game's own wording only exists to compare, in another language.</summary>
     public bool OffersOfficialSteps =>
         _current is { } quest
