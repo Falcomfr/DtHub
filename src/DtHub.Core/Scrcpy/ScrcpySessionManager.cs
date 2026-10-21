@@ -1202,19 +1202,34 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     }
 
     /// <summary>
+    /// Marks every live session as being stopped by DT Hub, without
+    /// stopping any, and returns them.
+    ///
+    /// Quitting calls it before WPF closes its windows: the tabbed frame
+    /// closes first, and its accounts, not yet marked, read as closed by
+    /// hand and left the next startup (D207).
+    /// </summary>
+    public IReadOnlyList<ScrcpySession> MarkAllStopping()
+    {
+        var running = _sessions.Values.Where(s => s.IsAlive).ToList();
+
+        foreach (var session in running)
+        {
+            session.StopRequested = true;
+        }
+
+        return running;
+    }
+
+    /// <summary>
     /// Closes all sessions opened by DT Hub, and only those. scrcpy
     /// windows launched by other software are ignored.
     /// </summary>
     public async Task StopAllAsync(CancellationToken cancellationToken = default)
     {
-        var running = _sessions.Values.Where(s => s.IsAlive).ToList();
-
         // All marked first, so that the account carrying the sound, closed
         // before the others, does not hand it to them. See PassSoundOnAsync.
-        foreach (var session in running)
-        {
-            session.StopRequested = true;
-        }
+        var running = MarkAllStopping();
 
         foreach (var id in running.Select(s => s.Id))
         {

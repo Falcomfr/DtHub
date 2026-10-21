@@ -267,6 +267,27 @@ public class ScrcpySessionManagerTests
     }
 
     [Fact]
+    public async Task Quitter_marque_toutes_les_sessions_arretees_sans_les_fermer()
+    {
+        // Quitting marks them before WPF closes the tabbed frame, whose
+        // accounts would otherwise read as closed by hand (D207).
+        var first = new FakeProcessSession(1).Emit(NewDisplayLine);
+        var second = new FakeProcessSession(2).Emit(NewDisplayLine);
+        var launcher = new FakeProcessLauncher().Prepare(first).Prepare(second);
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        await manager.StartAsync(Target(0), ScrcpyOptions.Default, null, CancellationToken.None);
+        await manager.StartAsync(Target(999), ScrcpyOptions.Default, null, CancellationToken.None);
+
+        manager.MarkAllStopping();
+
+        Assert.All(manager.ActiveSessions, s => Assert.True(s.StopRequested));
+        Assert.Equal(2, manager.ActiveSessions.Count);
+        Assert.False(first.WasKilled);
+    }
+
+    [Fact]
     public async Task Fermer_un_telephone_laisse_les_comptes_des_autres()
     {
         var first = new FakeProcessSession(1).Emit(NewDisplayLine);

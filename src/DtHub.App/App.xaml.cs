@@ -556,6 +556,8 @@ public partial class App : Application, IDisposable
 
         Dispatcher.PushFrame(frame);
         limit.Stop();
+
+        MarkSessionsStopping();
     }
 
     /// <summary>
@@ -588,9 +590,19 @@ public partial class App : Application, IDisposable
         }
         finally
         {
+            MarkSessionsStopping();
             Shutdown();
         }
     }
+
+    /// <summary>
+    /// Marks every game session as stopped by DT Hub before the shutdown
+    /// closes the windows. WPF closes the tabbed frame before OnExit, and
+    /// its accounts, unmarked, read as closed by hand: quitting took every
+    /// tabbed account out of the next startup (D207).
+    /// </summary>
+    private void MarkSessionsStopping() =>
+        _ = _host?.Services.GetRequiredService<ScrcpySessionManager>().MarkAllStopping();
 
     /// <summary>
     /// Saves where the windows are and whether the configurator was
