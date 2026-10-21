@@ -29,24 +29,34 @@ public enum StreamQuality
     /// as much on a 4K screen as on a 1080p one, without anything saying so. A
     /// tier must denote a load, not inherit the screen's.
     ///
-    /// Three tiers, not four: between two neighbours too close together,
-    /// nobody knows which to choose, and the difference is not visible.
+    /// Between two neighbours too close together, nobody knows which to
+    /// choose: each tier changes one thing the eye sees. Elevated sits below
+    /// this one for that reason, at the definition of medium.
     /// </summary>
     Maximum,
 
     /// <summary>
     /// Values chosen by hand.
     ///
-    /// This is not a fourth rung on the ladder, and it therefore does not
-    /// contradict the rule of three tiers stated just above: it is a detour
-    /// off the road. The three tiers remain the ordinary route, the one where
-    /// there is nothing to know; this one serves whoever already knows what
-    /// they want.
+    /// This is not one more rung on the ladder: it is a detour off the road.
+    /// The other tiers remain the ordinary route, the one where there is
+    /// nothing to know; this one serves whoever already knows what they want.
     ///
     /// Added last, and never to be reordered: old settings files still carry
     /// these values as a number.
     /// </summary>
     Custom,
+
+    /// <summary>
+    /// Medium's 1080p at sixty frames instead of thirty: the account being
+    /// played, while the others stay at medium. Between medium and maximum
+    /// in the ladder, declared last for the same reason as
+    /// <see cref="Custom"/>.
+    ///
+    /// Not named "High": that was the maximum tier's first name, which old
+    /// settings files still carry and which must keep falling back upward.
+    /// </summary>
+    Elevated,
 }
 
 /// <summary>
@@ -260,6 +270,16 @@ public sealed record QualityProfile(
             DevicePoll: TimeSpan.FromSeconds(2),
             InstanceRediscovery: TimeSpan.FromSeconds(15),
             WindowWatch: TimeSpan.FromMilliseconds(500)),
+
+        // Medium's definition at sixty frames. Frame rate, not detail: that is
+        // what the eye sees first between thirty and sixty. Three windows of
+        // it still fit where two of the maximum tier do.
+        StreamQuality.Elevated => For(StreamQuality.Medium) with
+        {
+            MaxFps = 60,
+            BitsPerPixel = 0.10,
+            CeilingKbps = 15000,
+        },
 
         // **Thirty frames, measured on 2026-10-03**: two accounts on a 13T
         // Pro, 60 then 30, the phone hot in both. The stream went from about

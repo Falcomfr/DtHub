@@ -161,10 +161,16 @@
   <data name="QualityMediumTip" xml:space="preserve">
     <value>1080 at most, 30 frames per second. The original setting, which suits most machines.</value>
   </data>
-  <data name="QualityHigh" xml:space="preserve">
+  <data name="QualityElevated" xml:space="preserve">
     <value>High</value>
   </data>
-  <data name="QualityHighTip" xml:space="preserve">
+  <data name="QualityElevatedTip" xml:space="preserve">
+    <value>1080 at most, 60 frames per second instead of 30. For the account you play while the others stay at medium.</value>
+  </data>
+  <data name="QualityMaximum" xml:space="preserve">
+    <value>Very high</value>
+  </data>
+  <data name="QualityMaximumTip" xml:space="preserve">
     <value>Image at 1440 at most, 60 frames per second. Hard on the phone: keep it for a recent device, and over Wi-Fi for a network that keeps up.</value>
   </data>
   <data name="QualityCustom" xml:space="preserve">
@@ -707,8 +713,11 @@ Cross the tests: another device on this port, and this phone on another PC. You 
   <data name="QualityMediumShort" xml:space="preserve">
     <value>Medium</value>
   </data>
-  <data name="QualityMaximumShort" xml:space="preserve">
+  <data name="QualityElevatedShort" xml:space="preserve">
     <value>High</value>
+  </data>
+  <data name="QualityMaximumShort" xml:space="preserve">
+    <value>Very high</value>
   </data>
   <data name="QualityCustomShort" xml:space="preserve">
     <value>Custom</value>
@@ -1642,8 +1651,11 @@ The rest of the application works without it.</value>
   <data name="QualityMediumWord" xml:space="preserve">
     <value>medium quality</value>
   </data>
-  <data name="QualityHighWord" xml:space="preserve">
+  <data name="QualityElevatedWord" xml:space="preserve">
     <value>high quality</value>
+  </data>
+  <data name="QualityMaximumWord" xml:space="preserve">
+    <value>very high quality</value>
   </data>
   <data name="QualityCustomWord" xml:space="preserve">
     <value>custom quality</value>

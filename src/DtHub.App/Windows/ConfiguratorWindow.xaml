@@ -572,7 +572,7 @@
                     </ToggleButton>
                   </Grid>
 
-                  <!-- Wrapped like the zoom distance just below: four
+                  <!-- Wrapped like the zoom distance just below: five
                        tiers no longer fit across the window's width. -->
                   <WrapPanel Margin="0,0,0,5">
                     <RadioButton Style="{StaticResource Tab}" GroupName="Quality" Content="{loc:T QualityLow}"
@@ -585,7 +585,12 @@
                                  ToolTip="{Binding QualityTips[Medium]}"
                                  IsChecked="{Binding Quality, Converter={StaticResource EnumMatch},
                                                      ConverterParameter=Medium}" />
-                    <RadioButton Style="{StaticResource Tab}" GroupName="Quality" Content="{loc:T QualityHigh}"
+                    <RadioButton Style="{StaticResource Tab}" GroupName="Quality" Content="{loc:T QualityElevated}"
+                                 Margin="0,0,5,0"
+                                 ToolTip="{Binding QualityTips[Elevated]}"
+                                 IsChecked="{Binding Quality, Converter={StaticResource EnumMatch},
+                                                     ConverterParameter=Elevated}" />
+                    <RadioButton Style="{StaticResource Tab}" GroupName="Quality" Content="{loc:T QualityMaximum}"
                                  Margin="0,0,5,0"
                                  ToolTip="{Binding QualityTips[Maximum]}"
                                  IsChecked="{Binding Quality, Converter={StaticResource EnumMatch},

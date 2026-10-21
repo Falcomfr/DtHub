@@ -437,6 +437,7 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     {
         StreamQuality.Low => Strings.Get("QualityLowShort"),
         StreamQuality.Medium => Strings.Get("QualityMediumShort"),
+        StreamQuality.Elevated => Strings.Get("QualityElevatedShort"),
         StreamQuality.Maximum => Strings.Get("QualityMaximumShort"),
         StreamQuality.Custom => Strings.Get("QualityCustomShort"),
         _ => string.Empty,

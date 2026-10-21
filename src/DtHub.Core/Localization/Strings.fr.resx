@@ -161,10 +161,16 @@
   <data name="QualityMediumTip" xml:space="preserve">
     <value>Image en 1080 au plus, 30 images par seconde. Le réglage d'origine, qui convient à la plupart des machines.</value>
   </data>
-  <data name="QualityHigh" xml:space="preserve">
+  <data name="QualityElevated" xml:space="preserve">
     <value>Haute</value>
   </data>
-  <data name="QualityHighTip" xml:space="preserve">
+  <data name="QualityElevatedTip" xml:space="preserve">
+    <value>Image en 1080 au plus, 60 images par seconde au lieu de 30. Pour le compte joué pendant que les autres restent en moyenne.</value>
+  </data>
+  <data name="QualityMaximum" xml:space="preserve">
+    <value>Très haute</value>
+  </data>
+  <data name="QualityMaximumTip" xml:space="preserve">
     <value>Image en 1440 au plus, 60 images par seconde. Sans ménagement pour le téléphone : à réserver à un appareil récent, et en Wi-Fi à un réseau qui suit.</value>
   </data>
   <data name="QualityCustom" xml:space="preserve">
@@ -707,8 +713,11 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
   <data name="QualityMediumShort" xml:space="preserve">
     <value>Moyenne</value>
   </data>
-  <data name="QualityMaximumShort" xml:space="preserve">
+  <data name="QualityElevatedShort" xml:space="preserve">
     <value>Haute</value>
+  </data>
+  <data name="QualityMaximumShort" xml:space="preserve">
+    <value>Très haute</value>
   </data>
   <data name="QualityCustomShort" xml:space="preserve">
     <value>Perso</value>
@@ -1642,8 +1651,11 @@ Le reste de l'application fonctionne sans lui.</value>
   <data name="QualityMediumWord" xml:space="preserve">
     <value>qualité moyenne</value>
   </data>
-  <data name="QualityHighWord" xml:space="preserve">
+  <data name="QualityElevatedWord" xml:space="preserve">
     <value>qualité haute</value>
+  </data>
+  <data name="QualityMaximumWord" xml:space="preserve">
+    <value>qualité très haute</value>
   </data>
   <data name="QualityCustomWord" xml:space="preserve">
     <value>qualité personnalisée</value>

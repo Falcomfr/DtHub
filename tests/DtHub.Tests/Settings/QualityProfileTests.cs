@@ -27,18 +27,21 @@ public sealed class QualityProfileTests
     {
         var basse = Bpp(StreamQuality.Low, 1280, 720);
         var moyenne = Bpp(StreamQuality.Medium, 1920, 1080);
+        var haute = Bpp(StreamQuality.Elevated, 1920, 1080);
         var maximale = Bpp(StreamQuality.Maximum, 2560, 1440);
 
         // No step starved: the reference for well-encoded H.264 sits
         // around 0.10 bpp, and below 0.045 the image falls apart.
         Assert.True(basse >= 0.045, $"basse à {basse:F3} bpp");
         Assert.True(moyenne >= 0.045, $"moyenne à {moyenne:F3} bpp");
+        Assert.True(haute >= 0.045, $"haute à {haute:F3} bpp");
         Assert.True(maximale >= 0.045, $"maximale à {maximale:F3} bpp");
 
         // And the scale climbs, which used not to be the case: the
         // maximum step used to receive five and a half times fewer bits
         // per pixel than the lowest one.
-        Assert.True(maximale >= moyenne, $"maximale {maximale:F3} contre moyenne {moyenne:F3}");
+        Assert.True(maximale >= haute, $"maximale {maximale:F3} contre haute {haute:F3}");
+        Assert.True(haute >= moyenne, $"haute {haute:F3} contre moyenne {moyenne:F3}");
         Assert.True(moyenne >= basse, $"moyenne {moyenne:F3} contre basse {basse:F3}");
     }
 
@@ -66,6 +69,7 @@ public sealed class QualityProfileTests
     [Theory]
     [InlineData(StreamQuality.Low, 30, 720)]
     [InlineData(StreamQuality.Medium, 30, 1080)]
+    [InlineData(StreamQuality.Elevated, 60, 1080)]
     [InlineData(StreamQuality.Maximum, 60, 1440)]
     public void Chaque_palier_annonce_sa_cadence_et_sa_borne(
         StreamQuality quality,
@@ -129,6 +133,22 @@ public sealed class QualityProfileTests
 
         // ... but bits per pixel of the same order of magnitude.
         Assert.True(basse.BitsPerPixel >= maximale.BitsPerPixel * 0.6);
+    }
+
+    /// <summary>
+    /// The elevated tier sits between medium and high on cost too, and
+    /// three of its windows still fit where two high ones do: it is the
+    /// tier for the account being played while others run alongside.
+    /// </summary>
+    [Fact]
+    public void Le_palier_eleve_coute_entre_moyen_et_haut()
+    {
+        var moyen = QualityProfile.For(StreamQuality.Medium).BitrateFor(1920, 1080);
+        var eleve = QualityProfile.For(StreamQuality.Elevated).BitrateFor(1920, 1080);
+        var haut = QualityProfile.For(StreamQuality.Maximum).BitrateFor(2560, 1440);
+
+        Assert.True(moyen < eleve && eleve < haut, $"{moyen} < {eleve} < {haut}");
+        Assert.True(QualityProfile.For(StreamQuality.Elevated).CeilingKbps * 3 <= 60_000);
     }
 
     [Fact]

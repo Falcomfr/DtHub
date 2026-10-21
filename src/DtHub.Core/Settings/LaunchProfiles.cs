@@ -235,7 +235,8 @@ public static class LaunchProfiles
     private static string QualityLabel(StreamQuality quality) => quality switch
     {
         StreamQuality.Low => Strings.Get("QualityLowWord"),
-        StreamQuality.Maximum => Strings.Get("QualityHighWord"),
+        StreamQuality.Elevated => Strings.Get("QualityElevatedWord"),
+        StreamQuality.Maximum => Strings.Get("QualityMaximumWord"),
         StreamQuality.Custom => Strings.Get("QualityCustomWord"),
         _ => Strings.Get("QualityMediumWord"),
     };

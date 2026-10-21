@@ -397,7 +397,8 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     {
         [nameof(StreamQuality.Low)] = Tip("QualityLowTip", QualityProfile.For(StreamQuality.Low).Describe()),
         [nameof(StreamQuality.Medium)] = Tip("QualityMediumTip", QualityProfile.For(StreamQuality.Medium).Describe()),
-        [nameof(StreamQuality.Maximum)] = Tip("QualityHighTip", QualityProfile.For(StreamQuality.Maximum).Describe()),
+        [nameof(StreamQuality.Elevated)] = Tip("QualityElevatedTip", QualityProfile.For(StreamQuality.Elevated).Describe()),
+        [nameof(StreamQuality.Maximum)] = Tip("QualityMaximumTip", QualityProfile.For(StreamQuality.Maximum).Describe()),
         [nameof(StreamQuality.Custom)] = Tip("QualityCustomTip", QualityProfile.For(StreamQuality.Custom, CurrentCustom).Describe()),
     };
 

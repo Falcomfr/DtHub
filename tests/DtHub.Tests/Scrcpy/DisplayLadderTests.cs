@@ -148,14 +148,15 @@ public sealed class DisplayLadderTests
         // image.
         Assert.Equal(720, QualityProfile.For(StreamQuality.Low).MaximumDisplayHeight);
         Assert.Equal(1080, QualityProfile.For(StreamQuality.Medium).MaximumDisplayHeight);
+        Assert.Equal(1080, QualityProfile.For(StreamQuality.Elevated).MaximumDisplayHeight);
         Assert.Equal(1440, QualityProfile.For(StreamQuality.Maximum).MaximumDisplayHeight);
 
-        // Three automatic steps, not four: two indistinguishable
-        // neighbours only made people hesitate. Custom does not count
-        // here, it is not one more rung on the ladder but an off-ramp,
-        // whose values come from the user.
+        // Four automatic steps, each changing one visible thing: elevated
+        // keeps medium's definition and doubles its frame rate. Custom
+        // does not count here, it is not one more rung on the ladder but
+        // an off-ramp, whose values come from the user.
         Assert.Equal(
-            3,
+            4,
             Enum.GetValues<StreamQuality>().Count(q => q != StreamQuality.Custom));
     }
 

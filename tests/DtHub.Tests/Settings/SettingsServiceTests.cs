@@ -407,7 +407,7 @@ public sealed class SettingsServiceTests : IDisposable
         var document = await _service.GetAsync();
         var resume = LaunchProfiles.Describe(document.LaunchProfiles[0], document.Instances);
 
-        Assert.Contains("qualité haute", resume, StringComparison.Ordinal);
+        Assert.Contains("qualité très haute", resume, StringComparison.Ordinal);
     }
 
     public void Dispose()

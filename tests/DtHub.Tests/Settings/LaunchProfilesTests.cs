@@ -139,9 +139,16 @@ public class LaunchProfilesTests
 
         Assert.Equal(
             "Ce profil retiendra les 2 comptes ouverts, la position et la taille de leurs "
-            + "fenêtres, la qualité haute, la distance éloignée et le son renvoyé sur le PC.",
+            + "fenêtres, la qualité très haute, la distance éloignée et le son renvoyé sur le PC.",
             phrase);
     }
+
+    [Fact]
+    public void L_annonce_nomme_le_palier_eleve() =>
+        Assert.Contains(
+            "la qualité haute,",
+            LaunchProfiles.Announce(1, StreamQuality.Elevated, GameZoom.Normal, 0, audio: false),
+            StringComparison.Ordinal);
 
     [Fact]
     public void L_annonce_dit_le_son_coupe()

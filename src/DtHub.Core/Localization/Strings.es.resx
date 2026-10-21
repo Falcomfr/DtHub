@@ -161,10 +161,16 @@
   <data name="QualityMediumTip" xml:space="preserve">
     <value>Imagen de 1080 como máximo, 30 imágenes por segundo. El ajuste de origen, que conviene a la mayoría de los equipos.</value>
   </data>
-  <data name="QualityHigh" xml:space="preserve">
+  <data name="QualityElevated" xml:space="preserve">
     <value>Alta</value>
   </data>
-  <data name="QualityHighTip" xml:space="preserve">
+  <data name="QualityElevatedTip" xml:space="preserve">
+    <value>Imagen de 1080 como máximo, 60 imágenes por segundo en lugar de 30. Para la cuenta que juegas mientras las demás siguen en media.</value>
+  </data>
+  <data name="QualityMaximum" xml:space="preserve">
+    <value>Muy alta</value>
+  </data>
+  <data name="QualityMaximumTip" xml:space="preserve">
     <value>Imagen en 1440 como máximo, 60 imágenes por segundo. Duro para el teléfono: resérvalo para un aparato reciente, y en Wi-Fi para una red que aguante.</value>
   </data>
   <data name="QualityCustom" xml:space="preserve">
@@ -707,8 +713,11 @@ Cruza las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC.
   <data name="QualityMediumShort" xml:space="preserve">
     <value>Media</value>
   </data>
-  <data name="QualityMaximumShort" xml:space="preserve">
+  <data name="QualityElevatedShort" xml:space="preserve">
     <value>Alta</value>
+  </data>
+  <data name="QualityMaximumShort" xml:space="preserve">
+    <value>Muy alta</value>
   </data>
   <data name="QualityCustomShort" xml:space="preserve">
     <value>Personal</value>
@@ -1642,8 +1651,11 @@ El resto de la aplicación funciona sin él.</value>
   <data name="QualityMediumWord" xml:space="preserve">
     <value>calidad media</value>
   </data>
-  <data name="QualityHighWord" xml:space="preserve">
+  <data name="QualityElevatedWord" xml:space="preserve">
     <value>calidad alta</value>
+  </data>
+  <data name="QualityMaximumWord" xml:space="preserve">
+    <value>calidad muy alta</value>
   </data>
   <data name="QualityCustomWord" xml:space="preserve">
     <value>calidad personalizada</value>

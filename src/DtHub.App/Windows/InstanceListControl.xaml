@@ -782,6 +782,11 @@
                                       CommandParameter="{x:Static s:StreamQuality.Medium}" />
                               <Button Style="{StaticResource QuietButton}" Padding="8,5"
                                       HorizontalContentAlignment="Left"
+                                      Content="{loc:T QualityElevatedShort}"
+                                      Command="{Binding PickQualityCommand}"
+                                      CommandParameter="{x:Static s:StreamQuality.Elevated}" />
+                              <Button Style="{StaticResource QuietButton}" Padding="8,5"
+                                      HorizontalContentAlignment="Left"
                                       Content="{loc:T QualityMaximumShort}"
                                       Command="{Binding PickQualityCommand}"
                                       CommandParameter="{x:Static s:StreamQuality.Maximum}" />
