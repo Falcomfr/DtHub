@@ -796,4 +796,43 @@ public class DeviceDiscoveryServiceTests
         Assert.False(await service.KeepWifiAwakeAsync("192.168.1.16:41923", CancellationToken.None));
         Assert.DoesNotContain(adb.ShellCalls, c => c.Contains("ping", StringComparison.Ordinal));
     }
+
+    private static FakeAdbClient VerrouAllume(string verrou) => new FakeAdbClient()
+        .WithShell("wm size -d 0", "Physical size: 1220x2712")
+        .WithShell("mDreamingLockscreen", verrou)
+        .WithShell("dumpsys SurfaceFlinger --displays", "Display 1\n    powerMode=On");
+
+    [Fact]
+    public async Task L_ecran_de_verrouillage_rallume_reste_allume()
+    {
+        // Measured on 2026-10-21: woken onto its lock screen, the 13T Pro went
+        // dark again after 9 s. Neither the wake key nor a key press kept it
+        // lit; a touch on the status bar every 5 s did.
+        var adb = VerrouAllume("    mShowingDream=false mDreamingLockscreen=true");
+
+        using var service = new DeviceDiscoveryService(adb, new InMemoryDeviceRegistry())
+        {
+            LockScreenTouchEvery = TimeSpan.FromMilliseconds(10),
+        };
+
+        await service.KeepLockScreenLitAsync("192.168.1.16:34249", TimeSpan.FromMilliseconds(100), CancellationToken.None);
+
+        Assert.Contains("input -d 0 tap 610 10", adb.ShellCalls);
+    }
+
+    [Fact]
+    public async Task Un_telephone_deverrouille_n_est_jamais_touche()
+    {
+        // Unlocked, a touch would land in whatever app the player opened.
+        var adb = VerrouAllume("    mShowingDream=false mDreamingLockscreen=false");
+
+        using var service = new DeviceDiscoveryService(adb, new InMemoryDeviceRegistry())
+        {
+            LockScreenTouchEvery = TimeSpan.FromMilliseconds(10),
+        };
+
+        await service.KeepLockScreenLitAsync("192.168.1.16:34249", TimeSpan.FromMilliseconds(100), CancellationToken.None);
+
+        Assert.DoesNotContain(adb.ShellCalls, c => c.Contains("tap", StringComparison.Ordinal));
+    }
 }

@@ -1,4 +1,6 @@
-﻿using DtHub.Core.Adb;
+﻿using System.Globalization;
+
+using DtHub.Core.Adb;
 
 namespace DtHub.Core.Devices;
 
@@ -41,6 +43,12 @@ public sealed class DeviceDiscoveryService : IDisposable
 
     /// <summary>Number of property reads carried out in parallel.</summary>
     public int MaxParallelism { get; init; } = 4;
+
+    /// <summary>
+    /// How often <see cref="KeepLockScreenLitAsync" /> touches the lock
+    /// screen: under the 9 s after which it goes dark on its own.
+    /// </summary>
+    public TimeSpan LockScreenTouchEvery { get; init; } = TimeSpan.FromSeconds(5);
 
     /// <summary>
     /// Cuts dead wireless connections. The wireless debugging port changes on
@@ -454,6 +462,79 @@ public sealed class DeviceDiscoveryService : IDisposable
             // Said by the false: the click stays lost, as it was before,
             // and the next one asks again.
             return false;
+        }
+    }
+
+    /// <summary>
+    /// Keeps a phone just woken onto its lock screen lit for
+    /// <paramref name="span" />, the time to pick it up and unlock it.
+    ///
+    /// **Measured on the 13T Pro on 2026-10-21**: the lock screen goes dark
+    /// again after 9 s. The wake key does nothing on a lit phone, and key
+    /// presses, even aimed at its own display, do not count as activity on
+    /// the lock screen; a touch on the status bar, every 5 s, kept it lit.
+    ///
+    /// Touched only while the phone is still locked and lit: unlocked, the
+    /// touch would land in an app; dark, the player switched it off. A phone
+    /// that does not say is not touched either.
+    /// </summary>
+    public async Task KeepLockScreenLitAsync(string serial, TimeSpan span, CancellationToken cancellationToken = default)
+    {
+        string size;
+
+        try
+        {
+            size = await _adb.ShellAsync(serial, ["wm", "size", "-d", "0"], cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (AdbException)
+        {
+            // Without the width the middle of the status bar is unknown: the
+            // lock screen goes dark on its own, as before.
+            return;
+        }
+
+        // "Physical size: 1220x2712", then "Override size: ..." when one is
+        // set, which is the one touches are given in.
+        var width = size.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
+            .Select(line => line.Split(':') is [_, var value] ? value.Trim().Split('x')[0] : null)
+            .Select(text => int.TryParse(text, out var w) ? w : 0)
+            .LastOrDefault(w => w > 0);
+
+        if (width == 0)
+        {
+            return;
+        }
+
+        var until = DateTimeOffset.UtcNow + span;
+
+        while (DateTimeOffset.UtcNow < until)
+        {
+            await Task.Delay(LockScreenTouchEvery, cancellationToken).ConfigureAwait(false);
+
+            try
+            {
+                var locked = await _adb.ShellAsync(
+                        serial, ["dumpsys window | grep -m1 mDreamingLockscreen"], cancellationToken: cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (!locked.Contains("mDreamingLockscreen=true", StringComparison.Ordinal)
+                    || PanelPower.IsLit(await _adb.ShellAsync(serial, PanelPower.Command, cancellationToken: cancellationToken)
+                        .ConfigureAwait(false)) != true)
+                {
+                    return;
+                }
+
+                _ = await _adb.ShellAsync(
+                        serial, ["input", "-d", "0", "tap", (width / 2).ToString(CultureInfo.InvariantCulture), "10"],
+                        cancellationToken: cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (AdbException)
+            {
+                // A phone that dropped meanwhile: nothing left to keep lit.
+                return;
+            }
         }
     }
 

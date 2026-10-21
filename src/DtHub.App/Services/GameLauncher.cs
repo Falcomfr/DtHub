@@ -2216,7 +2216,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// Then woken: a phone held dark goes to sleep after a few seconds,
     /// and stopping the guard only restores a screen that sleep then keeps
     /// off. Measured on the 13T Pro on 2026-10-21, the click did nothing
-    /// visible without the wake key, the screen lit with it.
+    /// visible without the wake key, the screen lit with it, and kept lit a
+    /// minute, see <see cref="DeviceDiscoveryService.KeepLockScreenLitAsync" />.
     /// </summary>
     public async Task LightPanelAsync(string deviceId)
     {
@@ -2227,9 +2228,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
             .Select(s => Routable(s.Target))
             .FirstOrDefault();
 
-        if (serial is not null)
+        if (serial is not null && await _devices.WakeAsync(serial).ConfigureAwait(false))
         {
-            _ = await _devices.WakeAsync(serial).ConfigureAwait(false);
+            // Woken onto its lock screen, the phone goes dark again in 9 s:
+            // a minute, the time to pick it up, asked for on 2026-10-21.
+            _ = Task.Run(() => _devices.KeepLockScreenLitAsync(serial, TimeSpan.FromMinutes(1)));
         }
 
         LitPanelsChanged?.Invoke(this, EventArgs.Empty);
