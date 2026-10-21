@@ -4243,6 +4243,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         await _sessions.StopAllAsync(cancellationToken).ConfigureAwait(false);
         _sessions.PruneFinished();
 
+        // Again: a window that died before StopAllAsync marked it asked
+        // for a recovery in between.
+        _recovering.Clear();
+        _awaitingPhone.Clear();
+
         try
         {
             await Task.WhenAll(_playtimeWrites).ConfigureAwait(false);

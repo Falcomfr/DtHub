@@ -541,6 +541,7 @@ public partial class App : Application, IDisposable
         // RequestQuitAsync.
         _quitting = true;
         _faults.Quiet = true;
+        MarkSessionsStopping();
 
         var frame = new DispatcherFrame();
 
@@ -556,8 +557,6 @@ public partial class App : Application, IDisposable
 
         Dispatcher.PushFrame(frame);
         limit.Stop();
-
-        MarkSessionsStopping();
     }
 
     /// <summary>
@@ -580,6 +579,10 @@ public partial class App : Application, IDisposable
         _quitting = true;
         _faults.Quiet = true;
 
+        // Before the save too, which can pump for seconds: a window that
+        // ends cleanly meanwhile would read as closed by hand.
+        MarkSessionsStopping();
+
         // Quitting from the panel or via the shortcut: its state at
         // that moment is what counts. Shutdown in all cases: a save that
         // threw used to leave Quit doing nothing, with the panel already
@@ -590,14 +593,13 @@ public partial class App : Application, IDisposable
         }
         finally
         {
-            MarkSessionsStopping();
             Shutdown();
         }
     }
 
     /// <summary>
-    /// Marks every game session as stopped by DT Hub before the shutdown
-    /// closes the windows. WPF closes the tabbed frame before OnExit, and
+    /// Marks every game session as stopped by DT Hub before the save and
+    /// the shutdown that closes the windows. WPF closes the tabbed frame before OnExit, and
     /// its accounts, unmarked, read as closed by hand: quitting took every
     /// tabbed account out of the next startup (D207).
     /// </summary>
