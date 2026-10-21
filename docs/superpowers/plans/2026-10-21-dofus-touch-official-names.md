@@ -134,10 +134,10 @@
   ```
 
 - [ ] **Step 1: Write the failing tests** (fake client returns invented names and counts calls per class):
-  - `Un_premier_rafraichissement_lit_cinq_classes_par_ids_et_les_garde` — RefreshAsync("en") calls `Quests`, `Dungeons`, `Monsters`, `Items`, `Achievements` once each, only with ids from the table (and the dungeons' `dungeonKey`s for `Items`), then `CachedAsync("en")` returns them without a call.
+  - `Un_premier_rafraichissement_lit_cinq_classes_par_ids_et_les_garde`: RefreshAsync("en") calls `Quests`, `Dungeons`, `Monsters`, `Items`, `Achievements` once each, only with ids from the table (and the dungeons' `dungeonKey`s for `Items`), then `CachedAsync("en")` returns them without a call.
   - `Un_cache_de_moins_de_sept_jours_ne_relit_rien`.
-  - `Un_refus_garde_le_cache_et_note_l_echec` — client throws, RefreshAsync returns the previous names (or null when none), `LastFailure` set, no exception.
-  - `Les_noms_sont_gardes_par_langue` — after RefreshAsync("fr"), `CachedAsync("en")` is null.
+  - `Un_refus_garde_le_cache_et_note_l_echec`: client throws, RefreshAsync returns the previous names (or null when none), `LastFailure` set, no exception.
+  - `Les_noms_sont_gardes_par_langue`: after RefreshAsync("fr"), `CachedAsync("en")` is null.
 - [ ] **Step 2: Run, expect FAIL.**
 - [ ] **Step 3: Implement** the records and the service: a `SemaphoreSlim` gate as in `QuestCatalogService`; parse `nameId`, `levelMin`, `levelMax`, `stepIds`, `dungeonKey` from the `JsonElement`s; save the whole document after a successful read.
 - [ ] **Step 4: Run the suite, expect PASS.**
@@ -151,16 +151,16 @@
 
 **Interfaces:**
 - Consumes: `TouchIdTable`, `TouchLanguageNames` (Tasks 1, 3), `QuestCatalogDocument`, `QuestSearch.Normalize`.
-- Produces: `public static QuestCatalogDocument Apply(QuestCatalogDocument source, TouchIdTable table, TouchLanguageNames names, bool translateNames)` — returns a new document, never mutates `source`.
+- Produces: `public static QuestCatalogDocument Apply(QuestCatalogDocument source, TouchIdTable table, TouchLanguageNames names, bool translateNames)`: returns a new document, never mutates `source`.
 
 Rules (copy into the doc comment): titles of paired quests become the game names joined by `" / "` when `translateNames`; `SearchKey` becomes `Normalize(shown + " " + french)`; each prerequisite whose normalized text equals a French quest title takes that quest's shown title; `Level` takes the first game quest's level when precise; `SuccessName` and every `SuccessOrder` entry found in `table.Series` take the game achievement name (all languages); a quest in `table.Links` with an empty `SuccessName` gets that achievement's name and a `ChainStep` after the highest of its series, in Papycha-id order, and the name is appended to `SuccessOrder` if missing; paired dungeons take the joined game dungeon names (or the boss name) when `translateNames`, and their non-empty `Key` the key item name; sections and paths are untouched.
 
 - [ ] **Step 1: Write the failing tests** with an invented two-quest, one-dungeon catalog:
-  - `En_anglais_le_titre_et_la_recherche_prennent_le_nom_du_jeu` — title "Invented EN", `QuestSearch.Filter(..., "invented")` finds it and so does the French word.
+  - `En_anglais_le_titre_et_la_recherche_prennent_le_nom_du_jeu`: title "Invented EN", `QuestSearch.Filter(..., "invented")` finds it and so does the French word.
   - `Une_page_groupee_joint_les_noms_par_une_barre`.
-  - `Les_prerequis_suivent_les_titres` — B requires A by French title; after Apply, `new QuestChainIndex(doc.Quests).Find(b.Prerequisites[0])` is A.
-  - `En_francais_les_titres_restent_ceux_de_Papycha_mais_les_series_se_corrigent` — `translateNames: false`: title unchanged, `SuccessName` "Cité dor" → game name, `SuccessOrder` too.
-  - `Le_niveau_du_jeu_ne_sert_que_s_il_est_precis` — 120/120 → 120; 15/200 → Papycha's 151.
+  - `Les_prerequis_suivent_les_titres`: B requires A by French title; after Apply, `new QuestChainIndex(doc.Quests).Find(b.Prerequisites[0])` is A.
+  - `En_francais_les_titres_restent_ceux_de_Papycha_mais_les_series_se_corrigent`: `translateNames: false`: title unchanged, `SuccessName` "Cité dor" → game name, `SuccessOrder` too.
+  - `Le_niveau_du_jeu_ne_sert_que_s_il_est_precis`: 120/120 → 120; 15/200 → Papycha's 151.
   - `Un_lien_du_jeu_range_la_quete_apres_celles_de_Papycha`.
   - `Une_quete_inconnue_de_la_table_reste_en_francais` (Review Focus 4).
   - `Le_document_source_n_est_pas_modifie`.
@@ -202,7 +202,7 @@ Rules (copy into the doc comment): titles of paired quests become the game names
 - Test: `tests/DtHub.Tests/Papycha/QuestSectionTitleTests.cs`, `tests/DtHub.Tests/Papycha/QuestTreeTests.cs`
 
 **Interfaces:**
-- Produces: `public static string QuestSectionTitle.Of(QuestSection section)` — when the language is not French, `Strings.Optional("QuestSection" + section.Id)` if present, else `QuestZoneOrder.DisplayName(section.Name)`. `QuestNode.Level` (string): `Facts?.Level`, else the quest's level when `> 0`, else empty; `QuestNode.HasLevelColumn`: `Facts is not null || Quest is not null`.
+- Produces: `public static string QuestSectionTitle.Of(QuestSection section)`: when the language is not French, `Strings.Optional("QuestSection" + section.Id)` if present, else `QuestZoneOrder.DisplayName(section.Name)`. `QuestNode.Level` (string): `Facts?.Level`, else the quest's level when `> 0`, else empty; `QuestNode.HasLevelColumn`: `Facts is not null || Quest is not null`.
 
 Resource values (English / Spanish; French = today's `DisplayName`, which `QuestZoneOrder` keeps using for ordering): -2 Main quests / Misiones principales; 659 [Alignment] Bontarian / [Alineamiento] Bontariano; 661 [Alignment] Brakmarian / [Alineamiento] Brakmariano; -3 Krosmoz / Krosmoz; 709 Albuera Archipelago / Archipiélago de Albuera; 18 Astrub / Astrub; 265 Amakna Castle / El castillo de Amakna; 25 Amakna / Amakna; -4 Madrestam Harbour / Puerto de Madrestam; 378 Kwismas Island / Isla de Nawidad; -5 Bworks / Bworks; 151 Pandala Island / Isla de Pandala; 52 Wabbit Island / Isla de los Wabbits; 131 Otomai Island / Isla de Otomai; 135 Frigost Island / Isla de Frigost; -6 Sufokia / Sufokia; 512 Archipelago of Vulkania / Archipiélago de Vulkania; 650 Horrib Isle / Islote Rorífico; -7 Time Bubbles / Burbujas temporales; 657 Bonta & Cania / Bonta y Cania; -8 Sain Ballotin / Sain Ballotin (no game name found, stays French); 668 Orado Island / Isla de Eldoroda; 682 Repeatable quests / Misiones repetibles; -1 Other quests / Otras misiones; 745 The Labyrinth / El Dédalo.
 
@@ -225,8 +225,8 @@ Resource values (English / Spanish; French = today's `DisplayName`, which `Quest
 - Consumes: `TouchNameService`, `TouchStep`, `TouchObjectiveLine` (Task 3).
 - Produces:
   - `public enum TouchHole { Count, Npc, Item, Monster, Area, Text }` and `public static TouchHole TouchObjectiveText.KindOf(int typeId, int hole)` (hole 1-based) per the spec's table: Npc for `#1` of types 1, 2, 3, 9, 12; Item for `#2` of 2, 3 and `#1` of 20; Monster for `#2` of 6, 12 and `#1` of 14, 45, 46; Area for `#1` of 5; Text for `#1` of 0, 4, 10; otherwise Count.
-  - `public static string TouchObjectiveText.Fill(string template, int typeId, IReadOnlyList<int> parameters, Func<TouchHole, int, string> name)` — replaces `#1..#3` with `parameters[0..2]`, through `name` unless Count; a missing name leaves the hole's number.
-  - `public Task<IReadOnlyList<TouchStep>> TouchNameService.StepsAsync(int papychaQuestId, string language, CancellationToken ct = default)` — cached steps first; else reads `QuestSteps` (step ids of the paired game quests, in order), `QuestObjectives`, `QuestObjectiveTypes` (once per language, kept in `ObjectiveTypes`), then names by kind (`Npcs`, `Items`, `Monsters`, `SubAreas`, `data/text`), only for non-empty id sets; caches and saves; empty list when unpaired or on failure (`LastFailure` set).
+  - `public static string TouchObjectiveText.Fill(string template, int typeId, IReadOnlyList<int> parameters, Func<TouchHole, int, string> name)`: replaces `#1..#3` with `parameters[0..2]`, through `name` unless Count; a missing name leaves the hole's number.
+  - `public Task<IReadOnlyList<TouchStep>> TouchNameService.StepsAsync(int papychaQuestId, string language, CancellationToken ct = default)`: cached steps first; else reads `QuestSteps` (step ids of the paired game quests, in order), `QuestObjectives`, `QuestObjectiveTypes` (once per language, kept in `ObjectiveTypes`), then names by kind (`Npcs`, `Items`, `Monsters`, `SubAreas`, `data/text`), only for non-empty id sets; caches and saves; empty list when unpaired or on failure (`LastFailure` set).
   - View model: `bool OffersOfficialSteps` (language ≠ fr and the open guide is a paired quest), `[ObservableProperty] bool showsOfficialSteps` (reset to false when another guide opens; `ShowsPage` also requires `!ShowsOfficialSteps`), `IReadOnlyList<TouchStep> OfficialSteps`, `Task ToggleOfficialStepsAsync()`.
   - Resx keys (en / fr / es): `OfficialSteps` Official steps / Étapes officielles / Pasos oficiales; `OfficialStepsTip` The quest's steps as the game words them / Les étapes de la quête telles que le jeu les écrit / Los pasos de la misión tal como los escribe el juego; `BackToGuide` Papycha guide / Guide Papycha / Guía de Papycha; `OfficialStepsLoading` Reading the game's steps… / Lecture des étapes du jeu… / Leyendo los pasos del juego…; `OfficialStepsUnavailable` The game's steps could not be read. / Les étapes du jeu n'ont pas pu être lues. / No se pudieron leer los pasos del juego.; `OfficialNamesCredit` Names and steps: DOFUS Touch, Ankama / Noms et étapes : DOFUS Touch, Ankama / Nombres y pasos: DOFUS Touch, Ankama.
 
