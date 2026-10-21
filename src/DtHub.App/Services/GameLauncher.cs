@@ -176,7 +176,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
             // height at initialization.
             if (placement is { } wanted)
             {
-                var frame = _windows.WindowChrome();
+                var frame = _windows.WindowChrome(new ScreenRect(wanted.X, wanted.Y, wanted.Width, wanted.Height));
 
                 await _windows
                     .MoveOnlyAsync(session, wanted.X - frame.Left, wanted.Y - frame.Top, cancellationToken)
@@ -3313,6 +3313,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // afterwards is not enough: scrcpy recenters its window when
         // it receives the first frame, that is after our placement.
         remembered ??= await _settings.GetWindowRectsAsync(cancellationToken).ConfigureAwait(false);
+        var launchRects = remembered.ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
 
         List<string> problems = [];
         // One read for the whole launch: the table does not change
@@ -3398,9 +3399,18 @@ public sealed partial class GameLauncher : IAsyncDisposable
             // never remembered. Placed by us like a game window, and not
             // left to scrcpy: measured on 2026-10-10, a window scrcpy sized
             // alone ignored clicks until it was resized by hand.
-            var placement = instance.IsTransient
+            var fitWindow = !instance.IsTransient && phoneAspect is null;
+            var (placement, launchGeometry) = instance.IsTransient
                 ? ComputePlacement(options with { VirtualDisplayWidth = 1080, VirtualDisplayHeight = 1920 }, remembered: null)
-                : ComputePlacement(gameOptions, stored);
+                : ComputePlacement(gameOptions, stored, fitWindow);
+
+            // Explicit portrait/phone formats still get their frame-aware
+            // source fit from RestoreAsync. Only the adaptive game takes
+            // its source format from this selected rectangle.
+            if (fitWindow && launchGeometry is not null)
+            {
+                launchRects[instance.Key] = launchGeometry;
+            }
 
             var target = ToTarget(instance, device.Serial);
 
@@ -3610,7 +3620,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // display.
         if (started.Count > 0)
         {
-            await _windows.RestoreAsync(started, remembered, cancellationToken).ConfigureAwait(false);
+            await _windows.RestoreAsync(started, launchRects, cancellationToken).ConfigureAwait(false);
 
             // Tabbed accounts join the frame. After placement:
             // attaching them first would cause an already housed
@@ -5051,15 +5061,16 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// Rectangle every window will share. Computed once: this is
-    /// what guarantees their exact overlap.
+    /// Selects a launch rectangle before creating its display. An ordinary
+    /// game takes its format from this rectangle; explicit phone and tool
+    /// formats constrain the rectangle instead.
     /// </summary>
-    private ScrcpyWindowPlacement? ComputePlacement(ScrcpyOptions options, StoredWindowRect? remembered)
+    private (ScrcpyWindowPlacement? Placement, StoredWindowRect? Geometry) ComputePlacement(
+        ScrcpyOptions options, StoredWindowRect? remembered, bool fitWindow = false)
     {
-        // The window keeps the display's aspect ratio: the image is
-        // scaled to fit it, and departing from it would leave a
-        // band.
-        var aspect = options is { UseVirtualDisplay: true, VirtualDisplayHeight: > 0 }
+        // Without an explicit format, fill the requested window and let
+        // the display take its client ratio, excluding the title/borders.
+        var aspect = !fitWindow && options is { UseVirtualDisplay: true, VirtualDisplayHeight: > 0 }
             ? (double)options.VirtualDisplayWidth / options.VirtualDisplayHeight
             : 0;
 
@@ -5075,7 +5086,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         if (rect is not { } value)
         {
-            return null;
+            return (null, null);
         }
 
         // The rectangle passed on is that of the client area, chrome
@@ -5086,9 +5097,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // border and too high by a title bar. The placement that
         // followed then repositioned it visibly, two hundred
         // milliseconds after it opened.
-        var client = _windows.WindowChrome().ClientOf(value);
+        var client = _windows.IsFullscreen ? value : _windows.WindowChrome(value).ClientOf(value);
 
-        return new ScrcpyWindowPlacement(client.X, client.Y, client.Width, client.Height);
+        return (
+            new ScrcpyWindowPlacement(client.X, client.Y, client.Width, client.Height),
+            StoredWindowRect.From(
+                value, WindowLayoutCalculator.ChooseMonitor(monitors, value.CenterX, value.CenterY)));
     }
 
     /// <summary>
@@ -5127,9 +5141,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
             return options;
         }
 
+        // The display is fixed for the session, but its initial format is
+        // the actual client area's, not the monitor including the taskbar.
+        // A phone-format override still wins; fullscreen uses the monitor.
+        var windowAspect = !_windows.IsFullscreen ? window.Width / (double)window.Height : 0;
+
         var (width, height) = DisplayLadder.For(
             window.Height, screen.Width, screen.Height, quality.MaximumDisplayHeight, _sharpImage, phoneAspect,
-            DisplayLadder.MinimumHeight);
+            DisplayLadder.MinimumHeight, windowAspect);
 
         // The sharper image and the small window's floor are paid for in
         // pixels, not in bits. Measured when it was made: at the bitrate of
@@ -5138,7 +5157,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // by up to two and a half, 9.5 to 24.3 Mb/s on the 13T Pro in the
         // high tier, per account, and the players said it lagged.
         var (bitrateWidth, bitrateHeight) =
-            DisplayLadder.For(window.Height, screen.Width, screen.Height, quality.MaximumDisplayHeight, phoneAspect: phoneAspect);
+            DisplayLadder.For(
+                window.Height, screen.Width, screen.Height, quality.MaximumDisplayHeight,
+                phoneAspect: phoneAspect, windowAspect: windowAspect);
 
         // Density is derived from the chosen resolution: leaving it
         // fixed made the game's zoom vary with the window's size,

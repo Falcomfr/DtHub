@@ -10694,3 +10694,39 @@ Une fin propre que DT Hub n'a pas demandée est la croix de la fenêtre. Un
 téléphone perdu échoue au lieu de finir proprement, et le compte reste dans le
 démarrage, comme le veut toujours D22. Quitter DT Hub marque toutes les sessions
 arrêtées avant de fermer le cadre à onglets, et ne retire donc rien.
+
+## D208 - Le format du jeu suit la zone intérieure de sa fenêtre au lancement
+
+**2026-10-21 - Implémentée, vérification sur le POCO à faire**
+
+Sur un écran de PC 1920x1080, zone utile 1920x1050, la fenêtre du joueur
+occupait 1813x1050 : conserver le 16:9 de l'écran entier après déduction du
+titre et des bordures laissait une bande de bureau à droite. Le format du
+téléphone déplaçait cet espace sous la fenêtre. L'utilisateur demande que le
+jeu remplisse sa vraie fenêtre, en mode fenêtré.
+
+Sans format du téléphone imposé, la fenêtre prend la part demandée de la zone
+utile et l'afficheur prend le rapport de sa zone client. Le cadre se mesure
+sur l'écran de destination, pour sa mise à l'échelle ; un démarrage en plein
+écran prend le format de l'écran sans déduire de cadre. Définition et débit
+emploient le même rapport, bornés par l'écran et la charge du palier.
+
+Une géométrie mémorisée reste. Seule une ancienne fenêtre qui correspond
+exactement à l'ajustement à toute la hauteur, au format de l'écran, s'étend à
+toute la zone utile. Sa position verticale, sa hauteur, sa largeur calculée
+et son inclusion dans cette zone sont vérifiées à deux pixels près. Le
+rectangle choisi pour ce lancement est aussi celui de la restauration ;
+sinon elle remettrait les 1813 pixels juste après le lancement. Ce remplacement
+ne concerne ni les outils portrait ni un format du téléphone explicite.
+
+La résolution reste fixe pendant la partie, comme D16/D17 l'imposent. On ne
+rétablit pas `flex-display`, on ne coupe ni ne déforme l'image et on ne relance
+pas un compte en cachette. Passer une fenêtre déjà ouverte en plein écran peut
+donc garder des bandes si son format diffère ; démarrer en plein écran prend
+bien le format de l'écran. Le nouvel ajustement s'applique à la réouverture.
+
+Vérifications : régression 1813x1050 puis restauration et surveillance du
+rapport, géométries personnalisées conservées, cadre sur le second écran,
+priorité au format du téléphone, charge des paliers. Compilation et suite de
+tests réussies. Le rendu du jeu sur l'appareil distant n'est pas vérifié par
+ces tests et doit encore être retesté par le joueur.

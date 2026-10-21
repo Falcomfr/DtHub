@@ -86,6 +86,42 @@ public sealed class DisplayLadderTests
         Assert.Equal(1080d / 2560, height / (double)width, 2);
     }
 
+    [Fact]
+    public void Le_format_de_la_fenetre_exclut_le_titre_et_la_barre_des_taches()
+    {
+        var clientAspect = 1904d / 1011;
+        var (width, height) = DisplayLadder.For(
+            1011, 1920, 1080, maximumHeight: 1080, windowAspect: clientAspect);
+
+        Assert.InRange(Math.Abs(width - height * clientAspect), 0, 8);
+        Assert.True(width <= 1920 && height <= 1080);
+        Assert.True(width * height <= 1920 * 1080);
+        Assert.NotEqual(16d / 9, width / (double)height, precision: 2);
+    }
+
+    [Fact]
+    public void Le_format_du_telephone_reste_prioritaire_sur_la_fenetre()
+    {
+        var phone = 2712d / 1220;
+        var (width, height) = DisplayLadder.For(
+            1011, 1920, 1080, phoneAspect: phone, windowAspect: 1904d / 1011);
+
+        Assert.InRange(Math.Abs(width - height * phone), 0, 8);
+    }
+
+    [Theory]
+    [InlineData(720)]
+    [InlineData(1080)]
+    [InlineData(1440)]
+    public void Le_format_de_la_fenetre_respecte_la_charge_du_palier(int ceiling)
+    {
+        var (width, height) = DisplayLadder.For(
+            2000, 3840, 2160, maximumHeight: ceiling, windowAspect: 1.9);
+
+        Assert.True(width * height <= ceiling * ceiling * 16d / 9);
+        Assert.InRange(Math.Abs(width - height * 1.9), 0, 8);
+    }
+
     [Theory]
     [InlineData(3440, 1440, 2960, 1848)]
     [InlineData(3840, 2160, 2712, 1220)]

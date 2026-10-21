@@ -117,11 +117,11 @@ public static class DisplayLadder
     /// Resolution to request for a window whose client area is the
     /// given height, on a given screen.
     ///
-    /// The aspect ratio is the PC screen's, or the phone's own,
-    /// <paramref name="phoneAspect"/>, for an account that asks for it (see
-    /// PhoneScreen). The window keeps it, and the PC screen then only caps
-    /// the size. The chosen quality can cap the height, which lightens the
-    /// phone's encoder.
+    /// The aspect ratio is the launch window's client area,
+    /// <paramref name="windowAspect"/>, or the phone's own,
+    /// <paramref name="phoneAspect"/>, for an account that asks for it.
+    /// The PC screen's ratio is the fallback and is used for a fullscreen
+    /// launch. The screen and chosen quality cap the encoder's load.
     ///
     /// <paramref name="sharpImage"/> asks for twice the window's height.
     /// The video carries colour at half resolution, so red text on grey,
@@ -140,7 +140,8 @@ public static class DisplayLadder
         int maximumHeight = int.MaxValue,
         bool sharpImage = false,
         double phoneAspect = 0,
-        int minimumHeight = 0)
+        int minimumHeight = 0,
+        double windowAspect = 0)
     {
         if (sharpImage)
         {
@@ -154,15 +155,16 @@ public static class DisplayLadder
             return (FallbackWidth, FallbackHeight);
         }
 
-        var aspect = phoneAspect > 0 ? phoneAspect : (double)screenWidth / screenHeight;
+        var requestedAspect = phoneAspect > 0 ? phoneAspect : windowAspect;
+        var aspect = requestedAspect > 0 ? requestedAspect : (double)screenWidth / screenHeight;
 
-        // Only for the phone's ratio: at the screen's own, dividing back
+        // Only for an explicit ratio: at the screen's own, dividing back
         // could truncate a pixel off its height.
-        var fits = phoneAspect > 0 ? Math.Min(screenHeight, (int)(screenWidth / aspect)) : screenHeight;
+        var fits = requestedAspect > 0 ? Math.Min(screenHeight, (int)(screenWidth / aspect)) : screenHeight;
 
         // The width from the aligned height: aligning both on their own
         // drifts the ratio.
-        var height = Even(Math.Min(Choose(clientHeight, fits), Ceiling(maximumHeight, phoneAspect)));
+        var height = Even(Math.Min(Choose(clientHeight, fits), Ceiling(maximumHeight, requestedAspect)));
 
         return (Even((int)Math.Round(height * aspect)), height);
     }

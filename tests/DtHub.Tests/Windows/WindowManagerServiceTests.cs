@@ -1052,6 +1052,82 @@ public class WindowManagerServiceTests
     }
 
     [Fact]
+    public async Task Une_ancienne_fenetre_ajustee_a_la_hauteur_remplit_la_zone_utile()
+    {
+        var monitor = FakeWindowController.PrimaryMonitor with
+        {
+            WorkArea = new ScreenRect(0, 0, 1920, 1050),
+        };
+        var desktop = new FakeWindowController(monitor)
+        {
+            Chrome = new WindowFrame(8, 31, 16, 39),
+        };
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.ApplySizeAsync([], 3);
+
+        // The reported window: a 16:9 client fitted below the taskbar,
+        // leaving over a hundred pixels of desktop unused on the right.
+        var old = StoredWindowRect.From(new ScreenRect(53, 0, 1813, 1050), monitor);
+
+        Assert.Equal(monitor.WorkArea, service.PreviewGameArea(0, old));
+        // Explicit phone/screen formats keep their own geometry.
+        Assert.Equal(old.Bounds, service.PreviewGameArea(16d / 9, old));
+    }
+
+    [Theory]
+    [InlineData(50, 50, 1200, 750)]
+    [InlineData(50, 0, 1200, 1040)]
+    [InlineData(0, 10, 1779, 1040)]
+    public void Un_rectangle_personnalise_ne_s_agrandit_pas_a_la_reouverture(int x, int y, int width, int height)
+    {
+        var desktop = new FakeWindowController
+        {
+            Chrome = new WindowFrame(8, 31, 16, 39),
+        };
+        var service = new WindowManagerService(desktop, NoDelay);
+        var rect = new ScreenRect(x, y, width, height);
+        var stored = StoredWindowRect.From(rect, FakeWindowController.PrimaryMonitor);
+        var restored = WindowLayoutCalculator.RestoreRemembered(
+            rect, stored.MonitorDeviceName, stored.Monitor, desktop.Monitors);
+
+        Assert.Equal(restored, service.PreviewGameArea(0, stored));
+    }
+
+    [Fact]
+    public async Task La_restauration_garde_la_zone_client_choisie_pour_l_afficheur()
+    {
+        var monitor = FakeWindowController.PrimaryMonitor;
+        var frame = new WindowFrame(8, 31, 16, 39);
+        var client = frame.ClientOf(monitor.WorkArea);
+        var (width, height) = DisplayLadder.For(
+            client.Height, monitor.Bounds.Width, monitor.Bounds.Height,
+            windowAspect: client.AspectRatio);
+        var (manager, sessions, desktop) = await OpenSessionsAsync(
+            1, ScrcpyOptions.Default with { VirtualDisplayWidth = width, VirtualDisplayHeight = height });
+        await using var _ = manager;
+        desktop.Chrome = frame;
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.ApplySizeAsync([], 3);
+        var selected = service.PreviewGameArea(0)!.Value;
+
+        await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>
+        {
+            [sessions[0].Target.Key] = StoredWindowRect.From(selected, monitor),
+        });
+
+        Assert.Equal(selected, desktop.GetWindowRect(sessions[0].WindowHandle));
+        service.EnforceAspect(sessions);
+        service.EnforceAspect(sessions);
+        var settled = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
+
+        // Codec alignment may cost a few pixels, never the old 100px strip.
+        Assert.InRange(Math.Abs(settled.Width - selected.Width), 0, 8);
+        Assert.InRange(Math.Abs(settled.Height - selected.Height), 0, 8);
+        var actualClient = frame.ClientOf(settled);
+        Assert.InRange(Math.Abs(actualClient.Height - actualClient.Width / sessions[0].SourceAspectRatio), 0, 2);
+    }
+
+    [Fact]
     public async Task En_plein_ecran_une_fenetre_memorisee_petite_rouvre_a_la_taille_de_l_ecran()
     {
         // Seen on 2026-10-20: an account remembered at 1431x835 reopened in
@@ -1092,6 +1168,28 @@ public class WindowManagerServiceTests
         var service = new WindowManagerService(desktop, NoDelay);
 
         Assert.Equal(new WindowFrame(11, 45, 22, 56), service.WindowChrome());
+    }
+
+    [Fact]
+    public void Le_cadre_se_mesure_sur_l_ecran_de_la_fenetre()
+    {
+        var second = FakeWindowController.PrimaryMonitor with
+        {
+            DeviceName = "SECOND",
+            Bounds = new ScreenRect(1920, 0, 2560, 1440),
+            WorkArea = new ScreenRect(1920, 0, 2560, 1400),
+            IsPrimary = false,
+        };
+        var desktop = new FakeWindowController(FakeWindowController.PrimaryMonitor, second)
+        {
+            Chrome = new WindowFrame(8, 31, 16, 39),
+        };
+        var largerFrame = new WindowFrame(12, 46, 24, 58);
+        desktop.MonitorFrames[second.DeviceName] = largerFrame;
+        var service = new WindowManagerService(desktop, NoDelay);
+
+        Assert.Equal(largerFrame, service.WindowChrome(new ScreenRect(2000, 100, 1200, 800)));
+        Assert.Equal(desktop.Chrome, service.WindowChrome());
     }
 
     [Fact]

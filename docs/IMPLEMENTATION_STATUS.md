@@ -3,7 +3,11 @@
 Legend: **DONE** finished and verified, **IN PROGRESS** underway,
 **TODO** not started, **BLOCKED** requires external action.
 
-Last updated: 2026-09-18
+Last updated: 2026-10-21
+
+The launch-window format correction (D208) is implemented and covered by unit
+tests. The reported POCO's rendering still needs a player retest. The ordinary
+launch uses its client area; phone-format overrides retain their explicit shape.
 
 ## Verified on real hardware
 
@@ -106,7 +110,7 @@ Audited on 2026-08-31, device by device and machine by machine.
 |---|---|
 | No hardcoded path, IP address, or serial number | DONE |
 | Reading properties via lists of alternative keys | DONE |
-| Display resolution computed from the PC monitor, not the device | DONE |
+| Display format computed from the launch client area, with explicit phone override | IN PROGRESS (code and tests complete; POCO rendering retest pending) |
 | No Android profile identifier inferred or assumed | DONE |
 | Numeric parsing under invariant culture | DONE |
 | Android version checked before launch | DONE |

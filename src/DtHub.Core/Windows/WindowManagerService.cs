@@ -118,6 +118,8 @@ public sealed class WindowManagerService
     /// full screen, as in <see cref="Resolve"/>: the display is sized on
     /// this rectangle, and a window remembered small reopened in full
     /// screen at the definition of its small size (seen on 2026-10-20).
+    /// A zero source ratio fills the requested rectangle and upgrades an
+    /// older full-height monitor-ratio fit to the whole work area.
     /// </summary>
     public ScreenRect? PreviewGameArea(double sourceAspectRatio, StoredWindowRect? remembered = null)
     {
@@ -132,6 +134,30 @@ public sealed class WindowManagerService
             && WindowLayoutCalculator.RestoreRemembered(
                 remembered.Bounds, remembered.MonitorDeviceName, remembered.Monitor, monitors) is { } restored)
         {
+            if (sourceAspectRatio <= 0)
+            {
+                // Older launches fitted a monitor-shaped image below the
+                // taskbar and title, leaving a strip of unused desktop.
+                // Upgrade only that full-height fit; custom sizes stay put.
+                var target = WindowLayoutCalculator.ChooseMonitor(monitors, restored.CenterX, restored.CenterY);
+                var work = UsableArea(target);
+                var frame = _controller.GetWindowChrome(target.DeviceName);
+                var (oldWidth, oldHeight) = WindowLayoutCalculator.FitToAspect(
+                    Math.Max(1, work.Width - frame.Width),
+                    Math.Max(1, work.Height - frame.Height),
+                    target.Bounds.AspectRatio);
+
+                if (Math.Abs(restored.Y - work.Y) <= 2
+                    && Math.Abs(restored.Height - work.Height) <= 2
+                    && Math.Abs(restored.Width - oldWidth - frame.Width) <= 2
+                    && Math.Abs(restored.Height - oldHeight - frame.Height) <= 2
+                    && restored.X >= work.X && restored.Right <= work.Right
+                    && restored.Y >= work.Y && restored.Bottom <= work.Bottom)
+                {
+                    return work;
+                }
+            }
+
             return restored;
         }
 
@@ -665,8 +691,15 @@ public sealed class WindowManagerService
     /// before any window exists, to ask scrcpy for a display of
     /// exactly the client area's size.
     /// </summary>
-    public WindowFrame WindowChrome() =>
-        _controller.GetWindowChrome(monitorDeviceName: null);
+    public WindowFrame WindowChrome(ScreenRect? area = null)
+    {
+        var monitors = _controller.GetMonitors();
+        var deviceName = area is { } rect && monitors.Count > 0
+            ? WindowLayoutCalculator.ChooseMonitor(monitors, rect.CenterX, rect.CenterY).DeviceName
+            : null;
+
+        return _controller.GetWindowChrome(deviceName);
+    }
 
     /// <summary>
     /// Full bounds of the screen where a window is about to open,
