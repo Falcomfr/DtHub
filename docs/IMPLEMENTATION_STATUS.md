@@ -1,4 +1,4 @@
-# Implementation status
+﻿# Implementation status
 
 Legend: **DONE** finished and verified, **IN PROGRESS** underway,
 **TODO** not started, **BLOCKED** requires external action.

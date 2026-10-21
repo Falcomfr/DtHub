@@ -1,15 +1,13 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Globalization;
 using System.Resources;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-
-using DtHub.Core.Localization;
 using DtHub.Core.Devices;
+using DtHub.Core.Localization;
 using DtHub.Core.Sessions;
 using DtHub.Core.Windows;
 using DtHub.Infrastructure.Diagnostics;
-
 using Serilog.Events;
 using Serilog.Parsing;
 

@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 
 using DtHub.Core.Adb;
 using DtHub.Core.Devices;

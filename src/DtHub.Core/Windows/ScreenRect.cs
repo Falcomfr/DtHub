@@ -1,4 +1,4 @@
-using DtHub.Core.Localization;
+﻿using DtHub.Core.Localization;
 
 namespace DtHub.Core.Windows;
 

@@ -1,4 +1,4 @@
-using DtHub.Core.Adb;
+﻿using DtHub.Core.Adb;
 using DtHub.Core.Dofus;
 using DtHub.Core.Localization;
 using DtHub.Core.Sessions;
