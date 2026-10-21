@@ -57,6 +57,15 @@
           </StackPanel>
         </Border>
 
+        <!-- What this brand needs on top, when it needs something: Xiaomi
+             closes a game left out of its recent apps, Samsung puts it back
+             to sleep through its own maintenance. -->
+        <Border Style="{StaticResource Card}"
+                Visibility="{Binding HasNote, Converter={StaticResource BoolToVisibility}}">
+          <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap"
+                     Text="{Binding Brand.BatteryNote}" />
+        </Border>
+
         <Border Style="{StaticResource Card}"
                 Visibility="{Binding IsTool, Converter={StaticResource InverseBoolToVisibility}}">
           <StackPanel>

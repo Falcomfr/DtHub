@@ -141,7 +141,7 @@
     <value>SIZE OF THE GAME WINDOWS</value>
   </data>
   <data name="WindowSizeTip" xml:space="preserve">
-    <value>Proportional to the usable area of the screen, not to its pixels: the same value gives the same share of screen everywhere. The Ctrl+1 to Ctrl+5 shortcuts set five marks on this slider.</value>
+    <value>As a share of the screen, not in pixels: the same look on every screen. Ctrl+1 to Ctrl+5 give five sizes.</value>
   </data>
   <data name="QualityHeading" xml:space="preserve">
     <value>QUALITY</value>
@@ -153,7 +153,7 @@
     <value>Low</value>
   </data>
   <data name="QualityLowTip" xml:space="preserve">
-    <value>720 at most, 30 frames per second, reduced bitrate, and the phone is polled half as often. For modest machines and phones, or many accounts at once.</value>
+    <value>720 at most, 30 frames per second, reduced bitrate, phone polled less often. For modest devices or many accounts.</value>
   </data>
   <data name="QualityMedium" xml:space="preserve">
     <value>Medium</value>
@@ -177,7 +177,7 @@
     <value>Custom</value>
   </data>
   <data name="QualityCustomTip" xml:space="preserve">
-    <value>Set the resolution, the frame rate, the image detail and the codec yourself. The other tiers remain the ordinary route: this one is for whoever already knows what they want.</value>
+    <value>Set the resolution, frame rate, image detail and codec yourself. For those who know what they want.</value>
   </data>
   <data name="QualityValues" xml:space="preserve">
     <value>{0}p max · {1} fps · about {2} Mb/s per window</value>
@@ -198,7 +198,7 @@
     <value>Image detail</value>
   </data>
   <data name="ImageDetailTip" xml:space="preserve">
-    <value>Bits granted to each pixel of each frame. The bitrate follows from the resolution actually used, as for the other tiers: an absolute bitrate would feast a small window and starve a large one.</value>
+    <value>Bits per pixel and per frame. The bitrate follows the window's size, for an image as fine small as large.</value>
   </data>
   <data name="VideoCodec" xml:space="preserve">
     <value>Video codec</value>
@@ -213,13 +213,13 @@
     <value>What the phone will have to push over Wi-Fi. A Wi-Fi 4 device on 2.4 GHz gives about sixty megabits in practice.</value>
   </data>
   <data name="ResolutionAdviceTip" xml:space="preserve">
-    <value>The resolution follows the size of your windows. Measured: in a window 1428 tall, going from 1080 to 1440 costs 78 % more bitrate for an image difference of 0.63 out of 255; in a window of 1800, the difference becomes visible.</value>
+    <value>The resolution follows the windows' size. 1440 instead of 1080 only shows on a window over 1800 pixels high, for far more bitrate.</value>
   </data>
   <data name="GameDistanceHeading" xml:space="preserve">
     <value>DISTANCE IN THE GAME</value>
   </data>
   <data name="GameDistanceTip" xml:space="preserve">
-    <value>Acts on the screen density Android sees, not on the image detail: at equal window size, the game shows more or less ground.</value>
+    <value>More or less ground in view, at the same window size. Acts on the game screen's density, not on the image's detail.</value>
   </data>
   <data name="ZoomVeryFar" xml:space="preserve">
     <value>Very far</value>
@@ -249,7 +249,7 @@
     <value>Close</value>
   </data>
   <data name="ZoomCloseTip" xml:space="preserve">
-    <value>The least ground possible, the game interface at its largest. Comfortable on a small window. On a window over 2300 pixels tall, this tier draws close to the previous one: the density asked for hits its ceiling there.</value>
+    <value>The least ground, the largest game interface: for a small window. Above 2300 pixels high, it nearly matches the previous step.</value>
   </data>
   <data name="ZoomValues" xml:space="preserve">
     <value>{0} dpi at {1}p</value>
@@ -261,13 +261,13 @@
     <value>Phone sound sent back to the PC</value>
   </data>
   <data name="PhoneAudioTip" xml:space="preserve">
-    <value>Android cannot isolate one application's sound: what arrives is the whole phone's, every open account together. A single window per device carries it.</value>
+    <value>Android sends the whole phone's sound, all accounts mixed: one window per phone carries it.</value>
   </data>
   <data name="SharpImage" xml:space="preserve">
     <value>Sharper image</value>
   </data>
   <data name="SharpImageTip" xml:space="preserve">
-    <value>Renders the game at twice the window's size, within the chosen quality. Coloured text, such as red on grey, becomes as sharp as white text. It costs the phone and the PC more work, but no more Wi-Fi bandwidth: leave it off on a modest phone, tablet or PC.</value>
+    <value>Renders the game at twice the window's size: coloured text, like red on grey, gets as sharp as white. More work for the phone and the PC, no more Wi-Fi: avoid on a modest device.</value>
   </data>
   <data name="AutomaticUpdates" xml:space="preserve">
     <value>Automatic updates</value>
@@ -279,13 +279,13 @@
     <value>Close the game on the phone too</value>
   </data>
   <data name="StopAppOnCloseTip" xml:space="preserve">
-    <value>When you close a game window, the game is also stopped on the phone. Unchecked, it keeps running: reopening the window finds your character still logged in, but the account goes on using the phone's memory, window closed or not.</value>
+    <value>Closing a window also stops the game on the phone. Unticked, the game keeps running: the reopened window finds the character logged in, but it takes up the phone's memory.</value>
   </data>
   <data name="TurnScreenOff" xml:space="preserve">
     <value>Turn the phone's screen off while playing</value>
   </data>
   <data name="TurnScreenOffTip" xml:space="preserve">
-    <value>The phone's screen goes dark as soon as a game window opens, and the game keeps running on the PC. The phone heats up less and its battery lasts longer. The screen comes back on when the last account closes. If you light it up to use the phone, a button next to the phone switches it off again.</value>
+    <value>The phone's screen turns off when a game window opens, and the game goes on on the PC: less heat, more battery. It comes back on when the last account closes. The line under the phone, or Ctrl+E, turns it off or on at any time.</value>
   </data>
   <data name="AppPickerTitle" xml:space="preserve">
     <value>Applications on {0}</value>
@@ -396,7 +396,7 @@
     <value>LANGUAGE</value>
   </data>
   <data name="LanguageTip" xml:space="preserve">
-    <value>The language of the application. “Windows” follows the system display language, and falls back to English when it is not translated. The change takes effect at the next start.</value>
+    <value>"Windows" follows the system's language, or English if it is not translated. Applies at the next startup.</value>
   </data>
   <data name="LanguageRestart" xml:space="preserve">
     <value>The language changes at the next start.</value>
@@ -511,25 +511,25 @@
     <value>Show another application of this phone, or clone the game onto a new account.</value>
   </data>
   <data name="ForgetDeviceTip" xml:space="preserve">
-    <value>Forget this device on this PC. Its windows close, and its instances as well as their settings are erased. The phone itself is not touched. A confirmation is asked.</value>
+    <value>Forgets this phone on this PC: its windows close, its accounts and settings are erased. The phone is not touched. Asks for confirmation.</value>
   </data>
   <data name="StopDeviceTip" xml:space="preserve">
     <value>Close every account of this phone. The other phones are not touched.</value>
   </data>
   <data name="ForgetDeviceShortTip" xml:space="preserve">
-    <value>Forget this device on this PC. Its instances as well as their settings are erased. The phone itself is not touched. A confirmation is asked.</value>
+    <value>Forgets this phone on this PC: its accounts and settings are erased. The phone is not touched. Asks for confirmation.</value>
   </data>
   <data name="DragToReorderTip" xml:space="preserve">
     <value>Drag to change the order. An instance can sit between those of another device, and this order is also the one the keyboard follows.</value>
   </data>
   <data name="LockWindowTip" xml:space="preserve">
-    <value>Lock this window in its place. It will no longer move on a stack, a side-by-side or a size change, and the keyboard will not stop on it. The other windows arrange themselves without it. If the account sits in the tabbed frame, one locked tab freezes the whole frame.</value>
+    <value>Pins this window in place: stacking, side by side, resizing and keyboard cycling leave it alone. In the tab frame, one locked tab pins the whole frame.</value>
   </data>
   <data name="PhoneFormat" xml:space="preserve">
     <value>Phone's ratio (if the game is shifted)</value>
   </data>
   <data name="PhoneFormatTip" xml:space="preserve">
-    <value>Leave it unticked in most cases. Tick it only if the game shows shifted, cut off or with a black band on one side on your screen (seen with a Galaxy Tab on an ultra-wide screen). The game then takes the ratio of your phone or tablet: if your screen has another ratio, black bands appear around it. Applies the next time the window opens.</value>
+    <value>Leave unticked, unless the game shows shifted, cut or with a black band on one side (seen on a Galaxy Tab and an ultrawide screen). The game then takes the phone's format, with black bands around it if your screen differs. Applies at the next opening.</value>
   </data>
   <data name="TabbedTip" xml:space="preserve">
     <value>Open this account in the tabbed frame. Click again to give it back its own free window.</value>
@@ -544,13 +544,13 @@
     <value>Restart the game without closing the window. Useful when a window has frozen: it starts again at the login screen, at its place and its size.</value>
   </data>
   <data name="CloseWindowTip" xml:space="preserve">
-    <value>Close this account's window. Nothing is deleted: its position is remembered and the play button reopens it in the same spot. It will not reopen on its own at the next start.</value>
+    <value>Closes this account's window. Nothing is deleted: the Play button reopens it in the same place. It will not reopen on its own at startup.</value>
   </data>
   <data name="NoDeviceFound" xml:space="preserve">
     <value>NO DEVICE FOUND</value>
   </data>
   <data name="NoDeviceHelp" xml:space="preserve">
-    <value>Plug in a USB cable with debugging turned on: the device will appear on its own. A phone already paired over Wi-Fi reconnects by itself as soon as it is back on the network.</value>
+    <value>Plug in a USB cable, debugging on: the phone shows up on its own. Already paired over Wi-Fi? It comes back on its own on the network.</value>
   </data>
   <data name="ConnectionHeading" xml:space="preserve">
     <value>CONNECTION STATUS</value>
@@ -559,7 +559,11 @@
     <value>The phone answers. Everything is ready.</value>
   </data>
   <data name="CheckNoDevice" xml:space="preserve">
-    <value>No phone detected. Windows seeing it for photos is not enough: that only proves file transfer, never debugging. Plug in a data cable, pick File transfer if the phone asks, and turn on USB debugging. A device already paired reconnects on its own over Wi-Fi.</value>
+    <value>No phone detected. Seeing it in Windows Photos is not enough:
+1. Plug in a data cable.
+2. Pick "File transfer" if the phone asks.
+3. Turn on USB debugging.
+A phone already paired over Wi-Fi comes back on its own.</value>
   </data>
   <data name="CheckWaitingAuthorization" xml:space="preserve">
     <value>The phone is there but has not authorised this PC yet. Unlock its screen and accept the debugging prompt.</value>
@@ -571,10 +575,10 @@
     <value>A device is plugged in but Windows could not read its identity. The cable, the port or the connector is at fault, not the phone.</value>
   </data>
   <data name="CheckUsbDriverMissing" xml:space="preserve">
-    <value>A device is plugged in but Windows has no driver for it; on a phone, that is its debugging interface.
-1. Download Google's USB driver from developer.android.com/studio/run/win-usb and unzip it.
-2. Device Manager › right-click the line with the yellow triangle › Update driver › Browse my computer › Let me pick from a list › Have Disk › the folder's android_winusb.inf file › "Android ADB Interface". Windows asks for administrator rights and may warn the driver does not look made for the device: confirm.
-3. Unplug and replug the cable.</value>
+    <value>A device is plugged in, but Windows has no driver for its debugging:
+1. Download Google's USB driver (developer.android.com/studio/run/win-usb) and unzip it.
+2. Device Manager › right-click the line with the yellow triangle › Update driver › Browse my computer › Let me pick from a list › Have Disk › android_winusb.inf › "Android ADB Interface". Confirm if Windows warns.
+3. Unplug and plug the cable back in.</value>
   </data>
   <data name="CheckUsbOther" xml:space="preserve">
     <value>A device is plugged in and Windows turned it away. The detail is in Device Manager.</value>
@@ -586,33 +590,30 @@
     <value>A plugged-in device Windows cannot read</value>
   </data>
   <data name="CableHelpIntro" xml:space="preserve">
-    <value>The phone may well be charging, which only proves power. The data wires carry nothing usable. Here are the leads, from the most common to the rarest.</value>
+    <value>The phone charges but the PC does not see it: the cable or the port only carries power. Try, in this order:</value>
   </data>
   <data name="CableHelpSteps" xml:space="preserve">
-    <value>Try another cable. Many cables shipped with a charger have no data wires, and a damaged data cable gives exactly this fault.
-
-Try a USB 2.0 port, at the back of the machine rather than the front: enumeration is more forgiving there and the path is shorter.
-
-Restart, do not shut down. With Windows fast startup, shutting down and powering back on does not reinitialise the USB controllers; only "Restart" does.
-
-Clean the phone's connector. Pocket dust keeps the data pins from making contact while charging still works.
-
-Cross the tests: another device on this port, and this phone on another PC. You will then know which of the three is at fault.</value>
+    <value>1. Another cable: charger cables often have no data wires.
+2. A USB port at the back of the PC.
+3. "Restart" Windows: shutting down and back on is not enough.
+4. Clean the phone's connector.
+5. This phone on another PC, to know which one is at fault.</value>
   </data>
   <data name="AdbShellUserAccessDenied" xml:space="preserve">
-    <value>The phone refused the PC access to that profile. If it is a secure folder, unlock it on the phone before launching. Otherwise turn on “USB debugging (security settings)” in the developer options.</value>
+    <value>The phone refuses the PC access to this profile. Secure Folder: unlock it before launching. Otherwise, turn on "USB debugging (Security settings)" in the developer options.</value>
   </data>
   <data name="ScrcpyDisplayTimeoutWithAudio" xml:space="preserve">
     <value>The phone did not open a virtual display in time. Try without sound first: on some tablets, turning it on is enough to stop the display from opening.</value>
   </data>
   <data name="BrandSamsungWarning" xml:space="preserve">
-    <value>If “USB debugging” is greyed out with “Blocked by Auto Blocker”, or the device is not detected at all, turn off “Auto Blocker” in Settings > Security and privacy, then “Block USB connections” in the other security settings. A secure folder has to be unlocked before launching, or the game will not be found in it.</value>
+    <value>• "USB debugging" greyed out or phone not detected: turn off "Auto Blocker" (Settings › Security and privacy), then "Block USB connections".
+• Secure Folder: unlock it before launching, or the game is not found there.</value>
   </data>
   <data name="BrandOnePlusWarning" xml:space="preserve">
-    <value>Also turn on “USB debugging (security settings)” and “Install via USB” in the same menu. Without the first one the picture shows but the mouse and keyboard do nothing.</value>
+    <value>Also turn on "USB debugging (Security settings)", or mouse and keyboard do nothing, and "Install via USB", in the same menu.</value>
   </data>
   <data name="BrandVivoWarning" xml:space="preserve">
-    <value>Also turn on “USB debugging (security settings)” and “Install via USB” in the same menu. Without the first one the picture shows but the mouse and keyboard do nothing.</value>
+    <value>Also turn on "USB debugging (Security settings)", or mouse and keyboard do nothing, and "Install via USB", in the same menu.</value>
   </data>
   <data name="SessionRecovering" xml:space="preserve">
     <value>The link to {0} dropped. Reopening its window.</value>
@@ -621,7 +622,7 @@ Cross the tests: another device on this port, and this phone on another PC. You 
     <value>The link to {0} is lost. Its window will reopen as soon as the phone is back.</value>
   </data>
   <data name="ReducedRender" xml:space="preserve">
-    <value>{0}: the phone runs the game at a reduced resolution ({1} %), hence a blurry image. It comes from a phone setting, the game mode of this copy of the app: the warning sign on its row puts it back to standard.</value>
+    <value>{0}: the phone runs the game at {1} % of its resolution (this copy's game mode), hence the blurry picture. The triangle on its line sets it back to standard.</value>
   </data>
   <data name="ReducedRenderTip" xml:space="preserve">
     <value>The phone draws this game at a reduced resolution: click to fix</value>
@@ -630,7 +631,7 @@ Cross the tests: another device on this port, and this phone on another PC. You 
     <value>Image reduced to {0} % by the phone</value>
   </data>
   <data name="ReducedRenderExplain" xml:space="preserve">
-    <value>Android's game mode for this copy of the game (performance, battery saving…) has it drawn smaller, then stretched: the image is blurry. The standard mode draws it at full size.</value>
+    <value>This copy's Android game mode (performance, saving…) draws the game smaller, then enlarges it: the picture is blurry. Standard mode draws it at full size.</value>
   </data>
   <data name="RestoreStandardMode" xml:space="preserve">
     <value>Put back the standard mode</value>
@@ -639,10 +640,10 @@ Cross the tests: another device on this port, and this phone on another PC. You 
     <value>The game restarts: the character is disconnected for a few seconds.</value>
   </data>
   <data name="ReducedRenderManual" xml:space="preserve">
-    <value>If the image stays blurry, on the phone: while playing, open the game panel (Game Booster on Samsung, Game Turbo on Xiaomi), set this game's performance to Standard, then restart the account.</value>
+    <value>Still blurry? On the phone, in game: game panel (Game Booster on Samsung, Game Turbo on Xiaomi) › this game's performance on Standard, then restart the account.</value>
   </data>
   <data name="GameModeRefused" xml:space="preserve">
-    <value>{0}: the phone refused to change the game mode. On the phone, while playing, open the game panel (Game Booster on Samsung, Game Turbo on Xiaomi), set this game's performance to Standard, then restart the account.</value>
+    <value>{0}: the phone refused to change the game mode. On the phone, in game: game panel (Game Booster on Samsung, Game Turbo on Xiaomi) › this game's performance on Standard, then restart the account.</value>
   </data>
   <data name="GameModeHeading" xml:space="preserve">
     <value>Phone game mode</value>
@@ -693,7 +694,7 @@ Cross the tests: another device on this port, and this phone on another PC. You 
     <value>The phone's memory is full ({0} GB available): actions may lag. Close the other apps, lower an account's quality or restart the phone.</value>
   </data>
   <data name="DeviceMemoryCritical" xml:space="preserve">
-    <value>The phone is almost out of memory ({0} GB available): Android will close apps, the game included. Close the other apps, lower an account's quality or restart the phone.</value>
+    <value>Phone memory nearly exhausted ({0} GB free): Android will close apps, the game included. Close the other apps, lower an account's quality or restart the phone.</value>
   </data>
   <data name="PhoneUptime" xml:space="preserve">
     <value> (on for {0} days)</value>
@@ -708,7 +709,9 @@ Cross the tests: another device on this port, and this phone on another PC. You 
     <value>The phone's processor is saturated by other apps{0}: close them or restart the phone.</value>
   </data>
   <data name="PhoneWifiSpikes" xml:space="preserve">
-    <value>Unstable Wi-Fi: {0} latency spikes in a minute, up to {1} ms. Far from the router, move the phone closer. Already next to it, the phone is putting its Wi-Fi to sleep between exchanges: only the USB cable avoids that.</value>
+    <value>Unstable Wi-Fi: {0} spikes in a minute, up to {1} ms.
+• Far from the router: move the phone closer.
+• Already next to it: it is the phone's Wi-Fi sleep, only the USB cable avoids it.</value>
   </data>
   <data name="PcBusy" xml:space="preserve">
     <value>The PC is {0} % busy: close heavy programs or set the quality to Low.</value>
@@ -720,7 +723,7 @@ Cross the tests: another device on this port, and this phone on another PC. You 
     <value>The phone has only {0} GB free. Make room before playing: the game will fail.</value>
   </data>
   <data name="DeviceLinkCrowded" xml:space="preserve">
-    <value>The Wi-Fi channel is crowded: {0} % of frames have to be sent twice. The picture will stutter and the first image will be slow to come. Another channel, or moving closer to the router, is what helps most.</value>
+    <value>Crowded Wi-Fi channel: {0} % of frames resent, the picture will stutter. Changing the router's channel, or moving the phone closer, helps most.</value>
   </data>
   <data name="DeviceOn24GHz" xml:space="preserve">
     <value>The phone is on the 2.4 GHz band. The picture will stutter more than on 5 GHz; switching bands is the single best change you can make.</value>
@@ -744,10 +747,10 @@ Cross the tests: another device on this port, and this phone on another PC. You 
     <value>Follow the shared setting</value>
   </data>
   <data name="InstanceQualityTip" xml:space="preserve">
-    <value>Quality for this account alone. A main account deserves more than the mules that follow it, and what you spare them is CPU, bandwidth, heat and battery saved.</value>
+    <value>This account's quality alone. Lower it for the accounts you are not playing: that much less processor, heat and battery.</value>
   </data>
   <data name="InstanceZoomTip" xml:space="preserve">
-    <value>The distance for this account alone. It acts on the screen density Android sees: at the same window size, the game shows more or less ground.</value>
+    <value>This account's distance alone: more or less ground in view, at the same window size.</value>
   </data>
   <data name="InstanceZoomWaitsForReopen" xml:space="preserve">
     <value>Applies the next time this window opens</value>
@@ -834,25 +837,25 @@ Cross the tests: another device on this port, and this phone on another PC. You 
     <value>This file could not be read.</value>
   </data>
   <data name="DisplayStaysLocked" xml:space="preserve">
-    <value>The phone is locked, so its game windows show its lock screen instead of the game. This phone cannot create an unlocked virtual display, so Android imposes its lock on it. Unlock the phone: the windows then show the game, and keep it as long as one of them stays open.</value>
+    <value>Phone locked: its windows show the lock screen instead of the game, this phone cannot avoid it. Unlock it: the game comes back and stays while a window is open.</value>
   </data>
   <data name="DeviceThrottling" xml:space="preserve">
     <value>The device is heating up and is starting to slow itself down. Unplug the charger, close an account or drop one quality step, and it will pick up again.</value>
   </data>
   <data name="DeviceThrottlingSevere" xml:space="preserve">
-    <value>The device is too hot and is heavily slowing itself down. Unplug the charger, close an account or drop one quality step now: below this, Android suspends the windows until it cools off.</value>
+    <value>Phone too hot, heavily throttled. Unplug the charger, close an account or lower the quality: otherwise Android suspends the windows while it cools down.</value>
   </data>
   <data name="DeadInputTitle" xml:space="preserve">
     <value>Nothing responds in the window</value>
   </data>
   <data name="DeadInputExplanation" xml:space="preserve">
-    <value>The picture shows, the window opens, and yet clicks and keystrokes do nothing. No error appears, because there is none: the device agrees to show its screen, but not to receive your gestures. That is a separate permission, and it is granted on the phone.</value>
+    <value>The picture shows, but clicks and keys do nothing, with no error at all: the phone agrees to show its screen, not to receive your input. It is a separate permission, given on the phone.</value>
   </data>
   <data name="DeadInputTest" xml:space="preserve">
     <value>Test the device</value>
   </data>
   <data name="DeadInputTestHelp" xml:space="preserve">
-    <value>The check asks the device to accept an input event, using the key Android calls “unknown”, which triggers nothing anywhere. It says in one second what otherwise takes an evening to find out.</value>
+    <value>Sends the phone a key that does nothing: its answer tells in a second whether it accepts your clicks.</value>
   </data>
   <data name="DeadInputTestRunning" xml:space="preserve">
     <value>Asking the device…</value>
@@ -873,13 +876,13 @@ Cross the tests: another device on this port, and this phone on another PC. You 
     <value>Allow input simulation</value>
   </data>
   <data name="DeadInputSecurityHelp" xml:space="preserve">
-    <value>In the developer options, turn on the line whose description reads “Grant permissions and simulate input via USB debugging”. Depending on the brand it is called “USB debugging (security settings)”. This is by far the most common cause.</value>
+    <value>The most common cause. In the developer options, turn on "USB debugging (Security settings)". Its description mentions "simulating input via USB debugging".</value>
   </data>
   <data name="DeadInputCable" xml:space="preserve">
     <value>The cable has to carry data</value>
   </data>
   <data name="DeadInputCableHelp" xml:space="preserve">
-    <value>When the phone asks for the connection mode, pick “File transfer”, not “Charging”. A cable left on charging lets the screen show while refusing everything else. If the question never appears, try another cable: many cables shipped with a charger have no data wires.</value>
+    <value>When the phone asks for the connection mode, pick "File transfer", not "Charging": while charging, the picture shows but the rest is refused. No question? Try another cable.</value>
   </data>
   <data name="SimulatedKeyboard" xml:space="preserve">
     <value>Simulated physical keyboard</value>
@@ -888,19 +891,23 @@ Cross the tests: another device on this port, and this phone on another PC. You 
     <value>Present the keyboard to the phone as a plugged-in keyboard, instead of typing through its on-screen one.</value>
   </data>
   <data name="SimulatedKeyboardHelp" xml:space="preserve">
-    <value>Turn this on when the window answers the mouse but nothing you type appears: the on-screen keyboard of some brands swallows the characters. In exchange, the phone reads your keys through its own Android layout, so set that layout to match your PC keyboard, or an AZERTY will type as QWERTY.</value>
+    <value>Turn on if the mouse works but nothing gets typed. Then set the Android keyboard layout like the PC's, or an AZERTY types as QWERTY.</value>
   </data>
   <data name="DeadInputRevoke" xml:space="preserve">
     <value>Revoke the USB debugging authorisations</value>
   </data>
   <data name="DeadInputRevokeHelp" xml:space="preserve">
-    <value>In the developer options, press “Revoke USB debugging authorisations”, unplug the device, plug it back in, and accept the prompt again. It clears an authorisation left half granted, and it is the step that unblocks the cases where everything looks correctly set.</value>
+    <value>Developer options › "Revoke USB debugging authorizations". Unplug, plug back in, then accept the prompt again. Unblocks the cases where everything looks right.</value>
   </data>
   <data name="DeadInputToggleDeveloper" xml:space="preserve">
     <value>Turn it all off, restart, turn it all back on</value>
   </data>
   <data name="DeadInputToggleDeveloperHelp" xml:space="preserve">
-    <value>Unplug the phone from the PC first. Then turn off the debugging switches, up to three depending on the brand: USB debugging, install via USB, and USB debugging (security settings). Restart the phone, turn them back on once it has restarted, then plug it back in on “File transfer” and accept the prompt. The order matters, and so does the restart: turning them back on without it often leaves the setting ticked without being applied.</value>
+    <value>1. Unplug the phone.
+2. Turn off its debugging switches: USB debugging, install via USB, USB debugging (Security settings).
+3. Restart the phone, then turn them back on.
+4. Plug it back in as "File transfer" and accept the prompt.
+The order and the restart matter: without them, the setting stays ticked without applying.</value>
   </data>
   <data name="OnBrandUseClonePath" xml:space="preserve">
     <value>
@@ -1082,7 +1089,7 @@ On a {0} device, the manual copy goes through: {1}.</value>
     <value>A window freezes after a while</value>
   </data>
   <data name="SleepExplanation" xml:space="preserve">
-    <value>DT Hub keeps active the virtual screen the game runs on, but Android puts to sleep by itself the applications it judges idle, and a game window that is not in the foreground is one of them. The windows then freeze one after another, the oldest first. One setting is enough to prevent it, and it holds.</value>
+    <value>Android puts to sleep the apps it thinks are idle, including a game window that is not in front: the windows then freeze one by one. A single setting prevents it, and it holds.</value>
   </data>
   <data name="OpenBatterySetting" xml:space="preserve">
     <value>1. Open the game's battery setting</value>
@@ -1097,13 +1104,13 @@ On a {0} device, the manual copy goes through: {1}.</value>
     <value>2. Take it out of the restrictions</value>
   </data>
   <data name="RemoveRestrictionsHelp" xml:space="preserve">
-    <value>The game must be able to run in the background without limit. This is the only handling needed in most cases, and it survives restarts.</value>
+    <value>The game must be allowed to run in the background without limit. Often the only setting needed, and it survives restarts.</value>
   </data>
   <data name="RepeatForEachCopy" xml:space="preserve">
     <value>3. Do it again for each copy of the game</value>
   </data>
   <data name="RepeatForEachCopyHelp" xml:space="preserve">
-    <value>A cloned application, or one installed in a second profile, is a separate application in Android's eyes: it has its own restrictions, and the setting made on one does not hold for the other.</value>
+    <value>Each copy of the game, cloned or in another profile, has its own settings: do it again for each one.</value>
   </data>
   <data name="AlreadyFrozenHelp" xml:space="preserve">
     <value>A window that has already frozen is repaired by restarting it: the “Restart” button on its row restarts the game without closing the window.</value>
@@ -1262,7 +1269,7 @@ On a {0} device, the manual copy goes through: {1}.</value>
     <value>The largest of the four sizes. It covers the usable area of the screen, taskbar excluded: this is not full screen.</value>
   </data>
   <data name="ActionFullscreenDetail" xml:space="preserve">
-    <value>Covers the whole screen, with no border. Pressing it again, or Esc, leaves it and gives each window the place it had. While in fullscreen, Esc no longer reaches the game.</value>
+    <value>Borderless full screen. Press again, or Esc, to leave it: while in full screen, Esc no longer reaches the game.</value>
   </data>
   <data name="ActionScreenOffDetail" xml:space="preserve">
     <value>Switches off the screen of the game window's phone, or of every phone from another DT Hub window, while the game keeps running. Pressed again, lights it back on.</value>
@@ -1376,10 +1383,10 @@ On a {0} device, the manual copy goes through: {1}.</value>
     <value>The profile « {0} » already existed but no longer had the game. It was reused and the game reinstalled on it: Android allows only one profile of this kind.</value>
   </data>
   <data name="AccountAddedAsWorkProfile" xml:space="preserve">
-    <value>Account « {0} » added, but in a work profile: the phone allows only one cloned profile and it is already taken. Its icons will carry a briefcase, and Android installs its own set of apps in that profile by itself.</value>
+    <value>Account "{0}" added in a work profile: the phone's only clone profile is already taken. Its icons will carry a briefcase, and Android will add its own apps there.</value>
   </data>
   <data name="ProfileSlotsFull" xml:space="preserve">
-    <value>This phone allows one cloned profile and one work profile, and both are already in use. For one more account, turn on duplicated apps in its settings.</value>
+    <value>This phone only accepts one clone profile and one work profile, both taken. For one more account, turn on dual apps in its settings.</value>
   </data>
   <data name="ProfileCreationRefused" xml:space="preserve">
     <value>The phone refused to create a profile. Some manufacturer layers forbid it: go through their multiple-account settings instead.</value>
@@ -1454,7 +1461,7 @@ On a {0} device, the manual copy goes through: {1}.</value>
     <value>The profile “{0}” could not be started. Open it once on the phone, then try again.</value>
   </data>
   <data name="PairedButPortUnknown" xml:space="preserve">
-    <value>The phone is paired, but its connection port was not found on the network. Enter the number after the “:” in “IP address &amp; Port”, on the main Wireless debugging screen, not the code screen.</value>
+    <value>Phone paired, but its port cannot be found. Enter the number after ":" in "IP address &amp; port", on the Wireless debugging screen, not the code's.</value>
   </data>
   <data name="PairingAddressUnreachable" xml:space="preserve">
     <value>The address announced on the network does not answer, so the code was not used. Enter the “IP address and port” shown on the phone, under the pairing code.</value>
@@ -1553,7 +1560,7 @@ The detail is in the logs:
     <value>Forget {0}?</value>
   </data>
   <data name="ForgetDeviceConsequence" xml:space="preserve">
-    <value>Its accounts and their settings will be erased, and this PC will stop connecting to it on its own. The phone keeps its own record: remove it from « Wireless debugging » if you want it gone there too. To bring it back, plug its USB cable back in or pair it again wirelessly.</value>
+    <value>Its accounts and their settings will be erased, and this PC will stop connecting to it on its own. To remove this PC from the phone too: "Wireless debugging". To get it back: plug it in over USB or pair it again.</value>
   </data>
   <data name="GameNotInstalled" xml:space="preserve">
     <value>Game not installed</value>
@@ -1616,7 +1623,7 @@ The detail is in the logs:
     <value>Show the phone's state and play time in the windows' title</value>
   </data>
   <data name="TitleShowsStatusTip" xml:space="preserve">
-    <value>Each game window says its phone's battery, its heat and a detected lag when there is some, and how long it has been open, next to the account's name. Refreshed every thirty seconds or so.</value>
+    <value>Adds to each window's title the battery, any heat and lag, and the play time. Updated about every 30 seconds.</value>
   </data>
   <data name="FolderDoesNotExistYet" xml:space="preserve">
     <value>The folder does not exist yet:
@@ -1951,7 +1958,7 @@ In the meantime, the button at the bottom opens the page in your browser.</value
     <value>Report a problem</value>
   </data>
   <data name="ReportProblemTip" xml:space="preserve">
-    <value>Copy the report, then paste it into the form that opens. Nothing is sent until you press: the report goes to your clipboard and you decide what to do with it.</value>
+    <value>Copy the report, then paste it in the form that opens. Nothing is sent without you.</value>
   </data>
   <data name="ReportOnDiscord" xml:space="preserve">
     <value>Report on Discord</value>
@@ -2013,9 +2020,6 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="BrandStandardClonePath" xml:space="preserve">
     <value>Settings  ›  System  ›  Multiple users</value>
   </data>
-  <data name="BrandStandardCloneNote" xml:space="preserve">
-    <value>Stock Android has no cloning feature. The way round it is to add a second user, then install the game there from the Play Store. DT Hub opens each profile on its own display, with no switching back and forth.</value>
-  </data>
   <data name="BrandStandardBatteryFeature" xml:space="preserve">
     <value>Unrestricted</value>
   </data>
@@ -2040,9 +2044,6 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="BrandXiaomiClonePath" xml:space="preserve">
     <value>Settings  ›  Apps  ›  Dual apps</value>
   </data>
-  <data name="BrandXiaomiCloneNote" xml:space="preserve">
-    <value>This brand also offers Second space, which creates a whole separate space rather than a simple copy. Either will do: DT Hub sees the instances both ways.</value>
-  </data>
   <data name="BrandXiaomiBatteryFeature" xml:space="preserve">
     <value>No restrictions, and Autostart</value>
   </data>
@@ -2050,7 +2051,7 @@ In the meantime, the button at the bottom opens the page in your browser.</value
     <value>Settings  ›  Apps  ›  Manage apps  ›  DOFUS Touch  ›  Battery saver</value>
   </data>
   <data name="BrandXiaomiBatteryNote" xml:space="preserve">
-    <value>This brand is the most aggressive of the lot. Lock the game in the recents view as well, by pulling its card down: without that lock, MIUI and HyperOS alike close it after a few minutes whatever the battery setting says.</value>
+    <value>Also lock the game in recent apps, by pulling its card down: otherwise MIUI and HyperOS close it after a few minutes.</value>
   </data>
   <data name="BrandXiaomiBuildNumberPath" xml:space="preserve">
     <value>Settings  ›  About phone, or About tablet</value>
@@ -2062,7 +2063,9 @@ In the meantime, the button at the bottom opens the page in your browser.</value
     <value>Settings  ›  Additional settings  ›  Developer options</value>
   </data>
   <data name="BrandXiaomiWarning" xml:space="preserve">
-    <value>Turn on USB debugging (security settings): without it the picture shows but the mouse and keyboard do nothing. On older versions, measured on Android 11, it also needed a SIM card in the phone, and the setting did not survive a reboot without one. Nothing of the sort on HyperOS 3 and Android 16. If clicks stay dead on Android 14 or later, turn off Stylus handwriting, right at the bottom of the developer options.</value>
+    <value>• Turn on "USB debugging (Security settings)", or the mouse and keyboard do nothing.
+• Android 11 and older MIUI: a SIM card is also needed, or the setting drops at restart.
+• Clicks still do nothing (Android 14 and up): turn off "Stylus handwriting", at the bottom of the developer options.</value>
   </data>
   <data name="BrandSamsungName" xml:space="preserve">
     <value>Samsung</value>
@@ -2072,9 +2075,6 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   </data>
   <data name="BrandSamsungClonePath" xml:space="preserve">
     <value>the Island app from the Play Store, which makes a work profile to clone the game into</value>
-  </data>
-  <data name="BrandSamsungCloneNote" xml:space="preserve">
-    <value>Samsung keeps the Secure Folder closed to a PC, even unlocked: DT Hub cannot open the game there. Dual Messenger only duplicates messaging apps. Island makes a work profile, which DT Hub opens like the other accounts. If the login stays stuck in Island, clone Chrome into the work profile too. For one more account, a third-party cloning app with ads such as Parallel Space also works: show it from “Show an application already installed”, then start DOFUS Touch inside it. If the login stays stuck on a Chrome page, tap the three dots and open it in Chrome.</value>
   </data>
   <data name="BrandSamsungBatteryFeature" xml:space="preserve">
     <value>Allow background activity</value>
@@ -2130,9 +2130,6 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="BrandHonorClonePath" xml:space="preserve">
     <value>Settings  ›  Apps  ›  App twin</value>
   </data>
-  <data name="BrandHonorCloneNote" xml:space="preserve">
-    <value>On builds without Google services, installing the second copy may mean going through the maker's own store.</value>
-  </data>
   <data name="BrandHonorBatteryFeature" xml:space="preserve">
     <value>App launch, set to manual</value>
   </data>
@@ -2163,9 +2160,6 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="BrandVivoClonePath" xml:space="preserve">
     <value>Settings  ›  Apps  ›  App Clone</value>
   </data>
-  <data name="BrandVivoCloneNote" xml:space="preserve">
-    <value>Depending on the Funtouch or OriginOS release, the feature sits under Apps, or under Apps and permissions.</value>
-  </data>
   <data name="BrandVivoBatteryFeature" xml:space="preserve">
     <value>Background power consumption, set to Allow</value>
   </data>
@@ -2192,9 +2186,6 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   </data>
   <data name="BrandAmazonClonePath" xml:space="preserve">
     <value>Settings  ›  Profiles &amp; Family Library</value>
-  </data>
-  <data name="BrandAmazonCloneNote" xml:space="preserve">
-    <value>Fire OS has no cloning feature and its profiles are not Android's: DT Hub will most likely see only one instance there. For trials only.</value>
   </data>
   <data name="BrandAmazonBatteryFeature" xml:space="preserve">
     <value>Battery optimisation, to be turned off</value>
@@ -2257,7 +2248,7 @@ In the meantime, the button at the bottom opens the page in your browser.</value
     <value>Profile</value>
   </data>
   <data name="BatteryNotPrepared" xml:space="preserve">
-    <value>Android does not have this game in its list of apps shielded from battery saving. It will freeze it sooner or later, and the windows will lock up one by one, oldest first. The setting that counts for Android is "Unrestricted", in the game's battery page; your brand may want others on top, and the Help link lists them.</value>
+    <value>The game is not sheltered from battery saving: Android will end up freezing it, and its windows will freeze one by one. Set "Unrestricted" in the game's battery page. The Help link shows where, by brand.</value>
   </data>
   <data name="NamedFinding" xml:space="preserve">
     <value>{0}: {1}</value>
@@ -2269,16 +2260,21 @@ In the meantime, the button at the bottom opens the page in your browser.</value
     <value>To pair again</value>
   </data>
   <data name="ToPairAgainTip" xml:space="preserve">
-    <value>This phone is announcing itself on the network but refuses this PC: it no longer recognises its key. Enabling wireless debugging is not enough, it has to be paired again. "Pair a new device", and on the phone "Pair device with pairing code".</value>
+    <value>This phone refuses this PC: it forgot the pairing. Use "Pair a new device" here, and "Pair device with pairing code" on the phone. Turning wireless debugging back on is not enough.</value>
   </data>
   <data name="OfflineTip" xml:space="preserve">
-    <value>The phone must be on and its debugging active, over the cable or wirelessly depending on how it was attached. If you no longer remember which, plug it back in with its cable: that is the shortest way to see it appear again.</value>
+    <value>• Phone on, debugging on, by cable or over Wi-Fi.
+• When in doubt, plug it back in by cable: that is fastest.</value>
   </data>
   <data name="OfflineTipWireless" xml:space="preserve">
-    <value>The phone must be on, on the same Wi-Fi network as this PC, and its wireless debugging must be on. A phone that keeps dropping is often too far from the router or behind a wall: moving it is enough to bring it back. If all of that is true, then the pairing has been lost: pair it again with "Pair a new device". A phone forgets a PC on its own more often than you would think, and turning wireless debugging back on does not restore it.</value>
+    <value>• Phone on, on the same Wi-Fi as the PC.
+• Open Wireless debugging on the phone: that restarts it.
+• It keeps dropping? Move it closer to the router.
+• Still nothing: "Pair a new device".</value>
   </data>
   <data name="OfflineTipUsb" xml:space="preserve">
-    <value>The phone must be on, plugged in with its cable, and its USB debugging must be on. A charge-only cable carries no data: that is the most common failure, and nothing announces it. Try another cable and another port before looking further.</value>
+    <value>• Phone on, cable plugged in, USB debugging on.
+• Most common fault: a charge-only cable. Try another cable and another port.</value>
   </data>
   <data name="OfflineHowUsb" xml:space="preserve">
     <value>Check the cable, then USB debugging on the phone.</value>
@@ -2293,7 +2289,7 @@ In the meantime, the button at the bottom opens the page in your browser.</value
     <value>Through "Pair a new device", above.</value>
   </data>
   <data name="DeadInputFound" xml:space="preserve">
-    <value>This phone refuses clicks and keystrokes coming from the PC: its windows show the game and respond to nothing. The setting is called "USB debugging (Security settings)", and the Help link says where. On older Xiaomi versions, measured on Android 11, it also needs a SIM card in the phone and does not survive a reboot without one.</value>
+    <value>This phone refuses clicks and keys from the PC: the game shows but nothing responds. Turn on "USB debugging (Security settings)", the Help link shows where. Older Xiaomi (Android 11): a SIM card is also needed.</value>
   </data>
   <data name="SoundStuckAfterReopen" xml:space="preserve">
     <value>The game's sound did not come back after the windows reopened. Restart the phone to get it back.</value>
@@ -2305,7 +2301,7 @@ In the meantime, the button at the bottom opens the page in your browser.</value
     <value>Last resort for a phone that refuses clicks from the PC: this mouse does not go through the Android input the manufacturer blocks.</value>
   </data>
   <data name="SimulatedMouseHelp" xml:space="preserve">
-    <value>In exchange, the PC loses its own cursor while a game window has the focus: a simulated mouse sends movements, not positions. Press LEFT ALT to get the cursor back, or one of the Windows keys. Fine for a single account, painful for several.</value>
+    <value>The PC's cursor disappears while a game window has focus: left Alt or the Windows key gives it back. Fine for one account, a pain with several.</value>
   </data>
   <data name="PreviousMonth" xml:space="preserve">
     <value>Previous month</value>
@@ -2389,7 +2385,7 @@ In the meantime, the button at the bottom opens the page in your browser.</value
     <value>{0}: its window freezes</value>
   </data>
   <data name="ToolSleepExplanation" xml:space="preserve">
-    <value>Android, and on top of it some brands' own battery saver, puts to sleep the apps it deems idle. Unlike the game, {0} does not keep its screen on: without this setting, its window freezes after a minute or so and stops answering clicks.</value>
+    <value>Android, and some brands' battery saver, puts idle apps to sleep. Without this setting, the {0} window freezes after about a minute.</value>
   </data>
   <data name="ToolOpenBatterySetting" xml:space="preserve">
     <value>1. Open {0}'s battery setting</value>
@@ -2407,30 +2403,35 @@ In the meantime, the button at the bottom opens the page in your browser.</value
     <value>Clicks from the PC do not get through</value>
   </data>
   <data name="ShortcutsMouseNotice" xml:space="preserve">
-    <value>A key alone works too, Tab for instance. For a mouse button, have your mouse's software send a key, then pick that key here: DT Hub does not watch the mouse, which antivirus software would take for spyware.</value>
+    <value>A single key works too, Tab for instance. For a mouse button: have your mouse software send a key, then pick that key here.</value>
   </data>
   <data name="HotkeyBareKeyNotice" xml:space="preserve">
     <value>In DOFUS Touch's chat, {0} will no longer type: DT Hub uses it for “{1}”.</value>
   </data>
   <data name="CheckHonorNotDebugging" xml:space="preserve">
-    <value>An Honor phone is plugged in, but it is not open to debugging. On the phone:
-1. Open the USB notification and choose a transfer mode, files or photos, not "Charge only".
-2. In Settings › System &amp; updates › Developer options, turn on "USB debugging", and "Allow ADB debugging in charge only mode" if your version offers it.
-3. Accept the authorisation prompt that appears.</value>
+    <value>Honor phone plugged in, but its debugging is closed. On the phone:
+1. USB notification › file or photo transfer, not "Charge only".
+2. Settings › System &amp; updates › Developer options: turn on "USB debugging", and "Allow ADB debugging in charge only mode" if it exists.
+3. Accept the authorization prompt.</value>
   </data>
   <data name="CheckHuaweiNotDebugging" xml:space="preserve">
-    <value>A Huawei phone is plugged in, but it is not open to debugging. On the phone:
-1. In Settings › System &amp; updates › Developer options, turn on "USB debugging" and "Allow ADB debugging in charge only mode".
-2. Unplug and replug the cable, then accept the authorisation prompt that appears.</value>
+    <value>Huawei phone plugged in, but its debugging is closed. On the phone:
+1. Settings › System &amp; updates › Developer options: turn on "USB debugging" and "Allow ADB debugging in charge only mode".
+2. Unplug and plug the cable back in, and accept the authorization prompt.</value>
   </data>
   <data name="SecureFolderUnreachable" xml:space="preserve">
-    <value>{0}: unlock the Secure Folder, the game is in it and DT Hub cannot see it while it is closed. Its accounts show up here a few seconds later. So it does not lock again mid-game: {1}  ›  "Auto lock Secure Folder", pick the longest option. If nothing shows once unlocked, Samsung blocks access from a PC on this phone: install the game outside the Secure Folder.</value>
+    <value>{0}: unlock the Secure Folder, its accounts show up a few seconds later.
+So it does not lock again while playing: {1}  ›  "Auto lock Secure Folder" › the longest option.
+Nothing shows up once unlocked? Samsung blocks the PC on this phone: install the game outside the Secure Folder.</value>
   </data>
   <data name="SecureFolderForbidden" xml:space="preserve">
-    <value>{0}: Samsung does not let a PC into the Secure Folder on this phone, even unlocked, so DT Hub cannot open the game there. Install this account outside the Secure Folder, for instance in a work profile made with the Island app from the Play Store: DT Hub opens it like the other accounts. If the login stays stuck in Island, clone Chrome into the work profile too. For one more account, a third-party cloning app with ads such as Parallel Space also works: show it from “Show an application already installed”, then start DOFUS Touch inside it. If the login stays stuck on a Chrome page, tap the three dots and open it in Chrome.</value>
+    <value>{0}: Samsung forbids the PC to open the game in the Secure Folder, even unlocked.
+• Install this account in a work profile made with the Island app (Play Store): DT Hub opens it like the others. If logging in gets stuck, clone Chrome into that profile too.
+• Or use a cloning app such as Parallel Space: show it with "+", then start DOFUS Touch inside. If logging in gets stuck on a Chrome page, ⋮ › Open in Chrome.</value>
   </data>
   <data name="SecureFolderLocked" xml:space="preserve">
-    <value>{0}: the Secure Folder has locked, unlock it to get its accounts back. They return a few seconds later. So it does not lock again mid-game: {1}  ›  "Auto lock Secure Folder", pick the longest option.</value>
+    <value>{0}: the Secure Folder locked itself. Unlock it, its accounts come back within seconds.
+To avoid it: {1}  ›  "Auto lock Secure Folder" › the longest option.</value>
   </data>
   <data name="SecureFolderPathRecent" xml:space="preserve">
     <value>Settings  ›  Security and privacy  ›  More security settings  ›  Secure Folder</value>
@@ -2568,16 +2569,16 @@ In the meantime, the button at the bottom opens the page in your browser.</value
     <value>Open lomitall.fr in a large window: DOFUS Touch guides, tools, classes, stuffs and dungeons. The site is in French.</value>
   </data>
   <data name="CheckAdbDriverUnusable" xml:space="preserve">
-    <value>The phone does offer its debugging, but the driver Windows gave it does not hand it to adb, often a maker's suite such as HiSuite. Quit that software first, then:
-1. Download Google's USB driver from developer.android.com/studio/run/win-usb and unzip it.
-2. Device Manager › right-click the phone's line, often "ADB Interface" or "HDB Interface" › Update driver › Browse my computer › Let me pick from a list › Have Disk › the folder's android_winusb.inf file › "Android ADB Interface". Windows asks for administrator rights and may warn the driver does not look made for the device: confirm.
-3. Unplug and replug the cable.</value>
+    <value>The PC sees the phone, but its driver, often the one from HiSuite or another maker's software, blocks debugging. Quit that software, then:
+1. Download Google's USB driver (developer.android.com/studio/run/win-usb) and unzip it.
+2. Device Manager › right-click the phone ("ADB Interface" or "HDB Interface") › Update driver › Browse my computer › Let me pick from a list › Have Disk › android_winusb.inf › "Android ADB Interface". Confirm if Windows warns.
+3. Unplug and plug the cable back in.</value>
   </data>
   <data name="Density" xml:space="preserve">
     <value>Density</value>
   </data>
   <data name="DensityTip" xml:space="preserve">
-    <value>The density of the game's screen, in dots per inch, for the max definition. The higher it is, the bigger the game's interface. A smaller window gets its own density, to keep the same interface.</value>
+    <value>Density of the game's screen, in dots per inch, at the maximum resolution: higher, the interface is bigger. A smaller window keeps the same interface.</value>
   </data>
   <data name="DensityFollowsDistance" xml:space="preserve">
     <value>From the distance</value>
@@ -2598,7 +2599,7 @@ In the meantime, the button at the bottom opens the page in your browser.</value
     <value>Hide this alert</value>
   </data>
   <data name="MuteBatteryAlertNote" xml:space="preserve">
-    <value>Hiding the alert fixes nothing: if Android really puts {0} to sleep, its windows will freeze all the same. Only do it if this setting doesn't exist on this device. This help stays in Help, where the alert can be brought back.</value>
+    <value>Hiding the alert fixes nothing: if Android puts {0} to sleep, its windows will freeze anyway. Only if this setting does not exist on the device. The alert can be shown again from this help.</value>
   </data>
   <data name="UnmuteBatteryAlerts" xml:space="preserve">
     <value>Show hidden battery alerts again</value>

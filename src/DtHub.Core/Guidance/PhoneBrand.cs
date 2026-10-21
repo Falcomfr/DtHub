@@ -47,9 +47,6 @@ public sealed record PhoneBrand
     /// <summary>Menu path leading to this feature.</summary>
     public string ClonePath => Text(nameof(ClonePath));
 
-    /// <summary>What to know before doing this on this brand.</summary>
-    public string? CloneNote => Maybe(nameof(CloneNote));
-
     /// <summary>
     /// Name carried, on this overlay, by the setting that exempts an
     /// application from battery savings. Without it, Android suspends

@@ -141,7 +141,7 @@
     <value>TAILLE DES FENÊTRES DE JEU</value>
   </data>
   <data name="WindowSizeTip" xml:space="preserve">
-    <value>Proportionnelle à la zone utilisable de l'écran, et non à ses pixels : la même valeur donne la même part d'écran partout. Les raccourcis Ctrl+1 à Ctrl+5 posent cinq repères sur ce curseur.</value>
+    <value>En part de l'écran, pas en pixels : même rendu sur tous les écrans. Ctrl+1 à Ctrl+5 donnent cinq tailles.</value>
   </data>
   <data name="QualityHeading" xml:space="preserve">
     <value>QUALITÉ</value>
@@ -153,7 +153,7 @@
     <value>Basse</value>
   </data>
   <data name="QualityLowTip" xml:space="preserve">
-    <value>Image en 720 au plus, 30 images par seconde, débit réduit, et le téléphone est interrogé deux fois moins souvent. Pour les machines et les téléphones modestes, ou beaucoup de comptes à la fois.</value>
+    <value>720 au plus, 30 images par seconde, débit réduit, téléphone interrogé moins souvent. Pour les appareils modestes ou beaucoup de comptes.</value>
   </data>
   <data name="QualityMedium" xml:space="preserve">
     <value>Moyenne</value>
@@ -177,7 +177,7 @@
     <value>Personnalisé</value>
   </data>
   <data name="QualityCustomTip" xml:space="preserve">
-    <value>Régler soi-même la définition, la cadence, la finesse d'image et le codec. Les autres paliers restent le chemin ordinaire : celui-ci sert à qui sait déjà ce qu'il veut.</value>
+    <value>Réglez vous-même la définition, la cadence, la finesse d'image et le codec. Pour qui sait ce qu'il veut.</value>
   </data>
   <data name="QualityValues" xml:space="preserve">
     <value>{0} p max · {1} ips · environ {2} Mb/s par fenêtre</value>
@@ -198,7 +198,7 @@
     <value>Finesse d'image</value>
   </data>
   <data name="ImageDetailTip" xml:space="preserve">
-    <value>Bits accordés à chaque pixel de chaque image. Le débit s'en déduit d'après la définition réellement retenue, comme pour les autres paliers : un débit absolu servirait grassement une petite fenêtre et affamerait une grande.</value>
+    <value>Bits par pixel et par image. Le débit suit la taille de la fenêtre, pour une image aussi fine petite ou grande.</value>
   </data>
   <data name="VideoCodec" xml:space="preserve">
     <value>Codec vidéo</value>
@@ -213,13 +213,13 @@
     <value>Ce que le téléphone devra pousser sur le Wi-Fi. Un appareil en Wi-Fi 4 sur 2,4 GHz en rend une soixantaine de mégabits en pratique.</value>
   </data>
   <data name="ResolutionAdviceTip" xml:space="preserve">
-    <value>La définition suit la taille de vos fenêtres. Mesuré : dans une fenêtre de 1428 de haut, passer de 1080 à 1440 coûte 78 % de débit pour un écart d'image de 0,63 sur 255 ; dans une fenêtre de 1800, l'écart devient visible.</value>
+    <value>La définition suit la taille des fenêtres. 1440 au lieu de 1080 ne se voit que sur une fenêtre de plus de 1800 pixels de haut, pour bien plus de débit.</value>
   </data>
   <data name="GameDistanceHeading" xml:space="preserve">
     <value>DISTANCE DANS LE JEU</value>
   </data>
   <data name="GameDistanceTip" xml:space="preserve">
-    <value>Agit sur la densité de l'écran vu par Android, et non sur la finesse de l'image : à taille de fenêtre égale, le jeu montre plus ou moins de terrain.</value>
+    <value>Plus ou moins de terrain visible, à taille de fenêtre égale. Agit sur la densité de l'écran du jeu, pas sur la finesse de l'image.</value>
   </data>
   <data name="ZoomVeryFar" xml:space="preserve">
     <value>Très éloignée</value>
@@ -249,7 +249,7 @@
     <value>Proche</value>
   </data>
   <data name="ZoomCloseTip" xml:space="preserve">
-    <value>Le moins de terrain possible, l'interface du jeu la plus grande. Confortable sur une petite fenêtre. Sur une fenêtre de plus de 2300 pixels de haut, ce palier se rapproche du précédent : la densité demandée y touche son plafond.</value>
+    <value>Le moins de terrain, l'interface du jeu la plus grande : pour une petite fenêtre. Au-delà de 2300 pixels de haut, il rejoint presque le palier précédent.</value>
   </data>
   <data name="ZoomValues" xml:space="preserve">
     <value>{0} ppp en {1} p</value>
@@ -261,13 +261,13 @@
     <value>Son du téléphone renvoyé sur le PC</value>
   </data>
   <data name="PhoneAudioTip" xml:space="preserve">
-    <value>Android ne sait pas isoler le son d'une application : c'est celui du téléphone entier qui arrive, tous comptes ouverts confondus. Une seule fenêtre par appareil le porte.</value>
+    <value>Android envoie le son de tout le téléphone, tous comptes mélangés : une seule fenêtre par téléphone le porte.</value>
   </data>
   <data name="SharpImage" xml:space="preserve">
     <value>Image plus nette</value>
   </data>
   <data name="SharpImageTip" xml:space="preserve">
-    <value>Le jeu est rendu au double de la taille de la fenêtre, dans la limite de la qualité choisie. Le texte coloré, comme le rouge sur gris, devient aussi net que le blanc. Cela demande plus d'effort au téléphone et au PC, sans plus de débit Wi-Fi : à laisser décoché sur un téléphone, une tablette ou un PC modeste.</value>
+    <value>Rend le jeu au double de la taille de la fenêtre : le texte coloré, comme le rouge sur gris, devient aussi net que le blanc. Plus d'effort pour le téléphone et le PC, pas plus de Wi-Fi : à éviter sur un appareil modeste.</value>
   </data>
   <data name="AutomaticUpdates" xml:space="preserve">
     <value>Mise à jour automatique</value>
@@ -279,13 +279,13 @@
     <value>Fermer aussi le jeu sur le téléphone</value>
   </data>
   <data name="StopAppOnCloseTip" xml:space="preserve">
-    <value>Fermer une fenêtre de jeu arrête aussi le jeu sur le téléphone. Décoché, il continue de tourner : rouvrir la fenêtre retrouve le personnage connecté, mais le compte continue d'occuper la mémoire du téléphone, fenêtre fermée ou non.</value>
+    <value>Fermer une fenêtre arrête aussi le jeu sur le téléphone. Décoché, le jeu continue : la fenêtre rouverte retrouve le personnage connecté, mais il occupe la mémoire du téléphone.</value>
   </data>
   <data name="TurnScreenOff" xml:space="preserve">
     <value>Éteindre l'écran du téléphone pendant le jeu</value>
   </data>
   <data name="TurnScreenOffTip" xml:space="preserve">
-    <value>L'écran du téléphone s'éteint dès qu'une fenêtre de jeu s'ouvre, et le jeu continue sur le PC. Le téléphone chauffe moins et sa batterie tient plus longtemps. L'écran se rallume quand le dernier compte se ferme. Si vous le rallumez pour utiliser le téléphone, un bouton à côté du téléphone le rééteint.</value>
+    <value>L'écran du téléphone s'éteint quand une fenêtre de jeu s'ouvre, et le jeu continue sur le PC : moins de chauffe, plus de batterie. Il se rallume à la fermeture du dernier compte. La ligne sous le téléphone, ou Ctrl+E, l'éteint ou le rallume à tout moment.</value>
   </data>
   <data name="AppPickerTitle" xml:space="preserve">
     <value>Applications de {0}</value>
@@ -396,7 +396,7 @@
     <value>LANGUE</value>
   </data>
   <data name="LanguageTip" xml:space="preserve">
-    <value>La langue de l'application. « Windows » suit la langue d'affichage du système, et retombe sur l'anglais si elle n'est pas traduite. Le changement prend effet au prochain démarrage.</value>
+    <value>« Windows » suit la langue du système, ou l'anglais si elle n'est pas traduite. Effet au prochain démarrage.</value>
   </data>
   <data name="LanguageRestart" xml:space="preserve">
     <value>La langue change au prochain démarrage.</value>
@@ -511,25 +511,25 @@
     <value>Afficher une autre application de ce téléphone, ou cloner le jeu sur un nouveau compte.</value>
   </data>
   <data name="ForgetDeviceTip" xml:space="preserve">
-    <value>Oublier cet appareil sur ce PC. Ses fenêtres se ferment, et ses instances comme leurs réglages sont effacés. Le téléphone, lui, n'est pas touché. Une confirmation est demandée.</value>
+    <value>Oublie ce téléphone sur ce PC : ses fenêtres se ferment, ses comptes et réglages sont effacés. Le téléphone n'est pas touché. Confirmation demandée.</value>
   </data>
   <data name="StopDeviceTip" xml:space="preserve">
     <value>Fermer tous les comptes de ce téléphone. Les autres téléphones ne sont pas touchés.</value>
   </data>
   <data name="ForgetDeviceShortTip" xml:space="preserve">
-    <value>Oublier cet appareil sur ce PC. Ses instances comme leurs réglages sont effacés. Le téléphone, lui, n'est pas touché. Une confirmation est demandée.</value>
+    <value>Oublie ce téléphone sur ce PC : ses comptes et réglages sont effacés. Le téléphone n'est pas touché. Confirmation demandée.</value>
   </data>
   <data name="DragToReorderTip" xml:space="preserve">
     <value>Glissez pour changer l'ordre. Une instance peut se placer entre celles d'un autre appareil, et cet ordre est aussi celui du parcours au clavier.</value>
   </data>
   <data name="LockWindowTip" xml:space="preserve">
-    <value>Verrouiller cette fenêtre à sa place. Elle ne bougera plus lors d'un empilement, d'une mise côte à côte ou d'un changement de taille, et le parcours au clavier ne s'y arrêtera pas. Les autres fenêtres se placent sans elle. Si le compte est logé dans le cadre à onglets, un seul onglet verrouillé fige le cadre entier.</value>
+    <value>Fige cette fenêtre à sa place : l'empilement, le côte à côte, les changements de taille et le parcours au clavier l'ignorent. Dans le cadre à onglets, un onglet verrouillé fige tout le cadre.</value>
   </data>
   <data name="PhoneFormat" xml:space="preserve">
     <value>Format du téléphone (si jeu décalé)</value>
   </data>
   <data name="PhoneFormatTip" xml:space="preserve">
-    <value>À laisser décoché dans la plupart des cas. À cocher seulement si le jeu s'affiche décalé, coupé ou avec une bande noire d'un côté sur votre écran (vu avec une Galaxy Tab sur un écran ultra-large). Le jeu prend alors le format de votre téléphone ou tablette : si votre écran a un autre format, des bandes noires apparaissent autour. S'applique à la prochaine ouverture de la fenêtre.</value>
+    <value>À laisser décoché, sauf si le jeu s'affiche décalé, coupé ou avec une bande noire sur un côté (vu sur Galaxy Tab et écran ultra-large). Le jeu prend alors le format du téléphone, avec des bandes noires autour si votre écran diffère. Effet à la prochaine ouverture.</value>
   </data>
   <data name="TabbedTip" xml:space="preserve">
     <value>Ouvrir ce compte dans le cadre à onglets. Recliquez pour lui rendre sa fenêtre libre.</value>
@@ -544,13 +544,13 @@
     <value>Relancer le jeu sans fermer la fenêtre. Utile quand une fenêtre s'est figée : elle repart à l'écran de connexion, à sa place et à sa taille.</value>
   </data>
   <data name="CloseWindowTip" xml:space="preserve">
-    <value>Fermer la fenêtre de ce compte. Rien n'est supprimé : sa position est retenue et le bouton de lecture la rouvre au même endroit. Elle ne rouvrira pas d'elle-même au prochain démarrage.</value>
+    <value>Ferme la fenêtre de ce compte. Rien n'est supprimé : le bouton Lancer la rouvre au même endroit. Elle ne se rouvrira pas seule au démarrage.</value>
   </data>
   <data name="NoDeviceFound" xml:space="preserve">
     <value>AUCUN APPAREIL DÉTECTÉ</value>
   </data>
   <data name="NoDeviceHelp" xml:space="preserve">
-    <value>Branchez un câble USB avec le débogage activé : l'appareil apparaîtra tout seul. Un téléphone déjà associé en Wi-Fi se reconnecte de lui-même dès qu'il revient sur le réseau.</value>
+    <value>Branchez un câble USB, débogage activé : le téléphone apparaît seul. Déjà associé en Wi-Fi ? Il revient tout seul sur le réseau.</value>
   </data>
   <data name="ConnectionHeading" xml:space="preserve">
     <value>ÉTAT DE LA CONNEXION</value>
@@ -559,7 +559,11 @@
     <value>Le téléphone répond. Tout est prêt.</value>
   </data>
   <data name="CheckNoDevice" xml:space="preserve">
-    <value>Aucun téléphone détecté. Que Windows le voie pour les photos ne suffit pas : cela ne prouve que le transfert de fichiers, jamais le débogage. Branchez un câble de données, choisissez « Transfert de fichiers » si le téléphone le demande, et activez le débogage USB. Un appareil déjà associé se reconnecte seul en Wi-Fi.</value>
+    <value>Aucun téléphone détecté. Le voir dans les photos de Windows ne suffit pas :
+1. Branchez un câble de données.
+2. Choisissez « Transfert de fichiers » si le téléphone le demande.
+3. Activez le débogage USB.
+Un téléphone déjà associé en Wi-Fi revient tout seul.</value>
   </data>
   <data name="CheckWaitingAuthorization" xml:space="preserve">
     <value>Le téléphone est là mais n'a pas encore autorisé ce PC. Déverrouillez son écran et acceptez la demande de débogage.</value>
@@ -571,9 +575,9 @@
     <value>Un appareil est branché mais Windows n'a pas pu lire son identité. Le câble, le port ou le connecteur sont en cause, pas le téléphone.</value>
   </data>
   <data name="CheckUsbDriverMissing" xml:space="preserve">
-    <value>Un appareil est branché mais Windows n'a aucun pilote pour lui ; sur un téléphone, c'est son interface de débogage.
-1. Téléchargez le pilote USB de Google sur developer.android.com/studio/run/win-usb et décompressez-le.
-2. Gestionnaire de périphériques › clic droit sur la ligne au triangle jaune › Mettre à jour le pilote › Parcourir mon poste de travail › Choisir parmi une liste › Disque fourni › le fichier android_winusb.inf du dossier › « Android ADB Interface ». Windows demande les droits d'administrateur et peut avertir que le pilote ne semble pas fait pour l'appareil : confirmez.
+    <value>Un appareil est branché, mais Windows n'a pas de pilote pour son débogage :
+1. Téléchargez le pilote USB de Google (developer.android.com/studio/run/win-usb) et décompressez-le.
+2. Gestionnaire de périphériques › clic droit sur la ligne au triangle jaune › Mettre à jour le pilote › Parcourir mon poste de travail › Choisir parmi une liste › Disque fourni › android_winusb.inf › « Android ADB Interface ». Confirmez si Windows avertit.
 3. Débranchez puis rebranchez le câble.</value>
   </data>
   <data name="CheckUsbOther" xml:space="preserve">
@@ -586,33 +590,30 @@
     <value>Un appareil branché que Windows ne lit pas</value>
   </data>
   <data name="CableHelpIntro" xml:space="preserve">
-    <value>Le téléphone se charge peut-être, ce qui ne prouve que l'alimentation. Les fils de données, eux, ne transmettent rien d'exploitable. Voici les pistes, de la plus fréquente à la plus rare.</value>
+    <value>Le téléphone charge mais le PC ne le voit pas : le câble ou le port ne fait passer que le courant. Essayez dans l'ordre :</value>
   </data>
   <data name="CableHelpSteps" xml:space="preserve">
-    <value>Essayez un autre câble. Beaucoup de câbles livrés avec un chargeur n'ont pas de fils de données, et un câble de données abîmé donne exactement ce défaut.
-
-Essayez un port USB 2.0, à l'arrière de la machine plutôt qu'en façade : l'énumération y est plus tolérante et le trajet plus court.
-
-Redémarrez, n'éteignez pas. Avec le démarrage rapide de Windows, éteindre puis rallumer ne réinitialise pas les contrôleurs USB ; seul « Redémarrer » le fait.
-
-Nettoyez le connecteur du téléphone. La poussière de poche empêche le contact des broches de données alors que la charge passe encore.
-
-Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un autre PC. Vous saurez alors lequel des trois est en cause.</value>
+    <value>1. Un autre câble : ceux des chargeurs n'ont souvent pas de fils de données.
+2. Un port USB à l'arrière du PC.
+3. « Redémarrer » Windows : éteindre puis rallumer ne suffit pas.
+4. Nettoyer le connecteur du téléphone.
+5. Ce téléphone sur un autre PC, pour savoir lequel est en cause.</value>
   </data>
   <data name="AdbShellUserAccessDenied" xml:space="preserve">
-    <value>Le téléphone a refusé au PC l'accès à ce profil. S'il s'agit d'un dossier sécurisé, déverrouillez-le sur le téléphone avant de lancer. Sinon, activez « Débogage USB (paramètres de sécurité) » dans les options de développement.</value>
+    <value>Le téléphone refuse au PC l'accès à ce profil. Dossier sécurisé : déverrouillez-le avant de lancer. Sinon, activez « Débogage USB (paramètres de sécurité) » dans les options de développement.</value>
   </data>
   <data name="ScrcpyDisplayTimeoutWithAudio" xml:space="preserve">
     <value>Le téléphone n'a pas ouvert d'écran virtuel à temps. Essayez d'abord sans le son : sur certaines tablettes, l'activer suffit à empêcher l'écran de s'ouvrir.</value>
   </data>
   <data name="BrandSamsungWarning" xml:space="preserve">
-    <value>Si « Débogage USB » est grisé avec « Bloqué(e) par le bloqueur automatique », ou si l'appareil n'est pas détecté du tout, désactivez « Bloqueur automatique » dans Paramètres > Sécurité et confidentialité, puis « Bloquer les connexions USB » dans les autres paramètres de sécurité. Un dossier sécurisé doit être déverrouillé avant le lancement, sans quoi le jeu n'y sera pas trouvé.</value>
+    <value>• « Débogage USB » grisé ou téléphone non détecté : désactivez « Bloqueur automatique » (Paramètres › Sécurité et confidentialité), puis « Bloquer les connexions USB ».
+• Dossier sécurisé : déverrouillez-le avant de lancer, sinon le jeu n'y est pas trouvé.</value>
   </data>
   <data name="BrandOnePlusWarning" xml:space="preserve">
-    <value>Activez aussi « Débogage USB (paramètres de sécurité) » et « Installer via USB » dans le même menu. Sans le premier, l'image s'affiche mais la souris et le clavier ne font rien.</value>
+    <value>Activez aussi « Débogage USB (paramètres de sécurité) », sinon souris et clavier ne font rien, et « Installer via USB », dans le même menu.</value>
   </data>
   <data name="BrandVivoWarning" xml:space="preserve">
-    <value>Activez aussi « Débogage USB (paramètres de sécurité) » et « Installer via USB » dans le même menu. Sans le premier, l'image s'affiche mais la souris et le clavier ne font rien.</value>
+    <value>Activez aussi « Débogage USB (paramètres de sécurité) », sinon souris et clavier ne font rien, et « Installer via USB », dans le même menu.</value>
   </data>
   <data name="SessionRecovering" xml:space="preserve">
     <value>La liaison avec {0} a lâché. Sa fenêtre se rouvre.</value>
@@ -621,7 +622,7 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
     <value>La liaison avec {0} est perdue. Sa fenêtre se rouvrira dès que le téléphone reviendra.</value>
   </data>
   <data name="ReducedRender" xml:space="preserve">
-    <value>{0} : le téléphone fait tourner le jeu en résolution réduite ({1} %), d'où une image floue. Cela vient d'un réglage du téléphone, le mode jeu de cette copie de l'application : le triangle sur sa ligne le remet en standard.</value>
+    <value>{0} : le téléphone fait tourner le jeu à {1} % de sa résolution (mode jeu de cette copie), d'où l'image floue. Le triangle sur sa ligne le remet en standard.</value>
   </data>
   <data name="ReducedRenderTip" xml:space="preserve">
     <value>Le téléphone dessine ce jeu en résolution réduite : cliquez pour corriger</value>
@@ -630,7 +631,7 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
     <value>Image réduite à {0} % par le téléphone</value>
   </data>
   <data name="ReducedRenderExplain" xml:space="preserve">
-    <value>Le mode jeu Android de cette copie du jeu (performance, économie d'énergie…) le fait dessiner plus petit, puis l'agrandit : l'image est floue. Le mode standard le dessine en taille réelle.</value>
+    <value>Le mode jeu Android de cette copie (performance, économie…) dessine le jeu plus petit, puis l'agrandit : l'image est floue. Le mode standard le dessine en taille réelle.</value>
   </data>
   <data name="RestoreStandardMode" xml:space="preserve">
     <value>Remettre le mode standard</value>
@@ -639,10 +640,10 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
     <value>Le jeu redémarre : le personnage est déconnecté quelques secondes.</value>
   </data>
   <data name="ReducedRenderManual" xml:space="preserve">
-    <value>Si l'image reste floue, sur le téléphone : pendant la partie, ouvrez le panneau de jeu (Game Booster chez Samsung, Game Turbo chez Xiaomi), mettez les performances de ce jeu sur Standard, puis relancez le compte.</value>
+    <value>Toujours flou ? Sur le téléphone, en jeu : panneau de jeu (Game Booster chez Samsung, Game Turbo chez Xiaomi) › performances de ce jeu sur Standard, puis relancez le compte.</value>
   </data>
   <data name="GameModeRefused" xml:space="preserve">
-    <value>{0} : le téléphone a refusé de changer le mode jeu. Sur le téléphone, pendant la partie, ouvrez le panneau de jeu (Game Booster chez Samsung, Game Turbo chez Xiaomi), mettez les performances de ce jeu sur Standard, puis relancez le compte.</value>
+    <value>{0} : le téléphone a refusé de changer le mode jeu. Sur le téléphone, en jeu : panneau de jeu (Game Booster chez Samsung, Game Turbo chez Xiaomi) › performances de ce jeu sur Standard, puis relancez le compte.</value>
   </data>
   <data name="GameModeHeading" xml:space="preserve">
     <value>Mode jeu du téléphone</value>
@@ -693,7 +694,7 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
     <value>Mémoire du téléphone saturée ({0} Go disponibles) : les actions peuvent accrocher. Fermez les autres applications, baissez la qualité d'un compte ou redémarrez le téléphone.</value>
   </data>
   <data name="DeviceMemoryCritical" xml:space="preserve">
-    <value>Mémoire du téléphone presque épuisée ({0} Go disponibles) : Android va fermer des applications, le jeu compris. Fermez les autres applications, baissez la qualité d'un compte ou redémarrez le téléphone.</value>
+    <value>Mémoire du téléphone presque épuisée ({0} Go libres) : Android va fermer des applications, le jeu compris. Fermez les autres applications, baissez la qualité d'un compte ou redémarrez le téléphone.</value>
   </data>
   <data name="PhoneUptime" xml:space="preserve">
     <value> (allumé depuis {0} jours)</value>
@@ -708,7 +709,9 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
     <value>Processeur du téléphone saturé par d'autres applications{0} : fermez-les ou redémarrez le téléphone.</value>
   </data>
   <data name="PhoneWifiSpikes" xml:space="preserve">
-    <value>Wi-Fi instable : {0} pics de latence en une minute, jusqu'à {1} ms. Loin de la box, rapprochez le téléphone. Déjà à côté, c'est le téléphone qui met son Wi-Fi en veille entre deux échanges : seul le câble USB l'évite.</value>
+    <value>Wi-Fi instable : {0} pics en une minute, jusqu'à {1} ms.
+• Loin de la box : rapprochez le téléphone.
+• Déjà à côté : c'est sa mise en veille Wi-Fi, seul le câble USB l'évite.</value>
   </data>
   <data name="PcBusy" xml:space="preserve">
     <value>Le PC est chargé à {0} % : fermez les programmes lourds ou passez la qualité en Basse.</value>
@@ -720,7 +723,7 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
     <value>Il ne reste que {0} Go libres sur le téléphone. Faites de la place avant de jouer : le jeu échouera.</value>
   </data>
   <data name="DeviceLinkCrowded" xml:space="preserve">
-    <value>Le canal Wi-Fi est encombré : {0} % des trames doivent être renvoyées. L'image saccadera et la première image tardera. Un autre canal, ou se rapprocher de la box, est le geste qui apporte le plus.</value>
+    <value>Canal Wi-Fi encombré : {0} % des trames renvoyées, l'image saccadera. Changer de canal sur la box, ou rapprocher le téléphone, aide le plus.</value>
   </data>
   <data name="DeviceOn24GHz" xml:space="preserve">
     <value>Le téléphone est sur la bande 2,4 GHz. L'image saccadera plus qu'en 5 GHz ; changer de bande est le geste qui apporte le plus.</value>
@@ -744,10 +747,10 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
     <value>Suivre le réglage commun</value>
   </data>
   <data name="InstanceQualityTip" xml:space="preserve">
-    <value>La qualité de ce compte seul. Un compte principal mérite mieux que les mules qui le suivent, et ce qu'on leur épargne est autant de processeur, de bande passante, de chaleur et de batterie en moins.</value>
+    <value>La qualité de ce compte seul. Baissez-la pour les comptes que vous ne jouez pas : autant de processeur, de chaleur et de batterie en moins.</value>
   </data>
   <data name="InstanceZoomTip" xml:space="preserve">
-    <value>La distance de ce compte seul. Elle agit sur la densité de l'écran vu par Android : à taille de fenêtre égale, le jeu montre plus ou moins de terrain.</value>
+    <value>La distance de ce compte seul : plus ou moins de terrain visible, à taille de fenêtre égale.</value>
   </data>
   <data name="InstanceZoomWaitsForReopen" xml:space="preserve">
     <value>Vaut à la prochaine ouverture de cette fenêtre</value>
@@ -834,25 +837,25 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
     <value>Ce fichier n'a pas pu être lu.</value>
   </data>
   <data name="DisplayStaysLocked" xml:space="preserve">
-    <value>Le téléphone est verrouillé, et ses fenêtres de jeu montrent donc son écran de verrouillage au lieu du jeu. Ce téléphone ne sait pas créer un afficheur virtuel déverrouillé, et Android y impose son verrou. Déverrouillez-le : les fenêtres montrent alors le jeu, et le gardent tant que l'une d'elles reste ouverte.</value>
+    <value>Téléphone verrouillé : ses fenêtres montrent l'écran de verrouillage au lieu du jeu, ce téléphone ne sait pas l'éviter. Déverrouillez-le : le jeu revient et reste tant qu'une fenêtre est ouverte.</value>
   </data>
   <data name="DeviceThrottling" xml:space="preserve">
     <value>L'appareil chauffe et commence à se brider. Débranchez le chargeur, fermez un compte ou descendez d'un palier de qualité, et il repartira.</value>
   </data>
   <data name="DeviceThrottlingSevere" xml:space="preserve">
-    <value>L'appareil est trop chaud et se bride lourdement. Débranchez le chargeur, fermez un compte ou descendez d'un palier sans attendre : en dessous, Android suspend les fenêtres le temps qu'il refroidisse.</value>
+    <value>Téléphone trop chaud, fortement bridé. Débranchez le chargeur, fermez un compte ou baissez la qualité : sinon Android suspend les fenêtres le temps de refroidir.</value>
   </data>
   <data name="DeadInputTitle" xml:space="preserve">
     <value>Rien ne répond dans la fenêtre</value>
   </data>
   <data name="DeadInputExplanation" xml:space="preserve">
-    <value>L'image s'affiche, la fenêtre s'ouvre, et pourtant les clics et les frappes ne font rien. Aucune erreur n'apparaît, parce qu'il n'y en a pas : l'appareil accepte de montrer son écran, mais pas de recevoir vos gestes. C'est une autorisation à part, et elle se donne sur le téléphone.</value>
+    <value>L'image s'affiche, mais clics et frappes ne font rien, sans aucune erreur : le téléphone accepte de montrer son écran, pas de recevoir vos gestes. C'est une autorisation à part, à donner sur le téléphone.</value>
   </data>
   <data name="DeadInputTest" xml:space="preserve">
     <value>Tester l'appareil</value>
   </data>
   <data name="DeadInputTestHelp" xml:space="preserve">
-    <value>Le test demande à l'appareil d'accepter un événement d'entrée, avec la touche qu'Android appelle « inconnue » et qui ne déclenche rien nulle part. Il dit en une seconde ce qu'on met sinon une soirée à découvrir.</value>
+    <value>Envoie au téléphone une touche qui ne fait rien : sa réponse dit en une seconde s'il accepte vos clics.</value>
   </data>
   <data name="DeadInputTestRunning" xml:space="preserve">
     <value>Question posée à l'appareil…</value>
@@ -873,13 +876,13 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
     <value>Autoriser la simulation d'entrée</value>
   </data>
   <data name="DeadInputSecurityHelp" xml:space="preserve">
-    <value>Dans les options de développement, activez la ligne dont la description dit « Accorder les autorisations et simulation d'entrée via le débogage USB ». Selon la marque elle s'appelle « Débogage USB (paramètres de sécurité) » ou « Débogage USB (réglages de sécurité) ». C'est la cause la plus fréquente, et de loin.</value>
+    <value>La cause la plus fréquente. Dans les options de développement, activez « Débogage USB (paramètres de sécurité) », ou « réglages de sécurité » selon la marque. Sa description parle de « simulation d'entrée via le débogage USB ».</value>
   </data>
   <data name="DeadInputCable" xml:space="preserve">
     <value>Le câble doit transférer des données</value>
   </data>
   <data name="DeadInputCableHelp" xml:space="preserve">
-    <value>Quand le téléphone demande le mode de connexion, choisissez « Transfert de fichiers » et non « Recharge ». Un câble resté en recharge laisse l'écran s'afficher tout en refusant le reste. Si la question n'apparaît pas, essayez un autre câble : beaucoup de câbles livrés avec un chargeur n'ont pas de fils de données.</value>
+    <value>Quand le téléphone demande le mode de connexion, choisissez « Transfert de fichiers », pas « Recharge » : en recharge, l'image s'affiche mais le reste est refusé. Pas de question ? Essayez un autre câble.</value>
   </data>
   <data name="SimulatedKeyboard" xml:space="preserve">
     <value>Clavier physique simulé</value>
@@ -888,19 +891,23 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
     <value>Présente le clavier au téléphone comme un clavier branché, au lieu de taper par son clavier virtuel.</value>
   </data>
   <data name="SimulatedKeyboardHelp" xml:space="preserve">
-    <value>À activer quand la fenêtre répond à la souris mais que rien ne s'écrit : le clavier virtuel de certaines marques avale les caractères. En échange, le téléphone lit vos touches selon sa propre disposition Android : réglez-la comme celle de votre PC, sinon un AZERTY tape en QWERTY.</value>
+    <value>À activer si la souris marche mais que rien ne s'écrit. Réglez alors la disposition du clavier Android comme celle du PC, sinon un AZERTY tape en QWERTY.</value>
   </data>
   <data name="DeadInputRevoke" xml:space="preserve">
     <value>Révoquer les autorisations de débogage USB</value>
   </data>
   <data name="DeadInputRevokeHelp" xml:space="preserve">
-    <value>Dans les options pour les développeurs, appuyez sur « Révoquer les autorisations de débogage USB », débranchez l'appareil, rebranchez-le et acceptez de nouveau la demande. Cela efface une autorisation restée à moitié accordée, et c'est l'étape qui débloque les cas où tout paraît pourtant bien réglé.</value>
+    <value>Options de développement › « Révoquer les autorisations de débogage USB ». Débranchez, rebranchez, puis acceptez de nouveau la demande. Débloque les cas où tout semble pourtant bien réglé.</value>
   </data>
   <data name="DeadInputToggleDeveloper" xml:space="preserve">
     <value>Tout éteindre, redémarrer, tout rallumer</value>
   </data>
   <data name="DeadInputToggleDeveloperHelp" xml:space="preserve">
-    <value>Débranchez d'abord le téléphone du PC. Éteignez ensuite les interrupteurs de débogage, jusqu'à trois selon la marque : débogage USB, installation via USB, et débogage USB (paramètres de sécurité). Redémarrez le téléphone, rallumez-les une fois redémarré, puis rebranchez-le en mode « Transfert de fichiers » et acceptez la demande. L'ordre compte, et le redémarrage aussi : les rallumer sans lui laisse souvent le réglage coché sans être appliqué.</value>
+    <value>1. Débranchez le téléphone.
+2. Éteignez ses interrupteurs de débogage : débogage USB, installation via USB, débogage USB (paramètres de sécurité).
+3. Redémarrez le téléphone, puis rallumez-les.
+4. Rebranchez en « Transfert de fichiers » et acceptez la demande.
+L'ordre et le redémarrage comptent : sans eux, le réglage reste coché sans être appliqué.</value>
   </data>
   <data name="OnBrandUseClonePath" xml:space="preserve">
     <value>
@@ -1082,7 +1089,7 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
     <value>Une fenêtre se fige au bout d'un moment</value>
   </data>
   <data name="SleepExplanation" xml:space="preserve">
-    <value>DT Hub garde actif l'écran virtuel où tourne le jeu, mais Android endort de lui-même les applications qu'il juge inactives, et une fenêtre de jeu qui n'est pas au premier plan en fait partie. Les fenêtres se figent alors une à une, la plus ancienne d'abord. Un réglage suffit à l'empêcher, et il tient.</value>
+    <value>Android endort les applications qu'il croit inactives, dont une fenêtre de jeu qui n'est pas au premier plan : les fenêtres se figent alors une à une. Un seul réglage l'empêche, et il tient.</value>
   </data>
   <data name="OpenBatterySetting" xml:space="preserve">
     <value>1. Ouvrir le réglage de batterie du jeu</value>
@@ -1097,13 +1104,13 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
     <value>2. Le retirer des restrictions</value>
   </data>
   <data name="RemoveRestrictionsHelp" xml:space="preserve">
-    <value>Le jeu doit pouvoir tourner en arrière-plan sans limite. C'est la seule manipulation nécessaire dans la plupart des cas, et elle survit aux redémarrages.</value>
+    <value>Le jeu doit pouvoir tourner en arrière-plan sans limite. Souvent le seul réglage nécessaire, et il survit aux redémarrages.</value>
   </data>
   <data name="RepeatForEachCopy" xml:space="preserve">
     <value>3. Recommencer pour chaque copie du jeu</value>
   </data>
   <data name="RepeatForEachCopyHelp" xml:space="preserve">
-    <value>Une application clonée, ou installée dans un second profil, est une application distincte aux yeux d'Android : elle a ses propres restrictions, et le réglage fait sur l'une ne vaut pas pour l'autre.</value>
+    <value>Chaque copie du jeu, clonée ou dans un autre profil, a ses propres réglages : refaites-le pour chacune.</value>
   </data>
   <data name="AlreadyFrozenHelp" xml:space="preserve">
     <value>Une fenêtre déjà figée se répare en la relançant : le bouton « Relancer » de sa ligne redémarre le jeu sans refermer la fenêtre.</value>
@@ -1262,7 +1269,7 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
     <value>La plus grande des quatre tailles. Elle couvre la zone utile de l'écran, barre des tâches exclue : ce n'est pas le plein écran.</value>
   </data>
   <data name="ActionFullscreenDetail" xml:space="preserve">
-    <value>Couvre l'écran entier, sans bordure. Appuyer à nouveau, ou sur Échap, en sort et rend à chaque fenêtre la place qu'elle avait. Pendant le plein écran, Échap n'arrive plus au jeu.</value>
+    <value>Plein écran sans bordure. Appuyez de nouveau, ou sur Échap, pour en sortir : pendant le plein écran, Échap n'arrive donc plus au jeu.</value>
   </data>
   <data name="ActionScreenOffDetail" xml:space="preserve">
     <value>Éteint l'écran du téléphone de la fenêtre de jeu, ou de tous les téléphones depuis une autre fenêtre DT Hub, le jeu continue. Appuyé de nouveau, le rallume.</value>
@@ -1376,10 +1383,10 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
     <value>Le profil « {0} » existait déjà mais n'avait plus le jeu. Il a été repris et le jeu y a été réinstallé : Android n'en accepte qu'un seul de ce genre.</value>
   </data>
   <data name="AccountAddedAsWorkProfile" xml:space="preserve">
-    <value>Compte « {0} » ajouté, mais dans un profil professionnel : le téléphone n'accepte qu'un seul profil cloné et il est déjà pris. Ses icônes porteront une valise, et Android y installera de lui-même ses propres applications.</value>
+    <value>Compte « {0} » ajouté dans un profil professionnel : le seul profil cloné du téléphone est déjà pris. Ses icônes porteront une valise, et Android y ajoutera ses propres applications.</value>
   </data>
   <data name="ProfileSlotsFull" xml:space="preserve">
-    <value>Ce téléphone n'accepte qu'un profil cloné et un profil professionnel, et les deux servent déjà. Pour un compte de plus, activez les applications dupliquées dans ses réglages.</value>
+    <value>Ce téléphone n'accepte qu'un profil cloné et un profil professionnel, déjà pris. Pour un compte de plus, activez les applications dupliquées dans ses réglages.</value>
   </data>
   <data name="ProfileCreationRefused" xml:space="preserve">
     <value>Le téléphone a refusé de créer un profil. Certaines surcouches l'interdisent : passez alors par leurs réglages de comptes multiples.</value>
@@ -1454,7 +1461,7 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
     <value>Le profil « {0} » n'a pas pu être démarré. Ouvrez-le une fois sur le téléphone, puis réessayez.</value>
   </data>
   <data name="PairedButPortUnknown" xml:space="preserve">
-    <value>Le téléphone est appairé, mais son port de connexion n'a pas été trouvé sur le réseau. Saisissez le nombre qui suit les « : » dans « Adresse IP et port », sur l'écran principal Débogage sans fil, pas celui du code.</value>
+    <value>Téléphone associé, mais son port reste introuvable. Saisissez le nombre après « : » dans « Adresse IP et port », sur l'écran Débogage sans fil, pas celui du code.</value>
   </data>
   <data name="PairingAddressUnreachable" xml:space="preserve">
     <value>L'adresse annoncée sur le réseau ne répond pas, le code n'a donc pas été utilisé. Saisissez l'« adresse IP et port » affichée sur le téléphone, sous le code d'association.</value>
@@ -1553,7 +1560,7 @@ Le détail se trouve dans les journaux :
     <value>Oublier {0} ?</value>
   </data>
   <data name="ForgetDeviceConsequence" xml:space="preserve">
-    <value>Ses comptes et leurs réglages seront effacés, et ce PC cessera de s'y connecter de lui-même. Le téléphone garde sa propre liste : retirez-y ce PC depuis « Débogage sans fil » si vous voulez l'en effacer aussi. Pour le retrouver, rebranchez son câble USB ou associez-le à nouveau en sans-fil.</value>
+    <value>Ses comptes et leurs réglages seront effacés, et ce PC ne s'y connectera plus seul. Pour retirer aussi ce PC du téléphone : « Débogage sans fil ». Pour le retrouver : rebranchez-le en USB ou réassociez-le.</value>
   </data>
   <data name="GameNotInstalled" xml:space="preserve">
     <value>Jeu non installé</value>
@@ -1616,7 +1623,7 @@ Le détail se trouve dans les journaux :
     <value>Afficher l'état du téléphone et le temps de jeu dans le titre des fenêtres</value>
   </data>
   <data name="TitleShowsStatusTip" xml:space="preserve">
-    <value>Chaque fenêtre de jeu indique la batterie de son téléphone, la chauffe et le lag quand il y en a, et depuis combien de temps elle est ouverte, à côté du nom du compte. Mis à jour toutes les trente secondes environ.</value>
+    <value>Ajoute au titre de chaque fenêtre la batterie, la chauffe et le lag éventuels, et le temps de jeu. Mis à jour toutes les 30 secondes environ.</value>
   </data>
   <data name="FolderDoesNotExistYet" xml:space="preserve">
     <value>Le dossier n'existe pas encore :
@@ -1951,7 +1958,7 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
     <value>Signaler un problème</value>
   </data>
   <data name="ReportProblemTip" xml:space="preserve">
-    <value>Copiez le rapport, puis collez-le dans le formulaire qui s'ouvre. Rien n'est envoyé tant que vous n'appuyez pas : le rapport va dans votre presse-papiers et vous en faites ce que vous voulez.</value>
+    <value>Copiez le rapport, puis collez-le dans le formulaire qui s'ouvre. Rien n'est envoyé sans vous.</value>
   </data>
   <data name="ReportOnDiscord" xml:space="preserve">
     <value>Signaler sur Discord</value>
@@ -2013,9 +2020,6 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="BrandStandardClonePath" xml:space="preserve">
     <value>Paramètres  ›  Système  ›  Utilisateurs multiples</value>
   </data>
-  <data name="BrandStandardCloneNote" xml:space="preserve">
-    <value>Android sans surcouche n'a pas de fonction de duplication. La voie est d'ajouter un second utilisateur, puis d'y installer le jeu depuis le Play Store. DT Hub ouvre chaque profil sur son propre affichage, sans avoir à basculer de l'un à l'autre.</value>
-  </data>
   <data name="BrandStandardBatteryFeature" xml:space="preserve">
     <value>Sans restriction</value>
   </data>
@@ -2040,9 +2044,6 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="BrandXiaomiClonePath" xml:space="preserve">
     <value>Paramètres  ›  Applications  ›  Applications doubles</value>
   </data>
-  <data name="BrandXiaomiCloneNote" xml:space="preserve">
-    <value>Cette marque propose aussi « Second espace », qui crée un espace complet plutôt qu'une simple copie. Les deux conviennent : DT Hub voit les instances dans les deux cas.</value>
-  </data>
   <data name="BrandXiaomiBatteryFeature" xml:space="preserve">
     <value>Aucune restriction, et Démarrage automatique</value>
   </data>
@@ -2050,7 +2051,7 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
     <value>Paramètres  ›  Applications  ›  Gérer les applications  ›  DOFUS Touch  ›  Économiseur de batterie</value>
   </data>
   <data name="BrandXiaomiBatteryNote" xml:space="preserve">
-    <value>Cette marque est la plus agressive du lot. Verrouillez aussi le jeu dans la vue des applications récentes, en tirant sa vignette vers le bas : sans ce verrou, MIUI comme HyperOS la ferme au bout de quelques minutes malgré le réglage de batterie.</value>
+    <value>Verrouillez aussi le jeu dans les applications récentes, en tirant sa vignette vers le bas : sinon MIUI et HyperOS le ferment au bout de quelques minutes.</value>
   </data>
   <data name="BrandXiaomiBuildNumberPath" xml:space="preserve">
     <value>Paramètres  ›  À propos du téléphone, ou de la tablette</value>
@@ -2062,7 +2063,9 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
     <value>Paramètres  ›  Paramètres supplémentaires  ›  Options pour les développeurs</value>
   </data>
   <data name="BrandXiaomiWarning" xml:space="preserve">
-    <value>Activez « Débogage USB (réglages de sécurité) » : sans elle, l'image s'affiche mais la souris et le clavier ne font rien. Sur les anciennes versions, relevé sur Android 11, il fallait en plus une carte SIM insérée, et le réglage ne survivait pas à un redémarrage sans elle. Rien de tel sur HyperOS 3 et Android 16. Si les clics restent morts sur Android 14 ou plus, désactivez « Écriture manuscrite au stylet », tout en bas des options de développement.</value>
+    <value>• Activez « Débogage USB (réglages de sécurité) », sinon la souris et le clavier ne font rien.
+• Android 11 et anciens MIUI : il faut aussi une carte SIM, sinon le réglage saute au redémarrage.
+• Clics toujours sans effet (Android 14 et plus) : désactivez « Écriture manuscrite au stylet », en bas des options de développement.</value>
   </data>
   <data name="BrandSamsungName" xml:space="preserve">
     <value>Samsung</value>
@@ -2072,9 +2075,6 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   </data>
   <data name="BrandSamsungClonePath" xml:space="preserve">
     <value>l'application Island du Play Store, qui crée un profil de travail où cloner le jeu</value>
-  </data>
-  <data name="BrandSamsungCloneNote" xml:space="preserve">
-    <value>Samsung ferme le Dossier sécurisé au PC, même déverrouillé : DT Hub ne peut pas y ouvrir le jeu. « Dual Messenger » ne duplique que les applications de messagerie. Island crée un profil de travail, que DT Hub ouvre comme les autres comptes. Si la connexion reste bloquée dans Island, clonez aussi Chrome dans le profil de travail. Pour un compte de plus, une application de clonage tierce avec publicités comme Parallel Space fonctionne aussi : affichez-la depuis « Afficher une application déjà installée », puis lancez DOFUS Touch à l'intérieur. Si la connexion reste bloquée sur une page Chrome, touchez les trois points et ouvrez-la dans Chrome.</value>
   </data>
   <data name="BrandSamsungBatteryFeature" xml:space="preserve">
     <value>Autoriser l'activité en arrière-plan</value>
@@ -2130,9 +2130,6 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="BrandHonorClonePath" xml:space="preserve">
     <value>Paramètres  ›  Applications  ›  Double instance d'application</value>
   </data>
-  <data name="BrandHonorCloneNote" xml:space="preserve">
-    <value>Sur les versions sans services Google, l'installation de la seconde copie peut demander de passer par la boutique du constructeur.</value>
-  </data>
   <data name="BrandHonorBatteryFeature" xml:space="preserve">
     <value>Lancement d'applications, en mode manuel</value>
   </data>
@@ -2163,9 +2160,6 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="BrandVivoClonePath" xml:space="preserve">
     <value>Paramètres  ›  Applications  ›  Clonage d'applications</value>
   </data>
-  <data name="BrandVivoCloneNote" xml:space="preserve">
-    <value>Selon la version de Funtouch ou d'OriginOS, la fonction se trouve sous Applications, ou sous « Applications et autorisations ».</value>
-  </data>
   <data name="BrandVivoBatteryFeature" xml:space="preserve">
     <value>Consommation en arrière-plan, réglée sur Autoriser</value>
   </data>
@@ -2192,9 +2186,6 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   </data>
   <data name="BrandAmazonClonePath" xml:space="preserve">
     <value>Paramètres  ›  Profils et sécurité familiale</value>
-  </data>
-  <data name="BrandAmazonCloneNote" xml:space="preserve">
-    <value>Fire OS n'a pas de fonction de duplication et ses profils ne sont pas ceux d'Android : DT Hub n'y verra vraisemblablement qu'une seule instance. À réserver aux essais.</value>
   </data>
   <data name="BrandAmazonBatteryFeature" xml:space="preserve">
     <value>Optimisation de la batterie, à désactiver</value>
@@ -2257,7 +2248,7 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
     <value>Profil</value>
   </data>
   <data name="BatteryNotPrepared" xml:space="preserve">
-    <value>Android n'a pas ce jeu dans sa liste des applications à l'abri de l'économie d'énergie. Il finira par le geler, et les fenêtres se figeront une à une, la plus ancienne d'abord. Le réglage qui compte pour lui s'appelle « Sans restriction », dans la fiche batterie du jeu ; votre marque peut en demander d'autres en plus, et le lien Aide les énumère.</value>
+    <value>Le jeu n'est pas à l'abri de l'économie d'énergie : Android finira par le geler, et ses fenêtres se figeront une à une. Réglez « Sans restriction » dans la fiche batterie du jeu. Le lien Aide montre où, selon la marque.</value>
   </data>
   <data name="NamedFinding" xml:space="preserve">
     <value>{0} : {1}</value>
@@ -2269,16 +2260,21 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
     <value>À réassocier</value>
   </data>
   <data name="ToPairAgainTip" xml:space="preserve">
-    <value>Ce téléphone s'annonce sur le réseau mais refuse ce PC : il ne reconnaît plus sa clé. Rallumer le débogage sans fil ne suffit pas, il faut refaire l'association. « Associer un nouvel appareil », et sur le téléphone « Associer l'appareil avec un code d'association ».</value>
+    <value>Ce téléphone refuse ce PC : il a oublié l'association. Faites « Associer un nouvel appareil » ici, et sur le téléphone « Associer l'appareil avec un code d'association ». Rallumer le débogage sans fil ne suffit pas.</value>
   </data>
   <data name="OfflineTip" xml:space="preserve">
-    <value>Le téléphone doit être allumé et son débogage actif, par câble ou sans fil selon la façon dont il était relié. Si vous ne savez plus laquelle, rebranchez-le par son câble : c'est le chemin le plus court pour le revoir apparaître.</value>
+    <value>• Téléphone allumé, débogage actif, par câble ou en Wi-Fi.
+• Dans le doute, rebranchez-le par câble : c'est le plus rapide.</value>
   </data>
   <data name="OfflineTipWireless" xml:space="preserve">
-    <value>Le téléphone doit être allumé, sur le même réseau Wi-Fi que ce PC, et son débogage sans fil actif. Un téléphone qui décroche souvent est souvent trop loin de la box ou derrière un mur : le déplacer suffit à le faire revenir. Si tout cela est vrai, c'est que l'association a été perdue : réassociez-le avec « Associer un nouvel appareil ». Un téléphone oublie un PC tout seul plus souvent qu'on ne croit, et rallumer le débogage sans fil ne la rétablit pas.</value>
+    <value>• Téléphone allumé, sur le même Wi-Fi que le PC.
+• Ouvrez Débogage sans fil sur le téléphone : ça le relance.
+• Il décroche souvent ? Rapprochez-le de la box.
+• Toujours rien : « Associer un nouvel appareil ».</value>
   </data>
   <data name="OfflineTipUsb" xml:space="preserve">
-    <value>Le téléphone doit être allumé, relié par son câble, et son débogage USB actif. Un câble prévu pour la seule charge ne transporte pas de données : c'est la panne la plus fréquente, et rien ne la signale. Essayez un autre câble et un autre port avant de chercher plus loin.</value>
+    <value>• Téléphone allumé, câble branché, débogage USB actif.
+• Panne la plus fréquente : un câble de charge seule. Essayez un autre câble et un autre port.</value>
   </data>
   <data name="OfflineHowUsb" xml:space="preserve">
     <value>Vérifiez le câble, puis le débogage USB sur le téléphone.</value>
@@ -2293,7 +2289,7 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
     <value>Par « Associer un nouvel appareil », en haut.</value>
   </data>
   <data name="DeadInputFound" xml:space="preserve">
-    <value>Ce téléphone refuse les clics et les frappes venus du PC : ses fenêtres montrent le jeu et ne répondent à rien. Le réglage s'appelle « Débogage USB (paramètres de sécurité) », et le lien Aide dit où. Sur les anciennes versions de Xiaomi, relevé sur Android 11, il réclame en plus une carte SIM et ne survit pas à un redémarrage sans elle.</value>
+    <value>Ce téléphone refuse les clics et les frappes du PC : le jeu s'affiche mais rien ne répond. Activez « Débogage USB (paramètres de sécurité) », le lien Aide montre où. Anciens Xiaomi (Android 11) : il faut aussi une carte SIM.</value>
   </data>
   <data name="SoundStuckAfterReopen" xml:space="preserve">
     <value>Le son du jeu n'est pas revenu après la réouverture des fenêtres. Redémarrez le téléphone pour le retrouver.</value>
@@ -2305,7 +2301,7 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
     <value>Dernier recours pour un téléphone qui refuse les clics venus du PC : cette souris ne passe pas par l'entrée Android que le constructeur bloque.</value>
   </data>
   <data name="SimulatedMouseHelp" xml:space="preserve">
-    <value>En échange, le PC perd son propre curseur tant qu'une fenêtre de jeu a le focus : une souris simulée envoie des déplacements, pas des positions. Appuyez sur ALT GAUCHE pour récupérer le curseur, ou sur l'une des touches Windows. Convient à un compte seul, pénible à plusieurs.</value>
+    <value>Le curseur du PC disparaît tant qu'une fenêtre de jeu a le focus : Alt gauche ou la touche Windows le rend. Bien pour un compte seul, pénible à plusieurs.</value>
   </data>
   <data name="PreviousMonth" xml:space="preserve">
     <value>Mois précédent</value>
@@ -2389,7 +2385,7 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
     <value>{0} : sa fenêtre se fige</value>
   </data>
   <data name="ToolSleepExplanation" xml:space="preserve">
-    <value>Android, et par-dessus l'économiseur de batterie propre à certaines marques, endort les applications qu'il juge inactives. Contrairement au jeu, {0} ne garde pas son écran allumé : sans ce réglage, sa fenêtre se fige au bout d'une minute environ et ne répond plus aux clics.</value>
+    <value>Android, et l'économiseur de certaines marques, endort les applications inactives. Sans ce réglage, la fenêtre de {0} se fige au bout d'une minute environ.</value>
   </data>
   <data name="ToolOpenBatterySetting" xml:space="preserve">
     <value>1. Ouvrir le réglage de batterie de {0}</value>
@@ -2407,30 +2403,35 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
     <value>Les clics du PC ne passent pas</value>
   </data>
   <data name="ShortcutsMouseNotice" xml:space="preserve">
-    <value>Une touche seule fonctionne aussi, Tab par exemple. Pour un bouton de souris, faites-lui envoyer une touche par le logiciel de votre souris, puis choisissez cette touche ici : DT Hub ne surveille pas la souris, ce que les antivirus prendraient pour un espion.</value>
+    <value>Une touche seule marche aussi, Tab par exemple. Pour un bouton de souris : faites-lui envoyer une touche avec le logiciel de la souris, puis choisissez cette touche ici.</value>
   </data>
   <data name="HotkeyBareKeyNotice" xml:space="preserve">
     <value>Dans le chat de DOFUS Touch, {0} ne s'écrira plus : DT Hub s'en sert pour « {1} ».</value>
   </data>
   <data name="CheckHonorNotDebugging" xml:space="preserve">
-    <value>Un téléphone Honor est branché, mais il ne s'ouvre pas au débogage. Sur le téléphone :
-1. Ouvrez la notification USB et choisissez un mode de transfert, de fichiers ou de photos, pas « Recharge uniquement ».
-2. Dans Paramètres › Système et mises à jour › Options pour les développeurs, activez « Débogage USB », et « Débogage ADB en mode Charger uniquement » si votre version le propose.
-3. Acceptez la demande d'autorisation qui s'affiche.</value>
+    <value>Téléphone Honor branché, mais son débogage est fermé. Sur le téléphone :
+1. Notification USB › mode transfert de fichiers ou de photos, pas « Recharge uniquement ».
+2. Paramètres › Système et mises à jour › Options pour les développeurs : activez « Débogage USB », et « Débogage ADB en mode Charger uniquement » s'il existe.
+3. Acceptez la demande d'autorisation.</value>
   </data>
   <data name="CheckHuaweiNotDebugging" xml:space="preserve">
-    <value>Un téléphone Huawei est branché, mais il ne s'ouvre pas au débogage. Sur le téléphone :
-1. Dans Paramètres › Système et mises à jour › Options pour les développeurs, activez « Débogage USB » et « Débogage ADB en mode Charger uniquement ».
-2. Débranchez puis rebranchez le câble, et acceptez la demande d'autorisation qui s'affiche.</value>
+    <value>Téléphone Huawei branché, mais son débogage est fermé. Sur le téléphone :
+1. Paramètres › Système et mises à jour › Options pour les développeurs : activez « Débogage USB » et « Débogage ADB en mode Charger uniquement ».
+2. Débranchez puis rebranchez le câble, et acceptez la demande d'autorisation.</value>
   </data>
   <data name="SecureFolderUnreachable" xml:space="preserve">
-    <value>{0} : déverrouillez le Dossier sécurisé, le jeu y est et DT Hub ne le voit pas tant qu'il est fermé. Ses comptes apparaissent ici quelques secondes après. Pour qu'il ne se reverrouille pas en jeu : {1}  ›  « Verrouillage auto. Dossier sécurisé », choisissez l'option la plus longue. Si rien n'apparaît une fois déverrouillé, Samsung bloque l'accès depuis un PC sur ce téléphone : installez le jeu hors du Dossier sécurisé.</value>
+    <value>{0} : déverrouillez le Dossier sécurisé, ses comptes apparaissent quelques secondes après.
+Pour qu'il ne se reverrouille pas en jeu : {1}  ›  « Verrouillage auto. Dossier sécurisé » › l'option la plus longue.
+Rien n'apparaît une fois déverrouillé ? Samsung bloque le PC sur ce téléphone : installez le jeu hors du Dossier sécurisé.</value>
   </data>
   <data name="SecureFolderForbidden" xml:space="preserve">
-    <value>{0} : Samsung interdit au PC l'accès au Dossier sécurisé sur ce téléphone, même déverrouillé, et DT Hub ne peut pas y ouvrir le jeu. Installez ce compte hors du Dossier sécurisé, par exemple dans un profil de travail créé avec l'application Island du Play Store : DT Hub l'ouvre comme les autres comptes. Si la connexion reste bloquée dans Island, clonez aussi Chrome dans le profil de travail. Pour un compte de plus, une application de clonage tierce avec publicités comme Parallel Space fonctionne aussi : affichez-la depuis « Afficher une application déjà installée », puis lancez DOFUS Touch à l'intérieur. Si la connexion reste bloquée sur une page Chrome, touchez les trois points et ouvrez-la dans Chrome.</value>
+    <value>{0} : Samsung interdit au PC d'ouvrir le jeu dans le Dossier sécurisé, même déverrouillé.
+• Installez ce compte dans un profil de travail créé avec l'app Island (Play Store) : DT Hub l'ouvre comme les autres. Si la connexion bloque, clonez aussi Chrome dans ce profil.
+• Ou utilisez une app de clonage comme Parallel Space : affichez-la avec « + », puis lancez DOFUS Touch dedans. Si la connexion bloque sur une page Chrome, ⋮ › Ouvrir dans Chrome.</value>
   </data>
   <data name="SecureFolderLocked" xml:space="preserve">
-    <value>{0} : le Dossier sécurisé s'est verrouillé, déverrouillez-le pour retrouver ses comptes. Ils reviennent quelques secondes après. Pour qu'il ne se reverrouille pas en jeu : {1}  ›  « Verrouillage auto. Dossier sécurisé », choisissez l'option la plus longue.</value>
+    <value>{0} : le Dossier sécurisé s'est verrouillé. Déverrouillez-le, ses comptes reviennent en quelques secondes.
+Pour l'éviter : {1}  ›  « Verrouillage auto. Dossier sécurisé » › l'option la plus longue.</value>
   </data>
   <data name="SecureFolderPathRecent" xml:space="preserve">
     <value>Paramètres  ›  Sécurité et confidentialité  ›  Autres paramètres de sécurité  ›  Dossier sécurisé</value>
@@ -2568,16 +2569,16 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
     <value>Ouvrir lomitall.fr dans une grande fenêtre : guides, outils, classes, stuffs et donjons de DOFUS Touch.</value>
   </data>
   <data name="CheckAdbDriverUnusable" xml:space="preserve">
-    <value>Le téléphone propose bien son débogage, mais le pilote que Windows lui a donné ne le rend pas à adb, souvent celui d'un logiciel du constructeur comme HiSuite. Quittez d'abord ce logiciel, puis :
-1. Téléchargez le pilote USB de Google sur developer.android.com/studio/run/win-usb et décompressez-le.
-2. Gestionnaire de périphériques › clic droit sur la ligne du téléphone, souvent « ADB Interface » ou « HDB Interface » › Mettre à jour le pilote › Parcourir mon poste de travail › Choisir parmi une liste › Disque fourni › le fichier android_winusb.inf du dossier › « Android ADB Interface ». Windows demande les droits d'administrateur et peut avertir que le pilote ne semble pas fait pour l'appareil : confirmez.
+    <value>Le PC voit le téléphone, mais son pilote, souvent celui de HiSuite ou d'un autre logiciel du constructeur, bloque le débogage. Quittez ce logiciel, puis :
+1. Téléchargez le pilote USB de Google (developer.android.com/studio/run/win-usb) et décompressez-le.
+2. Gestionnaire de périphériques › clic droit sur le téléphone (« ADB Interface » ou « HDB Interface ») › Mettre à jour le pilote › Parcourir mon poste de travail › Choisir parmi une liste › Disque fourni › android_winusb.inf › « Android ADB Interface ». Confirmez si Windows avertit.
 3. Débranchez puis rebranchez le câble.</value>
   </data>
   <data name="Density" xml:space="preserve">
     <value>Densité</value>
   </data>
   <data name="DensityTip" xml:space="preserve">
-    <value>La densité de l'écran du jeu, en points par pouce, pour la définition max. Plus elle est haute, plus l'interface du jeu est grande. Une fenêtre plus petite reçoit sa propre densité, pour garder la même interface.</value>
+    <value>Densité de l'écran du jeu, en points par pouce, à la définition max : plus haute, l'interface est plus grande. Une fenêtre plus petite garde la même interface.</value>
   </data>
   <data name="DensityFollowsDistance" xml:space="preserve">
     <value>Selon la distance</value>
@@ -2598,7 +2599,7 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
     <value>Masquer cette alerte</value>
   </data>
   <data name="MuteBatteryAlertNote" xml:space="preserve">
-    <value>Masquer l'alerte ne règle rien : si Android met vraiment {0} en veille, ses fenêtres se figeront quand même. À faire seulement si ce réglage n'existe pas sur cet appareil. Cette aide reste dans Aide, d'où vous pourrez réafficher l'alerte.</value>
+    <value>Masquer l'alerte ne règle rien : si Android met {0} en veille, ses fenêtres se figeront quand même. Seulement si ce réglage n'existe pas sur l'appareil. L'alerte se réaffiche depuis cette aide.</value>
   </data>
   <data name="UnmuteBatteryAlerts" xml:space="preserve">
     <value>Réafficher les alertes batterie masquées</value>
