@@ -173,7 +173,7 @@ used, as read on 2026-10-21:
 - `QuestObjectiveTypes`: `id`, `nameId`, a sentence with `#1`, `#2`, `#3`
   holes that take `parameters[0..2]`. What each hole names depends on the
   type: NPC for types 1, 2, 3, 9, 12 (`#1`); item for 2, 3 (`#2`) and 20
-  (`#1`); monster for 6, 12 (`#2`), 14, 45, 46 (`#1`); area for 5 (`#1`);
+  (`#1`); monster for 12 (`#2`) and 6, 14, 45, 46 (`#1`); area for 5 (`#1`);
   a `data/text` id for 0, 4, 10 (`#1`); the remaining holes are counts.
 
 `data/text` answers `{"<id>": "<text>"}`.

@@ -9,6 +9,7 @@ public class TouchObjectiveTextTests
         (TouchHole.Npc, 447) or (TouchHole.Npc, 119) => "Invented NPC",
         (TouchHole.Item, 1746) => "Invented item",
         (TouchHole.Text, 662825) => "Free text",
+        (TouchHole.Monster, 31) => "Invented monster",
         _ => null,
     };
 
@@ -25,6 +26,12 @@ public class TouchObjectiveTextTests
     [Fact]
     public void Un_texte_libre_vient_des_textes() =>
         Assert.Equal("Free text", TouchObjectiveText.Fill("#1", 0, [662825], Name));
+
+    [Fact]
+    public void Vaincre_en_un_combat_nomme_le_monstre_du_premier_trou() =>
+        Assert.Equal(
+            "Defeat 3 Invented monster in a single fight.",
+            TouchObjectiveText.Fill("Defeat #2 #1 in a single fight.", 6, [31, 3], Name));
 
     [Fact]
     public void Un_nom_manquant_laisse_le_numero() =>

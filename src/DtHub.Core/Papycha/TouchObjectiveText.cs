@@ -17,7 +17,7 @@ public static partial class TouchObjectiveText
     {
         (1 or 2 or 3 or 9 or 12, 1) => TouchHole.Npc,
         (2 or 3, 2) or (20, 1) => TouchHole.Item,
-        (6 or 12, 2) or (14 or 45 or 46, 1) => TouchHole.Monster,
+        (12, 2) or (6 or 14 or 45 or 46, 1) => TouchHole.Monster,
         (5, 1) => TouchHole.Area,
         (0 or 4 or 10, 1) => TouchHole.Text,
         _ => TouchHole.Count,
