@@ -22,6 +22,7 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 - Un lien « Allumer l'écran » ou « Éteindre l'écran » dans l'en-tête du téléphone, affiché dès qu'un de ses comptes est ouvert et faisant ce que fait Ctrl+E, avec un indicateur pendant le changement d'écran.
 - Les comptes perdus avec leur téléphone se rouvrent tout seuls dès qu'il est de retour, et le panneau dit qu'ils attendent.
 - Un lancement qui échoue affiche maintenant un lien vers le dossier des journaux sous son bandeau.
+- La qualité personnalisée propose une définition 1600 x 900, entre 720 et 1080.
 
 ### Modifié
 
