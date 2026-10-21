@@ -966,6 +966,11 @@ public partial class QuestWindow : Window
 
     [LoggerMessage(
         Level = LogLevel.Warning,
+        Message = "Noms officiels du jeu non lus : le catalogue reste celui de Papycha.")]
+    private partial void LogNamesFailed(Exception exception);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
         Message = "Aucune nouvelle de la page après vingt secondes : la vue est rendue.")]
     private partial void LogWaitedInVain();
 
@@ -1133,6 +1138,7 @@ public partial class QuestWindow : Window
     private void OnFinishForAll(object sender, RoutedEventArgs e) => _ = _viewModel.Tracker.FinishForAllAsync();
 
     private bool _indexingReported;
+    private bool _namesReported;
 
     /// <summary>
     /// Indexes, then logs the duration when there was something to
@@ -1160,6 +1166,23 @@ public partial class QuestWindow : Window
         {
             _indexingReported = true;
             LogIndexed(duree.TotalSeconds);
+        }
+
+        if (!_namesReported)
+        {
+            _namesReported = true;
+            _ = ReportNamesAsync();
+        }
+    }
+
+    /// <summary>Logs once why the game's names could not be read, if so.</summary>
+    private async Task ReportNamesAsync()
+    {
+        await _viewModel.NamesRead.ConfigureAwait(true);
+
+        if (_viewModel.NamesFailure is { } failure)
+        {
+            LogNamesFailed(failure);
         }
     }
 

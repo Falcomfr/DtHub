@@ -20,6 +20,7 @@ public sealed class AppPaths : IAppPaths
         ProfilesFile = Path.Combine(Root, "profiles.json");
         CacheDirectory = Path.Combine(Root, "cache");
         QuestCatalogFile = Path.Combine(CacheDirectory, "papycha-quetes.json");
+        TouchNamesFile = Path.Combine(CacheDirectory, "dofus-touch-noms.json");
         LogsDirectory = Path.Combine(Root, "logs");
         ToolsDirectory = Path.Combine(Root, "tools");
         UpdatesDirectory = Path.Combine(Root, "updates");
@@ -33,6 +34,7 @@ public sealed class AppPaths : IAppPaths
     public string CacheDirectory { get; }
 
     public string QuestCatalogFile { get; }
+    public string TouchNamesFile { get; }
     public string LogsDirectory { get; }
     public string ToolsDirectory { get; }
     public string UpdatesDirectory { get; }

@@ -191,8 +191,14 @@ public sealed class QuestTree
         return zone != 0 ? zone : QuestPathSection;
     }
 
+    /// <summary>
+    /// Matched on the French titles, since paths are Papycha's: the dungeon
+    /// returned is the shown one, so it keeps its game name.
+    /// </summary>
     private DungeonSummary? PathOf(PathSummary path) =>
-        PathTarget.DungeonOf(path.Title, _catalog.Catalog.Dungeons);
+        PathTarget.DungeonOf(path.Title, _catalog.Source.Dungeons) is { } found
+            ? _catalog.Catalog.Dungeons.FirstOrDefault(d => d.Id == found.Id) ?? found
+            : null;
 
     /// <summary>
     /// The paths sub-branch, at the head of the branch it serves.
@@ -305,7 +311,7 @@ public sealed class QuestTree
 
             yield return new QuestNode(
                 QuestNodeKind.Branch,
-                $"{QuestZoneOrder.DisplayName(zone.Name)} ({_sectionCounts[zone.Id]})",
+                $"{QuestSectionTitle.Of(zone)} ({_sectionCounts[zone.Id]})",
 
                 // No level range: across a whole zone it said little ("niveau
                 // 1 - 179 (sur 7)"). The tracker's progress takes the column,
@@ -404,12 +410,13 @@ public sealed class QuestTree
     /// <summary>
     /// A quest line.
     ///
-    /// The right-hand column no longer carries the level: the site only gives
-    /// it for one hundred and seventeen quests out of seven hundred and
-    /// eighty-two, and a column empty nine times out of ten does not earn its
-    /// place. It carries the prerequisites instead, which cover six hundred
-    /// and thirteen of them, and which say something useful before setting
-    /// off: what needs to have been done.
+    /// The right-hand column does not carry the level: it carries the
+    /// prerequisites, which cover six hundred and thirteen quests out of seven
+    /// hundred and eighty-two and say something useful before setting off:
+    /// what needs to have been done. The level is back on the left, where
+    /// <see cref="QuestNode.Level"/> gives it; the catalogue now holds the
+    /// game's own level, so the column is no longer empty nine times out of
+    /// ten.
     /// </summary>
     public QuestNode NodeOf(QuestSummary quest) => new(
         QuestNodeKind.Quest,
@@ -469,8 +476,9 @@ public sealed class QuestTree
         LairSection => Strings.Get("Lairs"),
         DungeonPathSection => Strings.Get("Dungeons") + Separator + Strings.Get("Paths"),
         QuestPathSection => Strings.Get("QuestAreaCrumb") + Separator + Strings.Get("Paths"),
-        _ => QuestZoneOrder.DisplayName(
-                 _catalog.Catalog.Sections.FirstOrDefault(s => s.Id == section)?.Name)
+        _ => (_catalog.Catalog.Sections.FirstOrDefault(s => s.Id == section) is { } found
+                 ? QuestSectionTitle.Of(found)
+                 : string.Empty)
              is { Length: > 0 } name
                  ? name
                  : Strings.Get("Section"),

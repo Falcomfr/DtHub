@@ -23,6 +23,14 @@ nothing is shown.
    papycha's public API and returns 1 if the catalog merge no longer finds
    what it assumes to be there. A legitimate discrepancy is reblessed with
    `-- --benir`.
+0 bis. Only if `assets/papycha-catalog.json` changed since the last
+   generation of `assets/dofus-touch-ids.json` (otherwise skip this step: the
+   script downloads whole game classes, and the server blocks a home IP that
+   asks too much, D212), regenerate the game-id table:
+   `python3 build/touch-ids/touch_ids.py`, from a home connection, never a
+   VPN or a data-center address (the server refuses them). Check the series
+   it says it paired by fuzzy match, then commit
+   `assets/dofus-touch-ids.json` only if it changed.
 1. Bump the version in `Directory.Build.props`, field `VersionPrefix`.
 2. Close the `## [Unreleased]` section in the three changelogs,
    `CHANGELOG.md`, `CHANGELOG.fr.md` and `CHANGELOG.es.md`: rename it to

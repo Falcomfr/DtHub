@@ -465,16 +465,25 @@
 
         <!-- Only on a site in another language than ours, where it takes the
              place of the untranslated page: see PageTranslation. -->
-        <Button x:Name="Translate" Grid.Column="2" Style="{StaticResource OutlineButton}"
-                Padding="9,5" FontSize="{StaticResource FontBody}"
-                ToolTip="{loc:T TranslateTip}"
-                Visibility="Collapsed" Click="OnTranslate">
-          <StackPanel Orientation="Horizontal">
-            <TextBlock Text="{loc:T Translate}" VerticalAlignment="Center" />
-            <Path Style="{StaticResource RowGlyph}" Margin="6,0,0,0" VerticalAlignment="Center"
-                  Data="M 7,3.5 H 3.5 V 12.5 H 12.5 V 9 M 9.5,3.5 H 12.5 V 6.5 M 12.5,3.5 L 7.8,8.2" />
-          </StackPanel>
-        </Button>
+        <StackPanel Grid.Column="2" Orientation="Horizontal">
+          <Button Style="{StaticResource OutlineButton}" Padding="9,5" Margin="0,0,6,0"
+                  FontSize="{StaticResource FontBody}"
+                  ToolTip="{loc:T OfficialStepsTip}"
+                  Visibility="{Binding OffersOfficialSteps, Converter={StaticResource BoolToVisibility}}"
+                  Command="{Binding ToggleOfficialStepsCommand}">
+            <TextBlock Text="{loc:T OfficialSteps}" VerticalAlignment="Center" />
+          </Button>
+          <Button x:Name="Translate" Style="{StaticResource OutlineButton}"
+                  Padding="9,5" FontSize="{StaticResource FontBody}"
+                  ToolTip="{loc:T TranslateTip}"
+                  Visibility="Collapsed" Click="OnTranslate">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="{loc:T Translate}" VerticalAlignment="Center" />
+              <Path Style="{StaticResource RowGlyph}" Margin="6,0,0,0" VerticalAlignment="Center"
+                    Data="M 7,3.5 H 3.5 V 12.5 H 12.5 V 9 M 9.5,3.5 H 12.5 V 6.5 M 12.5,3.5 L 7.8,8.2" />
+            </StackPanel>
+          </Button>
+        </StackPanel>
 
         <Button x:Name="OpenPage" Grid.Column="3" Style="{StaticResource IconButton}"
                 ToolTip="{loc:T OpenCurrentPageTip}"
@@ -695,6 +704,57 @@
                    Visibility="{Binding ShowsPage,
                                         Converter={StaticResource BoolToVisibility}}" />
 
+      <!-- The game's own steps, in the web view's place while it is hidden. -->
+      <DockPanel Background="{DynamicResource SurfaceBrush}"
+                 Visibility="{Binding ShowsOfficialSteps, Converter={StaticResource BoolToVisibility}}">
+        <Button DockPanel.Dock="Top" HorizontalAlignment="Left" Margin="12,8,0,0"
+                Style="{StaticResource OutlineButton}" Padding="9,5"
+                FontSize="{StaticResource FontBody}"
+                Content="{loc:T BackToGuide}"
+                Command="{Binding BackToGuideCommand}" />
+        <TextBlock DockPanel.Dock="Bottom" Style="{StaticResource Muted}" Margin="12,6,12,8"
+                   Text="{loc:T OfficialNamesCredit}" />
+        <TextBlock DockPanel.Dock="Top" Style="{StaticResource Muted}" Margin="12,12,12,0"
+                   Text="{loc:T OfficialStepsLoading}"
+                   Visibility="{Binding IsLoadingOfficialSteps, Converter={StaticResource BoolToVisibility}}" />
+        <TextBlock DockPanel.Dock="Top" Style="{StaticResource Muted}" Margin="12,12,12,0"
+                   Text="{loc:T OfficialStepsUnavailable}"
+                   Visibility="{Binding ShowsOfficialStepsUnavailable, Converter={StaticResource BoolToVisibility}}" />
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+          <ItemsControl Margin="12,8,12,8" ItemsSource="{Binding OfficialSteps}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <StackPanel Margin="0,0,0,12">
+                  <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap"
+                             FontFamily="{StaticResource UiFont}" FontSize="{StaticResource FontBody}"
+                             Foreground="{DynamicResource TextBrush}" />
+                  <TextBlock Text="{Binding Description}" TextWrapping="Wrap" Margin="0,2,0,4"
+                             FontFamily="{StaticResource UiFont}" FontSize="{StaticResource FontBody}"
+                             Foreground="{DynamicResource TextBrush}" />
+                  <ItemsControl ItemsSource="{Binding Objectives}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Grid Margin="0,1,0,1">
+                          <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                          </Grid.ColumnDefinitions>
+                          <TextBlock Text="{Binding Text}" TextWrapping="Wrap"
+                                     FontFamily="{StaticResource UiFont}" FontSize="{StaticResource FontBody}"
+                                     Foreground="{DynamicResource TextBrush}" />
+                          <TextBlock Grid.Column="1" Style="{StaticResource Muted}" Margin="10,0,0,0"
+                                     Text="{Binding Position}" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+      </DockPanel>
+
       <TextBlock Style="{StaticResource Muted}" Margin="20"
                  HorizontalAlignment="Center" VerticalAlignment="Center"
                  TextAlignment="Center"
@@ -760,6 +820,10 @@
               <TextBlock Text="{loc:T Back}" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
+
+          <TextBlock DockPanel.Dock="Bottom" Style="{StaticResource Muted}" Margin="12,6,12,8"
+                     Text="{loc:T OfficialNamesCredit}"
+                     Visibility="{Binding ShowsOfficialNamesCredit, Converter={StaticResource BoolToVisibility}}" />
 
           <ListBox x:Name="NodeList" ItemsSource="{Binding Nodes}" Grid.IsSharedSizeScope="True"
                    SelectedItem="{Binding SelectedNode, Mode=TwoWay}"
@@ -938,7 +1002,7 @@
                     </Path.Style>
                   </Path>
 
-                  <!-- A dungeon's level heads its row, before the name,
+                  <!-- A level heads its row, before the name,
                        in a column of fixed width: the names then start
                        at the same place whatever the level, and the
                        numbers read as a ladder down the band. Placed
@@ -950,14 +1014,13 @@
                        level for: they sit under a header that says so. -->
                   <DockPanel Grid.Column="1">
                     <TextBlock DockPanel.Dock="Left" Width="22" Margin="0,0,10,0"
-                               Text="{Binding Facts.Level}"
+                               Text="{Binding Level}"
                                TextAlignment="Right" TextWrapping="NoWrap"
                                VerticalAlignment="Center"
                                Style="{StaticResource Muted}"
                                FontSize="{StaticResource FontSmall}"
-                               Visibility="{Binding Facts,
-                                                    Converter={StaticResource EmptyToVisibility},
-                                                    ConverterParameter=inverse}" />
+                               Visibility="{Binding HasLevelColumn,
+                                                    Converter={StaticResource BoolToVisibility}}" />
 
                     <!-- The tracker's mark: a check for a finished
                          quest, a dot for one in progress. Hidden, not

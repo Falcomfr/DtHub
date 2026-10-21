@@ -2707,4 +2707,97 @@ To avoid it: {1}  ›  "Auto lock Secure Folder" › the longest option.</value>
   <data name="DownloadStalled" xml:space="preserve">
     <value>Nothing received for {0} s: the connection froze.</value>
   </data>
+  <data name="QuestSection-2" xml:space="preserve">
+    <value>Main quests</value>
+  </data>
+  <data name="QuestSection659" xml:space="preserve">
+    <value>[Alignment] Bontarian</value>
+  </data>
+  <data name="QuestSection661" xml:space="preserve">
+    <value>[Alignment] Brakmarian</value>
+  </data>
+  <data name="QuestSection-3" xml:space="preserve">
+    <value>Krosmoz</value>
+  </data>
+  <data name="QuestSection709" xml:space="preserve">
+    <value>Albuera Archipelago</value>
+  </data>
+  <data name="QuestSection18" xml:space="preserve">
+    <value>Astrub</value>
+  </data>
+  <data name="QuestSection265" xml:space="preserve">
+    <value>Amakna Castle</value>
+  </data>
+  <data name="QuestSection25" xml:space="preserve">
+    <value>Amakna</value>
+  </data>
+  <data name="QuestSection-4" xml:space="preserve">
+    <value>Madrestam Harbour</value>
+  </data>
+  <data name="QuestSection378" xml:space="preserve">
+    <value>Kwismas Island</value>
+  </data>
+  <data name="QuestSection-5" xml:space="preserve">
+    <value>Bworks</value>
+  </data>
+  <data name="QuestSection151" xml:space="preserve">
+    <value>Pandala Island</value>
+  </data>
+  <data name="QuestSection52" xml:space="preserve">
+    <value>Wabbit Island</value>
+  </data>
+  <data name="QuestSection131" xml:space="preserve">
+    <value>Otomai Island</value>
+  </data>
+  <data name="QuestSection135" xml:space="preserve">
+    <value>Frigost Island</value>
+  </data>
+  <data name="QuestSection-6" xml:space="preserve">
+    <value>Sufokia</value>
+  </data>
+  <data name="QuestSection512" xml:space="preserve">
+    <value>Archipelago of Vulkania</value>
+  </data>
+  <data name="QuestSection650" xml:space="preserve">
+    <value>Horrib Isle</value>
+  </data>
+  <data name="QuestSection-7" xml:space="preserve">
+    <value>Time Bubbles</value>
+  </data>
+  <data name="QuestSection657" xml:space="preserve">
+    <value>Bonta &amp; Cania</value>
+  </data>
+  <data name="QuestSection-8" xml:space="preserve">
+    <value>Sain Ballotin</value>
+  </data>
+  <data name="QuestSection668" xml:space="preserve">
+    <value>Orado Island</value>
+  </data>
+  <data name="QuestSection682" xml:space="preserve">
+    <value>Repeatable quests</value>
+  </data>
+  <data name="QuestSection-1" xml:space="preserve">
+    <value>Other quests</value>
+  </data>
+  <data name="QuestSection745" xml:space="preserve">
+    <value>The Labyrinth</value>
+  </data>
+  <data name="OfficialSteps" xml:space="preserve">
+    <value>Official steps</value>
+  </data>
+  <data name="OfficialStepsTip" xml:space="preserve">
+    <value>The quest's steps as the game words them</value>
+  </data>
+  <data name="BackToGuide" xml:space="preserve">
+    <value>Papycha guide</value>
+  </data>
+  <data name="OfficialStepsLoading" xml:space="preserve">
+    <value>Reading the game's steps…</value>
+  </data>
+  <data name="OfficialStepsUnavailable" xml:space="preserve">
+    <value>The game's steps could not be read.</value>
+  </data>
+  <data name="OfficialNamesCredit" xml:space="preserve">
+    <value>Names and steps: DOFUS Touch, Ankama</value>
+  </data>
 </root>

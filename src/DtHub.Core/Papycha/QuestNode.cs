@@ -1,4 +1,6 @@
-﻿namespace DtHub.Core.Papycha;
+﻿using System.Globalization;
+
+namespace DtHub.Core.Papycha;
 
 /// <summary>What a row of the dropdown list offers.</summary>
 public enum QuestNodeKind
@@ -147,6 +149,20 @@ public sealed record QuestNode(
     /// dungeon.
     /// </summary>
     public string? Url => Quest?.Url ?? Dungeon?.Url ?? Path?.Url;
+
+    /// <summary>
+    /// The level that heads the row: a dungeon's, or a quest's when it has
+    /// one. Empty otherwise.
+    /// </summary>
+    public string Level =>
+        Facts?.Level
+        ?? (Quest is { Level: > 0 } quest ? quest.Level.ToString(CultureInfo.CurrentCulture) : string.Empty);
+
+    /// <summary>
+    /// True when the row reserves the level column, even empty, so that the
+    /// labels of every quest start at the same place.
+    /// </summary>
+    public bool HasLevelColumn => Facts is not null || Quest is not null;
 
     /// <summary>True when the row has something to say on hover.</summary>
     public bool HasNeeds => Needs is { Count: > 0 };

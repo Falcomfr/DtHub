@@ -32,6 +32,41 @@ public class QuestTreeTests
         return (new QuestTree(service, counts), counts);
     }
 
+    private sealed class OneDungeonTable : ITouchIdTableSource
+    {
+        public TouchIdTable Load() => new() { Quests = new() { [1] = [10] }, Dungeons = new() { [5744] = new([50]) } };
+    }
+
+    [Fact]
+    public async Task En_anglais_un_chemin_retrouve_son_donjon()
+    {
+        Strings.Speak(System.Globalization.CultureInfo.GetCultureInfo("en"));
+
+        try
+        {
+            var client = new FakePapychaClient().WithQuest(1, "Q", 18).WithSection(18, "Astrub");
+            client.Dungeons.Add(new DungeonSummary { Id = 5744, Kind = DungeonKind.Dungeon, Title = "Donjon Inventé", Level = 60 });
+            client.Paths.Add(new PathSummary { Id = 5739, Title = "Chemin vers Donjon Inventé", Url = "https://papycha.fr/k/" });
+
+            using var touch = new TouchNameService(new FakeDofusTouchClient(), new InMemoryDocumentStore<TouchNamesDocument>(), new OneDungeonTable());
+            using var service = new QuestCatalogService(client, new InMemoryDocumentStore<QuestCatalogDocument>(), client, touch);
+            await service.GetAsync(null, CancellationToken.None);
+            await service.RefreshNamesAsync();
+
+            var tree = new QuestTree(service, new Dictionary<int, int>());
+            var rows = tree.DungeonNodes().Where(n => n.Kind != QuestNodeKind.Header).ToList();
+
+            Assert.Equal("nom 50 en", service.Catalog.Dungeons.Single().Title);
+            Assert.Equal([0, 5744], rows.Select(r => r.Dungeon?.Id ?? 0));
+            Assert.Equal(5739, rows[0].Path?.Id);
+            Assert.Equal("nom 50 en", rows[1].Dungeon?.Title);
+        }
+        finally
+        {
+            Strings.Speak(null);
+        }
+    }
+
     [Fact]
     public async Task La_racine_annonce_les_quatre_entrees_et_leurs_comptes()
     {
@@ -252,6 +287,27 @@ public class QuestTreeTests
     }
 
     [Fact]
+    public async Task En_anglais_la_branche_porte_le_titre_anglais_de_sa_zone()
+    {
+        Strings.Speak(System.Globalization.CultureInfo.GetCultureInfo("en"));
+
+        try
+        {
+            var (tree, _) = await BuildAsync(new FakePapychaClient()
+                .WithQuest(3, "Complètement givré", 135)
+                .WithSection(135, "Île de Frigost"));
+
+            Assert.Contains(
+                tree.Branches(),
+                n => n.Kind == QuestNodeKind.Branch && n.Label == "Frigost Island (1)");
+        }
+        finally
+        {
+            Strings.Speak(null);
+        }
+    }
+
+    [Fact]
     public async Task Une_ligne_de_quete_porte_ses_prerequis()
     {
         var client = new FakePapychaClient()
@@ -267,6 +323,25 @@ public class QuestTreeTests
         Assert.Equal(QuestNodeKind.Quest, ligne.Kind);
         Assert.Equal("Le dragon d'Astrub", ligne.Label);
         Assert.NotNull(ligne.Needs);
+    }
+
+    [Fact]
+    public void Une_ligne_de_quete_porte_son_niveau()
+    {
+        var ligne = new QuestNode(QuestNodeKind.Quest, "Une quête", Quest: new QuestSummary { Level = 42 });
+
+        Assert.True(ligne.HasLevelColumn);
+        Assert.Equal("42", ligne.Level);
+    }
+
+    [Fact]
+    public void Une_quete_sans_niveau_garde_la_colonne()
+    {
+        var ligne = new QuestNode(QuestNodeKind.Quest, "Une quête", Quest: new QuestSummary());
+
+        Assert.True(ligne.HasLevelColumn);
+        Assert.Equal(string.Empty, ligne.Level);
+        Assert.False(new QuestNode(QuestNodeKind.Header, "Titre").HasLevelColumn);
     }
 
     [Fact]

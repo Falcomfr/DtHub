@@ -23,6 +23,12 @@ public interface IAppPaths
     /// </summary>
     string QuestCatalogFile { get; }
 
+    /// <summary>
+    /// The game's own names, per language. Cache like the catalog:
+    /// losing it only costs a new read.
+    /// </summary>
+    string TouchNamesFile { get; }
+
     /// <summary>Logs with rotation.</summary>
     string LogsDirectory { get; }
 

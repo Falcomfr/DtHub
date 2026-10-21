@@ -201,7 +201,8 @@ public static class QuestSearch
         List<QuestSection> zones =
         [
             .. sections
-                .Where(s => Matches(Normalize(QuestZoneOrder.DisplayName(s.Name)), terms))
+                // The French name too, as quests and dungeons keep theirs in their search key.
+                .Where(s => Matches(Normalize(QuestSectionTitle.Of(s) + " " + QuestZoneOrder.DisplayName(s.Name)), terms))
                 .Take(limit),
         ];
 

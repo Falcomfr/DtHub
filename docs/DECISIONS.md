@@ -10833,3 +10833,30 @@ français : le démarrage et les lignes suivantes sont en anglais, sans erreur
 ni avertissement dans la session observée. Capture du configurateur vérifiée,
 non versionnée. Les rendus français et espagnol ainsi que les 233 entrées de
 chaque catalogue sont vérifiés par les tests.
+
+## D212 - Les noms du jeu sont lus chez le joueur, rien n'est embarqué
+
+**2026-10-21 - Acceptée**
+
+La fenêtre des guides affiche les noms et les étapes officiels de DOFUS Touch.
+AGENTS.md interdit d'embarquer un fichier de données extrait du jeu d'Ankama ;
+sa seule exception est de citer des titres de quêtes et de succès pour le
+catalogue de Papycha. Les noms du jeu dans trois langues, avec leurs étapes,
+sortent de cette exception.
+
+Le précédent est l'Almanax : lu à l'exécution sur krosmoz.com, rien d'embarqué.
+Même choix ici, recommandé par Claude et accepté par l'utilisateur le
+2026-10-21. Les noms des quêtes, donjons, boss, objets-clés et succès et le
+niveau des quêtes sont lus dans toutes les langues ; les étapes officielles, en
+anglais et en espagnol seulement, à la demande. Seul `assets/dofus-touch-ids.json`
+est embarqué : l'appariement par DT Hub des identifiants de Papycha avec ceux du
+jeu, sans aucun texte du jeu. `build/touch-ids/touch_ids.py` le régénère, depuis
+une connexion domestique, avant une version.
+
+Le serveur de données refuse qui lui demande trop : le 2026-10-21, environ 30 Mo
+téléchargés en quelques minutes ont fait refuser l'IP du domicile (403 sur tous
+les chemins, hôte de connexion du jeu compris), et les adresses de VPN ou de
+centre de données sont refusées d'emblée. D'où le budget : les identifiants
+seulement, une classe à la fois, une poignée de requêtes par langue, un cache de
+7 jours, et jamais un ensemble d'identifiants vide. Coût : sans réponse du
+serveur, la fenêtre garde les titres français de Papycha.

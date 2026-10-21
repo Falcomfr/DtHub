@@ -21,6 +21,7 @@ No copyright notice or third-party licence text may be removed.
 | papycha.fr logo | Author's agreement, see below | File embedded in the executable |
 | Discord logo | Discord's brand guidelines, see below | Vector outline in the configurator's XAML |
 | DTStuff and OcrApp icons | MakeInTouch's agreement, see below | Files embedded in the executable |
+| Names and steps from DOFUS Touch | Ankama content, see below | Read from the game's data server on the user's PC |
 | papycha.fr quest data | Proprietary, see below | File embedded in the executable |
 | xUnit, coverlet | Apache License 2.0, MIT | Test dependencies, not distributed |
 
@@ -267,6 +268,30 @@ officiel, krosmoz.com".
 **What this does not authorise.** No image, no item icon, no portal
 banner. The general rule further below applies here as everywhere else:
 no Ankama graphical resource enters this repository.
+
+## Names and steps from DOFUS Touch's game server
+
+- Source: the data server DOFUS Touch itself reads its texts from
+- Nothing from the game is embedded: the names are read on the player's PC,
+  in the player's language, and kept in a local cache for 7 days
+- Embedded: `assets/dofus-touch-ids.json`, DT Hub's own pairing of
+  papycha.fr's identifiers to the game's identifiers. It holds numbers only,
+  no game text.
+
+**No resource is copied or redistributed.** The guides window reads the
+official names of quests, dungeons, bosses, key items and achievements, the
+levels of quests and, on demand, the official steps of a quest, then draws
+them itself. Same principle as the Almanax above: the repository carries no
+file extracted from Ankama's game. When the player's language is not French,
+the window credits the game under the list and under the steps.
+
+**If the server cannot be read**, the window falls back to papycha.fr's French
+titles; the official steps button still shows, and its panel says the steps
+could not be read. Nothing breaks.
+
+**What this does not authorise.** No image, no icon, no game file. DT Hub
+makes a handful of requests per language, one class at a time: the server
+refuses addresses that ask too much.
 
 ## Quest data from papycha.fr
 

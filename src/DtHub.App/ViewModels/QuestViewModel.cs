@@ -20,9 +20,11 @@ public sealed partial class QuestViewModel : ObservableObject
     private readonly QuestCatalogService _catalog;
     private readonly IDialogService _dialogs;
     private readonly SettingsService _settings;
+    private readonly TouchNameService _touchNames;
 
-    public QuestViewModel(QuestCatalogService catalog, IDialogService dialogs, QuestTrackerViewModel tracker, SettingsService settings)
+    public QuestViewModel(QuestCatalogService catalog, IDialogService dialogs, QuestTrackerViewModel tracker, SettingsService settings, TouchNameService touchNames)
     {
+        _touchNames = touchNames;
         Tracker = tracker;
         _settings = settings;
         tracker.ProgressChanged += (_, _) => RedrawAfterRead();
@@ -357,7 +359,103 @@ public sealed partial class QuestViewModel : ObservableObject
     /// the same shell, so a veil placed over it would stay invisible. This is,
     /// moreover, what the dropdown list already does.
     /// </summary>
-    public bool ShowsPage => !IsListOpen && !IsLoadingPage && IsWindowVisible;
+    public bool ShowsPage => !IsListOpen && !IsLoadingPage && IsWindowVisible && !ShowsOfficialSteps;
+
+    /// <summary>
+    /// The list shows the game's names in any language but French, where
+    /// Papycha's own are kept: the credit goes with them, once they are read.
+    /// </summary>
+    public bool ShowsOfficialNamesCredit => TouchNameService.CurrentLanguage != "fr" && _catalog.UsesGameNames;
+
+    /// <summary>The guide is Papycha's, in French: the game's own wording only exists to compare, in another language.</summary>
+    public bool OffersOfficialSteps =>
+        _current is { } quest
+        && TouchNameService.CurrentLanguage != "fr"
+        && _touchNames.Table.Quests.ContainsKey(quest.Id);
+
+    /// <summary>
+    /// True when the game's steps take the web view's place. The view is
+    /// removed, not covered, for the reason given at <see cref="ShowsPage"/>.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsPage))]
+    [NotifyPropertyChangedFor(nameof(ShowsOfficialStepsUnavailable))]
+    private bool _showsOfficialSteps;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsOfficialStepsUnavailable))]
+    private bool _isLoadingOfficialSteps;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsOfficialStepsUnavailable))]
+    private IReadOnlyList<TouchStep> _officialSteps = [];
+
+    /// <summary>The read came back empty: unpaired, or the game's server refused.</summary>
+    public bool ShowsOfficialStepsUnavailable =>
+        ShowsOfficialSteps && !IsLoadingOfficialSteps && OfficialSteps.Count == 0;
+
+    /// <summary>Papycha quest the steps in <see cref="OfficialSteps"/> belong to.</summary>
+    private int _officialStepsOf;
+
+    private void ResetOfficialSteps()
+    {
+        ShowsOfficialSteps = false;
+        OfficialSteps = [];
+        _officialStepsOf = 0;
+        OnPropertyChanged(nameof(OffersOfficialSteps));
+    }
+
+    /// <summary>Its own command: the load below disables its command for as long as it runs, and leaving must stay possible.</summary>
+    [RelayCommand]
+    private void BackToGuide() => ShowsOfficialSteps = false;
+
+    /// <summary>Swaps the guide for the game's steps, and back.</summary>
+    [RelayCommand]
+    public async Task ToggleOfficialStepsAsync()
+    {
+        if (ShowsOfficialSteps)
+        {
+            ShowsOfficialSteps = false;
+
+            return;
+        }
+
+        if (_current is not { } quest)
+        {
+            return;
+        }
+
+        ShowsOfficialSteps = true;
+
+        if (_officialStepsOf == quest.Id)
+        {
+            return;
+        }
+
+        IsLoadingOfficialSteps = true;
+
+        try
+        {
+            var steps = await _touchNames.StepsAsync(quest.Id, TouchNameService.CurrentLanguage).ConfigureAwait(true);
+
+            if (_current?.Id != quest.Id)
+            {
+                return;
+            }
+
+            if (steps.Count == 0 && _touchNames.LastFailure is { } failure)
+            {
+                Log.Warning(failure, "The game's steps could not be read");
+            }
+
+            OfficialSteps = steps;
+            _officialStepsOf = steps.Count == 0 ? 0 : quest.Id;
+        }
+        finally
+        {
+            IsLoadingOfficialSteps = false;
+        }
+    }
 
     /// <summary>
     /// True when the view's place is taken over by the loading indicator.
@@ -417,7 +515,31 @@ public sealed partial class QuestViewModel : ObservableObject
         Settle(catalog, before);
         CountSections();
         ShowRoot();
+        OnPropertyChanged(nameof(ShowsOfficialNamesCredit));
+
+        // Not awaited: names that arrive later show at the next opening.
+        NamesRead = ReadNamesAsync();
     }
+
+    /// <summary>
+    /// The chain index was built from the catalog before the names came:
+    /// rebuilt from the localized one so prerequisites resolve again.
+    /// </summary>
+    private async Task ReadNamesAsync()
+    {
+        await _catalog.RefreshNamesAsync(CancellationToken.None).ConfigureAwait(true);
+        _tree.Chain = new QuestChainIndex(_catalog.Catalog.Quests);
+
+        // The rows drawn before hold the French records: clicking one would open it outside the localized chain.
+        RedrawAfterRead();
+        OnPropertyChanged(nameof(ShowsOfficialNamesCredit));
+    }
+
+    /// <summary>The names refresh started by the last load; never faults.</summary>
+    public Task NamesRead { get; private set; } = Task.CompletedTask;
+
+    /// <summary>Why the game's names could not be read, logged by the window.</summary>
+    public Exception? NamesFailure => _catalog.NamesFailure;
 
     /// <summary>
     /// Duration of the last full indexing, or <c>null</c> if there has not
@@ -867,7 +989,7 @@ public sealed partial class QuestViewModel : ObservableObject
             {
                 Nodes.Add(new QuestNode(
                     QuestNodeKind.Branch,
-                    $"{QuestZoneOrder.DisplayName(zone.Name)} ({_sectionCounts.GetValueOrDefault(zone.Id)})",
+                    $"{QuestSectionTitle.Of(zone)} ({_sectionCounts.GetValueOrDefault(zone.Id)})",
                     Id: zone.Id,
                     Glyph: QuestTree.GlyphOf(zone.Name)));
             }
@@ -1022,9 +1144,14 @@ public sealed partial class QuestViewModel : ObservableObject
     {
         ArgumentNullException.ThrowIfNull(quest);
 
+        // A row or a link may still carry the record from before the names arrived.
+        quest = _catalog.Catalog.Quests.FirstOrDefault(q => q.Id == quest.Id) ?? quest;
+
         Tracker.ShowQuest(quest.Id);
 
         _current = quest;
+
+        ResetOfficialSteps();
         _currentDungeon = null;
         _currentPath = null;
 
@@ -1057,9 +1184,14 @@ public sealed partial class QuestViewModel : ObservableObject
     {
         ArgumentNullException.ThrowIfNull(dungeon);
 
+        // See the quests overload.
+        dungeon = _catalog.Catalog.Dungeons.FirstOrDefault(d => d.Id == dungeon.Id) ?? dungeon;
+
         Tracker.ShowQuest(null);
 
         _current = null;
+
+        ResetOfficialSteps();
         _currentDungeon = dungeon;
         _currentPath = null;
         _neighbours = default;
@@ -1096,6 +1228,8 @@ public sealed partial class QuestViewModel : ObservableObject
         Tracker.ShowQuest(null);
 
         _current = null;
+
+        ResetOfficialSteps();
         _currentDungeon = null;
         _currentPath = path;
         _neighbours = default;
@@ -1371,6 +1505,7 @@ public sealed partial class QuestViewModel : ObservableObject
         // already left.
         Tracker.ShowQuest(null);
         _current = null;
+        ResetOfficialSteps();
         _currentDungeon = null;
         _currentPath = null;
         _neighbours = default;
@@ -1607,19 +1742,37 @@ public sealed partial class QuestViewModel : ObservableObject
     /// path and the key on a dungeon. The step's rank used to appear there
     /// first; that is a numbering that exists only in this window, and so it
     /// designated nothing to whoever receives the report.
+    ///
+    /// The report goes to Papycha, in French: the quest, its series, the
+    /// dungeon and the zone are named as Papycha wrote them, not as shown.
     /// </summary>
-    public (string Url, string Location)? ErrorReport() =>
-        CanReport
-            ? (CurrentUrl!, PapychaReport.Location(ZoneName(), QuestTitle, _current?.SuccessName, CurrentUrl))
-            : null;
+    public (string Url, string Location)? ErrorReport()
+    {
+        if (!CanReport)
+        {
+            return null;
+        }
+
+        var quest = _current is { } shown ? _catalog.Source.Quests.FirstOrDefault(q => q.Id == shown.Id) : null;
+        var title = quest?.Title
+            ?? (_currentDungeon is { } place ? _catalog.Source.Dungeons.FirstOrDefault(d => d.Id == place.Id)?.Title : null)
+            ?? QuestTitle;
+
+        return (CurrentUrl!, PapychaReport.Location(ZoneName(), title, quest?.SuccessName ?? _current?.SuccessName, CurrentUrl));
+    }
 
     /// <summary>
     /// The name of the section we are reading under, or empty when the page
     /// has none. The same rule as the list: the one being browsed if the quest
-    /// is in it, otherwise the one the catalogue has kept for it.
+    /// is in it, otherwise the one the catalogue has kept for it. A site
+    /// section keeps its French name, for the report.
     /// </summary>
     private string ZoneName() =>
-        SectionOfPage() is { } id ? _tree.NameOf(id) : string.Empty;
+        SectionOfPage() is not { } id
+            ? string.Empty
+            : _catalog.Source.Sections.FirstOrDefault(s => s.Id == id) is { } section
+                ? QuestZoneOrder.DisplayName(section.Name)
+                : _tree.NameOf(id);
 
     /// <summary>
     /// The section of the page we are reading, whatever its kind.

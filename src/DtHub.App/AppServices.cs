@@ -57,6 +57,7 @@ public static class AppServices
         services.AddSingleton(CreateStore<AppSettingsDocument>(p => p.SettingsFile));
         services.AddSingleton(CreateStore<DeviceRegistryDocument>(p => p.DevicesFile));
         services.AddSingleton(CreateStore<QuestCatalogDocument>(p => p.QuestCatalogFile));
+        services.AddSingleton(CreateStore<TouchNamesDocument>(p => p.TouchNamesFile));
 
         services.AddSingleton<SettingsService>();
 
@@ -75,6 +76,10 @@ public static class AppServices
         services.AddSingleton<IPapychaClient>(provider => new PapychaClient(
             new HttpClient { Timeout = TimeSpan.FromSeconds(30) },
             provider.GetRequiredService<ILogger<PapychaClient>>()));
+        // Official names, read from the game's own data server.
+        services.AddSingleton<IDofusTouchClient>(provider => new DofusTouchClient(
+            new HttpClient { Timeout = TimeSpan.FromSeconds(30) },
+            provider.GetRequiredService<ILogger<DofusTouchClient>>()));
         // Player's quest tracker. Sends its cookie as a header, so the
         // handler must not keep cookies of its own or the header is dropped.
         // Compressed: the tracker page weighs over a megabyte and is read
@@ -107,6 +112,8 @@ public static class AppServices
 
         services.AddSingleton<IQuestCatalogSnapshot, EmbeddedQuestCatalogSnapshot>();
         services.AddSingleton<QuestCatalogService>();
+        services.AddSingleton<ITouchIdTableSource, EmbeddedTouchIdTable>();
+        services.AddSingleton<TouchNameService>();
         services.AddSingleton<IAdbLocator, AdbLocator>();
         services.AddSingleton<SdlFocusFix>();
         services.AddSingleton<IScrcpyLocator, ScrcpyLocator>();
