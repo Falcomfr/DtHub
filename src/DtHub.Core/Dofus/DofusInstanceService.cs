@@ -173,6 +173,7 @@ public sealed class DofusInstanceService
         }
 
         List<int> sansJeu = [];
+        (int UserId, string Text)? secureFolder = null;
 
         foreach (var user in users)
         {
@@ -207,7 +208,7 @@ public sealed class DofusInstanceService
             else if (IsSecureFolder(device, user)
                      && await HoldsGameAsync(device.Serial, user.Id, cancellationToken).ConfigureAwait(false))
             {
-                _warnings.Add(SecureFolderWarning(
+                secureFolder = (user.Id, SecureFolderWarning(
                     device,
                     _reached.Contains((device.Id, user.Id)),
                     _forbidden.Contains((device.Serial, user.Id))));
@@ -239,6 +240,14 @@ public sealed class DofusInstanceService
         if (_profiles.ContainsKey(device.Id))
         {
             _without[device.Id] = sansJeu;
+        }
+
+        // A second account already found means the player went around a
+        // Secure Folder never opened here: its old copy is no longer news.
+        if (secureFolder is { } folder
+            && (_reached.Contains((device.Id, folder.UserId)) || instances.Count < 2))
+        {
+            _warnings.Add(folder.Text);
         }
 
         DevicesNotFullyRead = System.Collections.Frozen.FrozenSet.ToFrozenSet(_unread, StringComparer.Ordinal);

@@ -573,6 +573,57 @@ public class DofusInstanceServiceTests
     }
 
     [Fact]
+    public async Task Un_dossier_securise_contourne_par_un_clone_ne_dit_rien()
+    {
+        // Reported on a Galaxy S942B on 21/10/2026: the player followed the
+        // advice, plays two accounts outside, and the old copy left in the
+        // Secure Folder kept the warning up.
+        var adb = new FakeAdbClient()
+            .WithShell("pm list users", """
+                Users:
+                	UserInfo{0:Propriétaire:c13} running
+                	UserInfo{10:Island:1030} running
+                	UserInfo{150:Dossier sécurisé:1030} running
+                """)
+            .FailShell("--user 150", AdbErrorKind.PermissionDenied)
+            .WithShell("pm list packages", "package:com.ankama.dofustouch")
+            .WithShell("resolve-activity", "com.ankama.dofustouch/.MainActivity")
+            .WithShell("dumpsys package", InstalledIn(0, 10, 150));
+
+        var service = Service(adb);
+        await service.DiscoverAsync([Samsung()], CancellationToken.None);
+
+        Assert.Empty(service.Warnings);
+    }
+
+    [Fact]
+    public async Task Un_dossier_securise_deja_joue_puis_verrouille_le_dit_malgre_un_clone()
+    {
+        // Played from here before: its account vanished with the lock,
+        // and the other accounts do not replace it.
+        var calls = 0;
+        var adb = new FakeAdbClient()
+            .WithShell("pm list users", """
+                Users:
+                	UserInfo{0:Propriétaire:c13} running
+                	UserInfo{10:Island:1030} running
+                	UserInfo{150:Dossier sécurisé:1030} running
+                """)
+            .WithShell("--user 150", () => calls++ < 2
+                ? "package:com.ankama.dofustouch"
+                : throw new AdbException(AdbErrorKind.PermissionDenied, "refus"))
+            .WithShell("pm list packages", "package:com.ankama.dofustouch")
+            .WithShell("resolve-activity", "com.ankama.dofustouch/.MainActivity")
+            .WithShell("dumpsys package", InstalledIn(0, 10, 150));
+
+        var service = Service(adb);
+        await service.DiscoverAsync([Samsung()], CancellationToken.None);
+        await service.DiscoverAsync([Samsung()], CancellationToken.None);
+
+        Assert.Contains("verrouillé", Assert.Single(service.Warnings), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Un_dossier_securise_sans_le_jeu_ne_dit_rien()
     {
         // A locked Secure Folder is many Samsung owners' normal state:
