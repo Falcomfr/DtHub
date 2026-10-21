@@ -31,6 +31,7 @@ belongs in the commits and in `docs/DECISIONS.md`.
 - An account whose phone dropped during play now waits for it and reopens, instead of staying closed.
 - Installing an update can no longer leave a broken DtHub.exe when DT Hub is kept on another drive and the PC shuts down.
 - Unchecking automatic updates now also keeps an already downloaded version from being installed on quit.
+- Incident reports now also hide the serial number of phones with no game open.
 
 ## [0.9.6] - 2026-10-21
 

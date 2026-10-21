@@ -24,6 +24,7 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 - Una cuenta cuyo teléfono se desconectó en partida espera su regreso y se vuelve a abrir, en lugar de quedarse cerrada.
 - Instalar una actualización ya no puede dejar un DtHub.exe dañado cuando DT Hub está en otro disco y el PC se apaga.
 - Desmarcar la actualización automática impide también instalar al salir una versión ya descargada.
+- Los informes de incidencia ocultan también el número de serie de los teléfonos sin juego abierto.
 
 ## [0.9.6] - 2026-10-21
 

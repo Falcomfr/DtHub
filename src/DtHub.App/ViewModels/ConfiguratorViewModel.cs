@@ -1256,6 +1256,10 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     /// redact them. Neither account names nor profile names can be
     /// guessed by a pattern, and nothing stops someone from putting
     /// their in-game nickname there.
+    ///
+    /// The phones' identities too, open or not: the report only knew those
+    /// of open sessions, and a USB serial number, logged by a failed ADB
+    /// command, left with the report of a phone whose game would not open.
     /// </summary>
     private void RememberNames(AppSettingsDocument document) =>
         _reporter.Names =
@@ -1263,6 +1267,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             .. document.LaunchProfiles.Select(p => p.Name),
             .. document.Instances.Select(i => i.UserName),
             .. document.Instances.Select(i => i.CustomName ?? string.Empty),
+            .. document.Instances.Select(i => i.DeviceId),
         ];
 
     /// <summary>

@@ -25,6 +25,7 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 - Un compte dont le téléphone a décroché en jeu attend son retour et se rouvre, au lieu de rester fermé.
 - Installer une mise à jour ne peut plus laisser un DtHub.exe abîmé quand DT Hub est rangé sur un autre disque et que le PC s'éteint.
 - Décocher la mise à jour automatique empêche aussi d'installer en quittant une version déjà téléchargée.
+- Les rapports d'incident masquent aussi le numéro de série des téléphones sans jeu ouvert.
 
 ## [0.9.6] - 2026-10-21
 
