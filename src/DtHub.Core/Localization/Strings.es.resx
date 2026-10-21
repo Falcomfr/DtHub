@@ -2275,7 +2275,7 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
     <value>El teléfono debe estar encendido y su depuración activa, por cable o de forma inalámbrica según cómo estuviera conectado. Si ya no recuerdas cuál era, vuelve a conectarlo con su cable: es el camino más corto para verlo aparecer de nuevo.</value>
   </data>
   <data name="OfflineTipWireless" xml:space="preserve">
-    <value>El teléfono debe estar encendido, en la misma red Wi-Fi que este PC, y con la depuración inalámbrica activa. Si todo eso es cierto, la vinculación se ha perdido: vuelve a vincularlo con «Vincular un nuevo dispositivo». Un teléfono olvida un PC por su cuenta más a menudo de lo que parece, y volver a encender la depuración inalámbrica no la restablece.</value>
+    <value>El teléfono debe estar encendido, en la misma red Wi-Fi que este PC, y con la depuración inalámbrica activa. Un teléfono que se desconecta a menudo suele estar demasiado lejos del router o detrás de una pared: moverlo basta para que vuelva. Si todo eso es cierto, la vinculación se ha perdido: vuelve a vincularlo con «Vincular un nuevo dispositivo». Un teléfono olvida un PC por su cuenta más a menudo de lo que parece, y volver a encender la depuración inalámbrica no la restablece.</value>
   </data>
   <data name="OfflineTipUsb" xml:space="preserve">
     <value>El teléfono debe estar encendido, conectado con su cable, y con la depuración USB activa. Un cable solo de carga no transporta datos: es la avería más frecuente, y nada lo indica. Prueba otro cable y otro puerto antes de buscar más lejos.</value>

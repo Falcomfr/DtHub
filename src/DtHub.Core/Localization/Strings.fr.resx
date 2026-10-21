@@ -2275,7 +2275,7 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
     <value>Le téléphone doit être allumé et son débogage actif, par câble ou sans fil selon la façon dont il était relié. Si vous ne savez plus laquelle, rebranchez-le par son câble : c'est le chemin le plus court pour le revoir apparaître.</value>
   </data>
   <data name="OfflineTipWireless" xml:space="preserve">
-    <value>Le téléphone doit être allumé, sur le même réseau Wi-Fi que ce PC, et son débogage sans fil actif. Si tout cela est vrai, c'est que l'association a été perdue : réassociez-le avec « Associer un nouvel appareil ». Un téléphone oublie un PC tout seul plus souvent qu'on ne croit, et rallumer le débogage sans fil ne la rétablit pas.</value>
+    <value>Le téléphone doit être allumé, sur le même réseau Wi-Fi que ce PC, et son débogage sans fil actif. Un téléphone qui décroche souvent est souvent trop loin de la box ou derrière un mur : le déplacer suffit à le faire revenir. Si tout cela est vrai, c'est que l'association a été perdue : réassociez-le avec « Associer un nouvel appareil ». Un téléphone oublie un PC tout seul plus souvent qu'on ne croit, et rallumer le débogage sans fil ne la rétablit pas.</value>
   </data>
   <data name="OfflineTipUsb" xml:space="preserve">
     <value>Le téléphone doit être allumé, relié par son câble, et son débogage USB actif. Un câble prévu pour la seule charge ne transporte pas de données : c'est la panne la plus fréquente, et rien ne la signale. Essayez un autre câble et un autre port avant de chercher plus loin.</value>
