@@ -584,7 +584,7 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
         Name = device.DisplayName;
         Serial = device.Serial;
         State = device.State;
-        Connection = device.ConnectionKind;
+        Connection = OfflineAdvice.KindOf(device.ConnectionKind, Connection, device.ReconnectAddress);
 
         // Kept so the help opens on this phone's own steps. The factory
         // falls back on what was remembered, so a phone that is not

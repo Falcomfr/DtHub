@@ -20,6 +20,17 @@ namespace DtHub.Core.Guidance;
 public static class OfflineAdvice
 {
     /// <summary>
+    /// The link to give advice for. Gone, a phone has no link to name: the one
+    /// it had this session, then a remembered Wi-Fi address, say how it was
+    /// reached and so how to bring it back.
+    /// </summary>
+    public static AdbConnectionKind KindOf(AdbConnectionKind now, AdbConnectionKind before, string? remembered) =>
+        now != AdbConnectionKind.Unknown ? now
+        : before != AdbConnectionKind.Unknown ? before
+        : remembered is { Length: > 0 } ? AdbConnectionKind.Wireless
+        : AdbConnectionKind.Unknown;
+
+    /// <summary>
     /// The short line shown under the phone, in place of nothing.
     ///
     /// It has to hold on one line, next to the button that opens the

@@ -128,4 +128,19 @@ public class OfflineAdviceTests
         // the phone back in is the shortest way to see it again.
         Assert.Equal(cable, OfflineAdvice.HelpOpensOnCable(connexion));
     }
+
+    [Theory]
+    [InlineData(AdbConnectionKind.Usb, AdbConnectionKind.Wireless, null, AdbConnectionKind.Usb)]
+    [InlineData(AdbConnectionKind.Unknown, AdbConnectionKind.Wireless, null, AdbConnectionKind.Wireless)]
+    [InlineData(AdbConnectionKind.Unknown, AdbConnectionKind.Usb, "192.168.1.16:41923", AdbConnectionKind.Usb)]
+    [InlineData(AdbConnectionKind.Unknown, AdbConnectionKind.Unknown, "192.168.1.16:41923", AdbConnectionKind.Wireless)]
+    [InlineData(AdbConnectionKind.Unknown, AdbConnectionKind.Unknown, null, AdbConnectionKind.Unknown)]
+    public void Un_telephone_hors_ligne_garde_la_liaison_qu_il_avait(
+        AdbConnectionKind now, AdbConnectionKind before, string? remembered, AdbConnectionKind expected)
+    {
+        // 2026-10-21: the 13T Pro, dropped from Wi-Fi, read "check that the
+        // phone is on" instead of the Wi-Fi gesture that brings it back: gone,
+        // it had no link left to name.
+        Assert.Equal(expected, OfflineAdvice.KindOf(now, before, remembered));
+    }
 }
