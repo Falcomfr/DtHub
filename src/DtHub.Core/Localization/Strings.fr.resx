@@ -1211,7 +1211,7 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
     <value>Plein écran</value>
   </data>
   <data name="ActionScreenOff" xml:space="preserve">
-    <value>Éteindre l'écran du téléphone</value>
+    <value>Éteindre ou rallumer l'écran</value>
   </data>
   <data name="ActionToggleSettingsDetail" xml:space="preserve">
     <value>Montre ou cache cette fenêtre. Les fenêtres de jeu restent ouvertes, et le rappel de cette combinaison figure dans leur titre.</value>
@@ -1250,7 +1250,7 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
     <value>Couvre l'écran entier, sans bordure. Appuyer à nouveau, ou sur Échap, en sort et rend à chaque fenêtre la place qu'elle avait. Pendant le plein écran, Échap n'arrive plus au jeu.</value>
   </data>
   <data name="ActionScreenOffDetail" xml:space="preserve">
-    <value>Éteint l'écran du téléphone de la fenêtre de jeu, ou de tous les téléphones depuis une autre fenêtre DT Hub, le jeu continue.</value>
+    <value>Éteint l'écran du téléphone de la fenêtre de jeu, ou de tous les téléphones depuis une autre fenêtre DT Hub, le jeu continue. Appuyé de nouveau, le rallume.</value>
   </data>
   <data name="PanelLit" xml:space="preserve">
     <value>L'écran du téléphone est allumé.</value>
@@ -1260,6 +1260,15 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
   </data>
   <data name="TurnScreenOffNowTip" xml:space="preserve">
     <value>Éteint l'écran du téléphone, le jeu continue.</value>
+  </data>
+  <data name="PanelDark" xml:space="preserve">
+    <value>L'écran du téléphone est éteint.</value>
+  </data>
+  <data name="TurnScreenOnNow" xml:space="preserve">
+    <value>Rallumer</value>
+  </data>
+  <data name="TurnScreenOnNowTip" xml:space="preserve">
+    <value>Rallume l'écran du téléphone, les comptes restent ouverts.</value>
   </data>
   <data name="ActionLeaveFullscreen" xml:space="preserve">
     <value>Quitter le plein écran</value>

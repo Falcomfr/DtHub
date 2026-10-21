@@ -1211,7 +1211,7 @@ En un dispositivo {0}, la copia manual se hace por: {1}.</value>
     <value>Pantalla completa</value>
   </data>
   <data name="ActionScreenOff" xml:space="preserve">
-    <value>Apagar la pantalla del teléfono</value>
+    <value>Apagar o encender la pantalla</value>
   </data>
   <data name="ActionToggleSettingsDetail" xml:space="preserve">
     <value>Muestra u oculta esta ventana. Las ventanas de juego siguen abiertas, y esta combinación se recuerda en su título.</value>
@@ -1250,7 +1250,7 @@ En un dispositivo {0}, la copia manual se hace por: {1}.</value>
     <value>Cubre la pantalla entera, sin borde. Al pulsarlo otra vez, o Esc, sale y cada ventana recupera el sitio que tenía. En pantalla completa, Esc ya no llega al juego.</value>
   </data>
   <data name="ActionScreenOffDetail" xml:space="preserve">
-    <value>Apaga la pantalla del teléfono de la ventana de juego, o de todos los teléfonos desde otra ventana de DT Hub, y el juego sigue.</value>
+    <value>Apaga la pantalla del teléfono de la ventana de juego, o de todos los teléfonos desde otra ventana de DT Hub, y el juego sigue. Pulsado de nuevo, la vuelve a encender.</value>
   </data>
   <data name="PanelLit" xml:space="preserve">
     <value>La pantalla del teléfono está encendida.</value>
@@ -1260,6 +1260,15 @@ En un dispositivo {0}, la copia manual se hace por: {1}.</value>
   </data>
   <data name="TurnScreenOffNowTip" xml:space="preserve">
     <value>Apaga la pantalla del teléfono, y el juego sigue.</value>
+  </data>
+  <data name="PanelDark" xml:space="preserve">
+    <value>La pantalla del teléfono está apagada.</value>
+  </data>
+  <data name="TurnScreenOnNow" xml:space="preserve">
+    <value>Encender</value>
+  </data>
+  <data name="TurnScreenOnNowTip" xml:space="preserve">
+    <value>Vuelve a encender la pantalla del teléfono, y las cuentas siguen abiertas.</value>
   </data>
   <data name="ActionLeaveFullscreen" xml:space="preserve">
     <value>Salir de pantalla completa</value>

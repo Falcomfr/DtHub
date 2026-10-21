@@ -622,6 +622,26 @@ public class ScrcpySessionManagerTests
     }
 
     [Fact]
+    public async Task Rallumer_arrete_le_gardien_et_laisse_le_compte_ouvert()
+    {
+        // The guard's own cleanup lights the screen as it goes, the way it
+        // does when the last account closes.
+        var game = new FakeProcessSession(1).Emit(NewDisplayLine);
+        var keeper = new FakeProcessSession(9).Emit(ScreenOffLine);
+        var launcher = new FakeProcessLauncher().Prepare(game).Prepare(keeper);
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        await manager.StartAsync(Target(), DarkScreen, null, CancellationToken.None);
+
+        await manager.LightScreenAsync("MATERIEL123");
+
+        Assert.True(keeper.WasKilled);
+        Assert.False(game.WasKilled);
+        Assert.False(manager.HoldsScreenOff("MATERIEL123"));
+    }
+
+    [Fact]
     public async Task Reeteindre_un_telephone_sans_compte_ouvert_ne_lance_rien()
     {
         var launcher = new FakeProcessLauncher();

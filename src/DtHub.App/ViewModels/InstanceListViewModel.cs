@@ -58,9 +58,17 @@ public sealed partial class InstanceListViewModel : ObservableObject
         {
             foreach (var view in _devices.Values)
             {
-                view.IsPanelLit = _launcher.LitPanels.Contains(view.Serial);
+                RefreshScreen(view);
             }
         });
+    }
+
+    /// <summary>What the line under a phone says about its screen.</summary>
+    private void RefreshScreen(DeviceGroupViewModel view)
+    {
+        view.IsPanelLit = _launcher.LitPanels.Contains(view.Serial);
+        view.IsScreenHeld = _launcher.HoldsScreenOff(view.DeviceId);
+        view.IsPlaying = _launcher.IsPlaying(view.DeviceId);
     }
 
     private void OnSessionChanged(object? sender, Core.Scrcpy.ScrcpySession session)
@@ -869,7 +877,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
             view.SetProblems(found?.Text, found?.Serious ?? false, found?.Helps ?? []);
             view.SetNeedsPairing(_launcher.NeedsPairing.Contains(device.Id));
-            view.IsPanelLit = _launcher.LitPanels.Contains(device.Serial);
+            RefreshScreen(view);
         }
 
     }
@@ -1157,6 +1165,11 @@ public sealed partial class InstanceListViewModel : ObservableObject
             row.Activity = ActivityOf(row.Instance);
             row.TickSession(_launcher.SessionStartedUtc(row.Instance));
             row.AccountKey = _launcher.AccountKeyOf(row.Key);
+        }
+
+        foreach (var view in _devices.Values)
+        {
+            RefreshScreen(view);
         }
     }
 
@@ -1463,18 +1476,27 @@ public sealed partial class InstanceListViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Switches the phone's screen off again. The line goes at once: the
-    /// next sweep would take a few seconds to say the screen is dark.
+    /// Switches the phone's screen off, or lights it again if DT Hub holds
+    /// it off. The line turns at once: the next sweep would take a few
+    /// seconds to say what the screen became.
     /// </summary>
     [RelayCommand]
-    private async Task TurnPanelOffAsync(DeviceGroupViewModel? device)
+    private async Task TogglePanelAsync(DeviceGroupViewModel? device)
     {
         if (device is null)
         {
             return;
         }
 
+        if (device.IsScreenDark)
+        {
+            device.IsScreenHeld = false;
+            await _launcher.LightPanelAsync(device.DeviceId).ConfigureAwait(true);
+            return;
+        }
+
         device.IsPanelLit = false;
+        device.IsScreenHeld = true;
 
         await _launcher.TurnPanelOffAsync(device.DeviceId).ConfigureAwait(true);
     }

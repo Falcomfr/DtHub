@@ -655,6 +655,32 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         await StopKeeperAsync(keeper).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Lights the phone's screen again by stopping its screen-off session,
+    /// whose cleanup restores the screen as when the last account closes.
+    /// The accounts stay open; the next one opened switches it off again.
+    /// </summary>
+    public async Task LightScreenAsync(string deviceId)
+    {
+        IProcessSession? keeper;
+
+        await _screenKeepersLock.WaitAsync().ConfigureAwait(false);
+
+        try
+        {
+            if (!_screenKeepers.TryRemove(deviceId, out keeper))
+            {
+                return;
+            }
+        }
+        finally
+        {
+            _screenKeepersLock.Release();
+        }
+
+        await StopKeeperAsync(keeper).ConfigureAwait(false);
+    }
+
     /// <summary>True while a windowless session carries this phone's sound.</summary>
     public bool HoldsSound(string deviceId) =>
         _soundKeepers.TryGetValue(deviceId, out var keeper) && !keeper.HasExited;

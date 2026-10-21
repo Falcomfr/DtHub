@@ -43,11 +43,38 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
 
     /// <summary>
     /// True while the phone's own screen is lit although DT Hub holds it
-    /// off: the player picked it up, for a call for instance. Shows the
-    /// button that switches it off again.
+    /// off: the player picked it up, for a call for instance. The line
+    /// under the phone then offers to switch it off again.
     /// </summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsScreenDark), nameof(ScreenText), nameof(ScreenAction), nameof(ScreenActionTip))]
     private bool _isPanelLit;
+
+    /// <summary>True while DT Hub holds the phone's screen off.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsScreenDark), nameof(ScreenText), nameof(ScreenAction), nameof(ScreenActionTip))]
+    private bool _isScreenHeld;
+
+    /// <summary>
+    /// True while one of the phone's accounts is open: the line under the
+    /// phone shows then, whatever its screen reads. It used to show only
+    /// for a screen read lit, and two Galaxy S25 whose answer was never
+    /// read had no way to switch theirs off.
+    /// </summary>
+    [ObservableProperty]
+    private bool _isPlaying;
+
+    /// <summary>
+    /// The screen as DT Hub left it: held off and not seen lit since. A
+    /// phone that does not say counts as dark, the line offers to light it.
+    /// </summary>
+    public bool IsScreenDark => IsScreenHeld && !IsPanelLit;
+
+    public string ScreenText => Strings.Get(IsScreenDark ? "PanelDark" : "PanelLit");
+
+    public string ScreenAction => Strings.Get(IsScreenDark ? "TurnScreenOnNow" : "TurnScreenOffNow");
+
+    public string ScreenActionTip => Strings.Get(IsScreenDark ? "TurnScreenOnNowTip" : "TurnScreenOffNowTip");
 
     [ObservableProperty]
     private AdbDeviceState _state = AdbDeviceState.Offline;

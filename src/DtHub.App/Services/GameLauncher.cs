@@ -127,13 +127,22 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 _ => "incompris",
             },
             reading.Answer);
+        // The line under the phone says whether its screen is held off: it
+        // turns as soon as that changes, not at the next sweep.
         _sessions.ScreenHeld += (device, confirmed) =>
+        {
             LogScreenHeld(device, confirmed ? "confirmé par le téléphone" : "sans confirmation à l'échéance");
-        _sessions.ScreenReleased += (device, release) => LogScreenReleased(
-            device,
-            release.OnItsOwn ? "s'est arrêtée seule" : "arrêtée par DT Hub",
-            release.ExitCode,
-            release.LastLines);
+            LitPanelsChanged?.Invoke(this, EventArgs.Empty);
+        };
+        _sessions.ScreenReleased += (device, release) =>
+        {
+            LogScreenReleased(
+                device,
+                release.OnItsOwn ? "s'est arrêtée seule" : "arrêtée par DT Hub",
+                release.ExitCode,
+                release.LastLines);
+            LitPanelsChanged?.Invoke(this, EventArgs.Empty);
+        };
 
         // Whether to stop the game on close is decided at the moment
         // of closing, not at launch: without this subscription,
@@ -2037,8 +2046,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     /// <summary>
     /// The serials of the playing phones whose screen the player lit up
-    /// again while DT Hub holds it off, read by the panel to show its line.
-    /// Empty when the setting is off. Replaced whole, under
+    /// again while DT Hub holds it off, read by the panel to word its line.
+    /// Empty when no screen is held. Replaced whole, under
     /// <see cref="_litPanelsLock" />, never changed in place.
     /// </summary>
     public IReadOnlySet<string> LitPanels { get; private set; } = new HashSet<string>(StringComparer.Ordinal);
@@ -2084,21 +2093,20 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         HashSet<string> lit = new(StringComparer.Ordinal);
 
-        if ((await _settings.GetAsync(cancellationToken).ConfigureAwait(false)).TurnScreenOff)
-        {
-            var held = _sessions.ActiveSessions
-                .Where(s => s.IsAlive && _sessions.HoldsScreenOff(s.Target.DeviceId))
-                .Select(s => discovery.Devices.FirstOrDefault(d => d.IsConnected && d.Id == s.Target.DeviceId)?.Serial
-                    ?? s.Target.Serial)
-                .Distinct(StringComparer.Ordinal)
-                .ToList();
+        // Whether or not the setting is ticked: Ctrl+E holds a screen off
+        // without it. A phone held by nothing is never asked.
+        var held = _sessions.ActiveSessions
+            .Where(s => s.IsAlive && _sessions.HoldsScreenOff(s.Target.DeviceId))
+            .Select(s => discovery.Devices.FirstOrDefault(d => d.IsConnected && d.Id == s.Target.DeviceId)?.Serial
+                ?? s.Target.Serial)
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
 
-            foreach (var serial in held)
+        foreach (var serial in held)
+        {
+            if (await _devices.IsPanelLitAsync(serial, cancellationToken).ConfigureAwait(false) == true)
             {
-                if (await _devices.IsPanelLitAsync(serial, cancellationToken).ConfigureAwait(false) == true)
-                {
-                    _ = lit.Add(serial);
-                }
+                _ = lit.Add(serial);
             }
         }
 
@@ -2109,6 +2117,23 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 LitPanels = lit;
             }
         }
+    }
+
+    /// <summary>True while DT Hub holds this phone's screen off.</summary>
+    public bool HoldsScreenOff(string deviceId) => _sessions.HoldsScreenOff(deviceId);
+
+    /// <summary>True while one of this phone's accounts is open.</summary>
+    public bool IsPlaying(string deviceId) => _sessions.ActiveSessions.Any(s =>
+        s.IsAlive && string.Equals(s.Target.DeviceId, deviceId, StringComparison.Ordinal));
+
+    /// <summary>
+    /// Lights the phone's screen again, its accounts left open, see
+    /// <see cref="ScrcpySessionManager.LightScreenAsync" />.
+    /// </summary>
+    public async Task LightPanelAsync(string deviceId)
+    {
+        await _sessions.LightScreenAsync(deviceId).ConfigureAwait(false);
+        LitPanelsChanged?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>
@@ -2154,7 +2179,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// The shortcut's action: the phone of the game in front, the free
     /// window or the frame's shown tab, and every playing phone when the
     /// keyboard is in another of DT Hub's windows (asked on 2026-10-15).
-    /// Lit screens only, asked now rather than read from
+    /// The screens are asked now rather than read from
     /// <see cref="LitPanels" />, which the panel only refreshes while it
     /// shows.
     ///
@@ -2162,11 +2187,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// nothing at all without it, silently, and the player who pressed it
     /// could not tell why.
     ///
-    /// A phone that does not say counts as lit here, unlike for the line:
-    /// the player asked, and the worst is a one-second flash on a dark
-    /// screen.
+    /// It switches a screen DT Hub holds off back on, like the line under
+    /// the phone, which shows Light up then. A held phone that does not say
+    /// counts as dark, as for that line: a Galaxy S25 never answered, and
+    /// the shortcut must do what the line it shows says.
     /// </summary>
-    private async Task TurnLitPanelsOffAsync()
+    private async Task TogglePanelsAsync()
     {
         var foreground = _windows.Controller.GetForegroundWindow();
         string? shown = null;
@@ -2191,7 +2217,13 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         foreach (var (deviceId, serial) in phones)
         {
-            if (await _devices.IsPanelLitAsync(serial).ConfigureAwait(false) != false)
+            var lit = await _devices.IsPanelLitAsync(serial).ConfigureAwait(false);
+
+            if (_sessions.HoldsScreenOff(deviceId) && lit != true)
+            {
+                await LightPanelAsync(deviceId).ConfigureAwait(false);
+            }
+            else if (lit != false)
             {
                 await TurnPanelOffAsync(deviceId).ConfigureAwait(false);
             }
@@ -5621,7 +5653,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     break;
 
                 case HotkeyAction.ScreenOff:
-                    await TurnLitPanelsOffAsync().ConfigureAwait(false);
+                    await TogglePanelsAsync().ConfigureAwait(false);
                     break;
 
                 case HotkeyAction.Quit:
