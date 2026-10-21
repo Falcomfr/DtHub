@@ -1,4 +1,6 @@
-﻿namespace DtHub.Core.Windows;
+using DtHub.Core.Localization;
+
+namespace DtHub.Core.Windows;
 
 /// <summary>
 /// Rectangle in screen pixels. Defined here rather than borrowing a
@@ -44,6 +46,8 @@ public readonly record struct ScreenRect(int X, int Y, int Width, int Height)
             ? default
             : new ScreenRect(left, top, right - left, bottom - top);
     }
+
+    public string ToLogString() => LogMessages.Format("{0}x{1} en ({2}, {3})", Width, Height, X, Y);
 
     public override string ToString() => $"{Width}x{Height} en ({X}, {Y})";
 }

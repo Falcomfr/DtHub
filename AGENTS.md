@@ -1,4 +1,4 @@
-﻿# AGENTS.md
+# AGENTS.md
 
 Guide for AI agents and contributors taking over this repository.
 Read it in full before changing anything.
@@ -225,12 +225,11 @@ server for the whole machine. A test verifies this.
 
 - Identifiers in English.
 - **Language:** the repository is written in English. Documents, code
-  comments, commit messages, changelog entries, issue templates. Five
+  comments, commit messages, changelog entries, issue templates. Four
   things stay French and are not oversights: the commits made before
   2026-09-12, which cannot change without rewriting a public history;
   the test method names, which are a specification read in test output;
-  the log messages, which are a diagnostic tool for whoever runs the
-  application; `docs/DECISIONS.md`, whose worth is its precision and
+  `docs/DECISIONS.md`, whose worth is its precision and
   which new entries keep extending in French; and the 0.1.0 and 0.2.0
   sections of the changelog, published before the rule. Two files are
   translations on purpose, `CHANGELOG.fr.md` and `CHANGELOG.es.md`: the
@@ -253,8 +252,12 @@ server for the whole machine. A test verifies this.
 - **No hardcoded visible text.** Everything the user reads goes
   through `src/DtHub.Core/Localization/Strings*.resx`: `{loc:T Cle}`
   in XAML, `Strings.Get("Cle")` in C#. A key is added to all
-  **three** files at once, or `StringsResourceTests` fails. Logs,
-  however, remain French and do not go through this.
+  **three** files at once, or `StringsResourceTests` fails. File logs
+  follow the interface language through `LogMessages*.resx` and
+  `LocalizedLogFormatter`. Keep constant French source templates as
+  stable catalog keys and preserve named parameters. Add each template
+  and owned prose fragment to all three log catalogs. Raw ADB/scrcpy
+  output, exception traces and diagnostic identifiers stay unchanged.
 
 ## Pitfalls already encountered
 

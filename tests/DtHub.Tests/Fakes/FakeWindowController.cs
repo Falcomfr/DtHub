@@ -82,7 +82,12 @@ public sealed class FakeWindowController : IWindowController
     /// <summary>Simulated frame: title bar and borders.</summary>
     public WindowFrame Chrome { get; set; }
 
-    public WindowFrame GetWindowChrome(string? monitorDeviceName) => Chrome;
+    public Dictionary<string, WindowFrame> MonitorFrames { get; } = new(StringComparer.Ordinal);
+
+    public WindowFrame GetWindowChrome(string? monitorDeviceName) =>
+        monitorDeviceName is not null && MonitorFrames.TryGetValue(monitorDeviceName, out var frame)
+            ? frame
+            : Chrome;
 
     public ScreenRect? GetWindowRect(nint handle) =>
         _rects.TryGetValue(handle, out var rect) ? rect : null;

@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using DtHub.Core.Android;
 using DtHub.Core.Dependencies;
 using DtHub.Core.Localization;
@@ -329,6 +329,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
 
         var session = new ScrcpySession(sessionId, target, windowTitle, process)
         {
+            StartsOffscreen = options.StartOffscreen,
             CarriesAudio = options.AudioEnabled,
             SoundArguments = options.AudioEnabled ? ScrcpyCommandBuilder.BuildSoundArguments(serial, options) : null,
 
@@ -351,20 +352,30 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         int? displayId;
         try
         {
-            displayId = await AwaitDisplayAsync(session, options, displayReady, cancellationToken)
-                .ConfigureAwait(false);
-        }
-        finally
-        {
-            // Returned here and not later: the display exists, the
-            // next opening can push its server without risk.
-            await lease.DisposeAsync().ConfigureAwait(false);
-        }
+            try
+            {
+                displayId = await AwaitDisplayAsync(session, options, displayReady, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            finally
+            {
+                // Return the device lease before preparing the window or
+                // stopping a cancelled startup.
+                await lease.DisposeAsync().ConfigureAwait(false);
+            }
 
-        if (displayId is not null)
+            if (displayId is not null)
+            {
+                await LaunchGameAsync(session, placement, displayId.Value, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+        }
+        catch (OperationCanceledException) when (options.StartOffscreen)
         {
-            await LaunchGameAsync(session, placement, displayId.Value, cancellationToken)
-                .ConfigureAwait(false);
+            // No caller receives this session after cancellation. It must
+            // not survive invisibly outside the desktop.
+            await StopAsync(session.Id, CancellationToken.None).ConfigureAwait(false);
+            throw;
         }
 
         session.StartupMs = chrono.ElapsedMilliseconds;
@@ -1110,14 +1121,14 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
                 return true;
             }
 
-            session.Record("Arrêt du jeu refusé par " + serial + ".");
+            session.Record(LogMessages.Format("Arrêt du jeu refusé par {0}.", serial));
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
             // Nothing is propagated: the method is called on the
             // closing path, including that of the whole application,
             // and a fault there would have no one to receive it.
-            session.Record("Arrêt du jeu sur le téléphone impossible : " + exception.Message);
+            session.Record(LogMessages.Format("Arrêt du jeu sur le téléphone impossible : {0}", exception.Message));
         }
 
         return false;

@@ -127,6 +127,12 @@ public sealed record ScrcpyOptions
     public bool DisableVirtualDisplayDecorations { get; init; } = true;
 
     /// <summary>
+    /// Keeps a window destined for tabs off the desktop until its host is
+    /// ready. Launch-only state, never persisted in the user's settings.
+    /// </summary>
+    public bool StartOffscreen { get; init; }
+
+    /// <summary>
     /// Reminder added to the title of each game window, in parentheses. The
     /// windows look alike and overlap: the player must be able to read, above
     /// the image, how to move to the next one.

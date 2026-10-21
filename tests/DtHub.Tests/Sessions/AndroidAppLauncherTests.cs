@@ -1,4 +1,4 @@
-﻿using DtHub.Core.Adb;
+using DtHub.Core.Adb;
 using DtHub.Core.Dofus;
 using DtHub.Core.Localization;
 using DtHub.Core.Sessions;
@@ -367,6 +367,20 @@ public class AndroidAppLauncherTests
                 Couches,
                 185,
                 Package));
+
+    [Theory]
+    [InlineData("en")]
+    [InlineData("fr")]
+    [InlineData("es")]
+    public void La_langue_du_diagnostic_ne_change_pas_la_lecture_de_l_agrandissement(string language)
+    {
+        var layers = Couches.Replace("0.5899", "1.3333", StringComparison.Ordinal);
+        var state = AndroidAppLauncher.GameWindowState("", Fenetres, layers, 185, Package,
+            System.Globalization.CultureInfo.GetCultureInfo(language));
+
+        Assert.Contains("scale x=1.3333 y=1.3333", state);
+        Assert.Equal(1.3333, AndroidAppLauncher.Upscale(state));
+    }
 
     [Fact]
     public void Une_couche_sans_transformation_donne_ses_seules_bornes()

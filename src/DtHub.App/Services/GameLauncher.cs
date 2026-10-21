@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 
 using DtHub.Core.Adb;
 using DtHub.Core.Devices;
@@ -121,24 +121,24 @@ public sealed partial class GameLauncher : IAsyncDisposable
             serial,
             reading switch
             {
-                { Failed: true } => "sans réponse",
-                { Lit: true } => "allumé",
-                { Lit: false } => "éteint",
-                _ => "incompris",
+                { Failed: true } => LogMessages.Translate("sans réponse"),
+                { Lit: true } => LogMessages.Translate("allumé"),
+                { Lit: false } => LogMessages.Translate("éteint"),
+                _ => LogMessages.Translate("incompris"),
             },
             reading.Answer);
         // The line under the phone says whether its screen is held off: it
         // turns as soon as that changes, not at the next sweep.
         _sessions.ScreenHeld += (device, confirmed) =>
         {
-            LogScreenHeld(device, confirmed ? "confirmé par le téléphone" : "sans confirmation à l'échéance");
+            LogScreenHeld(device, LogMessages.Translate(confirmed ? "confirmé par le téléphone" : "sans confirmation à l'échéance"));
             LitPanelsChanged?.Invoke(this, EventArgs.Empty);
         };
         _sessions.ScreenReleased += (device, release) =>
         {
             LogScreenReleased(
                 device,
-                release.OnItsOwn ? "s'est arrêtée seule" : "arrêtée par DT Hub",
+                LogMessages.Translate(release.OnItsOwn ? "s'est arrêtée seule" : "arrêtée par DT Hub"),
                 release.ExitCode,
                 release.LastLines);
             LitPanelsChanged?.Invoke(this, EventArgs.Empty);
@@ -165,6 +165,18 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // born at its final size.
         _sessions.PrepareWindow = async (session, placement, cancellationToken) =>
         {
+            if (session.StartsOffscreen)
+            {
+                await _windows.PrepareForDockAsync(session, placement, async () =>
+                {
+                    if (_tabbed.Contains(session.Target.Key))
+                    {
+                        await AttachToTabsAsync(session, cancellationToken).ConfigureAwait(false);
+                    }
+                }, cancellationToken).ConfigureAwait(false);
+                return;
+            }
+
             // The corner aimed at is that of the frame, whereas the
             // placement passed to scrcpy is that of the client area:
             // repositioning the window on the placement's coordinates
@@ -176,7 +188,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
             // height at initialization.
             if (placement is { } wanted)
             {
-                var frame = _windows.WindowChrome();
+                var frame = _windows.WindowChrome(new ScreenRect(wanted.X, wanted.Y, wanted.Width, wanted.Height));
 
                 await _windows
                     .MoveOnlyAsync(session, wanted.X - frame.Left, wanted.Y - frame.Top, cancellationToken)
@@ -591,7 +603,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         LogSessionEnded(
             session.Target.DisplayName,
             session.State.ToString(),
-            session.FailureMessage ?? "aucun message",
+            session.FailureMessage ?? LogMessages.Translate("aucun message"),
             string.Join(Environment.NewLine, session.RecentOutput));
 
         // Before concluding that nothing is left: a window we are
@@ -2231,7 +2243,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // A real sleep and wake, not a bare wake key: see RelightAsync.
         var woken = serial is not null && await _devices.RelightAsync(serial).ConfigureAwait(false);
 
-        LogScreenRequest(deviceId, woken ? "réveil accepté par le téléphone" : "réveil refusé ou téléphone injoignable");
+        LogScreenRequest(deviceId, LogMessages.Translate(woken ? "réveil accepté par le téléphone" : "réveil refusé ou téléphone injoignable"));
 
         if (woken && serial is not null)
         {
@@ -2341,7 +2353,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         if (!_toggling.TryAdd(deviceId, 0))
         {
             var owed = _pendingToggles.AddOrUpdate(deviceId, true, (_, pending) => !pending);
-            LogScreenRequest(deviceId, owed ? "appui retenu pendant un changement" : "appui retenu annulé par le suivant");
+            LogScreenRequest(deviceId, LogMessages.Translate(owed ? "appui retenu pendant un changement" : "appui retenu annulé par le suivant"));
             return;
         }
 
@@ -2355,7 +2367,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
             // does not say: dark but no longer held, a press did nothing.
             var light = lit == false || (lit is null && _sessions.HoldsScreenOff(deviceId));
 
-            LogScreenRequest(deviceId, $"Ctrl+E, écran lu {(lit is { } l ? (l ? "allumé" : "éteint") : "inconnu")}, {(light ? "rallumage" : "extinction")}");
+            LogScreenRequest(deviceId, LogMessages.Format(
+                "Ctrl+E, écran lu {0}, {1}",
+                LogMessages.Translate(lit is { } l ? (l ? "allumé" : "éteint") : "inconnu"),
+                LogMessages.Translate(light ? "rallumage" : "extinction")));
 
             if (light)
             {
@@ -2397,13 +2412,13 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         if (!_toggling.TryAdd(deviceId, 0))
         {
-            LogScreenRequest(deviceId, "lien ignoré pendant un changement");
+            LogScreenRequest(deviceId, LogMessages.Translate("lien ignoré pendant un changement"));
             return;
         }
 
         LitPanelsChanged?.Invoke(this, EventArgs.Empty);
 
-        LogScreenRequest(deviceId, light ? "lien, rallumage" : "lien, extinction");
+        LogScreenRequest(deviceId, LogMessages.Translate(light ? "lien, rallumage" : "lien, extinction"));
 
         try
         {
@@ -2464,7 +2479,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             if (first)
             {
-                LogWifiKeptAwake(serial, kept ? "tenu éveillé" : "impossible à tenir éveillé, box introuvable");
+                LogWifiKeptAwake(serial, LogMessages.Translate(kept ? "tenu éveillé" : "impossible à tenir éveillé, box introuvable"));
             }
         });
     }
@@ -3313,6 +3328,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // afterwards is not enough: scrcpy recenters its window when
         // it receives the first frame, that is after our placement.
         remembered ??= await _settings.GetWindowRectsAsync(cancellationToken).ConfigureAwait(false);
+        var launchRects = remembered.ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
 
         List<string> problems = [];
         // One read for the whole launch: the table does not change
@@ -3398,9 +3414,18 @@ public sealed partial class GameLauncher : IAsyncDisposable
             // never remembered. Placed by us like a game window, and not
             // left to scrcpy: measured on 2026-10-10, a window scrcpy sized
             // alone ignored clicks until it was resized by hand.
-            var placement = instance.IsTransient
+            var fitWindow = !instance.IsTransient && phoneAspect is null;
+            var (placement, launchGeometry) = instance.IsTransient
                 ? ComputePlacement(options with { VirtualDisplayWidth = 1080, VirtualDisplayHeight = 1920 }, remembered: null)
-                : ComputePlacement(gameOptions, stored);
+                : ComputePlacement(gameOptions, stored, fitWindow);
+
+            // Explicit portrait/phone formats still get their frame-aware
+            // source fit from RestoreAsync. Only the adaptive game takes
+            // its source format from this selected rectangle.
+            if (fitWindow && launchGeometry is not null)
+            {
+                launchRects[instance.Key] = launchGeometry;
+            }
 
             var target = ToTarget(instance, device.Serial);
 
@@ -3430,6 +3455,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             var display = WithDisplayFor(gameOptions, placement, stored, quality, zoom, layoutHeight, phoneAspect ?? 0) with
             {
+                StartOffscreen = !instance.IsTransient && _tabbed.Contains(instance.Key),
                 // The account's own tier, not the shared one the options
                 // were built from: a custom account under a fixed shared tier
                 // streamed in H.264, a fixed one under a custom tier in H.265.
@@ -3610,13 +3636,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // display.
         if (started.Count > 0)
         {
-            await _windows.RestoreAsync(started, remembered, cancellationToken).ConfigureAwait(false);
+            await _windows.RestoreAsync(started, launchRects, cancellationToken).ConfigureAwait(false);
 
-            // Tabbed accounts join the frame. After placement:
-            // attaching them first would cause an already housed
-            // window to be repositioned, which would jump out of the
-            // frame only to come back into it.
-            foreach (var session in started.Where(s => _tabbed.Contains(s.Target.Key)))
+            // Most tabs are already attached before their game opens and
+            // RestoreAsync leaves those native children alone. A setting
+            // changed during startup or a refused first attach may still
+            // need to join now.
+            foreach (var session in started.Where(s => _tabbed.Contains(s.Target.Key)
+                                                       && !_windows.Controller.IsDocked(s.WindowHandle)))
             {
                 await AttachToTabsAsync(session, cancellationToken).ConfigureAwait(false);
             }
@@ -3682,7 +3709,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         // The short restart failed: everything is closed and
         // reopened, which remains the last useful resort.
-        LogRestartFallback(instance.DisplayName, restart.UserMessage ?? "afficheur inconnu");
+        LogRestartFallback(instance.DisplayName, restart.UserMessage ?? LogMessages.Translate("afficheur inconnu"));
 
         await StopSessionAsync(session, cancellationToken).ConfigureAwait(false);
 
@@ -5051,15 +5078,16 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// Rectangle every window will share. Computed once: this is
-    /// what guarantees their exact overlap.
+    /// Selects a launch rectangle before creating its display. An ordinary
+    /// game takes its format from this rectangle; explicit phone and tool
+    /// formats constrain the rectangle instead.
     /// </summary>
-    private ScrcpyWindowPlacement? ComputePlacement(ScrcpyOptions options, StoredWindowRect? remembered)
+    private (ScrcpyWindowPlacement? Placement, StoredWindowRect? Geometry) ComputePlacement(
+        ScrcpyOptions options, StoredWindowRect? remembered, bool fitWindow = false)
     {
-        // The window keeps the display's aspect ratio: the image is
-        // scaled to fit it, and departing from it would leave a
-        // band.
-        var aspect = options is { UseVirtualDisplay: true, VirtualDisplayHeight: > 0 }
+        // Without an explicit format, fill the requested window and let
+        // the display take its client ratio, excluding the title/borders.
+        var aspect = !fitWindow && options is { UseVirtualDisplay: true, VirtualDisplayHeight: > 0 }
             ? (double)options.VirtualDisplayWidth / options.VirtualDisplayHeight
             : 0;
 
@@ -5070,12 +5098,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // Logged: the layout depends on the screen and its scaling,
         // and an unexpected figure shows up right away here.
         LogPlacement(
-            string.Join(", ", monitors.Select(m => $"{m.DeviceName} {m.Bounds} utile {m.WorkArea}")),
-            rect?.ToString() ?? "aucun");
+            string.Join(", ", monitors.Select(m => LogMessages.Format("{0} {1} utile {2}", m.DeviceName, m.Bounds.ToLogString(), m.WorkArea.ToLogString()))),
+            rect?.ToLogString() ?? LogMessages.Translate("aucun"));
 
         if (rect is not { } value)
         {
-            return null;
+            return (null, null);
         }
 
         // The rectangle passed on is that of the client area, chrome
@@ -5086,9 +5114,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // border and too high by a title bar. The placement that
         // followed then repositioned it visibly, two hundred
         // milliseconds after it opened.
-        var client = _windows.WindowChrome().ClientOf(value);
+        var client = _windows.IsFullscreen ? value : _windows.WindowChrome(value).ClientOf(value);
 
-        return new ScrcpyWindowPlacement(client.X, client.Y, client.Width, client.Height);
+        return (
+            new ScrcpyWindowPlacement(client.X, client.Y, client.Width, client.Height),
+            StoredWindowRect.From(
+                value, WindowLayoutCalculator.ChooseMonitor(monitors, value.CenterX, value.CenterY)));
     }
 
     /// <summary>
@@ -5127,9 +5158,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
             return options;
         }
 
+        // The display is fixed for the session, but its initial format is
+        // the actual client area's, not the monitor including the taskbar.
+        // A phone-format override still wins; fullscreen uses the monitor.
+        var windowAspect = !_windows.IsFullscreen ? window.Width / (double)window.Height : 0;
+
         var (width, height) = DisplayLadder.For(
             window.Height, screen.Width, screen.Height, quality.MaximumDisplayHeight, _sharpImage, phoneAspect,
-            DisplayLadder.MinimumHeight);
+            DisplayLadder.MinimumHeight, windowAspect);
 
         // The sharper image and the small window's floor are paid for in
         // pixels, not in bits. Measured when it was made: at the bitrate of
@@ -5138,7 +5174,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // by up to two and a half, 9.5 to 24.3 Mb/s on the 13T Pro in the
         // high tier, per account, and the players said it lagged.
         var (bitrateWidth, bitrateHeight) =
-            DisplayLadder.For(window.Height, screen.Width, screen.Height, quality.MaximumDisplayHeight, phoneAspect: phoneAspect);
+            DisplayLadder.For(
+                window.Height, screen.Width, screen.Height, quality.MaximumDisplayHeight,
+                phoneAspect: phoneAspect, windowAspect: windowAspect);
 
         // Density is derived from the chosen resolution: leaving it
         // fixed made the game's zoom vary with the window's size,
@@ -5356,7 +5394,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         {
             var frame = EnsureTabs(settings);
 
-            frame.Attach(
+            var attached = frame.Attach(
                 session.Target.Key,
                 name,
                 IconFor(session),
@@ -5366,6 +5404,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 // launch target carries what scrcpy needs, and a colour
                 // is not one of those things.
                 AccountTints.KeyFor(_launched.GetValueOrDefault(session.Target.Key)?.Colour));
+
+            if (!attached && frame.Items.Count == 0)
+            {
+                frame.Close();
+                return;
+            }
 
             frame.Reorder(order);
             frame.ShowAccountKeys(AccountKeyOf);
@@ -5786,7 +5830,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
             {
                 _hotkeysActive = mine;
 
-                LogHotkeyScope(mine ? "actifs" : "en veille", window);
+                LogHotkeyScope(LogMessages.Translate(mine ? "actifs" : "en veille"), window);
             }
 
             _gameInFront = mine && OwnsWindow?.Invoke(window) != true;

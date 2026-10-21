@@ -1,4 +1,4 @@
-﻿# Contributing
+# Contributing
 
 Thanks for the interest. This repository has unusual conventions, firmly
 held: read `AGENTS.md` before writing a line. It says what is forbidden, and
@@ -40,7 +40,7 @@ text shown to users that lives outside the resource files, so they are also
 translated, in `CHANGELOG.fr.md` and `CHANGELOG.es.md`, and shipped beside
 each release for the application to show in its own language.
 
-Five things stay French on purpose, and it is better to name them than to
+Four things stay French on purpose, and it is better to name them than to
 let them read as oversights:
 
 - the **291 commits** made before 2026-09-12, which cannot change now without
@@ -51,8 +51,6 @@ let them read as oversights:
   specification, they are read in test output rather than by a stranger
   arriving on the repository, and renaming nine hundred of them would be
   churn with no reader served;
-- **log messages**. A log is a diagnostic tool for whoever runs the
-  application, not a shop window, and this one is read by its author;
 - **`docs/DECISIONS.md`**, four hundred kilobytes across a hundred and
   forty-nine entries. Its worth is its precision, and a translation would
   lose more of that than it would gain: it is the memory of the project,
@@ -65,7 +63,10 @@ let them read as oversights:
 
 What the user reads on screen never lives in the code at all: it goes through
 `src/DtHub.Core/Localization/Strings*.resx`, in the three languages the
-application ships.
+application ships. File logs follow that same language through
+`LogMessages*.resx`. Their constant French source templates remain the resource
+keys, including named structured parameters. Add each template or owned prose
+fragment to all three catalogs; preserve raw tool output and exception traces.
 
 **A changelog entry is one line.** The section of a version is published
 verbatim as its release note, on GitHub and inside the application's own update

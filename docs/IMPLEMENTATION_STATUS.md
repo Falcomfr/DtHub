@@ -1,9 +1,22 @@
-﻿# Implementation status
+# Implementation status
 
 Legend: **DONE** finished and verified, **IN PROGRESS** underway,
 **TODO** not started, **BLOCKED** requires external action.
 
-Last updated: 2026-09-18
+Last updated: 2026-10-21
+
+The launch-window format correction (D209) is implemented and covered by unit
+tests. The reported POCO's rendering still needs a player retest. The ordinary
+launch uses its client area; phone-format overrides retain their explicit shape.
+
+Tabbed startup now prepares and docks the native window before the game opens
+(D210), then reveals the settled frame. The full suite (2,505 tests), build and
+a native WPF/SDL probe pass; actual player startup remains to be retested.
+
+File log messages and owned diagnostic prose now follow the in-force UI
+language (English, French or Spanish, D211), preserving raw tool output,
+exceptions and structured diagnostic metadata. All 2,521 tests pass; Release
+publish and a live English session on French Windows were verified.
 
 ## Verified on real hardware
 
@@ -67,7 +80,7 @@ under its mDNS name, and appeared only once in the list.
 | Dark theme. There is no light palette | DONE |
 | Dark title bar on windows that keep Windows' native one | DONE |
 | Named type scale, six steps | DONE |
-| Logging with rotation, accessible folder | DONE |
+| Logging with rotation, accessible folder, messages in the interface language | DONE |
 | Tabbed frame: dock, reorder, pop out, close | DONE |
 | First-launch preparation window, named sources | DONE |
 | Incident report, redacted, to copy and send | DONE |
@@ -106,7 +119,7 @@ Audited on 2026-08-31, device by device and machine by machine.
 |---|---|
 | No hardcoded path, IP address, or serial number | DONE |
 | Reading properties via lists of alternative keys | DONE |
-| Display resolution computed from the PC monitor, not the device | DONE |
+| Display format computed from the launch client area, with explicit phone override | IN PROGRESS (code and tests complete; POCO rendering retest pending) |
 | No Android profile identifier inferred or assumed | DONE |
 | Numeric parsing under invariant culture | DONE |
 | Android version checked before launch | DONE |

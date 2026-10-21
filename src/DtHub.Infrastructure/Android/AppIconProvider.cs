@@ -4,6 +4,7 @@ using System.Text;
 
 using DtHub.Core.Adb;
 using DtHub.Core.Android;
+using DtHub.Core.Localization;
 using DtHub.Core.Storage;
 
 using Microsoft.Extensions.Logging;
@@ -192,7 +193,7 @@ public sealed partial class AppIconProvider : IAppIconProvider
 
         if (paths.Count == 0)
         {
-            Forget(key, "le paquet n'est pas installé sur ce profil", request.PackageName);
+            Forget(key, LogMessages.Translate("le paquet n'est pas installé sur ce profil"), request.PackageName);
 
             return null;
         }
@@ -247,7 +248,7 @@ public sealed partial class AppIconProvider : IAppIconProvider
             return file;
         }
 
-        Forget(key, "aucune icône matricielle dans l'archive", request.PackageName);
+        Forget(key, LogMessages.Translate("aucune icône matricielle dans l'archive"), request.PackageName);
 
         return null;
     }

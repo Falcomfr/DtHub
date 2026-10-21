@@ -2,6 +2,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
+using DtHub.Core.Localization;
 using DtHub.Core.Storage;
 
 using Microsoft.Extensions.Logging;
@@ -117,7 +118,7 @@ public sealed partial class JsonDocumentStore<T> : IDocumentStore<T>, IDisposabl
             catch (JsonException exception)
             {
                 var archived = Quarantine();
-                LogCorrupted(FilePath, archived ?? "(archivage impossible)", exception.Message);
+                LogCorrupted(FilePath, archived ?? LogMessages.Translate("(archivage impossible)"), exception.Message);
                 return new T();
             }
         }

@@ -1,4 +1,4 @@
-﻿# Décisions d'architecture
+# Décisions d'architecture
 
 Une entrée par décision structurante : le contexte, le choix retenu et ce
 qu'il coûte. Les entrées ne sont pas réécrites ; si une décision est
@@ -10712,3 +10712,124 @@ retirait et DT Hub rouvrait alors ce qui était ouvert, ce que seule son
 infobulle disait. Une liste « Au démarrage » au-dessus des teams écrit chaque
 choix : « Rouvrir ce qui était ouvert », puis « Ouvrir la team « X » » pour
 chacune. Elle n'apparaît qu'avec au moins une team.
+
+## D209 - Le format du jeu suit la zone intérieure de sa fenêtre au lancement
+
+**2026-10-21 - Implémentée, vérification sur le POCO à faire**
+
+Sur un écran de PC 1920x1080, zone utile 1920x1050, la fenêtre du joueur
+occupait 1813x1050 : conserver le 16:9 de l'écran entier après déduction du
+titre et des bordures laissait une bande de bureau à droite. Le format du
+téléphone déplaçait cet espace sous la fenêtre. L'utilisateur demande que le
+jeu remplisse sa vraie fenêtre, en mode fenêtré.
+
+Sans format du téléphone imposé, la fenêtre prend la part demandée de la zone
+utile et l'afficheur prend le rapport de sa zone client. Le cadre se mesure
+sur l'écran de destination, pour sa mise à l'échelle ; un démarrage en plein
+écran prend le format de l'écran sans déduire de cadre. Définition et débit
+emploient le même rapport, bornés par l'écran et la charge du palier.
+
+Une géométrie mémorisée reste. Seule une ancienne fenêtre qui correspond
+exactement à l'ajustement à toute la hauteur, au format de l'écran, s'étend à
+toute la zone utile. Sa position verticale, sa hauteur, sa largeur calculée
+et son inclusion dans cette zone sont vérifiées à deux pixels près. Le
+rectangle choisi pour ce lancement est aussi celui de la restauration ;
+sinon elle remettrait les 1813 pixels juste après le lancement. Ce remplacement
+ne concerne ni les outils portrait ni un format du téléphone explicite.
+
+La résolution reste fixe pendant la partie, comme D16/D17 l'imposent. On ne
+rétablit pas `flex-display`, on ne coupe ni ne déforme l'image et on ne relance
+pas un compte en cachette. Passer une fenêtre déjà ouverte en plein écran peut
+donc garder des bandes si son format diffère ; démarrer en plein écran prend
+bien le format de l'écran. Le nouvel ajustement s'applique à la réouverture.
+
+Vérifications : régression 1813x1050 puis restauration et surveillance du
+rapport, géométries personnalisées conservées, cadre sur le second écran,
+priorité au format du téléphone, charge des paliers. Compilation et suite de
+tests réussies. Le rendu du jeu sur l'appareil distant n'est pas vérifié par
+ces tests et doit encore être retesté par le joueur.
+
+## D210 - Un jeu en onglets apparaît directement dans son cadre
+
+**2026-10-21 - Vérifiée sur les fenêtres natives, partie du joueur à retester**
+
+Après D209, le joueur voit une grande fenêtre puis le petit cadre à onglets.
+Le lancement ouvre d'abord scrcpy et le jeu, restaure la fenêtre sur le bureau,
+puis seulement l'attache au cadre mémorisé. Le journal du test montre bien
+3840x2160 à l'ouverture, alors que le cadre mémorisé mesure 2056x1253.
+
+Une session destinée aux onglets démarre désormais hors écran, à taille et
+définition inchangées. Dans `PrepareWindow`, avant d'ouvrir le jeu, sa fenêtre
+est cachée, déplacée à sa vraie position de fenêtre indépendante, puis attachée.
+Ce déplacement avant l'attache compte : le détachement restaure le rectangle
+que `Dock` a mémorisé, qui ne doit jamais être celui hors écran.
+
+Le premier cadre est transparent et absent de la barre des tâches pendant sa
+restauration ; l'enfant natif reste caché aussi, car l'opacité WPF ne le cache
+pas. Après la vraie mise en page de l'onglet et la seconde restauration de la
+densité, le cadre ajuste et place l'enfant, puis les révèle. Une arrivée dans
+un cadre déjà visible garde l'onglet sélectionné. La restauration finale des
+fenêtres indépendantes ignore les enfants réellement attachés.
+
+Une attache refusée révèle la fenêtre indépendante à sa place prévue. Un cadre
+vide refusé se ferme. Une annulation après création de scrcpy arrête la session
+hors écran avant de remonter, sinon son processus invisible survivrait sans
+jamais atteindre la restauration finale. Deux tests échouaient sur ce dernier
+cas avant la correction, pendant l'attente de l'afficheur et la préparation.
+
+Suite : 2505 tests réussis, compilation sans avertissement. La sonde Windows,
+avec le vrai `TabbedGameWindow`, le contrôleur Win32 et SDL livré, crée un
+afficheur Android vide : fenêtre initiale 662x416 en (-32011,-32045), cadre
+final 1200x772, enfant 1178x663 visible et attaché, détachement en (100,100).
+Aucune action de jeu n'est envoyée. Le démarrage de la partie du joueur reste
+à retester ; la sonde valide le cycle des fenêtres, pas le rendu de son jeu.
+
+Rejouée avec le manifeste PerMonitorV2 de l'application, vers le second écran
+à densité différente : cadre 1200x740 en (3940,571), enfant 1184x666 en
+(3948,637), visible et attaché ; détachement en (100,100). Capture dans
+`build/app-startup-probe-secondary.png`, non versionnée. Sans ce manifeste, les
+mesures d'une sonde WPF sont virtualisées et ne prouvent pas le placement en
+pixels physiques.
+
+## D211 - Le journal parle la langue de l’interface
+
+**2026-10-21 - Implémentée**
+
+Le joueur demande que ses journaux suivent la langue de DT Hub. Les messages
+propres à l’application sont désormais rendus en anglais, français ou espagnol,
+selon la langue en vigueur dans `Strings.Spoken`. Comme l’interface, le choix
+modifié dans les réglages prend effet au redémarrage. Le choix est appliqué
+avant le message de démarrage et celui qui explique la langue retenue.
+
+Les modèles français constants restent les clés stables des trois catalogues
+`LogMessages*.resx`, y compris les modèles `LoggerMessage` générés. Le formateur
+Serilog du fichier remplace le modèle au rendu et garde les propriétés, leur
+nom et leur format, la date, le niveau, la session, la source, les identifiants
+de trace et l’exception. L’événement original reste intact pour les autres
+sorties. Un modèle inconnu passe tel quel. Le cache est limité aux traductions
+connues, par langue et modèle. Les sorties brutes d’ADB et de scrcpy, les noms
+de comptes et d’appareils ainsi que les traces d’erreur ne sont pas réécrits.
+
+Les fragments de texte possédés par l’application sont traduits à leur point
+de production, sans interpréter arbitrairement les valeurs des propriétés.
+Les résumés USB utilisés pour détecter un changement et les rectangles
+canoniques restent stables ; seul leur rendu destiné au journal est traduit.
+Les diagnostics Android gardent leurs nombres et leurs tokens `scale=...` :
+la lecture de l’agrandissement ne dépend pas de la langue des libellés.
+
+Serilog 4.3.0 était déjà une dépendance de l’application ; Infrastructure le
+référence explicitement pour porter le formateur. Core ne dépend toujours
+que de la bibliothèque standard. Les marqueurs de niveau et de session
+restent compatibles avec `LogDigest` et les rapports qui reprennent le journal.
+
+Les tests vérifient les trois langues, la couverture des modèles dans les
+sources, y compris les chaînes concaténées, la parité des paramètres et des
+formats, le changement de langue avec cache, les détails et valeurs brutes
+ainsi que la conservation des traces et identifiants.
+
+Vérification : 2521 tests réussis, publication Release sans avertissement.
+L’exécutable publié a été lancé avec son réglage anglais existant sur Windows
+français : le démarrage et les lignes suivantes sont en anglais, sans erreur
+ni avertissement dans la session observée. Capture du configurateur vérifiée,
+non versionnée. Les rendus français et espagnol ainsi que les 233 entrées de
+chaque catalogue sont vérifiés par les tests.

@@ -17,6 +17,17 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Changed
+
+- Log messages now follow the application's language: English, French or Spanish.
+
+### Fixed
+
+- Game displays now match the window's client area when opened, avoiding black margins caused by the window frame.
+- Tabbed games now appear directly in their restored frame, without briefly showing a large standalone window.
+
 ## [0.9.6] - 2026-10-21
 
 ### Added
