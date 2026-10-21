@@ -128,6 +128,81 @@ public class TouchNameServiceTests
         Assert.NotNull(await service.CachedAsync("fr"));
     }
 
+    private void GiveSteps()
+    {
+        _client.Rows["QuestSteps"] = new()
+        {
+            [10] = """{"id":10,"nameId":"Step ten","descriptionId":"About ten","objectiveIds":[100,101]}""",
+            [11] = """{"id":11,"nameId":"Step eleven","descriptionId":"About eleven","objectiveIds":[102]}""",
+        };
+        _client.Rows["QuestObjectives"] = new()
+        {
+            [100] = """{"id":100,"stepId":10,"typeId":1,"parameters":[447],"coords":{"_type":"Point","x":-3,"y":-44}}""",
+            [101] = """{"id":101,"stepId":10,"typeId":0,"parameters":[662825],"coords":{}}""",
+            [102] = """{"id":102,"stepId":11,"typeId":3,"parameters":[447,1746,2],"coords":{}}""",
+        };
+        _client.Rows["QuestObjectiveTypes"] = new()
+        {
+            [0] = """{"id":0,"nameId":"#1"}""",
+            [1] = """{"id":1,"nameId":"Talk to #1"}""",
+            [3] = """{"id":3,"nameId":"Take #3 #2 to #1"}""",
+        };
+        _client.Rows["Npcs"] = new() { [447] = """{"id":447,"nameId":"Invented NPC"}""" };
+        _client.Texts[662825] = "Free text";
+    }
+
+    [Fact]
+    public async Task Les_etapes_d_une_page_groupee_se_suivent()
+    {
+        GiveSteps();
+        using var service = Service();
+
+        var steps = await service.StepsAsync(1, "en");
+
+        Assert.Equal(["Step ten", "Step eleven"], steps.Select(s => s.Name));
+        Assert.Equal("About ten", steps[0].Description);
+        Assert.Equal(
+            [new TouchObjectiveLine("Talk to Invented NPC", "[-3,-44]"), new TouchObjectiveLine("Free text", "")],
+            steps[0].Objectives);
+        Assert.Equal("Take 2 nom 1746 en to Invented NPC", steps[1].Objectives.Single().Text);
+        Assert.Equal([10, 11], _client.Requested["QuestSteps"].Single());
+    }
+
+    [Fact]
+    public async Task Les_etapes_lues_ne_se_relisent_pas()
+    {
+        GiveSteps();
+        using var service = Service();
+        _ = await service.StepsAsync(1, "en");
+        _client.Requested.Clear();
+
+        var again = await service.StepsAsync(1, "en");
+
+        Assert.Equal(2, again.Count);
+        Assert.Empty(_client.Requested);
+    }
+
+    [Fact]
+    public async Task Une_quete_non_appariee_n_a_pas_d_etapes()
+    {
+        GiveSteps();
+        using var service = Service();
+
+        Assert.Empty(await service.StepsAsync(99, "en"));
+        Assert.False(_client.Requested.ContainsKey("QuestSteps"));
+    }
+
+    [Fact]
+    public async Task Un_refus_du_serveur_donne_une_liste_vide_et_note_l_echec()
+    {
+        GiveSteps();
+        using var service = Service();
+        _client.Failure = new HttpRequestException("refus");
+
+        Assert.Empty(await service.StepsAsync(1, "en"));
+        Assert.NotNull(service.LastFailure);
+    }
+
     [Theory]
     [InlineData("fr", "fr")]
     [InlineData("es", "es")]

@@ -2776,4 +2776,22 @@ To avoid it: {1}  ›  "Auto lock Secure Folder" › the longest option.</value>
   <data name="QuestSection745" xml:space="preserve">
     <value>The Labyrinth</value>
   </data>
+  <data name="OfficialSteps" xml:space="preserve">
+    <value>Official steps</value>
+  </data>
+  <data name="OfficialStepsTip" xml:space="preserve">
+    <value>The quest's steps as the game words them</value>
+  </data>
+  <data name="BackToGuide" xml:space="preserve">
+    <value>Papycha guide</value>
+  </data>
+  <data name="OfficialStepsLoading" xml:space="preserve">
+    <value>Reading the game's steps…</value>
+  </data>
+  <data name="OfficialStepsUnavailable" xml:space="preserve">
+    <value>The game's steps could not be read.</value>
+  </data>
+  <data name="OfficialNamesCredit" xml:space="preserve">
+    <value>Names and steps: DOFUS Touch, Ankama</value>
+  </data>
 </root>

@@ -2776,4 +2776,22 @@ Pour l'éviter : {1}  ›  « Verrouillage auto. Dossier sécurisé » › l'opt
   <data name="QuestSection745" xml:space="preserve">
     <value>Dédale</value>
   </data>
+  <data name="OfficialSteps" xml:space="preserve">
+    <value>Étapes officielles</value>
+  </data>
+  <data name="OfficialStepsTip" xml:space="preserve">
+    <value>Les étapes de la quête telles que le jeu les écrit</value>
+  </data>
+  <data name="BackToGuide" xml:space="preserve">
+    <value>Guide Papycha</value>
+  </data>
+  <data name="OfficialStepsLoading" xml:space="preserve">
+    <value>Lecture des étapes du jeu…</value>
+  </data>
+  <data name="OfficialStepsUnavailable" xml:space="preserve">
+    <value>Les étapes du jeu n'ont pas pu être lues.</value>
+  </data>
+  <data name="OfficialNamesCredit" xml:space="preserve">
+    <value>Noms et étapes : DOFUS Touch, Ankama</value>
+  </data>
 </root>

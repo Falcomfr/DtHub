@@ -2776,4 +2776,22 @@ Para evitarlo: {1}  ›  «Bloqueo automático de Carpeta segura» › la opció
   <data name="QuestSection745" xml:space="preserve">
     <value>El Dédalo</value>
   </data>
+  <data name="OfficialSteps" xml:space="preserve">
+    <value>Pasos oficiales</value>
+  </data>
+  <data name="OfficialStepsTip" xml:space="preserve">
+    <value>Los pasos de la misión tal como los escribe el juego</value>
+  </data>
+  <data name="BackToGuide" xml:space="preserve">
+    <value>Guía de Papycha</value>
+  </data>
+  <data name="OfficialStepsLoading" xml:space="preserve">
+    <value>Leyendo los pasos del juego…</value>
+  </data>
+  <data name="OfficialStepsUnavailable" xml:space="preserve">
+    <value>No se pudieron leer los pasos del juego.</value>
+  </data>
+  <data name="OfficialNamesCredit" xml:space="preserve">
+    <value>Nombres y pasos: DOFUS Touch, Ankama</value>
+  </data>
 </root>

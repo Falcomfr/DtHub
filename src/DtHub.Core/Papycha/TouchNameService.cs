@@ -88,6 +88,141 @@ public sealed class TouchNameService(
         }
     }
 
+    /// <summary>
+    /// The official steps of a Papycha quest, read once and kept. A page can
+    /// pair with many game quests sharing one name (homonyms): only the first
+    /// game quest of each distinct name is read. Never throws except on
+    /// cancellation; empty when unpaired or on failure (see <see cref="LastFailure"/>).
+    /// </summary>
+    public async Task<IReadOnlyList<TouchStep>> StepsAsync(
+        int papychaQuestId, string language, CancellationToken ct = default)
+    {
+        // Outside the gate: both calls take it themselves.
+        var known = await CachedAsync(language, ct).ConfigureAwait(false)
+            ?? await RefreshAsync(language, ct).ConfigureAwait(false);
+
+        if (known is null || !Table.Quests.TryGetValue(papychaQuestId, out var gameIds))
+        {
+            return [];
+        }
+
+        await _gate.WaitAsync(ct).ConfigureAwait(false);
+
+        try
+        {
+            if (known.Steps.TryGetValue(papychaQuestId, out var cached))
+            {
+                return cached;
+            }
+
+            var stepIds = gameIds
+                .Where(known.Quests.ContainsKey)
+                .GroupBy(id => known.Quests[id].Name)
+                .SelectMany(g => known.Quests[g.First()].StepIds)
+                .ToArray();
+
+            if (stepIds.Length == 0)
+            {
+                return [];
+            }
+
+            try
+            {
+                var steps = await ReadStepsAsync(known, stepIds, language, ct).ConfigureAwait(false);
+                known.Steps[papychaQuestId] = steps;
+                await store.SaveAsync(await LoadAsync(ct).ConfigureAwait(false), ct).ConfigureAwait(false);
+                LastFailure = null;
+
+                return steps;
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception exception) when (exception is not OutOfMemoryException)
+            {
+                // The window reads LastFailure and logs it once.
+                LastFailure = exception;
+
+                return [];
+            }
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+
+    private async Task<TouchStep[]> ReadStepsAsync(
+        TouchLanguageNames known, int[] stepIds, string language, CancellationToken ct)
+    {
+        var rows = await GetAsync("QuestSteps", stepIds, language, ct).ConfigureAwait(false);
+        var steps = stepIds.Where(rows.ContainsKey).Select(id => rows[id]).ToArray();
+        var objectives = await GetAsync(
+            "QuestObjectives", [.. steps.SelectMany(step => Ints(step, "objectiveIds"))], language, ct).ConfigureAwait(false);
+
+        if (known.ObjectiveTypes.Count == 0)
+        {
+            // The whole class, 35 rows: the only read without ids.
+            var types = await client.GetAsync("QuestObjectiveTypes", null, language, ct).ConfigureAwait(false);
+
+            foreach (var type in types.Where(t => Name(t.Value) is not null))
+            {
+                known.ObjectiveTypes[type.Key] = Name(type.Value)!;
+            }
+        }
+
+        var holes = objectives.Values
+            .SelectMany(o => Ints(o, "parameters").Select((value, index) => (Kind: TouchObjectiveText.KindOf(Int(o, "typeId"), index + 1), value)))
+            .Where(h => h.Kind != TouchHole.Count)
+            .ToLookup(h => h.Kind, h => h.value);
+
+        var names = new Dictionary<(TouchHole, int), string>();
+
+        foreach (var (kind, dataClass) in new[] { (TouchHole.Npc, "Npcs"), (TouchHole.Item, "Items"), (TouchHole.Monster, "Monsters"), (TouchHole.Area, "SubAreas") })
+        {
+            foreach (var row in await GetAsync(dataClass, [.. holes[kind]], language, ct).ConfigureAwait(false))
+            {
+                if (Name(row.Value) is { } name)
+                {
+                    names[(kind, row.Key)] = name;
+                }
+            }
+        }
+
+        var texts = holes[TouchHole.Text].Distinct().ToArray();
+
+        if (texts.Length > 0)
+        {
+            foreach (var text in await client.GetTextsAsync(texts, language, ct).ConfigureAwait(false))
+            {
+                names[(TouchHole.Text, text.Key)] = text.Value;
+            }
+        }
+
+        string? NameOf(TouchHole kind, int id) => names.GetValueOrDefault((kind, id));
+
+        TouchObjectiveLine Line(JsonElement objective)
+        {
+            var type = Int(objective, "typeId");
+            var template = known.ObjectiveTypes.GetValueOrDefault(type, "");
+
+            return new(
+                TouchObjectiveText.Fill(template, type, Ints(objective, "parameters"), NameOf),
+                objective.TryGetProperty("coords", out var c) && c.TryGetProperty("x", out _) && c.TryGetProperty("y", out _)
+                    ? $"[{Int(c, "x")},{Int(c, "y")}]"
+                    : "");
+        }
+
+        return [.. steps.Select(step => new TouchStep(
+            Name(step) ?? "",
+            Text(step, "descriptionId"),
+            [.. Ints(step, "objectiveIds").Where(objectives.ContainsKey).Select(id => Line(objectives[id]))]))];
+    }
+
+    private static string Text(JsonElement row, string name) =>
+        row.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String ? value.GetString()! : "";
+
     private async Task<TouchNamesDocument> LoadAsync(CancellationToken ct) =>
         _document ??= await store.LoadAsync(ct).ConfigureAwait(false);
 

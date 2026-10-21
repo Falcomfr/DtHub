@@ -20,9 +20,11 @@ public sealed partial class QuestViewModel : ObservableObject
     private readonly QuestCatalogService _catalog;
     private readonly IDialogService _dialogs;
     private readonly SettingsService _settings;
+    private readonly TouchNameService _touchNames;
 
-    public QuestViewModel(QuestCatalogService catalog, IDialogService dialogs, QuestTrackerViewModel tracker, SettingsService settings)
+    public QuestViewModel(QuestCatalogService catalog, IDialogService dialogs, QuestTrackerViewModel tracker, SettingsService settings, TouchNameService touchNames)
     {
+        _touchNames = touchNames;
         Tracker = tracker;
         _settings = settings;
         tracker.ProgressChanged += (_, _) => RedrawAfterRead();
@@ -357,7 +359,93 @@ public sealed partial class QuestViewModel : ObservableObject
     /// the same shell, so a veil placed over it would stay invisible. This is,
     /// moreover, what the dropdown list already does.
     /// </summary>
-    public bool ShowsPage => !IsListOpen && !IsLoadingPage && IsWindowVisible;
+    public bool ShowsPage => !IsListOpen && !IsLoadingPage && IsWindowVisible && !ShowsOfficialSteps;
+
+    /// <summary>The guide is Papycha's, in French: the game's own wording only exists to compare, in another language.</summary>
+    public bool OffersOfficialSteps =>
+        _current is { } quest
+        && TouchNameService.CurrentLanguage != "fr"
+        && _touchNames.Table.Quests.ContainsKey(quest.Id);
+
+    /// <summary>
+    /// True when the game's steps take the web view's place. The view is
+    /// removed, not covered, for the reason given at <see cref="ShowsPage"/>.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsPage))]
+    [NotifyPropertyChangedFor(nameof(ShowsOfficialStepsUnavailable))]
+    private bool _showsOfficialSteps;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsOfficialStepsUnavailable))]
+    private bool _isLoadingOfficialSteps;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsOfficialStepsUnavailable))]
+    private IReadOnlyList<TouchStep> _officialSteps = [];
+
+    /// <summary>The read came back empty: unpaired, or the game's server refused.</summary>
+    public bool ShowsOfficialStepsUnavailable =>
+        ShowsOfficialSteps && !IsLoadingOfficialSteps && OfficialSteps.Count == 0;
+
+    /// <summary>Papycha quest the steps in <see cref="OfficialSteps"/> belong to.</summary>
+    private int _officialStepsOf;
+
+    private void ResetOfficialSteps()
+    {
+        ShowsOfficialSteps = false;
+        OfficialSteps = [];
+        _officialStepsOf = 0;
+        OnPropertyChanged(nameof(OffersOfficialSteps));
+    }
+
+    /// <summary>Swaps the guide for the game's steps, and back.</summary>
+    [RelayCommand]
+    public async Task ToggleOfficialStepsAsync()
+    {
+        if (ShowsOfficialSteps)
+        {
+            ShowsOfficialSteps = false;
+
+            return;
+        }
+
+        if (_current is not { } quest)
+        {
+            return;
+        }
+
+        ShowsOfficialSteps = true;
+
+        if (_officialStepsOf == quest.Id)
+        {
+            return;
+        }
+
+        IsLoadingOfficialSteps = true;
+
+        try
+        {
+            var steps = await _touchNames.StepsAsync(quest.Id, TouchNameService.CurrentLanguage).ConfigureAwait(true);
+
+            if (_current?.Id != quest.Id)
+            {
+                return;
+            }
+
+            if (steps.Count == 0 && _touchNames.LastFailure is { } failure)
+            {
+                Log.Warning(failure, "The game's steps could not be read");
+            }
+
+            OfficialSteps = steps;
+            _officialStepsOf = steps.Count == 0 ? 0 : quest.Id;
+        }
+        finally
+        {
+            IsLoadingOfficialSteps = false;
+        }
+    }
 
     /// <summary>
     /// True when the view's place is taken over by the loading indicator.
@@ -1044,6 +1132,8 @@ public sealed partial class QuestViewModel : ObservableObject
         Tracker.ShowQuest(quest.Id);
 
         _current = quest;
+
+        ResetOfficialSteps();
         _currentDungeon = null;
         _currentPath = null;
 
@@ -1079,6 +1169,8 @@ public sealed partial class QuestViewModel : ObservableObject
         Tracker.ShowQuest(null);
 
         _current = null;
+
+        ResetOfficialSteps();
         _currentDungeon = dungeon;
         _currentPath = null;
         _neighbours = default;
@@ -1115,6 +1207,8 @@ public sealed partial class QuestViewModel : ObservableObject
         Tracker.ShowQuest(null);
 
         _current = null;
+
+        ResetOfficialSteps();
         _currentDungeon = null;
         _currentPath = path;
         _neighbours = default;
@@ -1390,6 +1484,7 @@ public sealed partial class QuestViewModel : ObservableObject
         // already left.
         Tracker.ShowQuest(null);
         _current = null;
+        ResetOfficialSteps();
         _currentDungeon = null;
         _currentPath = null;
         _neighbours = default;

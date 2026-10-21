@@ -17,6 +17,12 @@ public sealed class FakeDofusTouchClient : IDofusTouchClient
     /// <summary>Answers rows without a name, as a server that lost its texts would.</summary>
     public bool Nameless { get; set; }
 
+    /// <summary>Rows served as they are (class, then id) instead of the generated ones; a whole-class read gets them all.</summary>
+    public Dictionary<string, Dictionary<int, string>> Rows { get; } = [];
+
+    /// <summary>Texts by id; an id without text is left out of the answer.</summary>
+    public Dictionary<int, string> Texts { get; } = [];
+
     public Task<IReadOnlyDictionary<int, JsonElement>> GetAsync(
         string dataClass, IReadOnlyCollection<int>? ids, string language, CancellationToken cancellationToken = default)
     {
@@ -30,7 +36,14 @@ public sealed class FakeDofusTouchClient : IDofusTouchClient
             Requested[dataClass] = calls = [];
         }
 
-        calls.Add([.. ids!]);
+        calls.Add([.. ids ?? []]);
+
+        if (Rows.TryGetValue(dataClass, out var rows))
+        {
+            return Task.FromResult<IReadOnlyDictionary<int, JsonElement>>(rows
+                .Where(r => ids is null || ids.Contains(r.Key))
+                .ToDictionary(r => r.Key, r => JsonDocument.Parse(r.Value).RootElement));
+        }
 
         return Task.FromResult<IReadOnlyDictionary<int, JsonElement>>(ids!.ToDictionary(
             id => id,
@@ -39,6 +52,14 @@ public sealed class FakeDofusTouchClient : IDofusTouchClient
     }
 
     public Task<IReadOnlyDictionary<int, string>> GetTextsAsync(
-        IReadOnlyCollection<int> ids, string language, CancellationToken cancellationToken = default) =>
-        throw new NotSupportedException("Names come from nameId, not from texts.");
+        IReadOnlyCollection<int> ids, string language, CancellationToken cancellationToken = default)
+    {
+        if (Failure is not null)
+        {
+            throw Failure;
+        }
+
+        return Task.FromResult<IReadOnlyDictionary<int, string>>(
+            ids.Where(Texts.ContainsKey).ToDictionary(id => id, id => Texts[id]));
+    }
 }
