@@ -80,10 +80,19 @@ public static class TouchLocalization
             });
         }
 
+        Dictionary<string, string> seriesByFrench = [];
+
+        foreach (var (french, id) in table.Series)
+        {
+            if (names.Achievements.TryGetValue(id, out var shown))
+            {
+                seriesByFrench.TryAdd(QuestSearch.Normalize(french), shown);
+            }
+        }
+
         quests = [.. quests.Select(q => q with
         {
-            Prerequisites = [.. q.Prerequisites.Select(p =>
-                shownByFrench.GetValueOrDefault(QuestSearch.Normalize(p), p))],
+            Prerequisites = [.. q.Prerequisites.Select(p => Prerequisite(p, shownByFrench, seriesByFrench))],
         })];
 
         List<string> order = [.. source.SuccessOrder.Select(s => Series(s, table, names))];
@@ -122,6 +131,21 @@ public static class TouchLocalization
             SectionOrder = source.SectionOrder,
             SuccessOrder = order,
         };
+    }
+
+    // The name is swapped inside the label, so "Succès X réalisé" or "X atteint"
+    // keep the form PrerequisiteLabel reads, with the name the catalog now uses.
+    private static string Prerequisite(
+        string label, Dictionary<string, string> quests, Dictionary<string, string> series)
+    {
+        var target = PrerequisiteLabel.Of(label);
+        var renamed = (target.IsSuccess ? series : quests)
+            .GetValueOrDefault(QuestSearch.Normalize(target.Name));
+        var at = target.Name.Length == 0 ? -1 : label.IndexOf(target.Name, StringComparison.Ordinal);
+
+        return renamed is null || at < 0
+            ? label
+            : label[..at] + renamed + label[(at + target.Name.Length)..];
     }
 
     private static string Join(IEnumerable<string> parts) => string.Join(Separator, parts.Distinct());

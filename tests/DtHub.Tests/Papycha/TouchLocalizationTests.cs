@@ -7,6 +7,7 @@ public class TouchLocalizationTests
     private static QuestSummary Quest(int id, string title, int level = 0, string success = "", int step = 0, params string[] prerequisites) => new()
     {
         Id = id,
+        Url = $"https://example.test/{id}",
         Title = title,
         SearchKey = QuestSearch.Normalize(title),
         Level = level,
@@ -151,5 +152,52 @@ public class TouchLocalizationTests
         Assert.Equal("Cité dor", Q(source, 1).SuccessName);
         Assert.Equal("Donjon fr", source.Dungeons[0].Title);
         Assert.Equal(["Cité dor", "Autre"], source.SuccessOrder);
+    }
+
+    private static QuestCatalogDocument WithSuccessPrerequisite()
+    {
+        var source = Catalog();
+        source.Quests[2] = Quest(3, "Quête gamma", 0, "", 0, "Succès Cité dor réalisé");
+        return source;
+    }
+
+    [Theory]
+    [InlineData(true, "Golden City")]
+    [InlineData(false, "Golden City")]
+    public void Un_prerequis_de_succes_suit_le_renommage_de_la_serie(bool translateNames, string expected)
+    {
+        var doc = TouchLocalization.Apply(WithSuccessPrerequisite(), Table, Names(), translateNames);
+        var gamma = Q(doc, 3);
+
+        Assert.Equal($"Succès {expected} réalisé", gamma.Prerequisites[0]);
+        Assert.Equal(1, new QuestChainIndex(doc.Quests).PreviousOf(gamma)!.Id);
+    }
+
+    [Fact]
+    public void Un_prerequis_atteint_garde_sa_forme_avec_le_titre_traduit()
+    {
+        var source = Catalog();
+        source.Quests[2] = Quest(3, "Quête gamma", 0, "", 0, "[FIN] Quête alpha atteint");
+
+        var doc = TouchLocalization.Apply(source, Table, Names(), translateNames: true);
+
+        Assert.Equal("[FIN] Invented EN atteint", Q(doc, 3).Prerequisites[0]);
+    }
+
+    [Fact]
+    public void Une_serie_absente_de_la_table_garde_son_nom()
+    {
+        var doc = TouchLocalization.Apply(Catalog(), Table with { Series = [] }, Names(), true);
+
+        Assert.Equal("Cité dor", Q(doc, 1).SuccessName);
+    }
+
+    [Fact]
+    public void Un_lien_ne_remplace_pas_une_serie_deja_connue()
+    {
+        var doc = TouchLocalization.Apply(Catalog(), Table with { Links = new() { [1] = 91 } }, Names(), true);
+
+        Assert.Equal("Golden City", Q(doc, 1).SuccessName);
+        Assert.Equal(3, Q(doc, 1).ChainStep);
     }
 }
