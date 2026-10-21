@@ -835,4 +835,19 @@ public class DeviceDiscoveryServiceTests
 
         Assert.DoesNotContain(adb.ShellCalls, c => c.Contains("tap", StringComparison.Ordinal));
     }
+
+    [Fact]
+    public async Task Le_reveil_vise_l_ecran_du_telephone_et_pas_celui_du_jeu()
+    {
+        // 2026-10-21: lit again right after playing, the 13T Pro stayed dark.
+        // Without a display, the wake key goes to the focused one, which is
+        // the game's virtual display once the player has clicked in it, and
+        // that one is always awake.
+        var adb = new FakeAdbClient();
+
+        using var service = new DeviceDiscoveryService(adb, new InMemoryDeviceRegistry());
+
+        Assert.True(await service.WakeAsync("192.168.1.16:34249", CancellationToken.None));
+        Assert.Contains("input -d 0 keyevent KEYCODE_WAKEUP", adb.ShellCalls);
+    }
 }

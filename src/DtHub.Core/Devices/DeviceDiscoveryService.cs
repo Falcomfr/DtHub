@@ -451,8 +451,12 @@ public sealed class DeviceDiscoveryService : IDisposable
 
         try
         {
+            // On the phone's own display: without one, the key goes to the
+            // focused display, the game's once the player has clicked in it,
+            // and that one never sleeps. Lit again right after playing, the
+            // 13T Pro stayed dark (2026-10-21).
             _ = await _adb
-                .ShellAsync(serial, ["input", "keyevent", "KEYCODE_WAKEUP"], cancellationToken: cancellationToken)
+                .ShellAsync(serial, ["input", "-d", "0", "keyevent", "KEYCODE_WAKEUP"], cancellationToken: cancellationToken)
                 .ConfigureAwait(false);
 
             return true;
