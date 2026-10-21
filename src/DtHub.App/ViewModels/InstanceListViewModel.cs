@@ -892,6 +892,8 @@ public sealed partial class InstanceListViewModel : ObservableObject
             lines.Add(new BannerLine(recovery, HealthSeverity.Notice));
         }
 
+        lines.AddRange(_launcher.AwaitingNotices.Select(waiting => new BannerLine(waiting, HealthSeverity.Notice)));
+
         // The game left running on the phone is said there too: its
         // window has disappeared, and nothing else on screen can report
         // it.

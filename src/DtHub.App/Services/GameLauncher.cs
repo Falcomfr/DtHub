@@ -341,6 +341,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
     public bool AwaitsPhone => !_awaitingPhone.IsEmpty;
 
     /// <summary>
+    /// One line per account waiting for its phone. Not a timed notice like
+    /// the recovery's: it holds as long as they wait, and the phone being
+    /// gone is its very subject, not a reason to take it down.
+    /// </summary>
+    public IReadOnlyList<string> AwaitingNotices =>
+        [.. _awaitingPhone.Values.Select(i => Strings.Format("SessionRecoveryGaveUp", i.DisplayName))];
+
+    /// <summary>
     /// Raised when accounts start waiting for their phone: the panel shows
     /// then, to say so, and because its sweep is what reconnects phones.
     /// </summary>
@@ -614,10 +622,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     private void WaitForPhone(string key, DofusInstance instance)
     {
-        _recovery = TimedNotice.Raised(
-            Strings.Format("SessionRecoveryGaveUp", instance.DisplayName),
-            DateTimeOffset.UtcNow);
-        _recoveryDevice = instance.DeviceId;
+        // Its own line says it now, see AwaitingNotices: the recovery notice
+        // promised a window at once and goes with the phone.
+        _recovery = default;
+        _recoveryDevice = null;
 
         // Given up is the opposite of recovering: the row must stop
         // promising a window that is not coming.
