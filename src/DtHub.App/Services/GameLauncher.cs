@@ -2228,9 +2228,27 @@ public sealed partial class GameLauncher : IAsyncDisposable
             .Select(s => Routable(s.Target))
             .FirstOrDefault();
 
-        var woken = serial is not null && await _devices.WakeAsync(serial).ConfigureAwait(false);
+        var woken = false;
 
-        LogScreenRequest(deviceId, woken ? "réveil accepté par le téléphone" : "réveil refusé ou téléphone injoignable");
+        // Woken, then checked. The guard's server outlives its process on the
+        // PC by a moment, and lit right after a switch-off, the screen went
+        // dark again behind a wake the phone had taken (2026-10-21): it is
+        // woken again, up to three times.
+        for (var attempt = 0; attempt < 3 && serial is not null; attempt++)
+        {
+            woken = await _devices.WakeAsync(serial).ConfigureAwait(false);
+
+            LogScreenRequest(deviceId, woken ? "réveil accepté par le téléphone" : "réveil refusé ou téléphone injoignable");
+
+            await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+
+            if (!woken || await _devices.IsPanelLitAsync(serial).ConfigureAwait(false) != false)
+            {
+                break;
+            }
+
+            LogScreenRequest(deviceId, "rééteint juste après le réveil");
+        }
 
         if (woken && serial is not null)
         {
