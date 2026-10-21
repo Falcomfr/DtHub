@@ -47,7 +47,7 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
     /// under the phone then offers to switch it off again.
     /// </summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsScreenDark), nameof(ScreenText), nameof(ScreenAction), nameof(ScreenActionTip))]
+    [NotifyPropertyChangedFor(nameof(IsScreenDark), nameof(ScreenAction), nameof(ScreenActionTip))]
     private bool _isPanelLit;
 
     /// <summary>True while the screen is being switched on or off: the line shows a spinner.</summary>
@@ -56,7 +56,7 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
 
     /// <summary>True while DT Hub holds the phone's screen off.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsScreenDark), nameof(ScreenText), nameof(ScreenAction), nameof(ScreenActionTip))]
+    [NotifyPropertyChangedFor(nameof(IsScreenDark), nameof(ScreenAction), nameof(ScreenActionTip))]
     private bool _isScreenHeld;
 
     /// <summary>
@@ -66,15 +66,17 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
     /// read had no way to switch theirs off.
     /// </summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsIdle))]
     private bool _isPlaying;
+
+    /// <summary>True while none of the phone's accounts is open.</summary>
+    public bool IsIdle => !IsPlaying;
 
     /// <summary>
     /// The screen as DT Hub left it: held off and not seen lit since. A
     /// phone that does not say counts as dark, the line offers to light it.
     /// </summary>
     public bool IsScreenDark => IsScreenHeld && !IsPanelLit;
-
-    public string ScreenText => Strings.Get(IsScreenDark ? "PanelDark" : "PanelLit");
 
     public string ScreenAction => Strings.Get(IsScreenDark ? "TurnScreenOnNow" : "TurnScreenOffNow");
 

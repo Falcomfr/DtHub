@@ -77,11 +77,18 @@
 
                   <!-- Spelled out only where you're choosing what to
                        launch: elsewhere the coloured dot is enough. -->
+                  <!-- Not while one of its accounts is open: the dot and the
+                       link chips already say it is connected, and the screen
+                       link needs the room. The name's tooltip still says it. -->
                   <TextBlock Text="{Binding Device.StatusText}" Style="{StaticResource Muted}"
-                             FontSize="{StaticResource FontTiny}" Margin="8,1,0,0" VerticalAlignment="Center"
-                             Visibility="{Binding ShowDeviceStatus,
-                                                  RelativeSource={RelativeSource AncestorType=UserControl},
-                                                  Converter={StaticResource BoolToVisibility}}" />
+                             FontSize="{StaticResource FontTiny}" Margin="8,1,0,0" VerticalAlignment="Center">
+                    <TextBlock.Visibility>
+                      <MultiBinding Converter="{StaticResource AllTrue}">
+                        <Binding Path="ShowDeviceStatus" RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                        <Binding Path="Device.IsIdle" />
+                      </MultiBinding>
+                    </TextBlock.Visibility>
+                  </TextBlock>
 
                   <!-- The battery level. Drawn, not just given as a number:
                        a gauge reads without being read, and that's the
@@ -186,6 +193,32 @@
                                                   Converter={StaticResource KeyToBrush}}"
                              Visibility="{Binding Device.HasLink,
                                                   Converter={StaticResource BoolToVisibility}}" />
+
+                  <!-- The phone's screen, whenever one of its accounts is
+                       open: a link in the header, where a line of its own
+                       under the name took a whole row for two words. A framed
+                       button was too wide, a power symbol not understood. -->
+                  <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
+                    <StackPanel.Visibility>
+                      <MultiBinding Converter="{StaticResource AllTrue}">
+                        <Binding Path="ShowActions" RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                        <Binding Path="Device.IsPlaying" />
+                      </MultiBinding>
+                    </StackPanel.Visibility>
+
+                    <Button Style="{StaticResource LinkButton}" Content="{Binding Device.ScreenAction}"
+                            FontSize="{StaticResource FontTiny}" VerticalAlignment="Center"
+                            ToolTip="{Binding Device.ScreenActionTip}"
+                            Visibility="{Binding Device.IsScreenSwitching, Converter={StaticResource InverseBoolToVisibility}}"
+                            Command="{Binding DataContext.TogglePanelCommand,
+                                              RelativeSource={RelativeSource AncestorType=UserControl}}"
+                            CommandParameter="{Binding Device}" />
+
+                    <!-- In its place while the screen changes, by the link or
+                         Ctrl+E. -->
+                    <Control Style="{StaticResource Spinner}" VerticalAlignment="Center"
+                             Visibility="{Binding Device.IsScreenSwitching, Converter={StaticResource BoolToVisibility}}" />
+                  </StackPanel>
                 </StackPanel>
 
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
@@ -306,38 +339,6 @@
                         Visibility="{Binding Device.HasHelp, Converter={StaticResource BoolToVisibility}}"
                         Click="OnProblemHelp" />
               </Grid>
-
-              <!-- The phone's screen, whenever one of its accounts is open,
-                   and the way to switch it off or light it again. A line
-                   under the name like the findings above: a framed button
-                   in the header took too much room, and a power symbol was
-                   not understood. -->
-              <StackPanel Orientation="Horizontal" Margin="16,0,0,4">
-                <StackPanel.Visibility>
-                  <MultiBinding Converter="{StaticResource AllTrue}">
-                    <Binding Path="ShowDeviceHeader" />
-                    <Binding Path="ShowActions" RelativeSource="{RelativeSource AncestorType=UserControl}" />
-                    <Binding Path="Device.IsPlaying" />
-                  </MultiBinding>
-                </StackPanel.Visibility>
-
-                <TextBlock Text="{Binding Device.ScreenText}"
-                           FontFamily="{StaticResource UiFont}" FontSize="{StaticResource FontSmall}"
-                           Foreground="{DynamicResource TextMutedBrush}" />
-
-                <Button Style="{StaticResource LinkButton}" Content="{Binding Device.ScreenAction}"
-                        Margin="8,0,0,0" FontSize="{StaticResource FontSmall}"
-                        ToolTip="{Binding Device.ScreenActionTip}"
-                        Visibility="{Binding Device.IsScreenSwitching, Converter={StaticResource InverseBoolToVisibility}}"
-                        Command="{Binding DataContext.TogglePanelCommand,
-                                          RelativeSource={RelativeSource AncestorType=UserControl}}"
-                        CommandParameter="{Binding Device}" />
-
-                <!-- In its place while the screen changes, by the line or
-                     Ctrl+E: a press then is ignored, and it says so. -->
-                <Control Style="{StaticResource Spinner}" Margin="10,0,0,0" VerticalAlignment="Center"
-                         Visibility="{Binding Device.IsScreenSwitching, Converter={StaticResource BoolToVisibility}}" />
-              </StackPanel>
 
               <!-- Drop surface: the row and its two markers, nothing else. -->
               <StackPanel AllowDrop="True"

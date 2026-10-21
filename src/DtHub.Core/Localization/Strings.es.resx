@@ -1274,23 +1274,17 @@ En un dispositivo {0}, la copia manual se hace por: {1}.</value>
   <data name="ActionScreenOffDetail" xml:space="preserve">
     <value>Apaga la pantalla del teléfono de la ventana de juego, o de todos los teléfonos desde otra ventana de DT Hub, y el juego sigue. Pulsado de nuevo, la vuelve a encender.</value>
   </data>
-  <data name="PanelLit" xml:space="preserve">
-    <value>La pantalla del teléfono está encendida.</value>
-  </data>
   <data name="TurnScreenOffNow" xml:space="preserve">
-    <value>Apagar</value>
+    <value>Apagar pantalla</value>
   </data>
   <data name="TurnScreenOffNowTip" xml:space="preserve">
-    <value>Apaga la pantalla del teléfono, y el juego sigue.</value>
-  </data>
-  <data name="PanelDark" xml:space="preserve">
-    <value>La pantalla del teléfono está apagada.</value>
+    <value>Apaga la pantalla del teléfono, y el juego sigue. Ctrl+E hace lo mismo.</value>
   </data>
   <data name="TurnScreenOnNow" xml:space="preserve">
-    <value>Encender</value>
+    <value>Encender pantalla</value>
   </data>
   <data name="TurnScreenOnNowTip" xml:space="preserve">
-    <value>Vuelve a encender la pantalla del teléfono, y las cuentas siguen abiertas.</value>
+    <value>Vuelve a encender la pantalla del teléfono, y las cuentas siguen abiertas. Ctrl+E hace lo mismo.</value>
   </data>
   <data name="ActionLeaveFullscreen" xml:space="preserve">
     <value>Salir de pantalla completa</value>

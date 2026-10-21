@@ -1274,23 +1274,17 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
   <data name="ActionScreenOffDetail" xml:space="preserve">
     <value>Éteint l'écran du téléphone de la fenêtre de jeu, ou de tous les téléphones depuis une autre fenêtre DT Hub, le jeu continue. Appuyé de nouveau, le rallume.</value>
   </data>
-  <data name="PanelLit" xml:space="preserve">
-    <value>L'écran du téléphone est allumé.</value>
-  </data>
   <data name="TurnScreenOffNow" xml:space="preserve">
-    <value>Éteindre</value>
+    <value>Éteindre l'écran</value>
   </data>
   <data name="TurnScreenOffNowTip" xml:space="preserve">
-    <value>Éteint l'écran du téléphone, le jeu continue.</value>
-  </data>
-  <data name="PanelDark" xml:space="preserve">
-    <value>L'écran du téléphone est éteint.</value>
+    <value>Éteint l'écran du téléphone, le jeu continue. Ctrl+E fait de même.</value>
   </data>
   <data name="TurnScreenOnNow" xml:space="preserve">
-    <value>Rallumer</value>
+    <value>Rallumer l'écran</value>
   </data>
   <data name="TurnScreenOnNowTip" xml:space="preserve">
-    <value>Rallume l'écran du téléphone, les comptes restent ouverts.</value>
+    <value>Rallume l'écran du téléphone, les comptes restent ouverts. Ctrl+E fait de même.</value>
   </data>
   <data name="ActionLeaveFullscreen" xml:space="preserve">
     <value>Quitter le plein écran</value>

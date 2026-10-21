@@ -1274,23 +1274,17 @@ On a {0} device, the manual copy goes through: {1}.</value>
   <data name="ActionScreenOffDetail" xml:space="preserve">
     <value>Switches off the screen of the game window's phone, or of every phone from another DT Hub window, while the game keeps running. Pressed again, lights it back on.</value>
   </data>
-  <data name="PanelLit" xml:space="preserve">
-    <value>The phone's screen is on.</value>
-  </data>
   <data name="TurnScreenOffNow" xml:space="preserve">
-    <value>Turn off</value>
+    <value>Turn screen off</value>
   </data>
   <data name="TurnScreenOffNowTip" xml:space="preserve">
-    <value>Switches the phone's screen off, the game keeps running.</value>
-  </data>
-  <data name="PanelDark" xml:space="preserve">
-    <value>The phone's screen is off.</value>
+    <value>Switches the phone's screen off, the game keeps running. Ctrl+E does the same.</value>
   </data>
   <data name="TurnScreenOnNow" xml:space="preserve">
-    <value>Turn on</value>
+    <value>Turn screen on</value>
   </data>
   <data name="TurnScreenOnNowTip" xml:space="preserve">
-    <value>Lights the phone's screen again, the accounts stay open.</value>
+    <value>Lights the phone's screen again, the accounts stay open. Ctrl+E does the same.</value>
   </data>
   <data name="ActionLeaveFullscreen" xml:space="preserve">
     <value>Leave fullscreen</value>
