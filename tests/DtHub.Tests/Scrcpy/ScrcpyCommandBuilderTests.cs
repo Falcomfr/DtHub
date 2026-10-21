@@ -144,6 +144,20 @@ public class ScrcpyCommandBuilderTests
     }
 
     [Fact]
+    public void Une_fenetre_destinee_aux_onglets_attend_hors_ecran_sans_changer_sa_taille()
+    {
+        var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(
+            "USB0001", "T", ScrcpyOptions.Default with { StartOffscreen = true },
+            new ScrcpyWindowPlacement(500, 200, 1200, 700));
+
+        Assert.Equal("-32000", ValueOf(arguments, "--window-x"));
+        Assert.Equal("-32000", ValueOf(arguments, "--window-y"));
+        Assert.Equal("1200", ValueOf(arguments, "--window-width"));
+        Assert.Equal("700", ValueOf(arguments, "--window-height"));
+        Assert.Equal("1920x1080/240", ValueOf(arguments, "--new-display"));
+    }
+
+    [Fact]
     public void Sans_afficheur_virtuel_les_options_correspondantes_disparaissent()
     {
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(

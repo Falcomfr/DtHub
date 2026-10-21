@@ -9,6 +9,10 @@ The launch-window format correction (D208) is implemented and covered by unit
 tests. The reported POCO's rendering still needs a player retest. The ordinary
 launch uses its client area; phone-format overrides retain their explicit shape.
 
+Tabbed startup now prepares and docks the native window before the game opens
+(D209), then reveals the settled frame. The full suite (2,505 tests), build and
+a native WPF/SDL probe pass; actual player startup remains to be retested.
+
 ## Verified on real hardware
 
 Xiaomi 13T, Android 16, primary profile "Alice Martin" and cloned

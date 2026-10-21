@@ -10730,3 +10730,45 @@ rapport, géométries personnalisées conservées, cadre sur le second écran,
 priorité au format du téléphone, charge des paliers. Compilation et suite de
 tests réussies. Le rendu du jeu sur l'appareil distant n'est pas vérifié par
 ces tests et doit encore être retesté par le joueur.
+
+## D209 - Un jeu en onglets apparaît directement dans son cadre
+
+**2026-10-21 - Vérifiée sur les fenêtres natives, partie du joueur à retester**
+
+Après D208, le joueur voit une grande fenêtre puis le petit cadre à onglets.
+Le lancement ouvre d'abord scrcpy et le jeu, restaure la fenêtre sur le bureau,
+puis seulement l'attache au cadre mémorisé. Le journal du test montre bien
+3840x2160 à l'ouverture, alors que le cadre mémorisé mesure 2056x1253.
+
+Une session destinée aux onglets démarre désormais hors écran, à taille et
+définition inchangées. Dans `PrepareWindow`, avant d'ouvrir le jeu, sa fenêtre
+est cachée, déplacée à sa vraie position de fenêtre indépendante, puis attachée.
+Ce déplacement avant l'attache compte : le détachement restaure le rectangle
+que `Dock` a mémorisé, qui ne doit jamais être celui hors écran.
+
+Le premier cadre est transparent et absent de la barre des tâches pendant sa
+restauration ; l'enfant natif reste caché aussi, car l'opacité WPF ne le cache
+pas. Après la vraie mise en page de l'onglet et la seconde restauration de la
+densité, le cadre ajuste et place l'enfant, puis les révèle. Une arrivée dans
+un cadre déjà visible garde l'onglet sélectionné. La restauration finale des
+fenêtres indépendantes ignore les enfants réellement attachés.
+
+Une attache refusée révèle la fenêtre indépendante à sa place prévue. Un cadre
+vide refusé se ferme. Une annulation après création de scrcpy arrête la session
+hors écran avant de remonter, sinon son processus invisible survivrait sans
+jamais atteindre la restauration finale. Deux tests échouaient sur ce dernier
+cas avant la correction, pendant l'attente de l'afficheur et la préparation.
+
+Suite : 2505 tests réussis, compilation sans avertissement. La sonde Windows,
+avec le vrai `TabbedGameWindow`, le contrôleur Win32 et SDL livré, crée un
+afficheur Android vide : fenêtre initiale 662x416 en (-32011,-32045), cadre
+final 1200x772, enfant 1178x663 visible et attaché, détachement en (100,100).
+Aucune action de jeu n'est envoyée. Le démarrage de la partie du joueur reste
+à retester ; la sonde valide le cycle des fenêtres, pas le rendu de son jeu.
+
+Rejouée avec le manifeste PerMonitorV2 de l'application, vers le second écran
+à densité différente : cadre 1200x740 en (3940,571), enfant 1184x666 en
+(3948,637), visible et attaché ; détachement en (100,100). Capture dans
+`build/app-startup-probe-secondary.png`, non versionnée. Sans ce manifeste, les
+mesures d'une sonde WPF sont virtualisées et ne prouvent pas le placement en
+pixels physiques.

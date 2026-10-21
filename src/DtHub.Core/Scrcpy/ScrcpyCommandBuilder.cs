@@ -217,14 +217,24 @@ public static class ScrcpyCommandBuilder
             arguments.Add("--display-ime-policy=hide");
         }
 
-        if (windowPosition is { } placement)
+        if (sanitized.StartOffscreen)
+        {
+            // The SDL window must exist before it can be docked. Keeping
+            // its first frame offscreen avoids a large standalone flash.
+            arguments.Add(Option("window-x", "-32000"));
+            arguments.Add(Option("window-y", "-32000"));
+        }
+        else if (windowPosition is { } position)
         {
             arguments.AddRange(
             [
-                Option("window-x", placement.X.ToString(CultureInfo.InvariantCulture)),
-                Option("window-y", placement.Y.ToString(CultureInfo.InvariantCulture)),
+                Option("window-x", position.X.ToString(CultureInfo.InvariantCulture)),
+                Option("window-y", position.Y.ToString(CultureInfo.InvariantCulture)),
             ]);
+        }
 
+        if (windowPosition is { } placement)
+        {
             arguments.AddRange(
             [
                 Option("window-width", placement.Width.ToString(CultureInfo.InvariantCulture)),

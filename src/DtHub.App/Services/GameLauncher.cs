@@ -165,6 +165,18 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // born at its final size.
         _sessions.PrepareWindow = async (session, placement, cancellationToken) =>
         {
+            if (session.StartsOffscreen)
+            {
+                await _windows.PrepareForDockAsync(session, placement, async () =>
+                {
+                    if (_tabbed.Contains(session.Target.Key))
+                    {
+                        await AttachToTabsAsync(session, cancellationToken).ConfigureAwait(false);
+                    }
+                }, cancellationToken).ConfigureAwait(false);
+                return;
+            }
+
             // The corner aimed at is that of the frame, whereas the
             // placement passed to scrcpy is that of the client area:
             // repositioning the window on the placement's coordinates
@@ -3440,6 +3452,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             var display = WithDisplayFor(gameOptions, placement, stored, quality, zoom, layoutHeight, phoneAspect ?? 0) with
             {
+                StartOffscreen = !instance.IsTransient && _tabbed.Contains(instance.Key),
                 // The account's own tier, not the shared one the options
                 // were built from: a custom account under a fixed shared tier
                 // streamed in H.264, a fixed one under a custom tier in H.265.
@@ -3622,11 +3635,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
         {
             await _windows.RestoreAsync(started, launchRects, cancellationToken).ConfigureAwait(false);
 
-            // Tabbed accounts join the frame. After placement:
-            // attaching them first would cause an already housed
-            // window to be repositioned, which would jump out of the
-            // frame only to come back into it.
-            foreach (var session in started.Where(s => _tabbed.Contains(s.Target.Key)))
+            // Most tabs are already attached before their game opens and
+            // RestoreAsync leaves those native children alone. A setting
+            // changed during startup or a refused first attach may still
+            // need to join now.
+            foreach (var session in started.Where(s => _tabbed.Contains(s.Target.Key)
+                                                       && !_windows.Controller.IsDocked(s.WindowHandle)))
             {
                 await AttachToTabsAsync(session, cancellationToken).ConfigureAwait(false);
             }
@@ -5377,7 +5391,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         {
             var frame = EnsureTabs(settings);
 
-            frame.Attach(
+            var attached = frame.Attach(
                 session.Target.Key,
                 name,
                 IconFor(session),
@@ -5387,6 +5401,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 // launch target carries what scrcpy needs, and a colour
                 // is not one of those things.
                 AccountTints.KeyFor(_launched.GetValueOrDefault(session.Target.Key)?.Colour));
+
+            if (!attached && frame.Items.Count == 0)
+            {
+                frame.Close();
+                return;
+            }
 
             frame.Reorder(order);
             frame.ShowAccountKeys(AccountKeyOf);

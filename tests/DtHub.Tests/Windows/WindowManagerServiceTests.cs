@@ -1170,6 +1170,70 @@ public class WindowManagerServiceTests
         Assert.Equal(new WindowFrame(11, 45, 22, 56), service.WindowChrome());
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Une_fenetre_cachee_rejoint_les_onglets_ou_reapparait_a_sa_place(bool dockSucceeds)
+    {
+        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+        await using var _ = manager;
+        desktop.Chrome = new WindowFrame(8, 31, 16, 39);
+        var service = new WindowManagerService(desktop, NoDelay);
+        var session = sessions[0];
+        await service.ResolveWindowAsync(session);
+        desktop.MoveWindow(session.WindowHandle, new ScreenRect(-32000, -32000, 1200, 700));
+
+        await service.PrepareForDockAsync(session, new ScrcpyWindowPlacement(508, 231, 1184, 661), () =>
+        {
+            Assert.Contains(session.WindowHandle, desktop.Hidden);
+            // Dock must remember an onscreen rectangle for a later detach.
+            Assert.Equal(new ScreenRect(500, 200, 1200, 700), desktop.GetWindowRect(session.WindowHandle));
+            if (dockSucceeds)
+            {
+                desktop.Dock(session.WindowHandle, 9999);
+            }
+
+            return Task.CompletedTask;
+        });
+
+        Assert.Equal(dockSucceeds, desktop.IsDocked(session.WindowHandle));
+        Assert.Equal(dockSucceeds, desktop.Hidden.Contains(session.WindowHandle));
+    }
+
+    [Fact]
+    public async Task Une_erreur_d_attache_ne_laisse_pas_la_fenetre_hors_ecran()
+    {
+        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+        await using var _ = manager;
+        var service = new WindowManagerService(desktop, NoDelay);
+        var session = sessions[0];
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.PrepareForDockAsync(
+            session, new ScrcpyWindowPlacement(300, 200, 800, 600),
+            () => throw new InvalidOperationException("Test")));
+
+        Assert.DoesNotContain(session.WindowHandle, desktop.Hidden);
+        Assert.Equal(300, desktop.GetWindowRect(session.WindowHandle)!.Value.X);
+    }
+
+    [Fact]
+    public async Task La_restauration_ne_redimensionne_pas_une_fenetre_deja_dans_ses_onglets()
+    {
+        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+        await using var _ = manager;
+        var service = new WindowManagerService(desktop, NoDelay);
+        var handle = await service.ResolveWindowAsync(sessions[0]);
+        desktop.Dock(handle, 9999);
+        var inside = new ScreenRect(0, 40, 1100, 650);
+        desktop.MoveWindow(handle, inside);
+        desktop.Moves.Clear();
+
+        await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>());
+
+        Assert.Empty(desktop.Moves);
+        Assert.Equal(inside, desktop.GetWindowRect(handle));
+    }
+
     [Fact]
     public void Le_cadre_se_mesure_sur_l_ecran_de_la_fenetre()
     {

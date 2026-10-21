@@ -72,6 +72,9 @@ public sealed class ScrcpySession
     /// </summary>
     public double SourceAspectRatio { get; internal set; }
 
+    /// <summary>Waiting offscreen for its tab host before the game opens.</summary>
+    public bool StartsOffscreen { get; internal set; }
+
     /// <summary>
     /// Corresponding scrcpy window, once found. Is zero as long as the
     /// window has not appeared.

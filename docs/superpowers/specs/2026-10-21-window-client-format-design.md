@@ -22,3 +22,17 @@ flex-display.
 Validate the reported 1813x1050 rectangle on a 1920x1080 monitor, custom saved
 sizes, destination DPI, phone-format precedence, resolution/quality ceilings,
 and fullscreen startup. Physical phone rendering requires a player retest.
+
+## Follow-up: reveal tabbed windows directly in their frame
+
+The player observed a large standalone window before the remembered smaller
+tab frame. Keep the fixed virtual display, but start tab-bound SDL windows
+offscreen. Before launching the game, hide the native window, move it to its
+real standalone position (the one docking saves for a future detach), then dock
+it. Restore the chassis, lay out an actual tab header and settle the child
+before revealing the first frame and child. Existing frames retain their
+selected tab. Final desktop restoration must skip actual docked children.
+
+A docking failure reveals the correctly positioned standalone window. A
+cancelled offscreen startup stops its session; an empty failed host closes.
+No gameplay automation or runtime display-height changes are involved.

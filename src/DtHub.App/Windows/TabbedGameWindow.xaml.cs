@@ -32,12 +32,19 @@ public partial class TabbedGameWindow : Window
     private Point _origin;
     private bool _fitting;
     private bool _closing;
+    private bool _awaitingFirstLayout = true;
 
     public TabbedGameWindow(IWindowController windows)
     {
         _windows = windows;
 
         InitializeComponent();
+
+        // Restore the chassis and lay out a real first tab before revealing
+        // it. Native children must stay hidden too: WPF opacity alone does
+        // not hide another process's HWND.
+        Opacity = 0;
+        ShowInTaskbar = false;
 
         Tabs.ItemsSource = Items;
         Items.CollectionChanged += (_, _) => Retitle();
@@ -79,6 +86,7 @@ public partial class TabbedGameWindow : Window
         }
 
         var tab = new GameTabViewModel(key, title, iconPath, window, aspect, colourBrushKey);
+        _windows.SetVisible(window, false);
         tab.PropertyChanged += OnTabChanged;
         Items.Add(tab);
 
@@ -86,7 +94,25 @@ public partial class TabbedGameWindow : Window
         // make no sense.
         Select(Items.Count == 1 ? tab : Items.First(t => t.IsSelected));
 
-        _ = Dispatcher.BeginInvoke(DispatcherPriority.Loaded, Settle);
+        _ = Dispatcher.BeginInvoke(DispatcherPriority.ContextIdle, () =>
+        {
+            if (_closing)
+            {
+                return;
+            }
+
+            UpdateLayout();
+            Settle();
+            UpdateLayout();
+
+            if (_awaitingFirstLayout && Items.FirstOrDefault(t => t.IsSelected) is { } selected)
+            {
+                _awaitingFirstLayout = false;
+                ShowInTaskbar = true;
+                Opacity = 1;
+                Select(selected);
+            }
+        });
 
         return true;
     }
@@ -312,7 +338,10 @@ public partial class TabbedGameWindow : Window
         // order hid the old one first whenever the new one came later in
         // it: for an instant no game covered the hosting area, and part of
         // the frame flashed white, always on the way to the same tab.
-        _windows.SetVisible(tab.Window, true);
+        if (!_awaitingFirstLayout)
+        {
+            _windows.SetVisible(tab.Window, true);
+        }
 
         foreach (var other in Items)
         {
@@ -332,7 +361,10 @@ public partial class TabbedGameWindow : Window
         // a child of the frame, hence out of reach of the foreground: without
         // this call, the picture shows and the mouse works, but nothing that
         // is typed arrives, paste included since scrcpy pastes by typing.
-        _ = _windows.GiveKeyboardFocus(tab.Window);
+        if (!_awaitingFirstLayout)
+        {
+            _ = _windows.GiveKeyboardFocus(tab.Window);
+        }
     }
 
     /// <summary>

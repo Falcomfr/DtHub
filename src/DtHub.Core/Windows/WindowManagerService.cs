@@ -798,6 +798,45 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
+    /// Takes an offscreen startup window to its intended place while hidden,
+    /// then lets its tab host attach it. Dock snapshots that onscreen place
+    /// for a later detach. A refused or failed attach falls back visibly.
+    /// </summary>
+    public async Task PrepareForDockAsync(
+        ScrcpySession session,
+        ScrcpyWindowPlacement? placement,
+        Func<Task> attach,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(attach);
+        var handle = await ResolveWindowAsync(session, cancellationToken).ConfigureAwait(false);
+        if (handle == 0)
+        {
+            return;
+        }
+
+        _controller.SetVisible(handle, false);
+        try
+        {
+            if (placement is { } wanted)
+            {
+                var frame = WindowChrome(new ScreenRect(wanted.X, wanted.Y, wanted.Width, wanted.Height));
+                await MoveOnlyAsync(session, wanted.X - frame.Left, wanted.Y - frame.Top, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+
+            await attach().ConfigureAwait(false);
+        }
+        finally
+        {
+            if (!_controller.IsDocked(handle))
+            {
+                _controller.SetVisible(handle, true);
+            }
+        }
+    }
+
+    /// <summary>
     /// Places all the windows at the same spot, at the configured
     /// position and size. This is the quick rearrangement: it
     /// deliberately overwrites the geometry the user had given each
@@ -897,6 +936,13 @@ public sealed class WindowManagerService
         {
             var handle = await ResolveWindowAsync(session, cancellationToken).ConfigureAwait(false);
             if (handle == 0)
+            {
+                continue;
+            }
+
+            // An early-attached tab is already at its final place. Its
+            // rectangle is in the host's coordinates, not the desktop's.
+            if (_controller.IsDocked(handle))
             {
                 continue;
             }

@@ -51,6 +51,41 @@ public class ScrcpySessionManagerTests
         Assert.Equal("com.ankama.dofustouch/.MainActivity", call.Component);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Annuler_une_ouverture_hors_ecran_ne_laisse_pas_de_session_invisible(bool displayReady)
+    {
+        var process = new FakeProcessSession();
+        if (displayReady)
+        {
+            process.Emit(NewDisplayLine);
+        }
+
+        var launcher = new FakeProcessLauncher().Prepare(process);
+        var apps = new FakeAppLauncher();
+        await using var manager = Manager(launcher, apps);
+        using var cancellation = new CancellationTokenSource();
+        manager.PrepareWindow = (_, _, token) =>
+        {
+            cancellation.Cancel();
+            return Task.FromCanceled(token);
+        };
+
+        var opening = manager.StartAsync(
+            Target(), ScrcpyOptions.Default with { StartOffscreen = true }, cancellationToken: cancellation.Token);
+        if (!displayReady)
+        {
+            cancellation.Cancel();
+        }
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => opening);
+
+        Assert.True(process.HasExited);
+        Assert.Empty(manager.ActiveSessions);
+        Assert.Empty(apps.Calls);
+    }
+
     [Fact]
     public async Task Le_profil_android_demande_est_bien_celui_transmis_au_lancement()
     {
