@@ -305,6 +305,25 @@ public class QuestTreeTests
     }
 
     [Fact]
+    public void Une_ligne_de_quete_porte_son_niveau()
+    {
+        var ligne = new QuestNode(QuestNodeKind.Quest, "Une quête", Quest: new QuestSummary { Level = 42 });
+
+        Assert.True(ligne.HasLevelColumn);
+        Assert.Equal("42", ligne.Level);
+    }
+
+    [Fact]
+    public void Une_quete_sans_niveau_garde_la_colonne()
+    {
+        var ligne = new QuestNode(QuestNodeKind.Quest, "Une quête", Quest: new QuestSummary());
+
+        Assert.True(ligne.HasLevelColumn);
+        Assert.Equal(string.Empty, ligne.Level);
+        Assert.False(new QuestNode(QuestNodeKind.Header, "Titre").HasLevelColumn);
+    }
+
+    [Fact]
     public void Les_trois_sortes_de_lieux_de_combat_sont_declarees_une_fois()
     {
         Assert.Equal(3, QuestTree.DungeonGroups.Length);

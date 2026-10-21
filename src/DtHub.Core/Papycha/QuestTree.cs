@@ -410,12 +410,13 @@ public sealed class QuestTree
     /// <summary>
     /// A quest line.
     ///
-    /// The right-hand column no longer carries the level: the site only gives
-    /// it for one hundred and seventeen quests out of seven hundred and
-    /// eighty-two, and a column empty nine times out of ten does not earn its
-    /// place. It carries the prerequisites instead, which cover six hundred
-    /// and thirteen of them, and which say something useful before setting
-    /// off: what needs to have been done.
+    /// The right-hand column does not carry the level: it carries the
+    /// prerequisites, which cover six hundred and thirteen quests out of seven
+    /// hundred and eighty-two and say something useful before setting off:
+    /// what needs to have been done. The level is back on the left, where
+    /// <see cref="QuestNode.Level"/> gives it; the catalogue now holds the
+    /// game's own level, so the column is no longer empty nine times out of
+    /// ten.
     /// </summary>
     public QuestNode NodeOf(QuestSummary quest) => new(
         QuestNodeKind.Quest,
@@ -475,8 +476,9 @@ public sealed class QuestTree
         LairSection => Strings.Get("Lairs"),
         DungeonPathSection => Strings.Get("Dungeons") + Separator + Strings.Get("Paths"),
         QuestPathSection => Strings.Get("QuestAreaCrumb") + Separator + Strings.Get("Paths"),
-        _ => QuestZoneOrder.DisplayName(
-                 _catalog.Catalog.Sections.FirstOrDefault(s => s.Id == section)?.Name)
+        _ => (_catalog.Catalog.Sections.FirstOrDefault(s => s.Id == section) is { } found
+                 ? QuestSectionTitle.Of(found)
+                 : string.Empty)
              is { Length: > 0 } name
                  ? name
                  : Strings.Get("Section"),

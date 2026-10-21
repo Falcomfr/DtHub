@@ -2701,4 +2701,79 @@ Pour l'éviter : {1}  ›  « Verrouillage auto. Dossier sécurisé » › l'opt
   <data name="DownloadStalled" xml:space="preserve">
     <value>Rien reçu depuis {0} s : la connexion s'est figée.</value>
   </data>
+  <data name="QuestSection-2" xml:space="preserve">
+    <value>Quêtes principales</value>
+  </data>
+  <data name="QuestSection659" xml:space="preserve">
+    <value>[Alignement] Bontarien</value>
+  </data>
+  <data name="QuestSection661" xml:space="preserve">
+    <value>[Alignement] Brâkmarien</value>
+  </data>
+  <data name="QuestSection-3" xml:space="preserve">
+    <value>Krosmoz</value>
+  </data>
+  <data name="QuestSection709" xml:space="preserve">
+    <value>Albuera</value>
+  </data>
+  <data name="QuestSection18" xml:space="preserve">
+    <value>Astrub</value>
+  </data>
+  <data name="QuestSection265" xml:space="preserve">
+    <value>Château d'Amakna</value>
+  </data>
+  <data name="QuestSection25" xml:space="preserve">
+    <value>Amakna</value>
+  </data>
+  <data name="QuestSection-4" xml:space="preserve">
+    <value>Port de Madrestam</value>
+  </data>
+  <data name="QuestSection378" xml:space="preserve">
+    <value>Île de Nowel</value>
+  </data>
+  <data name="QuestSection-5" xml:space="preserve">
+    <value>Bworks</value>
+  </data>
+  <data name="QuestSection151" xml:space="preserve">
+    <value>Île de Pandala</value>
+  </data>
+  <data name="QuestSection52" xml:space="preserve">
+    <value>Île des Wabbits</value>
+  </data>
+  <data name="QuestSection131" xml:space="preserve">
+    <value>Île d'Otomaï</value>
+  </data>
+  <data name="QuestSection135" xml:space="preserve">
+    <value>Île de Frigost</value>
+  </data>
+  <data name="QuestSection-6" xml:space="preserve">
+    <value>Sufokia</value>
+  </data>
+  <data name="QuestSection512" xml:space="preserve">
+    <value>Archipel de Vulkania</value>
+  </data>
+  <data name="QuestSection650" xml:space="preserve">
+    <value>Îlot Rifique</value>
+  </data>
+  <data name="QuestSection-7" xml:space="preserve">
+    <value>Bulles Temporelles</value>
+  </data>
+  <data name="QuestSection657" xml:space="preserve">
+    <value>Bonta &amp; Cania</value>
+  </data>
+  <data name="QuestSection-8" xml:space="preserve">
+    <value>Sain Ballotin</value>
+  </data>
+  <data name="QuestSection668" xml:space="preserve">
+    <value>Île d'Orado</value>
+  </data>
+  <data name="QuestSection682" xml:space="preserve">
+    <value>Quêtes répétables</value>
+  </data>
+  <data name="QuestSection-1" xml:space="preserve">
+    <value>Autres quêtes</value>
+  </data>
+  <data name="QuestSection745" xml:space="preserve">
+    <value>Dédale</value>
+  </data>
 </root>

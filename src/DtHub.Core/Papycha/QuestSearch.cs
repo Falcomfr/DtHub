@@ -201,7 +201,7 @@ public static class QuestSearch
         List<QuestSection> zones =
         [
             .. sections
-                .Where(s => Matches(Normalize(QuestZoneOrder.DisplayName(s.Name)), terms))
+                .Where(s => Matches(Normalize(QuestSectionTitle.Of(s)), terms))
                 .Take(limit),
         ];
 

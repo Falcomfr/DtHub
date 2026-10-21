@@ -938,7 +938,7 @@
                     </Path.Style>
                   </Path>
 
-                  <!-- A dungeon's level heads its row, before the name,
+                  <!-- A level heads its row, before the name,
                        in a column of fixed width: the names then start
                        at the same place whatever the level, and the
                        numbers read as a ladder down the band. Placed
@@ -950,14 +950,13 @@
                        level for: they sit under a header that says so. -->
                   <DockPanel Grid.Column="1">
                     <TextBlock DockPanel.Dock="Left" Width="22" Margin="0,0,10,0"
-                               Text="{Binding Facts.Level}"
+                               Text="{Binding Level}"
                                TextAlignment="Right" TextWrapping="NoWrap"
                                VerticalAlignment="Center"
                                Style="{StaticResource Muted}"
                                FontSize="{StaticResource FontSmall}"
-                               Visibility="{Binding Facts,
-                                                    Converter={StaticResource EmptyToVisibility},
-                                                    ConverterParameter=inverse}" />
+                               Visibility="{Binding HasLevelColumn,
+                                                    Converter={StaticResource BoolToVisibility}}" />
 
                     <!-- The tracker's mark: a check for a finished
                          quest, a dot for one in progress. Hidden, not

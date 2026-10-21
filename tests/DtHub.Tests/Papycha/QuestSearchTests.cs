@@ -1,4 +1,6 @@
-﻿using DtHub.Core.Papycha;
+﻿using System.Globalization;
+using DtHub.Core.Localization;
+using DtHub.Core.Papycha;
 
 namespace DtHub.Tests.Papycha;
 
@@ -121,6 +123,23 @@ public class QuestSearchTests
 
     private static QuestSection Rubrique(int id, string nom) =>
         new() { Id = id, Name = nom, SearchKey = QuestSearch.Normalize(nom) };
+
+    [Fact]
+    public void La_recherche_trouve_une_rubrique_par_son_nom_anglais()
+    {
+        Strings.Speak(CultureInfo.GetCultureInfo("en"));
+
+        try
+        {
+            var trouve = QuestSearch.Search([], [new QuestSection { Id = 135, Name = "Île de Frigost" }], [], [], "frigost island");
+
+            Assert.Single(trouve.Zones);
+        }
+        finally
+        {
+            Strings.Speak(null);
+        }
+    }
 
     [Fact]
     public void La_recherche_distingue_les_zones_les_succes_et_les_quetes()
