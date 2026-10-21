@@ -426,7 +426,7 @@
     <value>Guides de papycha.fr</value>
   </data>
   <data name="FrenchLabelsNotice" xml:space="preserve">
-    <value>Les libellés ci-dessous sont ceux d'un appareil réglé en français. Sur un appareil dans une autre langue, les mots diffèrent mais les menus se suivent dans le même ordre.</value>
+    <value>Libellés d'un téléphone réglé en français. Dans une autre langue, les menus restent dans le même ordre.</value>
   </data>
   <data name="PairCodeIntro" xml:space="preserve">
     <value>1. Sur le téléphone : Débogage sans fil  ›  Associer l'appareil avec un code d'association.
