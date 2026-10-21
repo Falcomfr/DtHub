@@ -191,8 +191,14 @@ public sealed class QuestTree
         return zone != 0 ? zone : QuestPathSection;
     }
 
+    /// <summary>
+    /// Matched on the French titles, since paths are Papycha's: the dungeon
+    /// returned is the shown one, so it keeps its game name.
+    /// </summary>
     private DungeonSummary? PathOf(PathSummary path) =>
-        PathTarget.DungeonOf(path.Title, _catalog.Catalog.Dungeons);
+        PathTarget.DungeonOf(path.Title, _catalog.Source.Dungeons) is { } found
+            ? _catalog.Catalog.Dungeons.FirstOrDefault(d => d.Id == found.Id) ?? found
+            : null;
 
     /// <summary>
     /// The paths sub-branch, at the head of the branch it serves.

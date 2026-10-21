@@ -14,15 +14,19 @@ public sealed class QuestCatalogService : IDisposable
     private readonly IPapychaClient _client;
     private readonly IDocumentStore<QuestCatalogDocument> _store;
     private readonly IQuestCatalogSnapshot? _snapshot;
+    private readonly TouchNameService? _touch;
     private readonly SemaphoreSlim _gate = new(1, 1);
 
     private QuestCatalogDocument? _current;
+    private QuestCatalogDocument? _view;
 
     public QuestCatalogService(
         IPapychaClient client,
         IDocumentStore<QuestCatalogDocument> store,
-        IQuestCatalogSnapshot? snapshot = null)
+        IQuestCatalogSnapshot? snapshot = null,
+        TouchNameService? touch = null)
     {
+        _touch = touch;
         _client = client;
         _store = store;
         _snapshot = snapshot;
@@ -48,8 +52,17 @@ public sealed class QuestCatalogService : IDisposable
     /// </summary>
     public TimeSpan Patience { get; init; } = TimeSpan.FromMinutes(15);
 
-    /// <summary>In-memory catalog, possibly empty.</summary>
-    public QuestCatalogDocument Catalog => _current ?? new QuestCatalogDocument();
+    /// <summary>
+    /// The catalog Papycha wrote, in French: the one merged and saved, and the
+    /// one paths are matched against.
+    /// </summary>
+    public QuestCatalogDocument Source => _current ?? new QuestCatalogDocument();
+
+    /// <summary>
+    /// What the window shows: the catalog in the game's names when they are
+    /// cached for the interface language, otherwise <see cref="Source"/>.
+    /// </summary>
+    public QuestCatalogDocument Catalog => _view ?? Source;
 
     /// <summary>
     /// Returns the catalog, indexing it if it is missing or has gone stale.
@@ -70,10 +83,15 @@ public sealed class QuestCatalogService : IDisposable
 
             if (!await IsStaleAsync(baseline, cancellationToken).ConfigureAwait(false))
             {
-                return baseline;
+                await RebuildViewAsync(cancellationToken).ConfigureAwait(false);
+
+                return Catalog;
             }
 
-            return await RebuildAsync(progress, cancellationToken).ConfigureAwait(false);
+            await RebuildAsync(progress, cancellationToken).ConfigureAwait(false);
+            await RebuildViewAsync(cancellationToken).ConfigureAwait(false);
+
+            return Catalog;
         }
         finally
         {
@@ -90,11 +108,77 @@ public sealed class QuestCatalogService : IDisposable
 
         try
         {
-            return await RebuildAsync(progress, cancellationToken).ConfigureAwait(false);
+            await RebuildAsync(progress, cancellationToken).ConfigureAwait(false);
+            await RebuildViewAsync(cancellationToken).ConfigureAwait(false);
+
+            return Catalog;
         }
         finally
         {
             _gate.Release();
+        }
+    }
+
+    /// <summary>
+    /// Reads the game's names for the interface language (no request while
+    /// they are fresh) and rebuilds the view. Never throws except on
+    /// cancellation: the failure stays in <see cref="NamesFailure"/>.
+    /// </summary>
+    public async Task RefreshNamesAsync(CancellationToken cancellationToken = default)
+    {
+        if (_touch is null)
+        {
+            return;
+        }
+
+        await _touch.RefreshAsync(TouchNameService.CurrentLanguage, cancellationToken).ConfigureAwait(false);
+        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+        try
+        {
+            await BaselineAsync(cancellationToken).ConfigureAwait(false);
+            await RebuildViewAsync(cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+
+    /// <summary>Last failure to read the game's names, so the window can report it.</summary>
+    public Exception? NamesFailure => _touch?.LastFailure;
+
+    /// <summary>
+    /// Call while holding the lock. Without cached names, or if localizing
+    /// fails, the view is the source: French beats an error.
+    /// </summary>
+    private async Task RebuildViewAsync(CancellationToken cancellationToken)
+    {
+        _view = null;
+
+        if (_touch is null || _current is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var language = TouchNameService.CurrentLanguage;
+
+            if (await _touch.CachedAsync(language, cancellationToken).ConfigureAwait(false) is { } names)
+            {
+                _view = TouchLocalization.Apply(_current, _touch.Table, names, language != "fr");
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            // A table or cache that cannot be read costs the names, not the
+            // catalog: the view falls back to Papycha's French.
+            _view = null;
         }
     }
 

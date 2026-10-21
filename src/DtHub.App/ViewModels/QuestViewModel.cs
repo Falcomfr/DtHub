@@ -417,7 +417,16 @@ public sealed partial class QuestViewModel : ObservableObject
         Settle(catalog, before);
         CountSections();
         ShowRoot();
+
+        // Not awaited: names that arrive later show at the next opening.
+        NamesRead = _catalog.RefreshNamesAsync(CancellationToken.None);
     }
+
+    /// <summary>The names refresh started by the last load; never faults.</summary>
+    public Task NamesRead { get; private set; } = Task.CompletedTask;
+
+    /// <summary>Why the game's names could not be read, logged by the window.</summary>
+    public Exception? NamesFailure => _catalog.NamesFailure;
 
     /// <summary>
     /// Duration of the last full indexing, or <c>null</c> if there has not

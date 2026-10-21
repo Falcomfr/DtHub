@@ -1,4 +1,7 @@
-﻿using DtHub.Core.Papycha;
+﻿using System.Globalization;
+
+using DtHub.Core.Localization;
+using DtHub.Core.Papycha;
 using DtHub.Tests.Fakes;
 
 namespace DtHub.Tests.Papycha;
@@ -17,6 +20,64 @@ public class QuestCatalogServiceTests
         var store = new InMemoryDocumentStore<QuestCatalogDocument>();
 
         return (new QuestCatalogService(fake, store, fake), fake, store);
+    }
+
+    private sealed class OneQuestTable : ITouchIdTableSource
+    {
+        public TouchIdTable Load() => new() { Quests = new() { [1] = [10] } };
+    }
+
+    [Fact]
+    public async Task Le_catalogue_servi_porte_les_noms_du_jeu_le_catalogue_sauve_reste_francais()
+    {
+        Strings.Speak(CultureInfo.GetCultureInfo("en"));
+
+        try
+        {
+            var (_, client, store) = Build();
+            using var touch = new TouchNameService(new FakeDofusTouchClient(), new InMemoryDocumentStore<TouchNamesDocument>(), new OneQuestTable());
+            using var service = new QuestCatalogService(client, store, client, touch);
+
+            await service.GetAsync(cancellationToken: CancellationToken.None);
+            Assert.Equal("Le dragon d'Astrub", service.Catalog.Quests.Single(q => q.Id == 1).Title);
+
+            await service.RefreshNamesAsync();
+
+            Assert.Equal("nom 10 en", service.Catalog.Quests.Single(q => q.Id == 1).Title);
+            Assert.Equal("Le dragon d'Astrub", service.Source.Quests.Single(q => q.Id == 1).Title);
+            Assert.Equal("Le dragon d'Astrub", (await store.LoadAsync(CancellationToken.None)).Quests.Single(q => q.Id == 1).Title);
+        }
+        finally
+        {
+            Strings.Speak(null);
+        }
+    }
+
+    [Fact]
+    public async Task Sans_noms_en_cache_le_catalogue_reste_celui_de_Papycha()
+    {
+        Strings.Speak(CultureInfo.GetCultureInfo("en"));
+
+        try
+        {
+            var (_, client, store) = Build();
+            using var touch = new TouchNameService(
+                new FakeDofusTouchClient { Failure = new HttpRequestException("jeu injoignable") },
+                new InMemoryDocumentStore<TouchNamesDocument>(),
+                new OneQuestTable());
+            using var service = new QuestCatalogService(client, store, client, touch);
+
+            var catalog = await service.GetAsync(cancellationToken: CancellationToken.None);
+            await service.RefreshNamesAsync();
+
+            Assert.Equal("Le dragon d'Astrub", catalog.Quests.Single(q => q.Id == 1).Title);
+            Assert.Equal("Le dragon d'Astrub", service.Catalog.Quests.Single(q => q.Id == 1).Title);
+            Assert.NotNull(touch.LastFailure);
+        }
+        finally
+        {
+            Strings.Speak(null);
+        }
     }
 
     [Fact]
