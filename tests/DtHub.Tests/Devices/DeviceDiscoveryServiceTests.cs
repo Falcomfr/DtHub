@@ -813,6 +813,7 @@ public class DeviceDiscoveryServiceTests
         using var service = new DeviceDiscoveryService(adb, new InMemoryDeviceRegistry())
         {
             LockScreenTouchEvery = TimeSpan.FromMilliseconds(10),
+            LockScreenFirstTouch = TimeSpan.FromMilliseconds(5),
         };
 
         await service.KeepLockScreenLitAsync("192.168.1.16:34249", TimeSpan.FromMilliseconds(100), CancellationToken.None);
@@ -829,6 +830,7 @@ public class DeviceDiscoveryServiceTests
         using var service = new DeviceDiscoveryService(adb, new InMemoryDeviceRegistry())
         {
             LockScreenTouchEvery = TimeSpan.FromMilliseconds(10),
+            LockScreenFirstTouch = TimeSpan.FromMilliseconds(5),
         };
 
         await service.KeepLockScreenLitAsync("192.168.1.16:34249", TimeSpan.FromMilliseconds(100), CancellationToken.None);

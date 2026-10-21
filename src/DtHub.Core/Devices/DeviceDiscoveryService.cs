@@ -51,6 +51,12 @@ public sealed class DeviceDiscoveryService : IDisposable
     public TimeSpan LockScreenTouchEvery { get; init; } = TimeSpan.FromSeconds(5);
 
     /// <summary>
+    /// The first touch, once the woken screen is lit: read at once, it still
+    /// read dark and the loop gave up before touching.
+    /// </summary>
+    public TimeSpan LockScreenFirstTouch { get; init; } = TimeSpan.FromMilliseconds(700);
+
+    /// <summary>
     /// Cuts dead wireless connections. The wireless debugging port changes on
     /// every phone restart, and the old connection stays listed as offline
     /// indefinitely. Without this cleanup, the same phone ends up occupying
@@ -512,9 +518,13 @@ public sealed class DeviceDiscoveryService : IDisposable
 
         var until = DateTimeOffset.UtcNow + span;
 
-        while (DateTimeOffset.UtcNow < until)
+        // Touched almost at once, then every few seconds. The lock screen's 9 s run
+        // from the first wake, which a later wake on a lit phone does not
+        // restart: lit again a few seconds after being lit, it went dark
+        // before a first touch held back five seconds (2026-10-21).
+        for (var first = true; DateTimeOffset.UtcNow < until; first = false)
         {
-            await Task.Delay(LockScreenTouchEvery, cancellationToken).ConfigureAwait(false);
+            await Task.Delay(first ? LockScreenFirstTouch : LockScreenTouchEvery, cancellationToken).ConfigureAwait(false);
 
             try
             {
