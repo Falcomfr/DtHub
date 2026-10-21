@@ -12,16 +12,39 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 
 ## [Unreleased]
 
+### Añadido
+
+- En inglés y en español, la lista de guías muestra misiones, mazmorras y logros con los nombres del juego, y el nivel de las misiones aparece en la lista en todos los idiomas.
+- Un botón «Pasos oficiales» muestra los pasos de una misión tal como los escribe el juego, en inglés y en español.
+- Un cuadrado de parada en el encabezado de un teléfono cierra de golpe todas sus cuentas abiertas, sin tocar los demás teléfonos.
+- Cada equipo tiene un botón Actualizar que reemplaza su contenido por lo que está abierto, conservando su nombre y su lugar; crear un equipo dice ahora lo que hará su apertura.
+- Un enlace «Encender la pantalla» o «Apagar la pantalla» en el encabezado del teléfono, visible en cuanto una de sus cuentas está abierta y que hace lo que hace Ctrl+E, con un indicador mientras cambia la pantalla.
+- Las cuentas perdidas con su teléfono se reabren solas en cuanto vuelve, y el panel indica que esperan.
+- Un inicio fallido muestra ahora un enlace a la carpeta de registros bajo su aviso.
+
 ### Modificado
 
 - Los mensajes del registro siguen ahora el idioma de la aplicación: inglés, francés o español.
+- Cerrar una ventana de juego o una pestaña con su cruz quita la cuenta del próximo inicio, como el botón Cerrar.
+- Los perfiles de inicio se llaman ahora equipos, y una lista «Al iniciar» dice exactamente qué se abre al arrancar DT Hub.
+- En la ventana más, las aplicaciones Dofus van primero, las ya mostradas dejan de ofrecerse y un perfil distinto del del teléfono se nombra con un candado.
+- Los consejos emergentes y los textos de ayuda son más cortos, con los pasos uno por línea, y las notas de batería por marca se muestran en la ayuda de suspensión.
+- El consejo sin conexión sigue el enlace que tenía el teléfono y sugiere acercarlo al router si se corta sin cesar.
+- El título «Cuentas de Dofus Touch» desaparece y el espacio bajo la línea de vinculación es más estrecho.
 
 ### Corregido
 
 - Al abrirse, la pantalla del juego se adapta al área interior de la ventana, evitando los márgenes negros causados por el marco.
 - Los juegos en pestañas aparecen directamente en su marco restaurado, sin mostrar brevemente una ventana independiente grande.
+- Encender la pantalla y Ctrl+E funcionan ahora de forma fiable: las pulsaciones rápidas se conservan en orden, y el teléfono se despierta y se mantiene encendido en su pantalla de bloqueo.
+- Una pantalla Samsung encendida se lee como encendida, así que su línea y Ctrl+E funcionan.
+- Un teléfono en Wi-Fi que juegas ya no deja dormitar su radio, lo que causaba picos de lag en el juego.
+- Un teléfono en USB y en Wi-Fi a la vez ya no se reconecta cada 30 segundos.
+- Los enlaces inalámbricos muertos que quedaban bajo el nombre mDNS de un teléfono se eliminan ahora.
+- El aviso sobre la Carpeta segura ya no sigue visible para quien ya juega fuera de ella.
+- Apagar una pantalla, la ventana más y los reinicios ya no atenúan los botones de juego de todo el teléfono.
+- Un teléfono que recupera algo de memoria sin lag ya no se llama saturado.
 - Una cuenta cerrada durante su reconexión, o dejada al abrir otro equipo, ya no vuelve unos segundos después.
-- Una cuenta cuyo teléfono se desconectó en partida espera su regreso y se vuelve a abrir, en lugar de quedarse cerrada.
 - Instalar una actualización ya no puede dejar un DtHub.exe dañado cuando DT Hub está en otro disco y el PC se apaga.
 - Desmarcar la actualización automática impide también instalar al salir una versión ya descargada.
 - Los informes de incidencia ocultan también el número de serie de los teléfonos sin juego abierto.

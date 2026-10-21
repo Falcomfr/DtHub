@@ -13,16 +13,39 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
 ## [Unreleased]
 
+### Ajouté
+
+- En anglais et en espagnol, la liste des guides affiche quêtes, donjons et succès sous les noms du jeu, et le niveau des quêtes apparaît dans la liste dans toutes les langues.
+- Un bouton « Étapes officielles » affiche les étapes d'une quête telles que le jeu les écrit, en anglais et en espagnol.
+- Un carré d'arrêt dans l'en-tête d'un téléphone ferme d'un coup tous ses comptes ouverts, sans toucher aux autres téléphones.
+- Chaque équipe a un bouton Mettre à jour qui remplace son contenu par ce qui est ouvert, en gardant son nom et sa place ; créer une équipe dit maintenant ce que son ouverture fera.
+- Un lien « Allumer l'écran » ou « Éteindre l'écran » dans l'en-tête du téléphone, affiché dès qu'un de ses comptes est ouvert et faisant ce que fait Ctrl+E, avec un indicateur pendant le changement d'écran.
+- Les comptes perdus avec leur téléphone se rouvrent tout seuls dès qu'il est de retour, et le panneau dit qu'ils attendent.
+- Un lancement qui échoue affiche maintenant un lien vers le dossier des journaux sous son bandeau.
+
 ### Modifié
 
 - Les messages du journal suivent désormais la langue de l'application : français, anglais ou espagnol.
+- Fermer une fenêtre de jeu ou un onglet par sa croix retire le compte du prochain démarrage, comme le bouton Fermer.
+- Les profils de lancement s'appellent désormais des équipes, et une liste « Au démarrage » dit exactement ce qui s'ouvre au lancement de DT Hub.
+- Dans la fenêtre plus, les applications Dofus passent en premier, celles déjà affichées ne sont plus proposées, et un profil autre que celui du téléphone est nommé avec un cadenas.
+- Les infobulles et les textes d'aide sont plus courts, avec les étapes une par ligne, et les notes de batterie par marque s'affichent dans l'aide sur la mise en veille.
+- Le conseil hors ligne suit le lien qu'avait le téléphone et suggère de le rapprocher du routeur s'il décroche sans cesse.
+- Le titre « Comptes Dofus Touch » disparaît et l'espace sous la ligne d'association est resserré.
 
 ### Corrigé
 
 - À l'ouverture, l'affichage du jeu s'adapte à la zone intérieure de la fenêtre, évitant les bandes noires dues au cadre.
 - Les jeux en onglets apparaissent directement dans leur cadre restauré, sans afficher brièvement une grande fenêtre indépendante.
+- Allumer l'écran et Ctrl+E fonctionnent désormais de façon fiable : les appuis rapides sont gardés dans l'ordre, et le téléphone est réveillé puis gardé allumé sur son écran de verrouillage.
+- Un écran Samsung allumé est bien lu comme allumé, donc sa ligne et Ctrl+E fonctionnent.
+- Un téléphone en Wi-Fi que vous jouez ne laisse plus sa radio s'assoupir, ce qui causait des pics de lag en jeu.
+- Un téléphone en USB et en Wi-Fi à la fois n'est plus reconnecté toutes les 30 secondes.
+- Les liens sans fil morts laissés sous le nom mDNS d'un téléphone sont désormais supprimés.
+- L'avertissement sur le Dossier sécurisé ne reste plus affiché pour qui joue déjà en dehors.
+- Éteindre un écran, la fenêtre plus et les redémarrages ne grisent plus les boutons de jeu de tout le téléphone.
+- Un téléphone qui récupère un peu de mémoire sans lag n'est plus qualifié de saturé.
 - Un compte fermé pendant sa reconnexion, ou laissé en ouvrant une autre team, ne revient plus quelques secondes après.
-- Un compte dont le téléphone a décroché en jeu attend son retour et se rouvre, au lieu de rester fermé.
 - Installer une mise à jour ne peut plus laisser un DtHub.exe abîmé quand DT Hub est rangé sur un autre disque et que le PC s'éteint.
 - Décocher la mise à jour automatique empêche aussi d'installer en quittant une version déjà téléchargée.
 - Les rapports d'incident masquent aussi le numéro de série des téléphones sans jeu ouvert.

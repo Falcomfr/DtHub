@@ -19,16 +19,39 @@ belongs in the commits and in `docs/DECISIONS.md`.
 
 ## [Unreleased]
 
+### Added
+
+- In English and Spanish, the guides list shows quests, dungeons and achievements under the names the game uses, and quest levels now show in the list in every language.
+- An "Official steps" button shows a quest's steps as the game writes them, in English and Spanish.
+- A stop square in a phone's header closes all of its open accounts at once; the other phones are not touched.
+- Each team has an Update button that replaces its content with what is open now, keeping its name and place; creating a team now says what opening it will do.
+- A "Turn screen on" or "Turn screen off" link in the phone's header, shown whenever one of its accounts is open and doing what Ctrl+E does, with a spinner while the screen changes.
+- Accounts lost with their phone reopen by themselves once it is back, and the panel says they are waiting.
+- A failed launch now shows a link to the logs folder under its banner.
+
 ### Changed
 
 - Log messages now follow the application's language: English, French or Spanish.
+- Closing a game window or a tab with its cross now takes the account out of the next startup, like the Close button.
+- Launch profiles are now called teams, and an "At startup" list says exactly what opens when DT Hub starts.
+- In the plus window, Dofus apps come first, apps already shown are no longer offered again, and a profile other than the phone's own is named with a lock.
+- Hover tips and help texts are shorter, with steps one per line, and the brand battery notes now show in the sleep help.
+- The offline advice follows the link the phone had and suggests moving it closer to the router if it keeps dropping.
+- The "Dofus Touch accounts" heading is gone and the gap under the pairing line is tighter.
 
 ### Fixed
 
 - Game displays now match the window's client area when opened, avoiding black margins caused by the window frame.
 - Tabbed games now appear directly in their restored frame, without briefly showing a large standalone window.
+- Turning the screen on and Ctrl+E now work reliably: fast presses are kept in order, and the phone is woken and kept lit on its lock screen.
+- A Samsung screen that is lit now reads as lit, so its line and Ctrl+E work.
+- A Wi-Fi phone being played no longer lets its radio doze, which caused in-game lag spikes.
+- A phone on USB and Wi-Fi at once is no longer reconnected every 30 seconds.
+- Dead wireless links left under a phone's mDNS name are now dropped.
+- The Secure Folder warning no longer stays up for a player who already plays outside it.
+- Switching a screen off, the plus window and restarts no longer grey the play buttons of the whole phone.
+- A phone reclaiming a little memory without lag is no longer called saturated.
 - An account closed while it was reconnecting, or left by opening another team, no longer comes back a few seconds later.
-- An account whose phone dropped during play now waits for it and reopens, instead of staying closed.
 - Installing an update can no longer leave a broken DtHub.exe when DT Hub is kept on another drive and the PC shuts down.
 - Unchecking automatic updates now also keeps an already downloaded version from being installed on quit.
 - Incident reports now also hide the serial number of phones with no game open.
