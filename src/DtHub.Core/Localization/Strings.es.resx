@@ -177,7 +177,7 @@
     <value>Personalizada</value>
   </data>
   <data name="QualityCustomTip" xml:space="preserve">
-    <value>Ajustar tú mismo la resolución, la cadencia, el detalle de imagen y el códec. Los tres niveles siguen siendo el camino habitual: este es para quien ya sabe lo que quiere.</value>
+    <value>Ajustar tú mismo la resolución, la cadencia, el detalle de imagen y el códec. Los demás niveles siguen siendo el camino habitual: este es para quien ya sabe lo que quiere.</value>
   </data>
   <data name="QualityValues" xml:space="preserve">
     <value>{0} p máx. · {1} fps · unos {2} Mb/s por ventana</value>
@@ -198,7 +198,7 @@
     <value>Detalle de imagen</value>
   </data>
   <data name="ImageDetailTip" xml:space="preserve">
-    <value>Bits concedidos a cada píxel de cada imagen. La tasa de bits se deduce de la resolución realmente empleada, como en los otros tres niveles: una tasa absoluta daría de sobra a una ventana pequeña y dejaría en ayunas a una grande.</value>
+    <value>Bits concedidos a cada píxel de cada imagen. La tasa de bits se deduce de la resolución realmente empleada, como en los demás niveles: una tasa absoluta daría de sobra a una ventana pequeña y dejaría en ayunas a una grande.</value>
   </data>
   <data name="VideoCodec" xml:space="preserve">
     <value>Códec de vídeo</value>

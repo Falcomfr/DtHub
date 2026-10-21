@@ -177,7 +177,7 @@
     <value>Custom</value>
   </data>
   <data name="QualityCustomTip" xml:space="preserve">
-    <value>Set the resolution, the frame rate, the image detail and the codec yourself. The three tiers remain the ordinary route: this one is for whoever already knows what they want.</value>
+    <value>Set the resolution, the frame rate, the image detail and the codec yourself. The other tiers remain the ordinary route: this one is for whoever already knows what they want.</value>
   </data>
   <data name="QualityValues" xml:space="preserve">
     <value>{0}p max · {1} fps · about {2} Mb/s per window</value>
@@ -198,7 +198,7 @@
     <value>Image detail</value>
   </data>
   <data name="ImageDetailTip" xml:space="preserve">
-    <value>Bits granted to each pixel of each frame. The bitrate follows from the resolution actually used, as for the three other tiers: an absolute bitrate would feast a small window and starve a large one.</value>
+    <value>Bits granted to each pixel of each frame. The bitrate follows from the resolution actually used, as for the other tiers: an absolute bitrate would feast a small window and starve a large one.</value>
   </data>
   <data name="VideoCodec" xml:space="preserve">
     <value>Video codec</value>
