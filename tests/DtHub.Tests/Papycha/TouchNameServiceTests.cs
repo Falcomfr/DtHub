@@ -203,6 +203,36 @@ public class TouchNameServiceTests
         Assert.NotNull(service.LastFailure);
     }
 
+    [Fact]
+    public async Task Une_lecture_sans_aucune_etape_n_est_pas_gardee()
+    {
+        GiveSteps();
+        _client.Rows["QuestSteps"] = [];
+        using var service = Service();
+
+        Assert.Empty(await service.StepsAsync(1, "en"));
+        Assert.NotNull(service.LastFailure);
+        _client.Requested.Remove("QuestSteps");
+
+        Assert.Empty(await service.StepsAsync(1, "en"));
+        Assert.Single(_client.Requested["QuestSteps"]);
+    }
+
+    [Fact]
+    public async Task Un_rafraichissement_des_noms_efface_les_etapes_gardees()
+    {
+        GiveSteps();
+        using var service = new TouchNameService(_client, _store, new FakeTable()) { Freshness = TimeSpan.Zero };
+        _ = await service.StepsAsync(1, "en");
+        _ = await service.RefreshAsync("en");
+        _client.Requested.Clear();
+
+        var again = await service.StepsAsync(1, "en");
+
+        Assert.Equal(2, again.Count);
+        Assert.Single(_client.Requested["QuestSteps"]);
+    }
+
     [Theory]
     [InlineData("fr", "fr")]
     [InlineData("es", "es")]

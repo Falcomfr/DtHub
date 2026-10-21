@@ -158,6 +158,13 @@ public sealed class TouchNameService(
     {
         var rows = await GetAsync("QuestSteps", stepIds, language, ct).ConfigureAwait(false);
         var steps = stepIds.Where(rows.ContainsKey).Select(id => rows[id]).ToArray();
+
+        if (steps.Length == 0)
+        {
+            // Reachable but empty: caching nothing-to-show would hide the steps for good.
+            throw new InvalidOperationException("The game's server returned no quest step.");
+        }
+
         var objectives = await GetAsync(
             "QuestObjectives", [.. steps.SelectMany(step => Ints(step, "objectiveIds"))], language, ct).ConfigureAwait(false);
 
@@ -170,6 +177,11 @@ public sealed class TouchNameService(
             {
                 known.ObjectiveTypes[type.Key] = Name(type.Value)!;
             }
+        }
+
+        if (known.ObjectiveTypes.Count == 0)
+        {
+            throw new InvalidOperationException("The game's server returned no objective type.");
         }
 
         var holes = objectives.Values
@@ -251,6 +263,8 @@ public sealed class TouchNameService(
         return (previous ?? new TouchLanguageNames()) with
         {
             ReadUtc = DateTimeOffset.UtcNow,
+            // Steps age with the names; the objective types are templates and stay.
+            Steps = [],
             Quests = questNames
                 .ToDictionary(
                     r => r.Key,

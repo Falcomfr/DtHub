@@ -711,7 +711,7 @@
                 Style="{StaticResource OutlineButton}" Padding="9,5"
                 FontSize="{StaticResource FontBody}"
                 Content="{loc:T BackToGuide}"
-                Command="{Binding ToggleOfficialStepsCommand}" />
+                Command="{Binding BackToGuideCommand}" />
         <TextBlock DockPanel.Dock="Bottom" Style="{StaticResource Muted}" Margin="12,6,12,8"
                    Text="{loc:T OfficialNamesCredit}" />
         <TextBlock DockPanel.Dock="Top" Style="{StaticResource Muted}" Margin="12,12,12,0"

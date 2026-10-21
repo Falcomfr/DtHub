@@ -399,6 +399,10 @@ public sealed partial class QuestViewModel : ObservableObject
         OnPropertyChanged(nameof(OffersOfficialSteps));
     }
 
+    /// <summary>Its own command: the load below disables its command for as long as it runs, and leaving must stay possible.</summary>
+    [RelayCommand]
+    private void BackToGuide() => ShowsOfficialSteps = false;
+
     /// <summary>Swaps the guide for the game's steps, and back.</summary>
     [RelayCommand]
     public async Task ToggleOfficialStepsAsync()
