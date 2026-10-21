@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Text.RegularExpressions;
 
 using DtHub.Core.Adb;
@@ -414,7 +414,7 @@ public sealed partial class AndroidAppLauncher : IAppLauncher
         var layers = await ReadOrEmptyAsync(serial, ["dumpsys", "SurfaceFlinger"], cancellationToken)
             .ConfigureAwait(false);
 
-        return GameWindowState(activities, windows, layers, displayId, packageName);
+        return GameWindowState(activities, windows, layers, displayId, packageName, Strings.Spoken);
     }
 
     private async Task<string> ReadOrEmptyAsync(
@@ -445,7 +445,8 @@ public sealed partial class AndroidAppLauncher : IAppLauncher
         string windows,
         string layers,
         int displayId,
-        string packageName)
+        string packageName,
+        CultureInfo? culture = null)
     {
         var mode = Section(activities, displayId)
             .Where(l => l.Contains("Task{", StringComparison.Ordinal)
@@ -481,7 +482,11 @@ public sealed partial class AndroidAppLauncher : IAppLauncher
 
         var geometry = layer is null ? null : LayerGeometry(layers, layer);
 
-        return $"mode={mode}, cadre {bounds}, fenêtre {frame ?? "?"}, couche {geometry ?? "?"}";
+        // Keep the canonical representation stable for parsers and change detection.
+        return string.Format(CultureInfo.InvariantCulture,
+            LogMessages.Translate("mode={0}, cadre {1}, fenêtre {2}, couche {3}",
+                culture ?? CultureInfo.GetCultureInfo("fr")),
+            mode, bounds, frame ?? "?", geometry ?? "?");
     }
 
     /// <summary>

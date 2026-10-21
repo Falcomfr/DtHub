@@ -1,0 +1,718 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name=" débogage" xml:space="preserve">
+    <value> depuración</value>
+  </data>
+  <data name="(archivage impossible)" xml:space="preserve">
+    <value>(no se ha podido archivar)</value>
+  </data>
+  <data name="ADB &gt; {commandLine}" xml:space="preserve">
+    <value>ADB &gt; {commandLine}</value>
+  </data>
+  <data name="ADB a échoué (code {exitCode}, expiré : {timedOut}) : {output}" xml:space="preserve">
+    <value>ADB ha fallado (código {exitCode}, tiempo agotado: {timedOut}): {output}</value>
+  </data>
+  <data name="ADB {operation} a échoué pour {target} : {details}" xml:space="preserve">
+    <value>ADB {operation} ha fallado para {target}: {details}</value>
+  </data>
+  <data name="Adresse hors du site confiée au navigateur : {url}" xml:space="preserve">
+    <value>URL externa enviada al navegador: {url}</value>
+  </data>
+  <data name="Alerte batterie masquée : {App} sur {Appareil}." xml:space="preserve">
+    <value>Aviso de batería ocultado: {App} en {Appareil}.</value>
+  </data>
+  <data name="Alertes batterie masquées réaffichées." xml:space="preserve">
+    <value>Los avisos de batería ocultos se muestran de nuevo.</value>
+  </data>
+  <data name="Appairage refusé par {host} : {reason}" xml:space="preserve">
+    <value>Emparejamiento rechazado por {host}: {reason}</value>
+  </data>
+  <data name="Appairage réussi avec {host}." xml:space="preserve">
+    <value>Emparejamiento con {host} completado.</value>
+  </data>
+  <data name="Applications affichées sur {deviceId} : {count} choisie(s)." xml:space="preserve">
+    <value>Aplicaciones mostradas en {deviceId}: {count} seleccionadas.</value>
+  </data>
+  <data name="Applications de {device} lues : {labels} nom(s), {apps} application(s) lançable(s) hors jeu." xml:space="preserve">
+    <value>Aplicaciones leídas de {device}: {labels} nombres, {apps} aplicaciones ejecutables que no son juegos.</value>
+  </data>
+  <data name="Arbre des succès ouvert dans le navigateur : {url}" xml:space="preserve">
+    <value>Árbol de logros abierto en el navegador: {url}</value>
+  </data>
+  <data name="Arrêt : {windows} fenêtre(s) de jeu fermée(s) en {elapsed} ms." xml:space="preserve">
+    <value>Cierre: {windows} ventanas de juego cerradas en {elapsed} ms.</value>
+  </data>
+  <data name="Arrêt du jeu refusé par {0}." xml:space="preserve">
+    <value>{0} ha rechazado la detención del juego.</value>
+  </data>
+  <data name="Arrêt du jeu sur le téléphone impossible : {0}" xml:space="preserve">
+    <value>No se ha podido detener el juego en el teléfono: {0}</value>
+  </data>
+  <data name="Arrêt du serveur ADB demandé : les autres outils ADB de la machine seront coupés." xml:space="preserve">
+    <value>Se ha solicitado detener el servidor ADB: se desconectarán las demás herramientas ADB de este equipo.</value>
+  </data>
+  <data name="Arrêt incomplet." xml:space="preserve">
+    <value>Cierre incompleto.</value>
+  </data>
+  <data name="Arrêt rangé en {elapsed} ms." xml:space="preserve">
+    <value>Limpieza de cierre completada en {elapsed} ms.</value>
+  </data>
+  <data name="Association rompue avec {device} : ses comptes et ses réglages sont effacés." xml:space="preserve">
+    <value>{device} desvinculado: se han eliminado sus cuentas y ajustes.</value>
+  </data>
+  <data name="Aucune fenêtre ouverte, les réglages restent affichés : {Problems}" xml:space="preserve">
+    <value>No se ha abierto ninguna ventana; los ajustes siguen visibles: {Problems}</value>
+  </data>
+  <data name="Aucune géométrie mémorisée pour {instances} : la fenêtre rouvre au coin par défaut." xml:space="preserve">
+    <value>No hay geometría de ventana guardada para {instances}: se vuelve a abrir en la esquina predeterminada.</value>
+  </data>
+  <data name="Aucune nouvelle de la page après vingt secondes : la vue est rendue." xml:space="preserve">
+    <value>Sin respuesta de la página tras veinte segundos: se libera la vista.</value>
+  </data>
+  <data name="Cache du moteur de rendu balayé : {megabytes} Mo." xml:space="preserve">
+    <value>Caché del motor de renderizado vaciada: {megabytes} MB.</value>
+  </data>
+  <data name="Catalogue embarqué : {count} quête(s)." xml:space="preserve">
+    <value>Catálogo integrado: {count} misiones.</value>
+  </data>
+  <data name="Catalogue embarqué illisible ({reason}) ; l'API de papycha comblera ce qu'elle peut." xml:space="preserve">
+    <value>Catálogo integrado ilegible ({reason}); la API de papycha completará lo que pueda.</value>
+  </data>
+  <data name="Catalogue indexé en {seconds:F1} s." xml:space="preserve">
+    <value>Catálogo indexado en {seconds:F1} s.</value>
+  </data>
+  <data name="Catalogue papycha lu : {count} quête(s)." xml:space="preserve">
+    <value>Catálogo de papycha leído: {count} misiones.</value>
+  </data>
+  <data name="Changement de périphériques signalé par Windows : balayage." xml:space="preserve">
+    <value>Windows ha notificado un cambio de dispositivos: buscando.</value>
+  </data>
+  <data name="Chargement demandé : {url} (moteur prêt : {ready})" xml:space="preserve">
+    <value>Carga solicitada: {url} (motor listo: {ready})</value>
+  </data>
+  <data name="Chemins lus : {count}." xml:space="preserve">
+    <value>Rutas leídas: {count}.</value>
+  </data>
+  <data name="Compte « {name} » ajouté sur {device} : {succeeded}. {message}" xml:space="preserve">
+    <value>Cuenta «{name}» añadida en {device}: {succeeded}. {message}</value>
+  </data>
+  <data name="Ctrl+E, écran lu {0}, {1}" xml:space="preserve">
+    <value>Ctrl+E, pantalla detectada como {0}, {1}</value>
+  </data>
+  <data name="Donjons, raids et tanières lus : {count}." xml:space="preserve">
+    <value>Mazmorras, incursiones y guaridas leídas: {count}.</value>
+  </data>
+  <data name="Démarrage du serveur ADB" xml:space="preserve">
+    <value>Inicio del servidor ADB</value>
+  </data>
+  <data name="Démarrage sans session nommée : on rouvre ce qui était ouvert." xml:space="preserve">
+    <value>Inicio sin sesión con nombre: se vuelven a abrir las ventanas que estaban abiertas.</value>
+  </data>
+  <data name="Exception de tâche non observée." xml:space="preserve">
+    <value>Excepción de tarea no observada.</value>
+  </data>
+  <data name="Exception non interceptée." xml:space="preserve">
+    <value>Excepción no controlada.</value>
+  </data>
+  <data name="Faute pendant un signalement ou répétée ({Count}) : {Signature}" xml:space="preserve">
+    <value>Error al enviar un informe o error repetido ({Count}): {Signature}</value>
+  </data>
+  <data name="Fenêtre perdue, réouverture de {name} dans {seconds} s (tentative {attempt})." xml:space="preserve">
+    <value>Ventana perdida; se volverá a abrir {name} en {seconds} s (intento {attempt}).</value>
+  </data>
+  <data name="Fin de session Windows : l'état est retenu avant l'arrêt." xml:space="preserve">
+    <value>Fin de sesión de Windows: se guarda el estado antes del cierre.</value>
+  </data>
+  <data name="Format de l'écran du téléphone {Device} : {Aspect}." xml:space="preserve">
+    <value>Relación de aspecto de la pantalla del teléfono {Device}: {Aspect}.</value>
+  </data>
+  <data name="Formulaire de signalement : {Etat}." xml:space="preserve">
+    <value>Formulario de informe de problemas: {Etat}.</value>
+  </data>
+  <data name="Formulaire de signalement ouvert sur : {url}" xml:space="preserve">
+    <value>Formulario de informe de problemas abierto en: {url}</value>
+  </data>
+  <data name="Icône de {package} extraite de {entry} : {bytes} octets." xml:space="preserve">
+    <value>Icono de {package} extraído de {entry}: {bytes} bytes.</value>
+  </data>
+  <data name="Icône de {package} non extraite : {reason}" xml:space="preserve">
+    <value>Icono de {package} no extraído: {reason}</value>
+  </data>
+  <data name="L'API de papycha n'a pas dit si elle avait changé ({reason})." xml:space="preserve">
+    <value>La API de papycha no ha indicado si ha cambiado ({reason}).</value>
+  </data>
+  <data name="L'Almanax lu n'est pas celui de DOFUS Touch, ou la page a changé." xml:space="preserve">
+    <value>El Almanax obtenido no es el de DOFUS Touch, o la página ha cambiado.</value>
+  </data>
+  <data name="L'Almanax n'a pas pu être chargé." xml:space="preserve">
+    <value>No se ha podido cargar el Almanax.</value>
+  </data>
+  <data name="L'Almanax n'a pas pu être joint : {Etat}." xml:space="preserve">
+    <value>No se ha podido acceder al Almanax: {Etat}.</value>
+  </data>
+  <data name="L'appareil {serial} déclare {count} encodeurs vidéo, matériel pour : {hardware}." xml:space="preserve">
+    <value>El dispositivo {serial} declara {count} codificadores de vídeo, con codificación por hardware para: {hardware}.</value>
+  </data>
+  <data name="L'appareil {serial} est à {percent} % de batterie, non branché, batterie à {celsius} °C." xml:space="preserve">
+    <value>El dispositivo {serial} tiene un {percent} % de batería, está desenchufado y la batería está a {celsius} °C.</value>
+  </data>
+  <data name="L'appareil {serial} n'a plus que {free} Go libres." xml:space="preserve">
+    <value>Al dispositivo {serial} solo le quedan {free} GB libres.</value>
+  </data>
+  <data name="L'appareil {serial} se bride : état thermique {status}, surface {skin} °C." xml:space="preserve">
+    <value>El dispositivo {serial} está limitando su rendimiento: estado térmico {status}, temperatura de superficie {skin} °C.</value>
+  </data>
+  <data name="L'empreinte de la livraison {version} ne correspond pas." xml:space="preserve">
+    <value>La suma de comprobación de la versión {version} no coincide.</value>
+  </data>
+  <data name="L'outil web {Outil} n'a pas pu s'ouvrir." xml:space="preserve">
+    <value>No se ha podido abrir la herramienta web {Outil}.</value>
+  </data>
+  <data name="L'état de la session n'a pas pu être enregistré." xml:space="preserve">
+    <value>No se ha podido guardar el estado de la sesión.</value>
+  </data>
+  <data name="L'état du téléphone n'a pas pu être posé dans le titre des fenêtres." xml:space="preserve">
+    <value>No se ha podido mostrar el estado del teléfono en los títulos de las ventanas.</value>
+  </data>
+  <data name="La coupure d'ADB sur {address} a échoué : {reason}. L'association est rompue quand même." xml:space="preserve">
+    <value>La desconexión de ADB de {address} ha fallado: {reason}. El dispositivo se desvincula de todos modos.</value>
+  </data>
+  <data name="La fenêtre de signalement n'a pas pu s'ouvrir." xml:space="preserve">
+    <value>No se ha podido abrir la ventana de informe de problemas.</value>
+  </data>
+  <data name="La livraison n'a pas pu être préparée." xml:space="preserve">
+    <value>No se ha podido preparar la versión.</value>
+  </data>
+  <data name="La mise à jour n'a pas pu être posée." xml:space="preserve">
+    <value>No se ha podido instalar la actualización.</value>
+  </data>
+  <data name="La nouvelle couleur n'a pas pu être posée sur les onglets ouverts." xml:space="preserve">
+    <value>No se ha podido aplicar el nuevo color a las pestañas abiertas.</value>
+  </data>
+  <data name="La page de Calcofus n'a pas pu être retenue." xml:space="preserve">
+    <value>No se ha podido guardar la página de Calcofus.</value>
+  </data>
+  <data name="La place de l'Almanax n'a pas pu être rétablie." xml:space="preserve">
+    <value>No se ha podido restaurar la posición de la ventana del Almanax.</value>
+  </data>
+  <data name="La place de l'outil web {Outil} n'a pas pu être rétablie." xml:space="preserve">
+    <value>No se ha podido restaurar la posición de la herramienta web {Outil}.</value>
+  </data>
+  <data name="La place de la fenêtre {Fenetre} n'a pas pu être retenue." xml:space="preserve">
+    <value>No se ha podido guardar la posición de la ventana {Fenetre}.</value>
+  </data>
+  <data name="La place de la page liée n'a pas pu être rétablie." xml:space="preserve">
+    <value>No se ha podido restaurar la posición de la ventana de la página enlazada.</value>
+  </data>
+  <data name="La place du suivi de quêtes n'a pas pu être rétablie." xml:space="preserve">
+    <value>No se ha podido restaurar la posición de la ventana del seguimiento de misiones.</value>
+  </data>
+  <data name="La recherche de téléphones a échoué." xml:space="preserve">
+    <value>La búsqueda de teléfonos ha fallado.</value>
+  </data>
+  <data name="La reprise de la session" xml:space="preserve">
+    <value>Reanudación de la sesión</value>
+  </data>
+  <data name="La reprise de la session a échoué." xml:space="preserve">
+    <value>No se ha podido reanudar la sesión.</value>
+  </data>
+  <data name="La réouverture" xml:space="preserve">
+    <value>Reapertura</value>
+  </data>
+  <data name="La réouverture de {Nom} a échoué." xml:space="preserve">
+    <value>No se ha podido volver a abrir {Nom}.</value>
+  </data>
+  <data name="La semaine de l'Almanax lue ne donne aucun bonus de DOFUS Touch, ou la page a changé." xml:space="preserve">
+    <value>La semana del Almanax obtenida no contiene bonificaciones de DOFUS Touch, o la página ha cambiado.</value>
+  </data>
+  <data name="La semaine de l'Almanax n'a pas pu être chargée." xml:space="preserve">
+    <value>No se ha podido cargar la semana del Almanax.</value>
+  </data>
+  <data name="La session qui tient l'écran de {Device} éteint {How}, code {ExitCode}, dernières lignes : {LastLines}" xml:space="preserve">
+    <value>La sesión que mantiene apagada la pantalla de {Device} {How}, código {ExitCode}, últimas líneas: {LastLines}</value>
+  </data>
+  <data name="La session {instance} s'est terminée seule ({state}) : {message}&#10;{output}" xml:space="preserve">
+    <value>La sesión {instance} ha terminado por sí sola ({state}): {message}
+{output}</value>
+  </data>
+  <data name="La session « {Profile} » n'ouvre aucun compte : elle a disparu des réglages, ou tous ses comptes ont été retirés du téléphone." xml:space="preserve">
+    <value>La sesión «{Profile}» no abre ninguna cuenta: ha desaparecido de los ajustes o todas sus cuentas se han eliminado del teléfono.</value>
+  </data>
+  <data name="La surveillance d'une installation depuis le Play Store a échoué." xml:space="preserve">
+    <value>Ha fallado la supervisión de una instalación desde Play Store.</value>
+  </data>
+  <data name="Lancement terminé : {opened} fenêtre(s) ouverte(s), {problems} problème(s)." xml:space="preserve">
+    <value>Inicio completado: {opened} ventanas abiertas, {problems} problemas.</value>
+  </data>
+  <data name="Langue de l'interface : {Langue} (réglage {Reglage}, Windows {Windows})." xml:space="preserve">
+    <value>Idioma de la interfaz: {Langue} (ajuste {Reglage}, Windows {Windows}).</value>
+  </data>
+  <data name="Le balayage du panneau a échoué." xml:space="preserve">
+    <value>La búsqueda del panel ha fallado.</value>
+  </data>
+  <data name="Le cache du moteur de rendu n'a pas pu être balayé." xml:space="preserve">
+    <value>No se ha podido vaciar la caché del motor de renderizado.</value>
+  </data>
+  <data name="Le composant WebView2 est absent : les guides ne peuvent pas s'afficher." xml:space="preserve">
+    <value>Falta el componente WebView2: no se pueden mostrar las guías.</value>
+  </data>
+  <data name="Le cookie du suivi Papycha n'a pas pu être lu." xml:space="preserve">
+    <value>No se ha podido leer la cookie del seguimiento de Papycha.</value>
+  </data>
+  <data name="Le dépôt a mis trop de temps à répondre." xml:space="preserve">
+    <value>El repositorio ha tardado demasiado en responder.</value>
+  </data>
+  <data name="Le dépôt a refusé la demande de livraison : {code}." xml:space="preserve">
+    <value>El repositorio ha rechazado la solicitud de versión: {code}.</value>
+  </data>
+  <data name="Le dépôt n'a pas répondu." xml:space="preserve">
+    <value>El repositorio no ha respondido.</value>
+  </data>
+  <data name="Le formulaire de signalement n'a pas pu être préparé." xml:space="preserve">
+    <value>No se ha podido preparar el formulario de informe de problemas.</value>
+  </data>
+  <data name="Le jeu de {instance} n'a pas pu être arrêté : {serial} est resté injoignable." xml:space="preserve">
+    <value>No se ha podido detener el juego de {instance}: {serial} sigue inaccesible.</value>
+  </data>
+  <data name="Le jeu joue du son sur l'appareil {serial} ({players} lecteur(s)) mais plus rien ne le capte pour le PC depuis au moins une minute." xml:space="preserve">
+    <value>El juego reproduce audio en el dispositivo {serial} ({players} reproductores), pero nada lo captura para el PC desde hace al menos un minuto.</value>
+  </data>
+  <data name="Le jeu ne joue plus aucun son sur l'appareil {serial} depuis au moins une minute : {processes} jeu(x) ouvert(s), capture du son pour le PC {captured}, volume média du téléphone {volume}/15." xml:space="preserve">
+    <value>El juego no ha reproducido audio en el dispositivo {serial} desde hace al menos un minuto: {processes} juegos abiertos, captura de audio para el PC {captured}, volumen multimedia del teléfono {volume}/15.</value>
+  </data>
+  <data name="Le jour {Jour} de l'Almanax n'a rien rendu en vingt secondes." xml:space="preserve">
+    <value>El día {Jour} del Almanax no ha devuelto nada en veinte segundos.</value>
+  </data>
+  <data name="Le moteur de rendu n'a pas pu être endormi." xml:space="preserve">
+    <value>No se ha podido suspender el motor de renderizado.</value>
+  </data>
+  <data name="Le ménage des fenêtres restantes a échoué." xml:space="preserve">
+    <value>Ha fallado la limpieza de las ventanas restantes.</value>
+  </data>
+  <data name="Le ménage des mises à jour a échoué." xml:space="preserve">
+    <value>Ha fallado la limpieza de actualizaciones.</value>
+  </data>
+  <data name="Le nouveau nom n'a pas pu être posé sur les fenêtres ouvertes." xml:space="preserve">
+    <value>No se ha podido aplicar el nuevo nombre a las ventanas abiertas.</value>
+  </data>
+  <data name="Le personnage n'a pas pu être montré dans le suivi Papycha." xml:space="preserve">
+    <value>No se ha podido mostrar el personaje en el seguimiento de Papycha.</value>
+  </data>
+  <data name="Le pont annonce la page chargée." xml:space="preserve">
+    <value>El puente informa de que la página se ha cargado.</value>
+  </data>
+  <data name="Le presse-papiers n'a pas pris l'offrande." xml:space="preserve">
+    <value>No se ha podido copiar la ofrenda al portapapeles.</value>
+  </data>
+  <data name="Le raccourci du bureau n'a pas pu être posé." xml:space="preserve">
+    <value>No se ha podido crear el acceso directo del escritorio.</value>
+  </data>
+  <data name="Le raccourci du menu Démarrer n'a pas pu être posé." xml:space="preserve">
+    <value>No se ha podido crear el acceso directo del menú Inicio.</value>
+  </data>
+  <data name="Le raccourci {shortcut} pour « {action} » est refusé par Windows ; un autre logiciel le détient probablement." xml:space="preserve">
+    <value>Windows ha rechazado el atajo {shortcut} para «{action}»; probablemente lo esté usando otra aplicación.</value>
+  </data>
+  <data name="Le réveil d'un téléphone endormi a échoué." xml:space="preserve">
+    <value>No se ha podido reactivar un teléfono en reposo.</value>
+  </data>
+  <data name="Le signalement lui-même a échoué." xml:space="preserve">
+    <value>Ha fallado el propio informe de errores.</value>
+  </data>
+  <data name="Le son du jeu est revenu sur l'appareil {serial}." xml:space="preserve">
+    <value>Se ha restablecido el sonido del juego en el dispositivo {serial}.</value>
+  </data>
+  <data name="Le son du jeu n'est pas revenu sur l'appareil {serial} depuis la réouverture des fenêtres ({windows} fenêtre(s) de DT Hub). Son du téléphone :&#10;{state}" xml:space="preserve">
+    <value>El sonido del juego no se ha restablecido en el dispositivo {serial} desde que se reabrieron las ventanas ({windows} ventana(s) de DT Hub). Sonido del teléfono:
+{state}</value>
+  </data>
+  <data name="Le temps de jeu n'a pas pu être enregistré à la fermeture." xml:space="preserve">
+    <value>No se ha podido guardar el tiempo de juego al cerrar.</value>
+  </data>
+  <data name="Lecture de la version d'ADB" xml:space="preserve">
+    <value>Lectura de la versión de ADB</value>
+  </data>
+  <data name="Les pics de latence Wi-Fi vers l'appareil {serial} ont cessé." xml:space="preserve">
+    <value>Han cesado los picos de latencia Wi-Fi hacia el dispositivo {serial}.</value>
+  </data>
+  <data name="Liaison : filaire, ou Wi-Fi que l'appareil ne décrit pas. Aucun tampon." xml:space="preserve">
+    <value>Conexión: por cable o Wi-Fi sin detalles proporcionados por el dispositivo. Sin búfer.</value>
+  </data>
+  <data name="Liaison : {Verdict} ({Appareils} appareil(s) vu(s), {Defauts} défaut(s) USB)." xml:space="preserve">
+    <value>Conexión: {Verdict} ({Appareils} dispositivo(s) detectado(s), {Defauts} fallo(s) USB).</value>
+  </data>
+  <data name="Liaison : {standard} à {frequencyMhz} MHz, {linkSpeedMbps} Mb/s annoncés, {rssi} dBm, {retryPercent} % de réémissions. Tampon d'affichage {bufferMs} ms." xml:space="preserve">
+    <value>Conexión: {standard} a {frequencyMhz} MHz, {linkSpeedMbps} Mb/s anunciados, {rssi} dBm, {retryPercent} % de retransmisiones. Búfer de pantalla {bufferMs} ms.</value>
+  </data>
+  <data name="Liste des appareils" xml:space="preserve">
+    <value>Lista de dispositivos</value>
+  </data>
+  <data name="Livraison {version} disponible, la version en cours est {running}." xml:space="preserve">
+    <value>Versión {version} disponible; la versión actual es {running}.</value>
+  </data>
+  <data name="Livraison {version} ignorée : l'exécutable sort d'un arbre de sources." xml:space="preserve">
+    <value>Versión {version} omitida: el ejecutable se está ejecutando desde un árbol de código fuente.</value>
+  </data>
+  <data name="Livraison {version} téléchargée et vérifiée." xml:space="preserve">
+    <value>Versión {version} descargada y verificada.</value>
+  </data>
+  <data name="Mise à jour posée, elle démarrera au prochain lancement." xml:space="preserve">
+    <value>Actualización instalada; se iniciará en el próximo arranque.</value>
+  </data>
+  <data name="Moteur de rendu mis en sommeil : {asleep}." xml:space="preserve">
+    <value>Motor de renderizado en reposo: {asleep}.</value>
+  </data>
+  <data name="Mémoire de l'appareil {serial} selon Android : {level}, {available} Go disponibles." xml:space="preserve">
+    <value>Memoria del dispositivo {serial} según Android: {level}, {available} GB disponibles.</value>
+  </data>
+  <data name="Navigation {id} commencée : {url} (à nous : {ours}, redirection : {redirected})" xml:space="preserve">
+    <value>Navegación {id} iniciada: {url} (nuestra: {ours}, redirección: {redirected})</value>
+  </data>
+  <data name="Navigation {id} terminée (attendue : {awaited}, succès : {success}, état : {status})" xml:space="preserve">
+    <value>Navegación {id} finalizada (esperada: {awaited}, éxito: {success}, estado: {status})</value>
+  </data>
+  <data name="Note de version en {language} illisible, l'anglais reste." xml:space="preserve">
+    <value>No se han podido leer las notas de la versión en {language}; se mantienen en inglés.</value>
+  </data>
+  <data name="Ouvert dans le navigateur : {Hote}." xml:space="preserve">
+    <value>Abierto en el navegador: {Hote}.</value>
+  </data>
+  <data name="Ouverture de {instance} refusée.{newLine}Commande : {commandLine}{newLine}Sortie de scrcpy :{newLine}{output}" xml:space="preserve">
+    <value>No se ha podido abrir {instance}.{newLine}Comando: {commandLine}{newLine}Salida de scrcpy:{newLine}{output}</value>
+  </data>
+  <data name="Ouverture partielle" xml:space="preserve">
+    <value>Inicio parcial</value>
+  </data>
+  <data name="Page liée non ouverte ({reason}) : {url}" xml:space="preserve">
+    <value>Página enlazada no abierta ({reason}): {url}</value>
+  </data>
+  <data name="Page liée ouverte : {url}" xml:space="preserve">
+    <value>Página enlazada abierta: {url}</value>
+  </data>
+  <data name="Pas d'icône pour {package} : {reason}." xml:space="preserve">
+    <value>No hay icono para {package}: {reason}.</value>
+  </data>
+  <data name="Pics de latence Wi-Fi vers l'appareil {serial} : {count} en une minute, jusqu'à {worst} ms." xml:space="preserve">
+    <value>Picos de latencia Wi-Fi hacia el dispositivo {serial}: {count} en un minuto, de hasta {worst} ms.</value>
+  </data>
+  <data name="Pile au moment de la faute :&#10;{Stack}" xml:space="preserve">
+    <value>Traza de pila en el momento del error:
+{Stack}</value>
+  </data>
+  <data name="Plus aucune fenêtre ni panneau : arrêt." xml:space="preserve">
+    <value>No quedan ventanas ni paneles: cerrando.</value>
+  </data>
+  <data name="Processeur de l'appareil {serial} sur les 30 dernières secondes : {busy} % occupé, {game} % pour le jeu, kswapd0 à {reclaim} % d'un cœur, allumé depuis {days} j." xml:space="preserve">
+    <value>CPU del dispositivo {serial} en los últimos 30 segundos: {busy} % de uso, {game} % para el juego, kswapd0 al {reclaim} % de un núcleo, encendido desde hace {days} días.</value>
+  </data>
+  <data name="Préambule d'ouverture : raccourcis {hotkeysMs} ms, appareils {devicesMs} ms, liaison {linkMs} ms, réglages {settingsMs} ms, total {totalMs} ms." xml:space="preserve">
+    <value>Preparación del inicio: atajos {hotkeysMs} ms, dispositivos {devicesMs} ms, conexión {linkMs} ms, ajustes {settingsMs} ms, total {totalMs} ms.</value>
+  </data>
+  <data name="Raccourcis {state} (fenêtre {window})." xml:space="preserve">
+    <value>Atajos {state} (ventana {window}).</value>
+  </data>
+  <data name="Recherche des outils DOFUS Touch interrompue." xml:space="preserve">
+    <value>Búsqueda de herramientas de DOFUS Touch interrumpida.</value>
+  </data>
+  <data name="Reconnexion de {device} : {outcome}." xml:space="preserve">
+    <value>Reconexión de {device}: {outcome}.</value>
+  </data>
+  <data name="Relance courte de {instance} impossible ({reason}) : la fenêtre est rouverte." xml:space="preserve">
+    <value>No se puede reiniciar rápidamente {instance} ({reason}): se vuelve a abrir la ventana.</value>
+  </data>
+  <data name="Réouverture de {name} abandonnée après {attempts} tentatives." xml:space="preserve">
+    <value>Se ha desistido de reabrir {name} tras {attempts} intentos.</value>
+  </data>
+  <data name="SDL3.dll corrigé non posé dans {path} : {reason}" xml:space="preserve">
+    <value>No se ha instalado SDL3.dll corregido en {path}: {reason}</value>
+  </data>
+  <data name="SDL3.dll corrigé posé dans {path}." xml:space="preserve">
+    <value>SDL3.dll corregido instalado en {path}.</value>
+  </data>
+  <data name="Serveur ADB démarré." xml:space="preserve">
+    <value>Servidor ADB iniciado.</value>
+  </data>
+  <data name="Session « {Profile} » retenue : {Count} compte(s)." xml:space="preserve">
+    <value>Sesión «{Profile}» seleccionada: {Count} cuenta(s).</value>
+  </data>
+  <data name="Suivi Papycha : l'état de la quête n'a pas pu être écrit ({reason})." xml:space="preserve">
+    <value>Seguimiento de Papycha: no se ha podido escribir el estado de la misión ({reason}).</value>
+  </data>
+  <data name="Suivi Papycha : la liste des guides n'a pas pu être redessinée." xml:space="preserve">
+    <value>Seguimiento de Papycha: no se ha podido volver a dibujar la lista de guías.</value>
+  </data>
+  <data name="Suivi Papycha : la page n'a pas pu être lue ({reason})." xml:space="preserve">
+    <value>Seguimiento de Papycha: no se ha podido leer la página ({reason}).</value>
+  </data>
+  <data name="Suivi Papycha : le cookie n'a pas pu être effacé." xml:space="preserve">
+    <value>Seguimiento de Papycha: no se ha podido borrar la cookie.</value>
+  </data>
+  <data name="Suivi Papycha : le cookie n'a pas pu être lu." xml:space="preserve">
+    <value>Seguimiento de Papycha: no se ha podido leer la cookie.</value>
+  </data>
+  <data name="Suivi Papycha : le personnage choisi n'a pas pu être retenu." xml:space="preserve">
+    <value>Seguimiento de Papycha: no se ha podido guardar el personaje seleccionado.</value>
+  </data>
+  <data name="Suivi Papycha : lecture en échec." xml:space="preserve">
+    <value>Seguimiento de Papycha: fallo de lectura.</value>
+  </data>
+  <data name="Suivi Papycha : écriture de la quête {questId} en échec." xml:space="preserve">
+    <value>Seguimiento de Papycha: no se ha podido escribir la misión {questId}.</value>
+  </data>
+  <data name="Suivi Papycha : écriture de la quête {questId} refusée ({reason})." xml:space="preserve">
+    <value>Seguimiento de Papycha: escritura de la misión {questId} rechazada ({reason}).</value>
+  </data>
+  <data name="Suivi Papycha : état {link}." xml:space="preserve">
+    <value>Seguimiento de Papycha: estado {link}.</value>
+  </data>
+  <data name="Téléchargement de {name} depuis {url}." xml:space="preserve">
+    <value>Descargando {name} desde {url}.</value>
+  </data>
+  <data name="Téléphone revenu : réouverture de {name}." xml:space="preserve">
+    <value>Teléfono reconectado: reabriendo {name}.</value>
+  </data>
+  <data name="Téléphone {device} endormi au clic : réveillé." xml:space="preserve">
+    <value>El teléfono {device} estaba en reposo al hacer clic: reactivado.</value>
+  </data>
+  <data name="USB vu par Windows : {Usb} ; interfaces Android : {Adb}." xml:space="preserve">
+    <value>USB detectado por Windows: {Usb}; interfaces de Android: {Adb}.</value>
+  </data>
+  <data name="Un compte fermé à la main n'a pas pu être retiré du prochain démarrage." xml:space="preserve">
+    <value>No se ha podido excluir del próximo inicio una cuenta cerrada manualmente.</value>
+  </data>
+  <data name="Un geste sur le cadre à onglets n'a pas pu être traité." xml:space="preserve">
+    <value>No se ha podido procesar un gesto en el marco con pestañas.</value>
+  </data>
+  <data name="Un raccourci n'a pas pu être traité." xml:space="preserve">
+    <value>No se ha podido procesar un atajo.</value>
+  </data>
+  <data name="Une page de l'Almanax n'a pas pu être jointe en arrière-plan : {Etat}." xml:space="preserve">
+    <value>No se ha podido acceder a una página del Almanax en segundo plano: {Etat}.</value>
+  </data>
+  <data name="Version {version} posée, elle démarrera au prochain lancement." xml:space="preserve">
+    <value>Versión {version} instalada; se iniciará en el próximo arranque.</value>
+  </data>
+  <data name="Wi-Fi de {device} {how} pendant le jeu." xml:space="preserve">
+    <value>Wi-Fi de {device} {how} durante el juego.</value>
+  </data>
+  <data name="actifs" xml:space="preserve">
+    <value>activos</value>
+  </data>
+  <data name="afficheur inconnu" xml:space="preserve">
+    <value>pantalla desconocida</value>
+  </data>
+  <data name="allumé" xml:space="preserve">
+    <value>encendida</value>
+  </data>
+  <data name="appui retenu annulé par le suivant" xml:space="preserve">
+    <value>pulsación en espera cancelada por la siguiente</value>
+  </data>
+  <data name="appui retenu pendant un changement" xml:space="preserve">
+    <value>pulsación en espera durante un cambio</value>
+  </data>
+  <data name="arrêtée par DT Hub" xml:space="preserve">
+    <value>ha sido detenida por DT Hub</value>
+  </data>
+  <data name="aucun" xml:space="preserve">
+    <value>ninguna</value>
+  </data>
+  <data name="aucun message" xml:space="preserve">
+    <value>ningún mensaje</value>
+  </data>
+  <data name="aucun pilote" xml:space="preserve">
+    <value>sin controlador</value>
+  </data>
+  <data name="aucune icône matricielle dans l'archive" xml:space="preserve">
+    <value>no hay ningún icono de mapa de bits en el archivo</value>
+  </data>
+  <data name="aucune instance à ouvrir." xml:space="preserve">
+    <value>no hay instancias que abrir.</value>
+  </data>
+  <data name="confirmé par le téléphone" xml:space="preserve">
+    <value>confirmado por el teléfono</value>
+  </data>
+  <data name="en veille" xml:space="preserve">
+    <value>inactivos</value>
+  </data>
+  <data name="extinction" xml:space="preserve">
+    <value>apagado</value>
+  </data>
+  <data name="impossible à tenir éveillé, box introuvable" xml:space="preserve">
+    <value>no se ha podido mantener activo, router no encontrado</value>
+  </data>
+  <data name="incompris" xml:space="preserve">
+    <value>no reconocida</value>
+  </data>
+  <data name="inconnu" xml:space="preserve">
+    <value>desconocida</value>
+  </data>
+  <data name="le paquet n'est pas installé sur ce profil" xml:space="preserve">
+    <value>el paquete no está instalado en este perfil</value>
+  </data>
+  <data name="lien ignoré pendant un changement" xml:space="preserve">
+    <value>enlace ignorado durante un cambio</value>
+  </data>
+  <data name="lien, extinction" xml:space="preserve">
+    <value>enlace, apagado</value>
+  </data>
+  <data name="lien, rallumage" xml:space="preserve">
+    <value>enlace, encendido</value>
+  </data>
+  <data name="mode={0}, cadre {1}, fenêtre {2}, couche {3}" xml:space="preserve">
+    <value>mode={0}, límites {1}, ventana {2}, capa {3}</value>
+  </data>
+  <data name="raison inconnue" xml:space="preserve">
+    <value>motivo desconocido</value>
+  </data>
+  <data name="rallumage" xml:space="preserve">
+    <value>encendido</value>
+  </data>
+  <data name="ressource absente de l'assemblage" xml:space="preserve">
+    <value>falta el recurso en el ensamblado</value>
+  </data>
+  <data name="réveil accepté par le téléphone" xml:space="preserve">
+    <value>solicitud de activación aceptada por el teléfono</value>
+  </data>
+  <data name="réveil refusé ou téléphone injoignable" xml:space="preserve">
+    <value>solicitud de activación rechazada o teléfono inaccesible</value>
+  </data>
+  <data name="s'est arrêtée seule" xml:space="preserve">
+    <value>ha terminado por sí sola</value>
+  </data>
+  <data name="sans confirmation à l'échéance" xml:space="preserve">
+    <value>sin confirmación al agotarse el plazo</value>
+  </data>
+  <data name="sans réponse" xml:space="preserve">
+    <value>sin respuesta</value>
+  </data>
+  <data name="scrcpy ne démarre pas avec le SDL3.dll corrigé, original remis dans {path}." xml:space="preserve">
+    <value>scrcpy no se inicia con SDL3.dll corregido; se ha restaurado el original en {path}.</value>
+  </data>
+  <data name="serveur" xml:space="preserve">
+    <value>servidor</value>
+  </data>
+  <data name="statut HTTP {0}" xml:space="preserve">
+    <value>estado HTTP {0}</value>
+  </data>
+  <data name="tenu éveillé" xml:space="preserve">
+    <value>mantenido activo</value>
+  </data>
+  <data name="{0} (code {1}) : {2}" xml:space="preserve">
+    <value>{0} (código {1}): {2}</value>
+  </data>
+  <data name="{0} {1} utile {2}" xml:space="preserve">
+    <value>{0} {1} área de trabajo {2}</value>
+  </data>
+  <data name="{0}x{1} en ({2}, {3})" xml:space="preserve">
+    <value>{0}x{1} en ({2}, {3})</value>
+  </data>
+  <data name="{App} installée sur {Device} : la fenêtre du Play Store se ferme." xml:space="preserve">
+    <value>{App} instalada en {Device}: se cierra la ventana de Play Store.</value>
+  </data>
+  <data name="{Count} dossier(s) d'extraction laissé(s) par des versions précédentes effacé(s)." xml:space="preserve">
+    <value>Se han borrado {Count} carpeta(s) de extracción de versiones anteriores.</value>
+  </data>
+  <data name="{Count} fenêtre(s) restée(s) d'une exécution précédente fermée(s)." xml:space="preserve">
+    <value>Se han cerrado {Count} ventana(s) que quedaban de una ejecución anterior.</value>
+  </data>
+  <data name="{Headline}" xml:space="preserve">
+    <value>{Headline}</value>
+  </data>
+  <data name="{Outil} : fenêtre publicitaire refusée ({Hote})." xml:space="preserve">
+    <value>{Outil}: ventana publicitaria bloqueada ({Hote}).</value>
+  </data>
+  <data name="{Outil} : publicité refusée ({Hote})." xml:space="preserve">
+    <value>{Outil}: publicidad bloqueada ({Hote}).</value>
+  </data>
+  <data name="{Product} {Version} démarre." xml:space="preserve">
+    <value>Iniciando {Product} {Version}.</value>
+  </data>
+  <data name="{What} : {Problems}" xml:space="preserve">
+    <value>{What}: {Problems}</value>
+  </data>
+  <data name="{Window} : le jeu sur son afficheur {Display} ; {State}" xml:space="preserve">
+    <value>{Window}: juego en su pantalla {Display}; {State}</value>
+  </data>
+  <data name="{Window} : le signal qui garde l'app éveillée n'est pas passé : {Reason}" xml:space="preserve">
+    <value>{Window}: no se ha podido enviar la señal que mantiene la aplicación activa: {Reason}</value>
+  </data>
+  <data name="{Window} : le téléphone dessine le jeu à {Percent} % de son afficheur puis l'agrandit, d'où une image floue. Réglage du téléphone (mode jeu de cette copie), pas de DT Hub." xml:space="preserve">
+    <value>{Window}: el teléfono renderiza el juego al {Percent} % de la resolución de su pantalla y luego lo amplía, lo que produce una imagen borrosa. Es un ajuste del teléfono (modo de juego de esta copia), no de DT Hub.</value>
+  </data>
+  <data name="{Window} : mode de jeu Android mis sur {Mode}." xml:space="preserve">
+    <value>{Window}: modo de juego de Android establecido en {Mode}.</value>
+  </data>
+  <data name="{count} compte(s) oublié(s) : leur profil Android a disparu, ou le jeu n'y est plus installé." xml:space="preserve">
+    <value>Se han olvidado {count} cuenta(s): su perfil de Android ha desaparecido o el juego ya no está instalado en él.</value>
+  </data>
+  <data name="{count} téléphone(s) reconnecté(s) automatiquement." xml:space="preserve">
+    <value>{count} teléfono(s) reconectado(s) automáticamente.</value>
+  </data>
+  <data name="{instance} : afficheur prêt en {displayMs} ms, démarrage complet en {totalMs} ms." xml:space="preserve">
+    <value>{instance}: pantalla lista en {displayMs} ms, inicio completo en {totalMs} ms.</value>
+  </data>
+  <data name="{instance} : afficheur {width}x{height} à {dpi} ppp, {fps} ips, {kbps} kb/s." xml:space="preserve">
+    <value>{instance}: pantalla de {width}x{height} a {dpi} ppp, {fps} fps, {kbps} kb/s.</value>
+  </data>
+  <data name="{instance} : fenêtre introuvable, le compte reste en fenêtre libre." xml:space="preserve">
+    <value>{instance}: no se ha encontrado la ventana; la cuenta permanece en una ventana independiente.</value>
+  </data>
+  <data name="{instance} : première image en {firstImageMs} ms, fenêtre noire jusque-là." xml:space="preserve">
+    <value>{instance}: primera imagen tras {firstImageMs} ms; la ventana permaneció negra hasta entonces.</value>
+  </data>
+  <data name="{instance} non lancée : appareil au niveau d'API {sdk}, sous le minimum requis." xml:space="preserve">
+    <value>{instance} no se ha iniciado: el nivel de API {sdk} del dispositivo está por debajo del mínimo requerido.</value>
+  </data>
+  <data name="{instance} refusée en {height} de haut : nouvel essai en {retry} de haut." xml:space="preserve">
+    <value>{instance} rechazada con una altura de {height}: reintentando con una altura de {retry}.</value>
+  </data>
+  <data name="{name} {version} installé dans {path}." xml:space="preserve">
+    <value>{name} {version} instalado en {path}.</value>
+  </data>
+  <data name="{path} est corrompu et a été archivé sous {archived} ({reason}) ; configuration par défaut recréée." xml:space="preserve">
+    <value>{path} está dañado y se ha archivado como {archived} ({reason}); se ha recreado la configuración predeterminada.</value>
+  </data>
+  <data name="{path} est illisible ({reason}) ; configuration par défaut utilisée." xml:space="preserve">
+    <value>No se puede leer {path} ({reason}); se usa la configuración predeterminada.</value>
+  </data>
+  <data name="{path} n'a pas pu être lu : rien n'y sera écrit tant qu'il n'aura pas été relu, pour ne pas le remplacer." xml:space="preserve">
+    <value>No se ha podido leer {path}: no se escribirá nada hasta que se vuelva a leer, para evitar sobrescribirlo.</value>
+  </data>
+  <data name="{serial} : l'afficheur virtuel suit le verrouillage et le téléphone est verrouillé ; ses fenêtres montrent le cadenas, pas le jeu." xml:space="preserve">
+    <value>{serial}: la pantalla virtual sigue el estado de bloqueo y el teléfono está bloqueado; sus ventanas muestran la pantalla de bloqueo en lugar del juego.</value>
+  </data>
+  <data name="{serial} : l'appareil refuse la simulation d'entrée ; ses fenêtres ne répondront pas." xml:space="preserve">
+    <value>{serial}: el dispositivo rechaza la simulación de entrada; sus ventanas no responderán.</value>
+  </data>
+  <data name="{serial} : le jeu n'est pas exempté d'économie d'énergie ; Android finira par le geler." xml:space="preserve">
+    <value>{serial}: el juego no está exento de la optimización de batería; Android acabará congelándolo.</value>
+  </data>
+  <data name="Écran de {Device} tenu éteint, {How}." xml:space="preserve">
+    <value>Pantalla de {Device} mantenida apagada, {How}.</value>
+  </data>
+  <data name="Écran de {Serial} lu {Verdict}. Réponse du téléphone :&#10;{Answer}" xml:space="preserve">
+    <value>Estado de pantalla leído en {Serial}: {Verdict}. Respuesta del teléfono:
+{Answer}</value>
+  </data>
+  <data name="Écran de {device} : {what}." xml:space="preserve">
+    <value>Pantalla de {device}: {what}.</value>
+  </data>
+  <data name="Écrans : {monitors}. Fenêtres de jeu : {placement}." xml:space="preserve">
+    <value>Monitores: {monitors}. Ventanas de juego: {placement}.</value>
+  </data>
+  <data name="éteint" xml:space="preserve">
+    <value>apagada</value>
+  </data>
+</root>

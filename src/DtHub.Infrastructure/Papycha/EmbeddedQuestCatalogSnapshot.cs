@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 
+using DtHub.Core.Localization;
 using DtHub.Core.Papycha;
 using DtHub.Infrastructure.Storage;
 
@@ -38,7 +39,7 @@ public sealed partial class EmbeddedQuestCatalogSnapshot : IQuestCatalogSnapshot
 
             if (stream is null)
             {
-                LogUnavailable("ressource absente de l'assemblage");
+                LogUnavailable(LogMessages.Translate("ressource absente de l'assemblage"));
 
                 return new QuestCatalogDocument();
             }

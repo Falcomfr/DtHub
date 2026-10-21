@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 using DtHub.Core;
+using DtHub.Core.Localization;
 using DtHub.Core.Papycha;
 
 using Microsoft.Extensions.Logging;
@@ -125,7 +126,7 @@ public sealed partial class PapychaClient : IPapychaClient
 
             if (!response.IsSuccessStatusCode)
             {
-                LogStampUnavailable($"statut HTTP {(int)response.StatusCode}");
+                LogStampUnavailable(LogMessages.Format("statut HTTP {0}", (int)response.StatusCode));
 
                 return null;
             }

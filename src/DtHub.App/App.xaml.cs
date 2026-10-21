@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.IO;
 using System.Windows;
 using System.Windows.Threading;
@@ -121,10 +121,6 @@ public partial class App : Application, IDisposable
             AppHost.Initialize(_host.Services);
             await _host.StartAsync().ConfigureAwait(true);
 
-            // A startup trace guarantees that a log file always
-            // exists, even when the session goes without incident.
-            Log.Information("{Product} {Version} démarre.", ProductInfo.Name, ProductInfo.Version);
-
             await RunAsync().ConfigureAwait(true);
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
@@ -151,7 +147,15 @@ public partial class App : Application, IDisposable
         //
         // Reading is kept separate from applying it, and that is not
         // done for show: see ApplyLanguage.
-        ApplyLanguage(await ChooseLanguageAsync(settings).ConfigureAwait(true));
+        var language = await ChooseLanguageAsync(settings).ConfigureAwait(true);
+        ApplyLanguage(language);
+
+        // Select the language before the first ordinary log entry too.
+        Log.Information("{Product} {Version} démarre.", ProductInfo.Name, ProductInfo.Version);
+        var languageSettings = await settings.GetAsync().ConfigureAwait(true);
+        Log.Information(
+            "Langue de l'interface : {Langue} (réglage {Reglage}, Windows {Windows}).",
+            language, languageSettings.Language, CultureInfo.InstalledUICulture.Name);
 
         // Before everything else, and before the first window: on a
         // fresh machine, ADB and scrcpy used to install themselves in
@@ -356,7 +360,7 @@ public partial class App : Application, IDisposable
                 "Aucune fenêtre ouverte, les réglages restent affichés : {Problems}",
                 report.Problems.Count > 0
                     ? string.Join(" ", report.Problems)
-                    : "aucune instance à ouvrir.");
+                    : LogMessages.Translate("aucune instance à ouvrir."));
         }
         else
         {
@@ -364,7 +368,7 @@ public partial class App : Application, IDisposable
             // it failed to open.** Three windows out of five counted
             // as a success, and the two missing ones were explained
             // nowhere.
-            LogLaunchProblems("Ouverture partielle", report);
+            LogLaunchProblems(LogMessages.Translate("Ouverture partielle"), report);
         }
     }
 
@@ -379,15 +383,7 @@ public partial class App : Application, IDisposable
     private static async Task<string> ChooseLanguageAsync(SettingsService settings)
     {
         var document = await settings.GetAsync().ConfigureAwait(true);
-        var language = AppLanguage.Choose(document.Language, CultureInfo.CurrentUICulture.Name);
-
-        Log.Information(
-            "Langue de l'interface : {Langue} (réglage {Reglage}, Windows {Windows}).",
-            language,
-            document.Language,
-            CultureInfo.InstalledUICulture.Name);
-
-        return language;
+        return AppLanguage.Choose(document.Language, CultureInfo.CurrentUICulture.Name);
     }
 
     /// <summary>
@@ -866,7 +862,7 @@ public partial class App : Application, IDisposable
         try
         {
             LogLaunchProblems(
-                "La reprise de la session",
+                LogMessages.Translate("La reprise de la session"),
                 await launcher.LaunchEnabledAsync().ConfigureAwait(true));
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
@@ -1023,7 +1019,7 @@ public partial class App : Application, IDisposable
 
             var report = await launcher.LaunchAsync([request.Instance]).ConfigureAwait(true);
 
-            LogLaunchProblems("La réouverture", report);
+            LogLaunchProblems(LogMessages.Translate("La réouverture"), report);
 
             if (!report.AnyOpened)
             {
@@ -1256,16 +1252,16 @@ public partial class App : Application, IDisposable
             .Enrich.WithProperty("Session", AppSession.Id)
             .WriteTo.Debug(formatProvider: CultureInfo.InvariantCulture)
             .WriteTo.File(
+                new Infrastructure.Diagnostics.LocalizedLogFormatter(
+                    "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] [{Session}] "
+                    + "{SourceContext} {Message:lj}{NewLine}{Exception}",
+                    CultureInfo.InvariantCulture),
                 Path.Combine(paths.LogsDirectory, "dthub-.log"),
-                formatProvider: CultureInfo.InvariantCulture,
                 rollingInterval: RollingInterval.Day,
                 retainedFileCountLimit: 14,
                 fileSizeLimitBytes: 8 * 1024 * 1024,
                 rollOnFileSizeLimit: true,
-                shared: true,
-                outputTemplate:
-                    "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] [{Session}] "
-                    + "{SourceContext} {Message:lj}{NewLine}{Exception}")
+                shared: true)
             .CreateLogger();
 
         builder.Logging.ClearProviders();

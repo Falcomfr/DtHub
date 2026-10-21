@@ -1,4 +1,8 @@
-﻿namespace DtHub.Core.Devices;
+using System.Globalization;
+
+using DtHub.Core.Localization;
+
+namespace DtHub.Core.Devices;
 
 /// <summary>
 /// What Windows blames on a USB device, brought back to families that
@@ -88,9 +92,16 @@ public sealed record UsbPresence(string Id, IReadOnlyList<string> CompatibleIds,
     /// What tells, from a report, why adb sees nothing.
     /// </summary>
     public static string Summarize(IEnumerable<UsbPresence> devices) =>
+        Describe(devices, CultureInfo.GetCultureInfo("fr"));
+
+    /// <summary>Renders log prose in the selected language, preserving USB data.</summary>
+    public static string SummarizeForLog(IEnumerable<UsbPresence> devices) =>
+        Describe(devices, Strings.Spoken);
+
+    private static string Describe(IEnumerable<UsbPresence> devices, CultureInfo culture) =>
         string.Join(" ; ", devices
             .Where(d => d.IsDebugInterface || PhoneVendors.Any(v => d.Id.Contains("VID_" + v, StringComparison.OrdinalIgnoreCase)))
-            .Select(d => $"{Short(d.Id)}{(d.IsDebugInterface ? " débogage" : string.Empty)} ({d.Service ?? "aucun pilote"})"));
+            .Select(d => $"{Short(d.Id)}{(d.IsDebugInterface ? LogMessages.Translate(" débogage", culture) : string.Empty)} ({d.Service ?? LogMessages.Translate("aucun pilote", culture)})"));
 
     /// <summary><c>USB\VID_x&amp;PID_y&amp;MI_z\serial</c> without its first and last parts.</summary>
     private static string Short(string id) => id.Split('\\') is { Length: >= 2 } parts ? parts[1] : id;

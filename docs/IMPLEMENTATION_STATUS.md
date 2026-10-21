@@ -1,4 +1,4 @@
-﻿# Implementation status
+# Implementation status
 
 Legend: **DONE** finished and verified, **IN PROGRESS** underway,
 **TODO** not started, **BLOCKED** requires external action.
@@ -12,6 +12,11 @@ launch uses its client area; phone-format overrides retain their explicit shape.
 Tabbed startup now prepares and docks the native window before the game opens
 (D209), then reveals the settled frame. The full suite (2,505 tests), build and
 a native WPF/SDL probe pass; actual player startup remains to be retested.
+
+File log messages and owned diagnostic prose now follow the in-force UI
+language (English, French or Spanish, D210), preserving raw tool output,
+exceptions and structured diagnostic metadata. All 2,521 tests pass; Release
+publish and a live English session on French Windows were verified.
 
 ## Verified on real hardware
 
@@ -75,7 +80,7 @@ under its mDNS name, and appeared only once in the list.
 | Dark theme. There is no light palette | DONE |
 | Dark title bar on windows that keep Windows' native one | DONE |
 | Named type scale, six steps | DONE |
-| Logging with rotation, accessible folder | DONE |
+| Logging with rotation, accessible folder, messages in the interface language | DONE |
 | Tabbed frame: dock, reorder, pop out, close | DONE |
 | First-launch preparation window, named sources | DONE |
 | Incident report, redacted, to copy and send | DONE |

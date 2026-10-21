@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
 
@@ -1082,7 +1082,8 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         // tells why adb sees nothing, without asking for a screenshot.
         if (UsbPresence.Summarize(present) is { Length: > 0 } usb && usb != _lastUsbSummary)
         {
-            Serilog.Log.Information("USB vu par Windows : {Usb} ; interfaces Android : {Adb}.", usb, adbInterfaces);
+            Serilog.Log.Information("USB vu par Windows : {Usb} ; interfaces Android : {Adb}.",
+                UsbPresence.SummarizeForLog(present), adbInterfaces);
         }
 
         _lastUsbSummary = UsbPresence.Summarize(present);

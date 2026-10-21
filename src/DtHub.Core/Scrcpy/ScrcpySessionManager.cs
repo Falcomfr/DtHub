@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using DtHub.Core.Android;
 using DtHub.Core.Dependencies;
 using DtHub.Core.Localization;
@@ -1121,14 +1121,14 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
                 return true;
             }
 
-            session.Record("Arrêt du jeu refusé par " + serial + ".");
+            session.Record(LogMessages.Format("Arrêt du jeu refusé par {0}.", serial));
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
             // Nothing is propagated: the method is called on the
             // closing path, including that of the whole application,
             // and a fault there would have no one to receive it.
-            session.Record("Arrêt du jeu sur le téléphone impossible : " + exception.Message);
+            session.Record(LogMessages.Format("Arrêt du jeu sur le téléphone impossible : {0}", exception.Message));
         }
 
         return false;

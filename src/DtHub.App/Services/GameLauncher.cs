@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 
 using DtHub.Core.Adb;
 using DtHub.Core.Devices;
@@ -121,24 +121,24 @@ public sealed partial class GameLauncher : IAsyncDisposable
             serial,
             reading switch
             {
-                { Failed: true } => "sans réponse",
-                { Lit: true } => "allumé",
-                { Lit: false } => "éteint",
-                _ => "incompris",
+                { Failed: true } => LogMessages.Translate("sans réponse"),
+                { Lit: true } => LogMessages.Translate("allumé"),
+                { Lit: false } => LogMessages.Translate("éteint"),
+                _ => LogMessages.Translate("incompris"),
             },
             reading.Answer);
         // The line under the phone says whether its screen is held off: it
         // turns as soon as that changes, not at the next sweep.
         _sessions.ScreenHeld += (device, confirmed) =>
         {
-            LogScreenHeld(device, confirmed ? "confirmé par le téléphone" : "sans confirmation à l'échéance");
+            LogScreenHeld(device, LogMessages.Translate(confirmed ? "confirmé par le téléphone" : "sans confirmation à l'échéance"));
             LitPanelsChanged?.Invoke(this, EventArgs.Empty);
         };
         _sessions.ScreenReleased += (device, release) =>
         {
             LogScreenReleased(
                 device,
-                release.OnItsOwn ? "s'est arrêtée seule" : "arrêtée par DT Hub",
+                LogMessages.Translate(release.OnItsOwn ? "s'est arrêtée seule" : "arrêtée par DT Hub"),
                 release.ExitCode,
                 release.LastLines);
             LitPanelsChanged?.Invoke(this, EventArgs.Empty);
@@ -603,7 +603,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         LogSessionEnded(
             session.Target.DisplayName,
             session.State.ToString(),
-            session.FailureMessage ?? "aucun message",
+            session.FailureMessage ?? LogMessages.Translate("aucun message"),
             string.Join(Environment.NewLine, session.RecentOutput));
 
         // Before concluding that nothing is left: a window we are
@@ -2243,7 +2243,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // A real sleep and wake, not a bare wake key: see RelightAsync.
         var woken = serial is not null && await _devices.RelightAsync(serial).ConfigureAwait(false);
 
-        LogScreenRequest(deviceId, woken ? "réveil accepté par le téléphone" : "réveil refusé ou téléphone injoignable");
+        LogScreenRequest(deviceId, LogMessages.Translate(woken ? "réveil accepté par le téléphone" : "réveil refusé ou téléphone injoignable"));
 
         if (woken && serial is not null)
         {
@@ -2353,7 +2353,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         if (!_toggling.TryAdd(deviceId, 0))
         {
             var owed = _pendingToggles.AddOrUpdate(deviceId, true, (_, pending) => !pending);
-            LogScreenRequest(deviceId, owed ? "appui retenu pendant un changement" : "appui retenu annulé par le suivant");
+            LogScreenRequest(deviceId, LogMessages.Translate(owed ? "appui retenu pendant un changement" : "appui retenu annulé par le suivant"));
             return;
         }
 
@@ -2367,7 +2367,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
             // does not say: dark but no longer held, a press did nothing.
             var light = lit == false || (lit is null && _sessions.HoldsScreenOff(deviceId));
 
-            LogScreenRequest(deviceId, $"Ctrl+E, écran lu {(lit is { } l ? (l ? "allumé" : "éteint") : "inconnu")}, {(light ? "rallumage" : "extinction")}");
+            LogScreenRequest(deviceId, LogMessages.Format(
+                "Ctrl+E, écran lu {0}, {1}",
+                LogMessages.Translate(lit is { } l ? (l ? "allumé" : "éteint") : "inconnu"),
+                LogMessages.Translate(light ? "rallumage" : "extinction")));
 
             if (light)
             {
@@ -2409,13 +2412,13 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         if (!_toggling.TryAdd(deviceId, 0))
         {
-            LogScreenRequest(deviceId, "lien ignoré pendant un changement");
+            LogScreenRequest(deviceId, LogMessages.Translate("lien ignoré pendant un changement"));
             return;
         }
 
         LitPanelsChanged?.Invoke(this, EventArgs.Empty);
 
-        LogScreenRequest(deviceId, light ? "lien, rallumage" : "lien, extinction");
+        LogScreenRequest(deviceId, LogMessages.Translate(light ? "lien, rallumage" : "lien, extinction"));
 
         try
         {
@@ -2476,7 +2479,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             if (first)
             {
-                LogWifiKeptAwake(serial, kept ? "tenu éveillé" : "impossible à tenir éveillé, box introuvable");
+                LogWifiKeptAwake(serial, LogMessages.Translate(kept ? "tenu éveillé" : "impossible à tenir éveillé, box introuvable"));
             }
         });
     }
@@ -3706,7 +3709,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         // The short restart failed: everything is closed and
         // reopened, which remains the last useful resort.
-        LogRestartFallback(instance.DisplayName, restart.UserMessage ?? "afficheur inconnu");
+        LogRestartFallback(instance.DisplayName, restart.UserMessage ?? LogMessages.Translate("afficheur inconnu"));
 
         await StopSessionAsync(session, cancellationToken).ConfigureAwait(false);
 
@@ -5095,8 +5098,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // Logged: the layout depends on the screen and its scaling,
         // and an unexpected figure shows up right away here.
         LogPlacement(
-            string.Join(", ", monitors.Select(m => $"{m.DeviceName} {m.Bounds} utile {m.WorkArea}")),
-            rect?.ToString() ?? "aucun");
+            string.Join(", ", monitors.Select(m => LogMessages.Format("{0} {1} utile {2}", m.DeviceName, m.Bounds.ToLogString(), m.WorkArea.ToLogString()))),
+            rect?.ToLogString() ?? LogMessages.Translate("aucun"));
 
         if (rect is not { } value)
         {
@@ -5827,7 +5830,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
             {
                 _hotkeysActive = mine;
 
-                LogHotkeyScope(mine ? "actifs" : "en veille", window);
+                LogHotkeyScope(LogMessages.Translate(mine ? "actifs" : "en veille"), window);
             }
 
             _gameInFront = mine && OwnsWindow?.Invoke(window) != true;

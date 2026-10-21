@@ -1,4 +1,5 @@
 ﻿using DtHub.Core.Adb;
+using DtHub.Core.Localization;
 using DtHub.Core.Processes;
 
 using Microsoft.Extensions.Logging;
@@ -46,7 +47,7 @@ public sealed partial class AdbClient : IAdbClient
 
         if (!result.Succeeded)
         {
-            throw Translate(result, null, "Démarrage du serveur ADB");
+            throw Translate(result, null, LogMessages.Translate("Démarrage du serveur ADB"));
         }
 
         LogServerStarted();
@@ -69,7 +70,7 @@ public sealed partial class AdbClient : IAdbClient
 
         if (!result.Succeeded)
         {
-            throw Translate(result, null, "Lecture de la version d'ADB");
+            throw Translate(result, null, LogMessages.Translate("Lecture de la version d'ADB"));
         }
 
         // First line: "Android Debug Bridge version 1.0.41".
@@ -92,7 +93,7 @@ public sealed partial class AdbClient : IAdbClient
 
         if (!result.Succeeded)
         {
-            throw Translate(result, null, "Liste des appareils");
+            throw Translate(result, null, LogMessages.Translate("Liste des appareils"));
         }
 
         return AdbOutputParser.ParseDevices(result.StandardOutput);
@@ -269,7 +270,7 @@ public sealed partial class AdbClient : IAdbClient
         }
         else
         {
-            LogPairingFailed(host, parsed.FailureReason ?? "raison inconnue");
+            LogPairingFailed(host, parsed.FailureReason ?? LogMessages.Translate("raison inconnue"));
         }
 
         return parsed;
@@ -336,9 +337,10 @@ public sealed partial class AdbClient : IAdbClient
             ? AdbErrorKind.Timeout
             : AdbErrorInterpreter.Classify(result.OutputOrError) ?? AdbErrorKind.Unknown;
 
-        var details = $"{operation} (code {result.ExitCode}) : {Truncate(result.OutputOrError)}";
+        var details = LogMessages.Format(
+            "{0} (code {1}) : {2}", operation, result.ExitCode, Truncate(result.OutputOrError));
 
-        LogOperationFailed(operation, serial ?? "serveur", details);
+        LogOperationFailed(operation, serial ?? LogMessages.Translate("serveur"), details);
 
         return new AdbException(kind, AdbErrorInterpreter.Describe(kind), details);
     }

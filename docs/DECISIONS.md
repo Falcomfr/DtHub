@@ -1,4 +1,4 @@
-﻿# Décisions d'architecture
+# Décisions d'architecture
 
 Une entrée par décision structurante : le contexte, le choix retenu et ce
 qu'il coûte. Les entrées ne sont pas réécrites ; si une décision est
@@ -10772,3 +10772,46 @@ Rejouée avec le manifeste PerMonitorV2 de l'application, vers le second écran
 `build/app-startup-probe-secondary.png`, non versionnée. Sans ce manifeste, les
 mesures d'une sonde WPF sont virtualisées et ne prouvent pas le placement en
 pixels physiques.
+
+## D210 - Le journal parle la langue de l’interface
+
+**2026-10-21 - Implémentée**
+
+Le joueur demande que ses journaux suivent la langue de DT Hub. Les messages
+propres à l’application sont désormais rendus en anglais, français ou espagnol,
+selon la langue en vigueur dans `Strings.Spoken`. Comme l’interface, le choix
+modifié dans les réglages prend effet au redémarrage. Le choix est appliqué
+avant le message de démarrage et celui qui explique la langue retenue.
+
+Les modèles français constants restent les clés stables des trois catalogues
+`LogMessages*.resx`, y compris les modèles `LoggerMessage` générés. Le formateur
+Serilog du fichier remplace le modèle au rendu et garde les propriétés, leur
+nom et leur format, la date, le niveau, la session, la source, les identifiants
+de trace et l’exception. L’événement original reste intact pour les autres
+sorties. Un modèle inconnu passe tel quel. Le cache est limité aux traductions
+connues, par langue et modèle. Les sorties brutes d’ADB et de scrcpy, les noms
+de comptes et d’appareils ainsi que les traces d’erreur ne sont pas réécrits.
+
+Les fragments de texte possédés par l’application sont traduits à leur point
+de production, sans interpréter arbitrairement les valeurs des propriétés.
+Les résumés USB utilisés pour détecter un changement et les rectangles
+canoniques restent stables ; seul leur rendu destiné au journal est traduit.
+Les diagnostics Android gardent leurs nombres et leurs tokens `scale=...` :
+la lecture de l’agrandissement ne dépend pas de la langue des libellés.
+
+Serilog 4.3.0 était déjà une dépendance de l’application ; Infrastructure le
+référence explicitement pour porter le formateur. Core ne dépend toujours
+que de la bibliothèque standard. Les marqueurs de niveau et de session
+restent compatibles avec `LogDigest` et les rapports qui reprennent le journal.
+
+Les tests vérifient les trois langues, la couverture des modèles dans les
+sources, y compris les chaînes concaténées, la parité des paramètres et des
+formats, le changement de langue avec cache, les détails et valeurs brutes
+ainsi que la conservation des traces et identifiants.
+
+Vérification : 2521 tests réussis, publication Release sans avertissement.
+L’exécutable publié a été lancé avec son réglage anglais existant sur Windows
+français : le démarrage et les lignes suivantes sont en anglais, sans erreur
+ni avertissement dans la session observée. Capture du configurateur vérifiée,
+non versionnée. Les rendus français et espagnol ainsi que les 233 entrées de
+chaque catalogue sont vérifiés par les tests.
