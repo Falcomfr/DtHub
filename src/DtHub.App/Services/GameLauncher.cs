@@ -667,6 +667,29 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
+    /// Calls off a pending reopening, and the wait for the phone, of an
+    /// account the player has just closed. The reopening, seconds later,
+    /// undid the gesture and put the account back in the next startup.
+    /// It reads <see cref="IsRecovering" /> after its wait to know.
+    /// </summary>
+    private void CancelRecovery(string key)
+    {
+        _ = _recovering.TryRemove(key, out _);
+        _ = _awaitingPhone.TryRemove(key, out _);
+    }
+
+    /// <summary>Calls off the reopenings of every account of one phone.</summary>
+    private void CancelRecoveries(string deviceId)
+    {
+        foreach (var key in _launched
+            .Where(l => string.Equals(l.Value.DeviceId, deviceId, StringComparison.Ordinal))
+            .Select(l => l.Key))
+        {
+            CancelRecovery(key);
+        }
+    }
+
+    /// <summary>
     /// Takes accounts closed by hand out of the next startup, as the Close
     /// button does. Only logged if it fails: the window is already gone.
     /// </summary>
@@ -3137,6 +3160,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
             // A fresh credit of tries: the phone is back, the link is new.
             _ = _recoveries.TryRemove(key, out _);
 
+            // Marked as any reopening is: RecoverAsync drops one that is not.
+            _recovering[key] = TimedNotice.Raised(
+                Strings.Format("SessionRecovering", instance.DisplayName), DateTimeOffset.UtcNow);
+
             LogReopenedOnReturn(instance.DisplayName);
             RecoveryRequested?.Invoke(this, new RecoveryRequest(instance, TimeSpan.Zero));
         }
@@ -3825,7 +3852,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         ArgumentNullException.ThrowIfNull(instance);
 
-        _ = _awaitingPhone.TryRemove(instance.Key, out _);
+        CancelRecovery(instance.Key);
 
         if (FindSession(instance) is { } session)
         {
@@ -3881,10 +3908,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     public async Task StopDeviceAsync(string deviceId, CancellationToken cancellationToken = default)
     {
-        foreach (var key in _awaitingPhone.Where(a => a.Value.DeviceId == deviceId).Select(a => a.Key).ToList())
-        {
-            _ = _awaitingPhone.TryRemove(key, out _);
-        }
+        CancelRecoveries(deviceId);
         await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
 
         var closed = await _sessions.StopDeviceAsync(deviceId, cancellationToken).ConfigureAwait(false);
@@ -4059,6 +4083,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     public async Task ForgetDeviceAsync(string deviceId, CancellationToken cancellationToken = default)
     {
+        CancelRecoveries(deviceId);
+
         foreach (var session in _sessions.ActiveSessions
             .Where(s => string.Equals(s.Target.DeviceId, deviceId, StringComparison.Ordinal))
             .ToList())
@@ -4206,6 +4232,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// <summary>Closes every window opened by the application.</summary>
     public async Task CloseAllAsync(CancellationToken cancellationToken = default)
     {
+        // A team opened meanwhile would see a lost account of the one it
+        // replaces come back over it, and into the next startup.
+        _recovering.Clear();
+        _awaitingPhone.Clear();
+
         // Geometry is captured while the windows still exist.
         await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
 

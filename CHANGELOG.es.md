@@ -20,6 +20,7 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 
 - Al abrirse, la pantalla del juego se adapta al área interior de la ventana, evitando los márgenes negros causados por el marco.
 - Los juegos en pestañas aparecen directamente en su marco restaurado, sin mostrar brevemente una ventana independiente grande.
+- Una cuenta cerrada durante su reconexión, o dejada al abrir otro equipo, ya no vuelve unos segundos después.
 
 ## [0.9.6] - 2026-10-21
 

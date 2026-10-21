@@ -1023,8 +1023,10 @@ public partial class App : Application, IDisposable
             await Task.Delay(request.Delay).ConfigureAwait(true);
 
             // Closing meanwhile: the window reopened now would outlive the
-            // close that had already gone past it, an orphan on screen.
-            if (_quitting)
+            // close that had already gone past it, an orphan on screen. Same
+            // for an account the player closed during the wait, or a team
+            // opened over it: the stop calls the reopening off.
+            if (_quitting || !launcher.IsRecovering(request.Instance.Key))
             {
                 return;
             }
