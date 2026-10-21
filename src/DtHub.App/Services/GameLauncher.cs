@@ -2313,43 +2313,69 @@ public sealed partial class GameLauncher : IAsyncDisposable
             .Where(s => front is null || string.Equals(s.Target.DeviceId, front.Target.DeviceId, StringComparison.Ordinal))
             .GroupBy(s => s.Target.DeviceId, StringComparer.Ordinal)
             .Select(g => (DeviceId: g.Key, Serial: Routable(g.First().Target)))
-            .Where(p => !_switchingOff.ContainsKey(p.DeviceId))
             .ToList();
 
         foreach (var (deviceId, serial) in phones)
         {
-            // One change at a time per phone, claimed before the screen is
-            // read: a burst of presses started an off while an on was under
-            // way, and ended dark but no longer held (2026-10-21).
-            if (!_toggling.TryAdd(deviceId, 0))
-            {
-                continue;
-            }
-
-            LitPanelsChanged?.Invoke(this, EventArgs.Empty);
-
-            try
-            {
-                var lit = await _devices.IsPanelLitAsync(serial).ConfigureAwait(false);
-
-                // The screen as it is decides, the guard only when the phone
-                // does not say: dark but no longer held, a press did nothing.
-                if (lit == false || (lit is null && _sessions.HoldsScreenOff(deviceId)))
-                {
-                    await LightPanelAsync(deviceId).ConfigureAwait(false);
-                }
-                else
-                {
-                    await TurnPanelOffAsync(deviceId).ConfigureAwait(false);
-                }
-            }
-            finally
-            {
-                _ = _toggling.TryRemove(deviceId, out _);
-                LitPanelsChanged?.Invoke(this, EventArgs.Empty);
-            }
+            await TogglePhoneAsync(deviceId, serial).ConfigureAwait(false);
         }
     }
+
+    /// <summary>
+    /// Turns one phone's screen the other way, one change at a time, claimed
+    /// before the screen is read: a burst of presses started an off while an
+    /// on was under way, and ended dark but no longer held (2026-10-21).
+    ///
+    /// A press during a change is kept and applied once it ends, two of them
+    /// cancelling out: the screen ends as the last press asks. Dropped, on,
+    /// off, on in a row lost the third, and from the game window nothing
+    /// showed it had been.
+    /// </summary>
+    private async Task TogglePhoneAsync(string deviceId, string serial)
+    {
+        if (!_toggling.TryAdd(deviceId, 0))
+        {
+            _ = _pendingToggles.AddOrUpdate(deviceId, true, (_, pending) => !pending);
+            return;
+        }
+
+        LitPanelsChanged?.Invoke(this, EventArgs.Empty);
+
+        try
+        {
+            var lit = await _devices.IsPanelLitAsync(serial).ConfigureAwait(false);
+
+            // The screen as it is decides, the guard only when the phone
+            // does not say: dark but no longer held, a press did nothing.
+            if (lit == false || (lit is null && _sessions.HoldsScreenOff(deviceId)))
+            {
+                await LightPanelAsync(deviceId).ConfigureAwait(false);
+            }
+            else
+            {
+                await TurnPanelOffAsync(deviceId).ConfigureAwait(false);
+            }
+        }
+        finally
+        {
+            _ = _toggling.TryRemove(deviceId, out _);
+            LitPanelsChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        await TogglePendingAsync(deviceId, serial).ConfigureAwait(false);
+    }
+
+    /// <summary>Applies the press kept during the change that just ended, if any.</summary>
+    private async Task TogglePendingAsync(string deviceId, string serial)
+    {
+        if (_pendingToggles.TryRemove(deviceId, out var again) && again)
+        {
+            await TogglePhoneAsync(deviceId, serial).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>Presses kept per phone during a change: true when one is still owed.</summary>
+    private readonly ConcurrentDictionary<string, bool> _pendingToggles = new(StringComparer.Ordinal);
 
     /// <summary>
     /// The line under the phone: turns its screen on or off, through the same
@@ -2381,6 +2407,13 @@ public sealed partial class GameLauncher : IAsyncDisposable
         {
             _ = _toggling.TryRemove(deviceId, out _);
             LitPanelsChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        // A shortcut pressed meanwhile was kept for after this change.
+        if (_sessions.ActiveSessions.FirstOrDefault(
+                s => s.IsAlive && string.Equals(s.Target.DeviceId, deviceId, StringComparison.Ordinal)) is { } playing)
+        {
+            await TogglePendingAsync(deviceId, Routable(playing.Target)).ConfigureAwait(false);
         }
     }
 
