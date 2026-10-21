@@ -345,49 +345,55 @@
     <value>Once per phone, by cable or wireless. After that, it connects on its own.</value>
   </data>
   <data name="Profiles" xml:space="preserve">
-    <value>Profiles</value>
+    <value>Teams</value>
   </data>
   <data name="ProfilesTip" xml:space="preserve">
-    <value>Sets of accounts, with their positions and their settings, opened in one gesture.</value>
+    <value>Groups of accounts, with their positions and their settings, opened in one gesture.</value>
   </data>
   <data name="ProfilesActiveTip" xml:space="preserve">
-    <value>Launch profiles. « {0} » is the one that opens at startup.</value>
+    <value>Teams. “{0}” opens at startup.</value>
   </data>
   <data name="LaunchProfilesHeading" xml:space="preserve">
-    <value>LAUNCH PROFILES</value>
+    <value>TEAMS</value>
   </data>
   <data name="NoProfilesYet" xml:space="preserve">
-    <value>No profile yet. Open your accounts, place their windows, then create one.</value>
+    <value>No team yet. Open your accounts, place their windows, then create one.</value>
   </data>
   <data name="LaunchProfileTip" xml:space="preserve">
-    <value>Open this profile: its accounts open in place with its settings, the other windows close.</value>
+    <value>Open this team: its accounts open in place with its settings, the other windows close.</value>
   </data>
-  <data name="DefaultProfileTip" xml:space="preserve">
-    <value>Open this profile at startup. A second click cancels it: DT Hub then reopens what was open.</value>
+  <data name="StartupLabel" xml:space="preserve">
+    <value>At startup</value>
+  </data>
+  <data name="StartupReopens" xml:space="preserve">
+    <value>Reopen what was open</value>
+  </data>
+  <data name="StartupOpensTeam" xml:space="preserve">
+    <value>Open the team “{0}”</value>
   </data>
   <data name="DeleteProfileTip" xml:space="preserve">
-    <value>Delete this profile. The accounts are not touched.</value>
+    <value>Delete this team. The accounts are not touched.</value>
   </data>
   <data name="ProfileOpenExplained" xml:space="preserve">
     <value>Opening it later will close the game windows that are not part of it, then open its accounts where they stood, with these settings.</value>
   </data>
   <data name="ProfileExistsQuestion" xml:space="preserve">
-    <value>A profile “{0}” already exists. Replace what it keeps with what is open now?</value>
+    <value>A team “{0}” already exists. Replace what it keeps with what is open now?</value>
   </data>
   <data name="UpdateProfileTitle" xml:space="preserve">
-    <value>Update the profile</value>
+    <value>Update the team</value>
   </data>
   <data name="UpdateProfileTip" xml:space="preserve">
-    <value>Replace what this profile keeps with the accounts open now, their windows and the current settings.</value>
+    <value>Replace what this team keeps with the accounts open now, their windows and the current settings.</value>
   </data>
   <data name="UpdateProfileQuestion" xml:space="preserve">
-    <value>Update the profile “{0}” with what is open now?</value>
+    <value>Update the team “{0}” with what is open now?</value>
   </data>
   <data name="UpdateProfileReplaces" xml:space="preserve">
-    <value>What it kept until now will be replaced. Its name, its place in the list and its startup star stay.</value>
+    <value>What it kept until now will be replaced. Its name, its place in the list and its startup choice stay.</value>
   </data>
   <data name="CreateProfile" xml:space="preserve">
-    <value>Create a profile</value>
+    <value>Create a team</value>
   </data>
   <data name="CreateProfileTip" xml:space="preserve">
     <value>Remember the open accounts, their positions and the current settings under a name.</value>
@@ -810,13 +816,13 @@ A phone already paired over Wi-Fi comes back on its own.</value>
     <value>Restore settings</value>
   </data>
   <data name="ExportSettingsTip" xml:space="preserve">
-    <value>Saves accounts, profiles, shortcuts and settings to a file, to take them to another PC.</value>
+    <value>Saves accounts, teams, shortcuts and settings to a file, to take them to another PC.</value>
   </data>
   <data name="ImportSettingsTip" xml:space="preserve">
     <value>Replaces every setting with those of a file written by this application.</value>
   </data>
   <data name="ImportSettingsConfirm" xml:space="preserve">
-    <value>This replaces all your accounts, profiles, shortcuts and settings. Continue?</value>
+    <value>This replaces all your accounts, teams, shortcuts and settings. Continue?</value>
   </data>
   <data name="SettingsFileFilter" xml:space="preserve">
     <value>DT Hub settings|*.json|All files|*.*</value>
@@ -1536,13 +1542,13 @@ The detail is in the logs:
     <value>The game windows that are not part of it will be closed.</value>
   </data>
   <data name="NothingToRemember" xml:space="preserve">
-    <value>No account is open: there is nothing to remember. Open the accounts of the profile, then create it.</value>
+    <value>No account is open: there is nothing to remember. Open the accounts of the team, then create it.</value>
   </data>
   <data name="Create" xml:space="preserve">
     <value>Create</value>
   </data>
   <data name="ProfileNeedsName" xml:space="preserve">
-    <value>A profile needs a name.</value>
+    <value>A team needs a name.</value>
   </data>
   <data name="OnlyTheRowGoes" xml:space="preserve">
     <value>The accounts are not touched, only the row disappears.</value>
@@ -1630,19 +1636,19 @@ The detail is in the logs:
     <value>Report an error on Papycha</value>
   </data>
   <data name="OpenProfileQuestion" xml:space="preserve">
-    <value>Open the profile “{0}”?</value>
+    <value>Open the team “{0}”?</value>
   </data>
   <data name="OpenProfileTitle" xml:space="preserve">
-    <value>Open the profile</value>
+    <value>Open the team</value>
   </data>
   <data name="ProfileNameQuestion" xml:space="preserve">
-    <value>Under what name should this profile be remembered?</value>
+    <value>Under what name should this team be remembered?</value>
   </data>
   <data name="DeleteProfileQuestion" xml:space="preserve">
-    <value>Delete the profile “{0}”?</value>
+    <value>Delete the team “{0}”?</value>
   </data>
   <data name="DeleteProfileTitle" xml:space="preserve">
-    <value>Delete the profile</value>
+    <value>Delete the team</value>
   </data>
   <data name="AddAccountTitle" xml:space="preserve">
     <value>Add an account</value>
@@ -1716,7 +1722,7 @@ The rest of the application works without it.</value>
     <value>off</value>
   </data>
   <data name="ProfileAnnounce" xml:space="preserve">
-    <value>This profile will remember {0}, the position and the size of their windows, {1}, the {2} distance and the sound {3}.</value>
+    <value>This team will remember {0}, the position and the size of their windows, {1}, the {2} distance and the sound {3}.</value>
   </data>
   <data name="ProfileTabbedOne" xml:space="preserve">
     <value>The account housed in the tabbed frame will go back to it, frame in its place.</value>

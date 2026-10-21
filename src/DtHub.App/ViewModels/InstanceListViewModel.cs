@@ -356,6 +356,32 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// <summary>True if there is at least one profile to show.</summary>
     public bool HasProfiles => Profiles.Count > 0;
 
+    /// <summary>The "at startup" list: reopen what was open, or one team.</summary>
+    public ObservableCollection<TextChoice> StartupChoices { get; } = [];
+
+    /// <summary>True while the startup list is rebuilt.</summary>
+    private bool _rebuildingStartupChoices;
+
+    /// <summary>
+    /// The team opened at startup, empty to reopen what was open.
+    ///
+    /// Emptying the list makes it push back a null: that is not a choice,
+    /// and saving it would have forgotten the team on every sweep.
+    /// </summary>
+    public string StartupProfile
+    {
+        get => ActiveProfileName;
+        set
+        {
+            if (_rebuildingStartupChoices || value is null)
+            {
+                return;
+            }
+
+            _ = ChooseStartupProfileAsync(value);
+        }
+    }
+
     /// <summary>
     /// Name of the profile kept for startup, empty if there is none.
     ///
@@ -416,6 +442,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
         OnPropertyChanged(nameof(HasActiveProfile));
         OnPropertyChanged(nameof(ProfilesButtonText));
         OnPropertyChanged(nameof(ProfilesTooltip));
+        OnPropertyChanged(nameof(StartupProfile));
     }
 
     /// <summary>
@@ -430,7 +457,6 @@ public sealed partial class InstanceListViewModel : ObservableObject
     private async Task SyncProfilesAsync(CancellationToken cancellationToken = default)
     {
         var settings = await _settings.GetAsync(cancellationToken).ConfigureAwait(true);
-        var byDefault = LaunchProfiles.Normalize(settings.DefaultLaunchProfile);
 
         Profiles.Clear();
 
@@ -438,17 +464,33 @@ public sealed partial class InstanceListViewModel : ObservableObject
         {
             Profiles.Add(new LaunchProfileRowViewModel(
                 profile.Name,
-                LaunchProfiles.Describe(profile, settings.Instances),
-                string.Equals(profile.Name, byDefault, StringComparison.OrdinalIgnoreCase)));
+                LaunchProfiles.Describe(profile, settings.Instances)));
         }
 
-        ActiveProfileName = Profiles.FirstOrDefault(p => p.IsDefault)?.Name ?? string.Empty;
+        _rebuildingStartupChoices = true;
+
+        try
+        {
+            StartupChoices.Clear();
+
+            foreach (var (label, name) in LaunchProfiles.StartupChoices(settings.LaunchProfiles))
+            {
+                StartupChoices.Add(new TextChoice(label, name));
+            }
+        }
+        finally
+        {
+            _rebuildingStartupChoices = false;
+        }
+
+        ActiveProfileName = LaunchProfiles.ActiveName(settings.LaunchProfiles, settings.DefaultLaunchProfile);
 
         OnPropertyChanged(nameof(HasProfiles));
         OnPropertyChanged(nameof(ActiveProfileName));
         OnPropertyChanged(nameof(HasActiveProfile));
         OnPropertyChanged(nameof(ProfilesButtonText));
         OnPropertyChanged(nameof(ProfilesTooltip));
+        OnPropertyChanged(nameof(StartupProfile));
     }
 
     /// <summary>
@@ -547,7 +589,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// <summary>
     /// Replaces what a profile remembers with the accounts open now, their
     /// positions and the settings, once the player has read what changes.
-    /// Its name, its place in the list and its startup star stay.
+    /// Its name, its place in the list and its startup choice stay.
     /// </summary>
     [RelayCommand]
     private async Task UpdateProfileAsync(LaunchProfileRowViewModel? profile)
@@ -616,17 +658,11 @@ public sealed partial class InstanceListViewModel : ObservableObject
             settings.AudioEnabled)
         + "\n\n" + Strings.Get("ProfileOpenExplained");
 
-    /// <summary>Sets the startup profile, or removes it.</summary>
-    [RelayCommand]
-    private async Task ToggleDefaultProfileAsync(LaunchProfileRowViewModel? profile)
+    /// <summary>Keeps a team for startup, or none with the empty name.</summary>
+    private async Task ChooseStartupProfileAsync(string name)
     {
-        if (profile is null)
-        {
-            return;
-        }
-
         await _settings
-            .SetDefaultLaunchProfileAsync(profile.IsDefault ? null : profile.Name)
+            .SetDefaultLaunchProfileAsync(name.Length == 0 ? null : name)
             .ConfigureAwait(true);
 
         await SyncProfilesAsync().ConfigureAwait(true);

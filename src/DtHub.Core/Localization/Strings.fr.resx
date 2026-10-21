@@ -345,49 +345,55 @@
     <value>Une seule fois par téléphone, par câble ou sans fil. Ensuite, il se connecte tout seul.</value>
   </data>
   <data name="Profiles" xml:space="preserve">
-    <value>Profils</value>
+    <value>Teams</value>
   </data>
   <data name="ProfilesTip" xml:space="preserve">
-    <value>Des ensembles de comptes, avec leurs positions et leurs réglages, qu'on ouvre d'un geste.</value>
+    <value>Des groupes de comptes, avec leurs positions et leurs réglages, qu'on ouvre d'un geste.</value>
   </data>
   <data name="ProfilesActiveTip" xml:space="preserve">
-    <value>Profils de lancement. « {0} » est celui qui s'ouvre au démarrage.</value>
+    <value>Teams. « {0} » s'ouvre au démarrage.</value>
   </data>
   <data name="LaunchProfilesHeading" xml:space="preserve">
-    <value>PROFILS DE LANCEMENT</value>
+    <value>TEAMS</value>
   </data>
   <data name="NoProfilesYet" xml:space="preserve">
-    <value>Aucun profil pour l'instant. Ouvrez vos comptes, placez leurs fenêtres, puis créez-en un.</value>
+    <value>Aucune team pour l'instant. Ouvrez vos comptes, placez leurs fenêtres, puis créez-en une.</value>
   </data>
   <data name="LaunchProfileTip" xml:space="preserve">
-    <value>Ouvrir ce profil : ses comptes s'ouvrent à leur place avec ses réglages, les autres fenêtres se ferment.</value>
+    <value>Ouvrir cette team : ses comptes s'ouvrent à leur place avec ses réglages, les autres fenêtres se ferment.</value>
   </data>
-  <data name="DefaultProfileTip" xml:space="preserve">
-    <value>Ouvrir ce profil au démarrage. Un second clic l'annule : DT Hub rouvre alors ce qui était ouvert.</value>
+  <data name="StartupLabel" xml:space="preserve">
+    <value>Au démarrage</value>
+  </data>
+  <data name="StartupReopens" xml:space="preserve">
+    <value>Rouvrir ce qui était ouvert</value>
+  </data>
+  <data name="StartupOpensTeam" xml:space="preserve">
+    <value>Ouvrir la team « {0} »</value>
   </data>
   <data name="DeleteProfileTip" xml:space="preserve">
-    <value>Supprimer ce profil. Les comptes ne sont pas touchés.</value>
+    <value>Supprimer cette team. Les comptes ne sont pas touchés.</value>
   </data>
   <data name="ProfileOpenExplained" xml:space="preserve">
     <value>L'ouvrir plus tard fermera les fenêtres de jeu qui n'en font pas partie, puis ouvrira ses comptes à leur place, avec ces réglages.</value>
   </data>
   <data name="ProfileExistsQuestion" xml:space="preserve">
-    <value>Un profil « {0} » existe déjà. Remplacer ce qu'il retient par ce qui est ouvert maintenant ?</value>
+    <value>Une team « {0} » existe déjà. Remplacer ce qu'elle retient par ce qui est ouvert maintenant ?</value>
   </data>
   <data name="UpdateProfileTitle" xml:space="preserve">
-    <value>Mettre à jour le profil</value>
+    <value>Mettre à jour la team</value>
   </data>
   <data name="UpdateProfileTip" xml:space="preserve">
-    <value>Remplacer ce que ce profil retient par les comptes ouverts maintenant, leurs fenêtres et les réglages actuels.</value>
+    <value>Remplacer ce que cette team retient par les comptes ouverts maintenant, leurs fenêtres et les réglages actuels.</value>
   </data>
   <data name="UpdateProfileQuestion" xml:space="preserve">
-    <value>Mettre à jour le profil « {0} » avec ce qui est ouvert maintenant ?</value>
+    <value>Mettre à jour la team « {0} » avec ce qui est ouvert maintenant ?</value>
   </data>
   <data name="UpdateProfileReplaces" xml:space="preserve">
-    <value>Ce qu'il retenait jusqu'ici sera remplacé. Son nom, sa place dans la liste et son étoile de démarrage restent.</value>
+    <value>Ce qu'elle retenait jusqu'ici sera remplacé. Son nom, sa place dans la liste et son choix au démarrage restent.</value>
   </data>
   <data name="CreateProfile" xml:space="preserve">
-    <value>Créer un profil</value>
+    <value>Créer une team</value>
   </data>
   <data name="CreateProfileTip" xml:space="preserve">
     <value>Retenir les comptes ouverts, leurs positions et les réglages actuels sous un nom.</value>
@@ -810,13 +816,13 @@ Un téléphone déjà associé en Wi-Fi revient tout seul.</value>
     <value>Restaurer des réglages</value>
   </data>
   <data name="ExportSettingsTip" xml:space="preserve">
-    <value>Enregistre comptes, profils, raccourcis et réglages dans un fichier, pour les emporter sur un autre PC.</value>
+    <value>Enregistre comptes, teams, raccourcis et réglages dans un fichier, pour les emporter sur un autre PC.</value>
   </data>
   <data name="ImportSettingsTip" xml:space="preserve">
     <value>Remplace tous les réglages par ceux d'un fichier écrit par cette application.</value>
   </data>
   <data name="ImportSettingsConfirm" xml:space="preserve">
-    <value>Cela remplace tous vos comptes, profils, raccourcis et réglages. Continuer ?</value>
+    <value>Cela remplace tous vos comptes, teams, raccourcis et réglages. Continuer ?</value>
   </data>
   <data name="SettingsFileFilter" xml:space="preserve">
     <value>Réglages DT Hub|*.json|Tous les fichiers|*.*</value>
@@ -1536,13 +1542,13 @@ Le détail se trouve dans les journaux :
     <value>Les fenêtres de jeu qui n'en font pas partie seront fermées.</value>
   </data>
   <data name="NothingToRemember" xml:space="preserve">
-    <value>Aucun compte n'est ouvert : il n'y a rien à retenir. Ouvrez les comptes du profil, puis créez-le.</value>
+    <value>Aucun compte n'est ouvert : il n'y a rien à retenir. Ouvrez les comptes de la team, puis créez-la.</value>
   </data>
   <data name="Create" xml:space="preserve">
     <value>Créer</value>
   </data>
   <data name="ProfileNeedsName" xml:space="preserve">
-    <value>Un profil a besoin d'un nom.</value>
+    <value>Une team a besoin d'un nom.</value>
   </data>
   <data name="OnlyTheRowGoes" xml:space="preserve">
     <value>Les comptes ne sont pas touchés, seule la ligne disparaît.</value>
@@ -1630,19 +1636,19 @@ Le détail se trouve dans les journaux :
     <value>Remonter une erreur sur Papycha</value>
   </data>
   <data name="OpenProfileQuestion" xml:space="preserve">
-    <value>Ouvrir le profil « {0} » ?</value>
+    <value>Ouvrir la team « {0} » ?</value>
   </data>
   <data name="OpenProfileTitle" xml:space="preserve">
-    <value>Ouvrir le profil</value>
+    <value>Ouvrir la team</value>
   </data>
   <data name="ProfileNameQuestion" xml:space="preserve">
-    <value>Sous quel nom retenir ce profil ?</value>
+    <value>Sous quel nom retenir cette team ?</value>
   </data>
   <data name="DeleteProfileQuestion" xml:space="preserve">
-    <value>Supprimer le profil « {0} » ?</value>
+    <value>Supprimer la team « {0} » ?</value>
   </data>
   <data name="DeleteProfileTitle" xml:space="preserve">
-    <value>Supprimer le profil</value>
+    <value>Supprimer la team</value>
   </data>
   <data name="AddAccountTitle" xml:space="preserve">
     <value>Ajouter un compte</value>
@@ -1716,7 +1722,7 @@ Le reste de l'application fonctionne sans lui.</value>
     <value>coupé</value>
   </data>
   <data name="ProfileAnnounce" xml:space="preserve">
-    <value>Ce profil retiendra {0}, la position et la taille de leurs fenêtres, la {1}, la distance {2} et le son {3}.</value>
+    <value>Cette team retiendra {0}, la position et la taille de leurs fenêtres, la {1}, la distance {2} et le son {3}.</value>
   </data>
   <data name="ProfileTabbedOne" xml:space="preserve">
     <value>Le compte logé dans le cadre à onglets y retournera, cadre à sa place.</value>

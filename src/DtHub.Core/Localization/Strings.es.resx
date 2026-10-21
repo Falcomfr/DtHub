@@ -345,49 +345,55 @@
     <value>Una sola vez por teléfono, por cable o inalámbrico. Después, se conecta solo.</value>
   </data>
   <data name="Profiles" xml:space="preserve">
-    <value>Perfiles</value>
+    <value>Equipos</value>
   </data>
   <data name="ProfilesTip" xml:space="preserve">
-    <value>Conjuntos de cuentas, con sus posiciones y sus ajustes, que se abren de un gesto.</value>
+    <value>Grupos de cuentas, con sus posiciones y sus ajustes, que se abren de un gesto.</value>
   </data>
   <data name="ProfilesActiveTip" xml:space="preserve">
-    <value>Perfiles de lanzamiento. « {0} » es el que se abre al iniciar.</value>
+    <value>Equipos. «{0}» se abre al iniciar.</value>
   </data>
   <data name="LaunchProfilesHeading" xml:space="preserve">
-    <value>PERFILES DE INICIO</value>
+    <value>EQUIPOS</value>
   </data>
   <data name="NoProfilesYet" xml:space="preserve">
-    <value>Aún no hay perfiles. Abre tus cuentas, coloca sus ventanas y crea uno.</value>
+    <value>Aún no hay equipos. Abre tus cuentas, coloca sus ventanas y crea uno.</value>
   </data>
   <data name="LaunchProfileTip" xml:space="preserve">
-    <value>Abrir este perfil: sus cuentas se abren en su sitio con sus ajustes, las demás ventanas se cierran.</value>
+    <value>Abrir este equipo: sus cuentas se abren en su sitio con sus ajustes, las demás ventanas se cierran.</value>
   </data>
-  <data name="DefaultProfileTip" xml:space="preserve">
-    <value>Abrir este perfil al iniciar. Un segundo clic lo anula: DT Hub reabre entonces lo que estaba abierto.</value>
+  <data name="StartupLabel" xml:space="preserve">
+    <value>Al iniciar</value>
+  </data>
+  <data name="StartupReopens" xml:space="preserve">
+    <value>Reabrir lo que estaba abierto</value>
+  </data>
+  <data name="StartupOpensTeam" xml:space="preserve">
+    <value>Abrir el equipo «{0}»</value>
   </data>
   <data name="DeleteProfileTip" xml:space="preserve">
-    <value>Eliminar este perfil. Las cuentas no se tocan.</value>
+    <value>Eliminar este equipo. Las cuentas no se tocan.</value>
   </data>
   <data name="ProfileOpenExplained" xml:space="preserve">
     <value>Al abrirlo más tarde se cerrarán las ventanas de juego que no forman parte de él, y luego se abrirán sus cuentas en su sitio, con estos ajustes.</value>
   </data>
   <data name="ProfileExistsQuestion" xml:space="preserve">
-    <value>Ya existe un perfil «{0}». ¿Reemplazar lo que guarda por lo que está abierto ahora?</value>
+    <value>Ya existe un equipo «{0}». ¿Reemplazar lo que guarda por lo que está abierto ahora?</value>
   </data>
   <data name="UpdateProfileTitle" xml:space="preserve">
-    <value>Actualizar el perfil</value>
+    <value>Actualizar el equipo</value>
   </data>
   <data name="UpdateProfileTip" xml:space="preserve">
-    <value>Reemplazar lo que guarda este perfil por las cuentas abiertas ahora, sus ventanas y los ajustes actuales.</value>
+    <value>Reemplazar lo que guarda este equipo por las cuentas abiertas ahora, sus ventanas y los ajustes actuales.</value>
   </data>
   <data name="UpdateProfileQuestion" xml:space="preserve">
-    <value>¿Actualizar el perfil «{0}» con lo que está abierto ahora?</value>
+    <value>¿Actualizar el equipo «{0}» con lo que está abierto ahora?</value>
   </data>
   <data name="UpdateProfileReplaces" xml:space="preserve">
-    <value>Lo que guardaba hasta ahora se reemplazará. Su nombre, su lugar en la lista y su estrella de inicio se mantienen.</value>
+    <value>Lo que guardaba hasta ahora se reemplazará. Su nombre, su lugar en la lista y su elección al iniciar se mantienen.</value>
   </data>
   <data name="CreateProfile" xml:space="preserve">
-    <value>Crear un perfil</value>
+    <value>Crear un equipo</value>
   </data>
   <data name="CreateProfileTip" xml:space="preserve">
     <value>Guardar las cuentas abiertas, sus posiciones y los ajustes actuales con un nombre.</value>
@@ -810,13 +816,13 @@ Un teléfono ya vinculado por Wi-Fi vuelve solo.</value>
     <value>Restaurar ajustes</value>
   </data>
   <data name="ExportSettingsTip" xml:space="preserve">
-    <value>Guarda cuentas, perfiles, atajos y ajustes en un archivo, para llevarlos a otro PC.</value>
+    <value>Guarda cuentas, equipos, atajos y ajustes en un archivo, para llevarlos a otro PC.</value>
   </data>
   <data name="ImportSettingsTip" xml:space="preserve">
     <value>Sustituye todos los ajustes por los de un archivo escrito por esta aplicación.</value>
   </data>
   <data name="ImportSettingsConfirm" xml:space="preserve">
-    <value>Esto sustituye todas tus cuentas, perfiles, atajos y ajustes. ¿Continuar?</value>
+    <value>Esto sustituye todas tus cuentas, equipos, atajos y ajustes. ¿Continuar?</value>
   </data>
   <data name="SettingsFileFilter" xml:space="preserve">
     <value>Ajustes DT Hub|*.json|Todos los archivos|*.*</value>
@@ -1536,13 +1542,13 @@ El detalle está en los registros:
     <value>Las ventanas de juego que no formen parte se cerrarán.</value>
   </data>
   <data name="NothingToRemember" xml:space="preserve">
-    <value>No hay ninguna cuenta abierta: no hay nada que guardar. Abre las cuentas del perfil y créalo después.</value>
+    <value>No hay ninguna cuenta abierta: no hay nada que guardar. Abre las cuentas del equipo y créalo después.</value>
   </data>
   <data name="Create" xml:space="preserve">
     <value>Crear</value>
   </data>
   <data name="ProfileNeedsName" xml:space="preserve">
-    <value>Un perfil necesita un nombre.</value>
+    <value>Un equipo necesita un nombre.</value>
   </data>
   <data name="OnlyTheRowGoes" xml:space="preserve">
     <value>Las cuentas no se tocan, solo desaparece la fila.</value>
@@ -1630,19 +1636,19 @@ El detalle está en los registros:
     <value>Informar de un error en Papycha</value>
   </data>
   <data name="OpenProfileQuestion" xml:space="preserve">
-    <value>¿Abrir el perfil «{0}»?</value>
+    <value>¿Abrir el equipo «{0}»?</value>
   </data>
   <data name="OpenProfileTitle" xml:space="preserve">
-    <value>Abrir el perfil</value>
+    <value>Abrir el equipo</value>
   </data>
   <data name="ProfileNameQuestion" xml:space="preserve">
-    <value>¿Con qué nombre guardar este perfil?</value>
+    <value>¿Con qué nombre guardar este equipo?</value>
   </data>
   <data name="DeleteProfileQuestion" xml:space="preserve">
-    <value>¿Eliminar el perfil «{0}»?</value>
+    <value>¿Eliminar el equipo «{0}»?</value>
   </data>
   <data name="DeleteProfileTitle" xml:space="preserve">
-    <value>Eliminar el perfil</value>
+    <value>Eliminar el equipo</value>
   </data>
   <data name="AddAccountTitle" xml:space="preserve">
     <value>Añadir una cuenta</value>
@@ -1716,7 +1722,7 @@ El resto de la aplicación funciona sin él.</value>
     <value>cortado</value>
   </data>
   <data name="ProfileAnnounce" xml:space="preserve">
-    <value>Este perfil guardará {0}, la posición y el tamaño de sus ventanas, la {1}, la distancia {2} y el sonido {3}.</value>
+    <value>Este equipo guardará {0}, la posición y el tamaño de sus ventanas, la {1}, la distancia {2} y el sonido {3}.</value>
   </data>
   <data name="ProfileTabbedOne" xml:space="preserve">
     <value>La cuenta alojada en el marco con pestañas volverá a él, con el marco en su sitio.</value>

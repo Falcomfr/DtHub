@@ -11,11 +11,10 @@ namespace DtHub.App.ViewModels;
 /// </summary>
 public sealed partial class LaunchProfileRowViewModel : ObservableObject
 {
-    public LaunchProfileRowViewModel(string name, string summary, bool isDefault)
+    public LaunchProfileRowViewModel(string name, string summary)
     {
         Name = name;
         _summary = summary;
-        _isDefault = isDefault;
     }
 
     /// <summary>
@@ -25,10 +24,6 @@ public sealed partial class LaunchProfileRowViewModel : ObservableObject
 
     [ObservableProperty]
     private string _summary;
-
-    /// <summary>True if this profile opens at startup.</summary>
-    [ObservableProperty]
-    private bool _isDefault;
 
     /// <summary>
     /// What the row announces about itself.

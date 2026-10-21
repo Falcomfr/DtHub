@@ -67,6 +67,19 @@ public static class LaunchProfiles
         Normalize(defaultProfile) ?? Strings.Get("Profiles");
 
     /// <summary>
+    /// What the "at startup" list offers: reopening what was open, then
+    /// each team. The empty name is the first choice, the one that applies
+    /// when no team is kept. A star on the row used to say this, and nothing
+    /// showed what happened once it was removed.
+    /// </summary>
+    public static IReadOnlyList<(string Label, string Name)> StartupChoices(
+        IEnumerable<StoredLaunchProfile> profiles) =>
+    [
+        (Strings.Get("StartupReopens"), string.Empty),
+        .. profiles.Select(p => (Strings.Format("StartupOpensTeam", p.Name), p.Name)),
+    ];
+
+    /// <summary>
     /// The name of the profile kept for startup, empty if there is
     /// none.
     ///

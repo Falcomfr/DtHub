@@ -138,7 +138,7 @@ public class LaunchProfilesTests
         var phrase = LaunchProfiles.Announce(2, StreamQuality.Maximum, GameZoom.Wide, 0, audio: true);
 
         Assert.Equal(
-            "Ce profil retiendra les 2 comptes ouverts, la position et la taille de leurs "
+            "Cette team retiendra les 2 comptes ouverts, la position et la taille de leurs "
             + "fenêtres, la qualité très haute, la distance éloignée et le son renvoyé sur le PC.",
             phrase);
     }
@@ -164,7 +164,7 @@ public class LaunchProfilesTests
     {
         var phrase = LaunchProfiles.Announce(1, StreamQuality.Medium, GameZoom.Normal, 0, audio: false);
 
-        Assert.StartsWith("Ce profil retiendra le compte ouvert,", phrase, StringComparison.Ordinal);
+        Assert.StartsWith("Cette team retiendra le compte ouvert,", phrase, StringComparison.Ordinal);
         Assert.Contains("la qualité moyenne, la distance normale", phrase, StringComparison.Ordinal);
     }
 
@@ -195,6 +195,23 @@ public class LaunchProfilesTests
         Assert.Equal(Strings.Get("Profiles"), LaunchProfiles.ButtonLabel(null));
         Assert.Equal(Strings.Get("Profiles"), LaunchProfiles.ButtonLabel(string.Empty));
         Assert.Equal(Strings.Get("Profiles"), LaunchProfiles.ButtonLabel("   "));
+    }
+
+    [Fact]
+    public void Le_demarrage_propose_de_rouvrir_puis_chaque_team_dans_l_ordre()
+    {
+        // Reopening what was open comes first: it is what happens
+        // when no team is chosen, and it must be visible as a choice.
+        var choix = LaunchProfiles.StartupChoices([Profil("Donjons", Principal), Profil("Kolizéum", XSpace)]);
+
+        Assert.Equal(
+            new[]
+            {
+                (Strings.Get("StartupReopens"), string.Empty),
+                (Strings.Format("StartupOpensTeam", "Donjons"), "Donjons"),
+                (Strings.Format("StartupOpensTeam", "Kolizéum"), "Kolizéum"),
+            },
+            choix);
     }
 
     [Fact]

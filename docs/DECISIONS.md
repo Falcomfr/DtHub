@@ -10694,3 +10694,21 @@ Une fin propre que DT Hub n'a pas demandée est la croix de la fenêtre. Un
 téléphone perdu échoue au lieu de finir proprement, et le compte reste dans le
 démarrage, comme le veut toujours D22. Quitter DT Hub marque toutes les sessions
 arrêtées avant de fermer le cadre à onglets, et ne retire donc rien.
+
+## D208 - Les profils de lancement deviennent des teams, le démarrage une liste
+
+**2026-10-21 - Acceptée**
+
+« Profil » nommait deux choses : le profil Android du téléphone (principal,
+cloné, professionnel, 🔒 dans la fenêtre « + ») et l'ensemble de comptes
+retenu par DT Hub. Un joueur qui lisait « Créer un profil » pouvait croire en
+créer un sur son téléphone. L'ensemble s'appelle désormais une team en
+français et en anglais, le mot des joueurs multicomptes, et un « equipo » en
+espagnol. Le code garde `LaunchProfile`, le fichier de réglages aussi : rien à
+migrer.
+
+L'étoile qui retenait une team pour le démarrage disparaît. Un second clic la
+retirait et DT Hub rouvrait alors ce qui était ouvert, ce que seule son
+infobulle disait. Une liste « Au démarrage » au-dessus des teams écrit chaque
+choix : « Rouvrir ce qui était ouvert », puis « Ouvrir la team « X » » pour
+chacune. Elle n'apparaît qu'avec au moins une team.
