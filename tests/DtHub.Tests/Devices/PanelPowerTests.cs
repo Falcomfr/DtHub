@@ -37,6 +37,31 @@ public class PanelPowerTests
     public void L_ecran_toujours_allume_d_une_veille_ne_compte_pas_comme_allume() =>
         Assert.False(PanelPower.IsLit(Eteint.Replace("powerMode=Off", "powerMode=Doze", StringComparison.Ordinal)));
 
+    /// <summary>
+    /// Recorded from a player's Samsung on 2026-10-21, the screen lit with
+    /// the power button under the game: One UI writes the mode in capitals.
+    /// </summary>
+    private const string SamsungAllume = """
+        Display 4630947191136750483
+            port=147
+            connectionType=Internal
+            name=""
+            powerMode=ON
+            optimizationPolicy=optimizeForPerformance
+            HFR_MODE=3
+        Virtual Display 11529215048697563217
+            name="scrcpy"
+            powerMode=ON
+        """;
+
+    [Fact]
+    public void Un_samsung_rallume_se_lit_allume() =>
+        Assert.True(PanelPower.IsLit(SamsungAllume));
+
+    [Fact]
+    public void Un_samsung_eteint_se_lit_eteint() =>
+        Assert.False(PanelPower.IsLit(SamsungAllume.Replace("powerMode=ON", "powerMode=OFF", StringComparison.Ordinal)));
+
     [Fact]
     public void Un_pliable_est_allume_si_l_un_de_ses_ecrans_l_est()
     {

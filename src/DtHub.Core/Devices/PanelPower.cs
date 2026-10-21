@@ -53,10 +53,11 @@ public static class PanelPower
             }
 
             // The first word only: some versions follow the mode with its
-            // number, "powerMode=On (2)".
+            // number, "powerMode=On (2)". Samsung writes it in capitals,
+            // "ON", and its lit screen read dark (2026-10-21).
             if (physical && line.StartsWith("powerMode=", StringComparison.Ordinal))
             {
-                lit = lit == true || line["powerMode=".Length..].Split(' ')[0] == "On";
+                lit = lit == true || string.Equals(line["powerMode=".Length..].Split(' ')[0], "On", StringComparison.OrdinalIgnoreCase);
             }
         }
 
