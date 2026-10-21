@@ -2228,7 +2228,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
             .Select(s => Routable(s.Target))
             .FirstOrDefault();
 
-        if (serial is not null && await _devices.WakeAsync(serial).ConfigureAwait(false))
+        var woken = serial is not null && await _devices.WakeAsync(serial).ConfigureAwait(false);
+
+        LogScreenRequest(deviceId, woken ? "réveil accepté par le téléphone" : "réveil refusé ou téléphone injoignable");
+
+        if (woken && serial is not null)
         {
             // Woken onto its lock screen, the phone goes dark again in 9 s:
             // a minute, the time to pick it up, asked for on 2026-10-21.
@@ -2335,7 +2339,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         if (!_toggling.TryAdd(deviceId, 0))
         {
-            _ = _pendingToggles.AddOrUpdate(deviceId, true, (_, pending) => !pending);
+            var owed = _pendingToggles.AddOrUpdate(deviceId, true, (_, pending) => !pending);
+            LogScreenRequest(deviceId, owed ? "appui retenu pendant un changement" : "appui retenu annulé par le suivant");
             return;
         }
 
@@ -2347,7 +2352,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             // The screen as it is decides, the guard only when the phone
             // does not say: dark but no longer held, a press did nothing.
-            if (lit == false || (lit is null && _sessions.HoldsScreenOff(deviceId)))
+            var light = lit == false || (lit is null && _sessions.HoldsScreenOff(deviceId));
+
+            LogScreenRequest(deviceId, $"Ctrl+E, écran lu {(lit is { } l ? (l ? "allumé" : "éteint") : "inconnu")}, {(light ? "rallumage" : "extinction")}");
+
+            if (light)
             {
                 await LightPanelAsync(deviceId).ConfigureAwait(false);
             }
@@ -2387,10 +2396,13 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         if (!_toggling.TryAdd(deviceId, 0))
         {
+            LogScreenRequest(deviceId, "lien ignoré pendant un changement");
             return;
         }
 
         LitPanelsChanged?.Invoke(this, EventArgs.Empty);
+
+        LogScreenRequest(deviceId, light ? "lien, rallumage" : "lien, extinction");
 
         try
         {
@@ -6173,6 +6185,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Téléphone revenu : réouverture de {name}.")]
     private partial void LogReopenedOnReturn(string name);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Écran de {device} : {what}.")]
+    private partial void LogScreenRequest(string device, string what);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Wi-Fi de {device} {how} pendant le jeu.")]
     private partial void LogWifiKeptAwake(string device, string how);
