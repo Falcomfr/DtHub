@@ -87,7 +87,7 @@
     <value>Leer lo que aporta esta versión</value>
   </data>
   <data name="StackTip" xml:space="preserve">
-    <value>Apilar todas las ventanas de juego sobre la última que has usado, en su posición y su tamaño</value>
+    <value>Apilar todas las ventanas sobre la última usada, en su sitio y con su tamaño.</value>
   </data>
   <data name="SideBySide" xml:space="preserve">
     <value>Lado a lado</value>
@@ -108,7 +108,7 @@
     <value>Guías</value>
   </data>
   <data name="GuidesTip" xml:space="preserve">
-    <value>Abrir las guías, que permanecen encima de las ventanas de juego. Misiones, mazmorras, incursiones, guaridas y rutas, de papycha.fr, en francés.</value>
+    <value>Abrir las guías de papycha.fr (misiones, mazmorras, caminos…), que quedan encima de las ventanas de juego.</value>
   </data>
   <data name="GuidesSource" xml:space="preserve">
     <value>Papycha.fr</value>
@@ -159,13 +159,13 @@
     <value>Media</value>
   </data>
   <data name="QualityMediumTip" xml:space="preserve">
-    <value>Imagen de 1080 como máximo, 30 imágenes por segundo. El ajuste de origen, que conviene a la mayoría de los equipos.</value>
+    <value>1080 como máximo, 30 imágenes por segundo. Conviene a la mayoría de los equipos.</value>
   </data>
   <data name="QualityElevated" xml:space="preserve">
     <value>Alta</value>
   </data>
   <data name="QualityElevatedTip" xml:space="preserve">
-    <value>Imagen de 1080 como máximo, 60 imágenes por segundo en lugar de 30. Para la cuenta que juegas mientras las demás siguen en media.</value>
+    <value>1080 como máximo, 60 imágenes por segundo en lugar de 30. Para la cuenta que juegas, las demás en Media.</value>
   </data>
   <data name="QualityMaximum" xml:space="preserve">
     <value>Muy alta</value>
@@ -189,7 +189,7 @@
     <value>Resolución máx.</value>
   </data>
   <data name="MaxResolutionTip" xml:space="preserve">
-    <value>Un techo, no la resolución empleada: esta sigue el tamaño de la ventana y puede ser menor.</value>
+    <value>Un tope: la resolución real sigue el tamaño de la ventana y puede ser menor.</value>
   </data>
   <data name="FrameRate" xml:space="preserve">
     <value>Cadencia</value>
@@ -207,10 +207,10 @@
     <value>AV1 y VP8 no se ofrecen: en un teléfono corriente no tienen codificador por hardware, y codificarlos por software cuesta mucho más de lo que aportan.</value>
   </data>
   <data name="BitsPerPixelTip" xml:space="preserve">
-    <value>Bits concedidos a cada píxel de cada imagen. La referencia del oficio ronda 0,10 para un H.264 bien hecho.</value>
+    <value>Bits concedidos a cada píxel de cada imagen. Alrededor de 0,10 da un H.264 de buena calidad.</value>
   </data>
   <data name="BitrateTip" xml:space="preserve">
-    <value>Lo que el teléfono tendrá que enviar por Wi-Fi. Un aparato con Wi-Fi 4 en 2,4 GHz da unos sesenta megabits en la práctica.</value>
+    <value>Lo que el teléfono envía por Wi-Fi. En Wi-Fi 4 a 2,4 GHz, cuenta con unos sesenta megabits como máximo.</value>
   </data>
   <data name="ResolutionAdviceTip" xml:space="preserve">
     <value>La resolución sigue el tamaño de las ventanas. 1440 en lugar de 1080 solo se nota en una ventana de más de 1800 píxeles de alto, por mucha más tasa de bits.</value>
@@ -327,7 +327,7 @@
     <value>Clonar el juego</value>
   </data>
   <data name="RemoveAppTip" xml:space="preserve">
-    <value>Quitar de la lista. La aplicación sigue en el teléfono, y se vuelve a mostrar desde el botón +.</value>
+    <value>Quitar de la lista. La aplicación sigue en el teléfono, y el botón + la vuelve a poner.</value>
   </data>
   <data name="AppPickerLoadFailed" xml:space="preserve">
     <value>No se han podido leer las aplicaciones del teléfono. Cierre esta ventana y vuelva a intentarlo.</value>
@@ -342,7 +342,7 @@
     <value>Vincular un aparato nuevo</value>
   </data>
   <data name="PairDeviceTip" xml:space="preserve">
-    <value>Se hace una sola vez por aparato, por cable o sin cables. Los aparatos ya vinculados se conectan solos.</value>
+    <value>Una sola vez por teléfono, por cable o inalámbrico. Después, se conecta solo.</value>
   </data>
   <data name="Profiles" xml:space="preserve">
     <value>Perfiles</value>
@@ -360,10 +360,10 @@
     <value>Aún no hay perfiles. Abre tus cuentas, coloca sus ventanas y crea uno.</value>
   </data>
   <data name="LaunchProfileTip" xml:space="preserve">
-    <value>Abrir este perfil: sus cuentas se abren en sus posiciones y con sus ajustes, las demás ventanas se cierran.</value>
+    <value>Abrir este perfil: sus cuentas se abren en su sitio con sus ajustes, las demás ventanas se cierran.</value>
   </data>
   <data name="DefaultProfileTip" xml:space="preserve">
-    <value>Abrir este perfil al iniciar. Un segundo clic quita la marca, y la aplicación vuelve a abrir entonces lo que estaba abierto.</value>
+    <value>Abrir este perfil al iniciar. Un segundo clic lo anula: DT Hub reabre entonces lo que estaba abierto.</value>
   </data>
   <data name="DeleteProfileTip" xml:space="preserve">
     <value>Eliminar este perfil. Las cuentas no se tocan.</value>
@@ -445,7 +445,7 @@
     <value>Vincular</value>
   </data>
   <data name="PortTip" xml:space="preserve">
-    <value>El número que sigue a los «:» en «Dirección IP y puerto», en la pantalla principal de Depuración inalámbrica</value>
+    <value>El número tras «:» en «Dirección IP y puerto», en la pantalla Depuración inalámbrica.</value>
   </data>
   <data name="Connect" xml:space="preserve">
     <value>Conectar</value>
@@ -520,7 +520,7 @@
     <value>Olvida este teléfono en este PC: sus cuentas y ajustes se borran. El teléfono no se toca. Pide confirmación.</value>
   </data>
   <data name="DragToReorderTip" xml:space="preserve">
-    <value>Arrastra para cambiar el orden. Una instancia puede colocarse entre las de otro aparato, y este orden es también el que sigue el teclado.</value>
+    <value>Arrastra para cambiar el orden, incluso entre las cuentas de dos teléfonos. También es el orden del recorrido con el teclado.</value>
   </data>
   <data name="LockWindowTip" xml:space="preserve">
     <value>Fija esta ventana en su sitio: apilar, lado a lado, los cambios de tamaño y el recorrido con el teclado la ignoran. En el marco con pestañas, una pestaña bloqueada fija todo el marco.</value>
@@ -535,13 +535,13 @@
     <value>Abrir esta cuenta en el marco con pestañas. Vuelve a hacer clic para devolverle su ventana libre.</value>
   </data>
   <data name="RenameTip" xml:space="preserve">
-    <value>Haz clic para renombrar. Este texto pasa a ser el título de la ventana del juego, visible en la barra de tareas.</value>
+    <value>Haz clic para renombrar: este nombre pasa a ser el título de la ventana de juego.</value>
   </data>
   <data name="OpenInstanceTip" xml:space="preserve">
-    <value>Abrir esta instancia ahora. Su ventana vuelve al sitio y al tamaño que tenía la última vez.</value>
+    <value>Abrir esta cuenta. Su ventana vuelve a su sitio y a su tamaño.</value>
   </data>
   <data name="RestartTip" xml:space="preserve">
-    <value>Reiniciar el juego sin cerrar la ventana. Útil cuando una ventana se ha congelado: vuelve a la pantalla de conexión, en su sitio y con su tamaño.</value>
+    <value>Reinicia el juego sin cerrar la ventana: útil si se congeló. Vuelve a la pantalla de conexión, mismo sitio, mismo tamaño.</value>
   </data>
   <data name="CloseWindowTip" xml:space="preserve">
     <value>Cierra la ventana de esta cuenta. No se borra nada: el botón Lanzar la reabre en el mismo sitio. No se reabrirá sola al iniciar.</value>
@@ -777,7 +777,7 @@ Un teléfono ya vinculado por Wi-Fi vuelve solo.</value>
     <value>reconectando</value>
   </data>
   <data name="InstanceSettingsTip" xml:space="preserve">
-    <value>La calidad y la distancia de esta cuenta, cuando deben diferir de los ajustes compartidos.</value>
+    <value>La calidad y la distancia de esta cuenta sola, si debe ser distinta de las demás.</value>
   </data>
   <data name="VitalsHeatWarm" xml:space="preserve">
     <value>templado</value>
@@ -810,7 +810,7 @@ Un teléfono ya vinculado por Wi-Fi vuelve solo.</value>
     <value>Restaurar ajustes</value>
   </data>
   <data name="ExportSettingsTip" xml:space="preserve">
-    <value>Escribe las cuentas, los perfiles, los atajos y los ajustes en un archivo, para llevarlos a otro PC.</value>
+    <value>Guarda cuentas, perfiles, atajos y ajustes en un archivo, para llevarlos a otro PC.</value>
   </data>
   <data name="ImportSettingsTip" xml:space="preserve">
     <value>Sustituye todos los ajustes por los de un archivo escrito por esta aplicación.</value>
@@ -888,7 +888,7 @@ Un teléfono ya vinculado por Wi-Fi vuelve solo.</value>
     <value>Teclado físico simulado</value>
   </data>
   <data name="SimulatedKeyboardTip" xml:space="preserve">
-    <value>Presenta el teclado al teléfono como un teclado conectado, en lugar de escribir a través de su teclado en pantalla.</value>
+    <value>Presenta el teclado al teléfono como un teclado conectado, sin pasar por su teclado virtual.</value>
   </data>
   <data name="SimulatedKeyboardHelp" xml:space="preserve">
     <value>Actívalo si el ratón funciona pero no se escribe nada. Ajusta entonces la distribución del teclado Android como la del PC, si no un AZERTY escribe en QWERTY.</value>
@@ -978,7 +978,7 @@ En un dispositivo {0}, la copia manual se hace por: {1}.</value>
     <value>Ofrendas de la semana</value>
   </data>
   <data name="AlmanaxPrepareTip" xml:space="preserve">
-    <value>Lee los siete días de la banda en el Almanax oficial, una página por segundo, y lista lo que hay que llevar.</value>
+    <value>Lee los próximos siete días del Almanax oficial y lista las ofrendas que preparar.</value>
   </data>
   <data name="AlmanaxNotRead" xml:space="preserve">
     <value>No se pudo leer</value>
@@ -1236,16 +1236,16 @@ En un dispositivo {0}, la copia manual se hace por: {1}.</value>
     <value>Apagar o encender la pantalla</value>
   </data>
   <data name="ActionToggleSettingsDetail" xml:space="preserve">
-    <value>Muestra u oculta esta ventana. Las ventanas de juego siguen abiertas, y esta combinación se recuerda en su título.</value>
+    <value>Muestra u oculta esta ventana. Las ventanas de juego siguen abiertas, y su título recuerda este atajo.</value>
   </data>
   <data name="ActionNextWindowDetail" xml:space="preserve">
-    <value>Pasa a la ventana siguiente, en el orden de la lista de aparatos. Las ventanas apartadas se saltan.</value>
+    <value>Pasa a la ventana siguiente, en el orden de la lista. Las ventanas apartadas se saltan.</value>
   </data>
   <data name="ActionPreviousWindowDetail" xml:space="preserve">
-    <value>Pasa a la ventana anterior, en el orden de la lista de aparatos. Las ventanas apartadas se saltan.</value>
+    <value>Pasa a la ventana anterior, en el orden de la lista. Las ventanas apartadas se saltan.</value>
   </data>
   <data name="ActionStackWindowsDetail" xml:space="preserve">
-    <value>Apila todas las ventanas sobre la última que has usado, en su posición y su tamaño. Las ventanas bloqueadas no se mueven.</value>
+    <value>Apila todas las ventanas sobre la última usada, en su sitio y con su tamaño. Las ventanas bloqueadas no se mueven.</value>
   </data>
   <data name="ActionTileDetail" xml:space="preserve">
     <value>Coloca dos ventanas una al lado de la otra, cada una en una mitad de la pantalla. La ventana activa va a la derecha.</value>
@@ -1254,7 +1254,7 @@ En un dispositivo {0}, la copia manual se hace por: {1}.</value>
     <value>Coloca las ventanas en cuadrícula, cada una en un cuarto de la pantalla, en el orden de la lista. A partir de cuatro, las siguientes se apilan en la última casilla.</value>
   </data>
   <data name="ActionToggleGuidesDetail" xml:space="preserve">
-    <value>Muestra u oculta las guías, que permanecen encima de las ventanas de juego. Misiones, mazmorras, incursiones, guaridas y rutas, de papycha.fr, en francés.</value>
+    <value>Muestra u oculta las guías de papycha.fr (misiones, mazmorras, caminos…), que quedan encima de las ventanas de juego.</value>
   </data>
   <data name="ActionSize1Detail" xml:space="preserve">
     <value>El más pequeño de los cuatro tamaños, ajustables con el control.</value>
@@ -1266,7 +1266,7 @@ En un dispositivo {0}, la copia manual se hace por: {1}.</value>
     <value>El tercero de los cuatro tamaños, ajustables con el control.</value>
   </data>
   <data name="ActionSize4Detail" xml:space="preserve">
-    <value>El mayor de los cuatro tamaños. Cubre la zona útil de la pantalla, sin la barra de tareas: no es pantalla completa.</value>
+    <value>El mayor de los cuatro tamaños: toda la zona útil de la pantalla, sin la barra de tareas. No es pantalla completa.</value>
   </data>
   <data name="ActionFullscreenDetail" xml:space="preserve">
     <value>Pantalla completa sin bordes. Pulsa de nuevo, o Esc, para salir: en pantalla completa, Esc ya no llega al juego.</value>
@@ -1296,7 +1296,7 @@ En un dispositivo {0}, la copia manual se hace por: {1}.</value>
     <value>Salir de pantalla completa</value>
   </data>
   <data name="ActionLeaveFullscreenDetail" xml:space="preserve">
-    <value>Esc, solo en pantalla completa: sale de ella como una segunda pulsación del atajo de pantalla completa.</value>
+    <value>Esc, solo en pantalla completa: sale de ella, como una segunda pulsación del atajo de pantalla completa.</value>
   </data>
   <data name="HotkeyClearTip" xml:space="preserve">
     <value>Quitar este atajo</value>
@@ -1590,7 +1590,7 @@ El detalle está en los registros:
     <value>Teléfono vinculado. Se conectará solo, ahora y en cada arranque.</value>
   </data>
   <data name="NoInstanceChecked" xml:space="preserve">
-    <value>No hay ninguna instancia marcada.</value>
+    <value>No hay ninguna cuenta marcada.</value>
   </data>
   <data name="PhoneNotConnectedNamed" xml:space="preserve">
     <value>{0}: el teléfono no está conectado.</value>
@@ -1964,7 +1964,7 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
     <value>Informar en Discord</value>
   </data>
   <data name="ReportOnDiscordTip" xml:space="preserve">
-    <value>Copia el informe y abre el servidor Discord de DT Hub, para pegarlo allí y recibir ayuda.</value>
+    <value>Copia el informe y abre el Discord de DT Hub, para pegarlo allí y obtener ayuda.</value>
   </data>
   <data name="ReportContents" xml:space="preserve">
     <value>El informe lleva la versión, tus pantallas, el error y las líneas útiles del registro de hoy. Los números de serie, las direcciones y el nombre de tu cuenta de Windows se quitan de él.</value>
@@ -2566,7 +2566,7 @@ Para evitarlo: {1}  ›  «Bloqueo automático de Carpeta segura» › la opció
     <value>Portal DT</value>
   </data>
   <data name="LomitallTip" xml:space="preserve">
-    <value>Abrir lomitall.fr en una ventana grande: guías, herramientas, clases, equipamientos y mazmorras de DOFUS Touch. El sitio está en francés.</value>
+    <value>Abrir lomitall.fr: guías, herramientas, clases, equipos y mazmorras de DOFUS Touch.</value>
   </data>
   <data name="CheckAdbDriverUnusable" xml:space="preserve">
     <value>El PC ve el teléfono, pero su controlador, a menudo el de HiSuite u otro programa del fabricante, bloquea la depuración. Cierra ese programa y luego:
@@ -2620,7 +2620,7 @@ Para evitarlo: {1}  ›  «Bloqueo automático de Carpeta segura» › la opció
     <value>Accesibles</value>
   </data>
   <data name="FilterToDoTip" xml:space="preserve">
-    <value>Oculta las misiones terminadas o ignoradas. Quedan las no empezadas o en curso, aunque todavía no puedas lanzarlas.</value>
+    <value>Oculta las misiones terminadas o ignoradas. Quedan las pendientes o en curso, aunque aún no se puedan empezar.</value>
   </data>
   <data name="FilterAvailableTip" xml:space="preserve">
     <value>Solo deja las misiones que tu personaje puede lanzar ahora, según Papycha: nivel y misiones anteriores hechas. Con «Por hacer», lo que puedes hacer ya.</value>
@@ -2685,6 +2685,9 @@ Para evitarlo: {1}  ›  «Bloqueo automático de Carpeta segura» › la opció
   </data>
   <data name="HelpFixWifiRestart" xml:space="preserve">
     <value>• Tras un reinicio, vuelve a activar «Depuración inalámbrica»: la vinculación se conserva.</value>
+  </data>
+  <data name="HelpFixWifiOneNetwork" xml:space="preserve">
+    <value>• Router con dos redes Wi-Fi (2,4 y 5 GHz): deja el teléfono en una sola, la depuración inalámbrica se apaga cuando cambia.</value>
   </data>
   <data name="BrandSamsungFixCable" xml:space="preserve">
     <value>• Samsung: desactiva «Bloqueador automático» (Ajustes › Seguridad y privacidad), y después «Bloquear conexiones USB»: ocultan el teléfono al PC.</value>

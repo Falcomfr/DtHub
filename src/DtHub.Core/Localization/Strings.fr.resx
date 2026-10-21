@@ -87,7 +87,7 @@
     <value>Lire ce que cette version apporte</value>
   </data>
   <data name="StackTip" xml:space="preserve">
-    <value>Empiler toutes les fenêtres de jeu sur la dernière que vous avez utilisée, à sa position et à sa taille</value>
+    <value>Empiler toutes les fenêtres sur la dernière utilisée, à sa place et à sa taille.</value>
   </data>
   <data name="SideBySide" xml:space="preserve">
     <value>Côte à côte</value>
@@ -108,7 +108,7 @@
     <value>Guides</value>
   </data>
   <data name="GuidesTip" xml:space="preserve">
-    <value>Ouvrir les guides, qui restent au-dessus des fenêtres de jeu. Quêtes, donjons, raids, tanières et chemins, de papycha.fr.</value>
+    <value>Ouvrir les guides de papycha.fr (quêtes, donjons, chemins…), qui restent au-dessus des fenêtres de jeu.</value>
   </data>
   <data name="GuidesSource" xml:space="preserve">
     <value>Papycha.fr</value>
@@ -159,13 +159,13 @@
     <value>Moyenne</value>
   </data>
   <data name="QualityMediumTip" xml:space="preserve">
-    <value>Image en 1080 au plus, 30 images par seconde. Le réglage d'origine, qui convient à la plupart des machines.</value>
+    <value>1080 au plus, 30 images par seconde. Convient à la plupart des machines.</value>
   </data>
   <data name="QualityElevated" xml:space="preserve">
     <value>Haute</value>
   </data>
   <data name="QualityElevatedTip" xml:space="preserve">
-    <value>Image en 1080 au plus, 60 images par seconde au lieu de 30. Pour le compte joué pendant que les autres restent en moyenne.</value>
+    <value>1080 au plus, 60 images par seconde au lieu de 30. Pour le compte joué, les autres restant en Moyenne.</value>
   </data>
   <data name="QualityMaximum" xml:space="preserve">
     <value>Très haute</value>
@@ -189,7 +189,7 @@
     <value>Définition max.</value>
   </data>
   <data name="MaxResolutionTip" xml:space="preserve">
-    <value>Un plafond, non la définition retenue : celle-ci suit la taille de la fenêtre et peut être moindre.</value>
+    <value>Un plafond : la définition réelle suit la taille de la fenêtre et peut être moindre.</value>
   </data>
   <data name="FrameRate" xml:space="preserve">
     <value>Cadence</value>
@@ -207,10 +207,10 @@
     <value>AV1 et VP8 ne sont pas proposés : sur un téléphone ordinaire ils n'ont pas d'encodeur matériel, et les encoder en logiciel coûte bien plus qu'ils ne rendent.</value>
   </data>
   <data name="BitsPerPixelTip" xml:space="preserve">
-    <value>Bits accordés à chaque pixel de chaque image. La référence du métier tourne autour de 0,10 pour du H.264 de bonne facture.</value>
+    <value>Bits accordés à chaque pixel de chaque image. Environ 0,10 donne du H.264 de bonne qualité.</value>
   </data>
   <data name="BitrateTip" xml:space="preserve">
-    <value>Ce que le téléphone devra pousser sur le Wi-Fi. Un appareil en Wi-Fi 4 sur 2,4 GHz en rend une soixantaine de mégabits en pratique.</value>
+    <value>Ce que le téléphone envoie sur le Wi-Fi. En Wi-Fi 4 sur 2,4 GHz, comptez une soixantaine de mégabits au plus.</value>
   </data>
   <data name="ResolutionAdviceTip" xml:space="preserve">
     <value>La définition suit la taille des fenêtres. 1440 au lieu de 1080 ne se voit que sur une fenêtre de plus de 1800 pixels de haut, pour bien plus de débit.</value>
@@ -327,7 +327,7 @@
     <value>Cloner le jeu</value>
   </data>
   <data name="RemoveAppTip" xml:space="preserve">
-    <value>Retirer de la liste. L'application reste sur le téléphone, et se réaffiche depuis le bouton +.</value>
+    <value>Retirer de la liste. L'application reste sur le téléphone, et le bouton + la remet.</value>
   </data>
   <data name="AppPickerLoadFailed" xml:space="preserve">
     <value>Les applications du téléphone n'ont pas pu être lues. Fermez cette fenêtre et réessayez.</value>
@@ -342,7 +342,7 @@
     <value>Associer un nouvel appareil</value>
   </data>
   <data name="PairDeviceTip" xml:space="preserve">
-    <value>À faire une seule fois par appareil, par câble ou sans fil. Les appareils déjà associés se connectent tout seuls.</value>
+    <value>Une seule fois par téléphone, par câble ou sans fil. Ensuite, il se connecte tout seul.</value>
   </data>
   <data name="Profiles" xml:space="preserve">
     <value>Profils</value>
@@ -360,10 +360,10 @@
     <value>Aucun profil pour l'instant. Ouvrez vos comptes, placez leurs fenêtres, puis créez-en un.</value>
   </data>
   <data name="LaunchProfileTip" xml:space="preserve">
-    <value>Ouvrir ce profil : ses comptes s'ouvrent à leurs positions et avec ses réglages, les autres fenêtres se ferment.</value>
+    <value>Ouvrir ce profil : ses comptes s'ouvrent à leur place avec ses réglages, les autres fenêtres se ferment.</value>
   </data>
   <data name="DefaultProfileTip" xml:space="preserve">
-    <value>Ouvrir ce profil au démarrage. Un second clic retire la désignation, et l'application rouvre alors ce qui était ouvert.</value>
+    <value>Ouvrir ce profil au démarrage. Un second clic l'annule : DT Hub rouvre alors ce qui était ouvert.</value>
   </data>
   <data name="DeleteProfileTip" xml:space="preserve">
     <value>Supprimer ce profil. Les comptes ne sont pas touchés.</value>
@@ -445,7 +445,7 @@
     <value>Associer</value>
   </data>
   <data name="PortTip" xml:space="preserve">
-    <value>Le nombre qui suit les « : » dans « Adresse IP et port », sur l'écran principal Débogage sans fil</value>
+    <value>Le nombre après « : » dans « Adresse IP et port », sur l'écran Débogage sans fil.</value>
   </data>
   <data name="Connect" xml:space="preserve">
     <value>Connecter</value>
@@ -520,7 +520,7 @@
     <value>Oublie ce téléphone sur ce PC : ses comptes et réglages sont effacés. Le téléphone n'est pas touché. Confirmation demandée.</value>
   </data>
   <data name="DragToReorderTip" xml:space="preserve">
-    <value>Glissez pour changer l'ordre. Une instance peut se placer entre celles d'un autre appareil, et cet ordre est aussi celui du parcours au clavier.</value>
+    <value>Glissez pour changer l'ordre, même entre les comptes de deux téléphones. C'est aussi l'ordre du parcours au clavier.</value>
   </data>
   <data name="LockWindowTip" xml:space="preserve">
     <value>Fige cette fenêtre à sa place : l'empilement, le côte à côte, les changements de taille et le parcours au clavier l'ignorent. Dans le cadre à onglets, un onglet verrouillé fige tout le cadre.</value>
@@ -535,13 +535,13 @@
     <value>Ouvrir ce compte dans le cadre à onglets. Recliquez pour lui rendre sa fenêtre libre.</value>
   </data>
   <data name="RenameTip" xml:space="preserve">
-    <value>Cliquez pour renommer. Ce texte devient le titre de la fenêtre du jeu, visible dans la barre des tâches.</value>
+    <value>Cliquez pour renommer : ce nom devient le titre de la fenêtre de jeu.</value>
   </data>
   <data name="OpenInstanceTip" xml:space="preserve">
-    <value>Ouvrir cette instance maintenant. Sa fenêtre revient à la place et à la taille qu'elle avait la dernière fois.</value>
+    <value>Ouvrir ce compte. Sa fenêtre revient à sa place et à sa taille.</value>
   </data>
   <data name="RestartTip" xml:space="preserve">
-    <value>Relancer le jeu sans fermer la fenêtre. Utile quand une fenêtre s'est figée : elle repart à l'écran de connexion, à sa place et à sa taille.</value>
+    <value>Relance le jeu sans fermer la fenêtre : utile si elle s'est figée. Elle revient à l'écran de connexion, même place, même taille.</value>
   </data>
   <data name="CloseWindowTip" xml:space="preserve">
     <value>Ferme la fenêtre de ce compte. Rien n'est supprimé : le bouton Lancer la rouvre au même endroit. Elle ne se rouvrira pas seule au démarrage.</value>
@@ -777,7 +777,7 @@ Un téléphone déjà associé en Wi-Fi revient tout seul.</value>
     <value>reconnexion</value>
   </data>
   <data name="InstanceSettingsTip" xml:space="preserve">
-    <value>La qualité et la distance de ce compte seul, quand elles doivent différer des réglages partagés.</value>
+    <value>La qualité et la distance de ce compte seul, s'il doit différer des autres.</value>
   </data>
   <data name="VitalsHeatWarm" xml:space="preserve">
     <value>tiède</value>
@@ -810,7 +810,7 @@ Un téléphone déjà associé en Wi-Fi revient tout seul.</value>
     <value>Restaurer des réglages</value>
   </data>
   <data name="ExportSettingsTip" xml:space="preserve">
-    <value>Écrit les comptes, les profils, les raccourcis et les réglages dans un fichier, pour les emporter sur un autre PC.</value>
+    <value>Enregistre comptes, profils, raccourcis et réglages dans un fichier, pour les emporter sur un autre PC.</value>
   </data>
   <data name="ImportSettingsTip" xml:space="preserve">
     <value>Remplace tous les réglages par ceux d'un fichier écrit par cette application.</value>
@@ -888,7 +888,7 @@ Un téléphone déjà associé en Wi-Fi revient tout seul.</value>
     <value>Clavier physique simulé</value>
   </data>
   <data name="SimulatedKeyboardTip" xml:space="preserve">
-    <value>Présente le clavier au téléphone comme un clavier branché, au lieu de taper par son clavier virtuel.</value>
+    <value>Présente le clavier au téléphone comme un clavier branché, sans passer par son clavier virtuel.</value>
   </data>
   <data name="SimulatedKeyboardHelp" xml:space="preserve">
     <value>À activer si la souris marche mais que rien ne s'écrit. Réglez alors la disposition du clavier Android comme celle du PC, sinon un AZERTY tape en QWERTY.</value>
@@ -978,7 +978,7 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
     <value>Offrandes de la semaine</value>
   </data>
   <data name="AlmanaxPrepareTip" xml:space="preserve">
-    <value>Lit les sept jours de la bande sur l'Almanax officiel, une page par seconde, et liste ce qu'il faut apporter.</value>
+    <value>Lit les sept prochains jours de l'Almanax officiel et liste les offrandes à prévoir.</value>
   </data>
   <data name="AlmanaxNotRead" xml:space="preserve">
     <value>Illisible</value>
@@ -1236,16 +1236,16 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
     <value>Éteindre ou rallumer l'écran</value>
   </data>
   <data name="ActionToggleSettingsDetail" xml:space="preserve">
-    <value>Montre ou cache cette fenêtre. Les fenêtres de jeu restent ouvertes, et le rappel de cette combinaison figure dans leur titre.</value>
+    <value>Montre ou cache cette fenêtre. Les fenêtres de jeu restent ouvertes, et leur titre rappelle ce raccourci.</value>
   </data>
   <data name="ActionNextWindowDetail" xml:space="preserve">
-    <value>Passe à la fenêtre suivante, dans l'ordre de la liste des appareils. Les fenêtres mises de côté sont sautées.</value>
+    <value>Passe à la fenêtre suivante, dans l'ordre de la liste. Les fenêtres mises de côté sont sautées.</value>
   </data>
   <data name="ActionPreviousWindowDetail" xml:space="preserve">
-    <value>Passe à la fenêtre précédente, dans l'ordre de la liste des appareils. Les fenêtres mises de côté sont sautées.</value>
+    <value>Passe à la fenêtre précédente, dans l'ordre de la liste. Les fenêtres mises de côté sont sautées.</value>
   </data>
   <data name="ActionStackWindowsDetail" xml:space="preserve">
-    <value>Empile toutes les fenêtres sur la dernière que vous avez utilisée, à sa position et à sa taille. Les fenêtres verrouillées ne bougent pas.</value>
+    <value>Empile toutes les fenêtres sur la dernière utilisée, à sa place et à sa taille. Les fenêtres verrouillées ne bougent pas.</value>
   </data>
   <data name="ActionTileDetail" xml:space="preserve">
     <value>Range deux fenêtres côte à côte, chacune sur une moitié de l'écran. La fenêtre active va à droite.</value>
@@ -1254,7 +1254,7 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
     <value>Range les fenêtres en grille, chacune sur un quart de l'écran, dans l'ordre de la liste. Au-delà de quatre, les suivantes s'empilent sur la dernière case.</value>
   </data>
   <data name="ActionToggleGuidesDetail" xml:space="preserve">
-    <value>Montre ou cache les guides, qui restent au-dessus des fenêtres de jeu. Quêtes, donjons, raids, tanières et chemins, de papycha.fr.</value>
+    <value>Montre ou cache les guides de papycha.fr (quêtes, donjons, chemins…), qui restent au-dessus des fenêtres de jeu.</value>
   </data>
   <data name="ActionSize1Detail" xml:space="preserve">
     <value>La plus petite des quatre tailles, réglables au curseur.</value>
@@ -1266,7 +1266,7 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
     <value>La troisième des quatre tailles, réglables au curseur.</value>
   </data>
   <data name="ActionSize4Detail" xml:space="preserve">
-    <value>La plus grande des quatre tailles. Elle couvre la zone utile de l'écran, barre des tâches exclue : ce n'est pas le plein écran.</value>
+    <value>La plus grande des quatre tailles : toute la zone utile de l'écran, sans la barre des tâches. Ce n'est pas le plein écran.</value>
   </data>
   <data name="ActionFullscreenDetail" xml:space="preserve">
     <value>Plein écran sans bordure. Appuyez de nouveau, ou sur Échap, pour en sortir : pendant le plein écran, Échap n'arrive donc plus au jeu.</value>
@@ -1296,7 +1296,7 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
     <value>Quitter le plein écran</value>
   </data>
   <data name="ActionLeaveFullscreenDetail" xml:space="preserve">
-    <value>Échap, seulement pendant le plein écran : en sort comme un second appui sur le raccourci du plein écran.</value>
+    <value>Échap, seulement en plein écran : en sort, comme un second appui sur le raccourci du plein écran.</value>
   </data>
   <data name="HotkeyClearTip" xml:space="preserve">
     <value>Retirer ce raccourci</value>
@@ -1590,7 +1590,7 @@ Le détail se trouve dans les journaux :
     <value>Téléphone associé. Il se connectera tout seul, maintenant et à chaque lancement.</value>
   </data>
   <data name="NoInstanceChecked" xml:space="preserve">
-    <value>Aucune instance n'est cochée.</value>
+    <value>Aucun compte n'est coché.</value>
   </data>
   <data name="PhoneNotConnectedNamed" xml:space="preserve">
     <value>{0} : le téléphone n'est pas connecté.</value>
@@ -1964,7 +1964,7 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
     <value>Signaler sur Discord</value>
   </data>
   <data name="ReportOnDiscordTip" xml:space="preserve">
-    <value>Copie le rapport et ouvre le serveur Discord de DT Hub, pour l'y coller et obtenir de l'aide.</value>
+    <value>Copie le rapport et ouvre le Discord de DT Hub, pour l'y coller et obtenir de l'aide.</value>
   </data>
   <data name="ReportContents" xml:space="preserve">
     <value>Le rapport porte la version, vos écrans, l'erreur et les lignes utiles du journal du jour. Les numéros de série, les adresses et le nom de votre compte Windows en sont retirés.</value>
@@ -2566,7 +2566,7 @@ Pour l'éviter : {1}  ›  « Verrouillage auto. Dossier sécurisé » › l'opt
     <value>Portail DT</value>
   </data>
   <data name="LomitallTip" xml:space="preserve">
-    <value>Ouvrir lomitall.fr dans une grande fenêtre : guides, outils, classes, stuffs et donjons de DOFUS Touch.</value>
+    <value>Ouvrir lomitall.fr : guides, outils, classes, stuffs et donjons de DOFUS Touch.</value>
   </data>
   <data name="CheckAdbDriverUnusable" xml:space="preserve">
     <value>Le PC voit le téléphone, mais son pilote, souvent celui de HiSuite ou d'un autre logiciel du constructeur, bloque le débogage. Quittez ce logiciel, puis :
@@ -2620,7 +2620,7 @@ Pour l'éviter : {1}  ›  « Verrouillage auto. Dossier sécurisé » › l'opt
     <value>Accessibles</value>
   </data>
   <data name="FilterToDoTip" xml:space="preserve">
-    <value>Cache les quêtes terminées ou ignorées. Restent celles pas commencées ou en cours, même si vous ne pouvez pas encore les lancer.</value>
+    <value>Cache les quêtes terminées ou ignorées. Restent celles à faire ou en cours, même pas encore lançables.</value>
   </data>
   <data name="FilterAvailableTip" xml:space="preserve">
     <value>Ne garde que les quêtes que votre personnage peut lancer maintenant, d’après Papycha : niveau et quêtes précédentes faites. Avec « À faire », ce que vous pouvez faire tout de suite.</value>
@@ -2685,6 +2685,9 @@ Pour l'éviter : {1}  ›  « Verrouillage auto. Dossier sécurisé » › l'opt
   </data>
   <data name="HelpFixWifiRestart" xml:space="preserve">
     <value>• Après un redémarrage, rallumez « Débogage sans fil » : l'association reste acquise.</value>
+  </data>
+  <data name="HelpFixWifiOneNetwork" xml:space="preserve">
+    <value>• Box à deux réseaux Wi-Fi (2,4 et 5 GHz) : gardez le téléphone sur un seul, le débogage sans fil se coupe quand il change.</value>
   </data>
   <data name="BrandSamsungFixCable" xml:space="preserve">
     <value>• Samsung : désactivez « Bloqueur automatique » (Paramètres › Sécurité et confidentialité), puis « Bloquer les connexions USB » : ils cachent le téléphone au PC.</value>

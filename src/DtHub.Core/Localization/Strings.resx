@@ -87,7 +87,7 @@
     <value>Read what this version brings</value>
   </data>
   <data name="StackTip" xml:space="preserve">
-    <value>Stack every game window onto the last one you used, at its position and its size</value>
+    <value>Stack every window on the last one used, at its place and size.</value>
   </data>
   <data name="SideBySide" xml:space="preserve">
     <value>Side by side</value>
@@ -108,7 +108,7 @@
     <value>Guides</value>
   </data>
   <data name="GuidesTip" xml:space="preserve">
-    <value>Open the guides, which stay above the game windows. Quests, dungeons, raids, lairs and paths, from papycha.fr, in French.</value>
+    <value>Open the papycha.fr guides (quests, dungeons, paths…), which stay above the game windows.</value>
   </data>
   <data name="GuidesSource" xml:space="preserve">
     <value>Papycha.fr</value>
@@ -159,13 +159,13 @@
     <value>Medium</value>
   </data>
   <data name="QualityMediumTip" xml:space="preserve">
-    <value>1080 at most, 30 frames per second. The original setting, which suits most machines.</value>
+    <value>1080 at most, 30 frames per second. Suits most machines.</value>
   </data>
   <data name="QualityElevated" xml:space="preserve">
     <value>High</value>
   </data>
   <data name="QualityElevatedTip" xml:space="preserve">
-    <value>1080 at most, 60 frames per second instead of 30. For the account you play while the others stay at medium.</value>
+    <value>1080 at most, 60 frames per second instead of 30. For the account you play, the others staying at Medium.</value>
   </data>
   <data name="QualityMaximum" xml:space="preserve">
     <value>Very high</value>
@@ -189,7 +189,7 @@
     <value>Max. resolution</value>
   </data>
   <data name="MaxResolutionTip" xml:space="preserve">
-    <value>A ceiling, not the resolution used: that one follows the window size and can be lower.</value>
+    <value>A ceiling: the actual resolution follows the window's size and can be lower.</value>
   </data>
   <data name="FrameRate" xml:space="preserve">
     <value>Frame rate</value>
@@ -207,10 +207,10 @@
     <value>AV1 and VP8 are not offered: on an ordinary phone they have no hardware encoder, and encoding them in software costs far more than they give back.</value>
   </data>
   <data name="BitsPerPixelTip" xml:space="preserve">
-    <value>Bits granted to each pixel of each frame. The trade reference sits around 0.10 for well-made H.264.</value>
+    <value>Bits given to each pixel of each frame. About 0.10 gives good-quality H.264.</value>
   </data>
   <data name="BitrateTip" xml:space="preserve">
-    <value>What the phone will have to push over Wi-Fi. A Wi-Fi 4 device on 2.4 GHz gives about sixty megabits in practice.</value>
+    <value>What the phone sends over Wi-Fi. On Wi-Fi 4 at 2.4 GHz, count on sixty megabits at most.</value>
   </data>
   <data name="ResolutionAdviceTip" xml:space="preserve">
     <value>The resolution follows the windows' size. 1440 instead of 1080 only shows on a window over 1800 pixels high, for far more bitrate.</value>
@@ -327,7 +327,7 @@
     <value>Clone the game</value>
   </data>
   <data name="RemoveAppTip" xml:space="preserve">
-    <value>Remove from the list. The application stays on the phone, and can be shown again from the + button.</value>
+    <value>Remove from the list. The app stays on the phone, and the + button puts it back.</value>
   </data>
   <data name="AppPickerLoadFailed" xml:space="preserve">
     <value>The phone's applications could not be read. Close this window and try again.</value>
@@ -342,7 +342,7 @@
     <value>Pair a new device</value>
   </data>
   <data name="PairDeviceTip" xml:space="preserve">
-    <value>To be done once per device, by cable or wireless. Devices already paired connect on their own.</value>
+    <value>Once per phone, by cable or wireless. After that, it connects on its own.</value>
   </data>
   <data name="Profiles" xml:space="preserve">
     <value>Profiles</value>
@@ -360,10 +360,10 @@
     <value>No profile yet. Open your accounts, place their windows, then create one.</value>
   </data>
   <data name="LaunchProfileTip" xml:space="preserve">
-    <value>Open this profile: its accounts open at their positions and with its settings, the other windows close.</value>
+    <value>Open this profile: its accounts open in place with its settings, the other windows close.</value>
   </data>
   <data name="DefaultProfileTip" xml:space="preserve">
-    <value>Open this profile at startup. A second click removes the mark, and the application then reopens what was open.</value>
+    <value>Open this profile at startup. A second click cancels it: DT Hub then reopens what was open.</value>
   </data>
   <data name="DeleteProfileTip" xml:space="preserve">
     <value>Delete this profile. The accounts are not touched.</value>
@@ -445,7 +445,7 @@
     <value>Pair</value>
   </data>
   <data name="PortTip" xml:space="preserve">
-    <value>The number after the “:” in “IP address &amp; Port”, on the main Wireless debugging screen</value>
+    <value>The number after ":" in "IP address &amp; port", on the Wireless debugging screen.</value>
   </data>
   <data name="Connect" xml:space="preserve">
     <value>Connect</value>
@@ -520,7 +520,7 @@
     <value>Forgets this phone on this PC: its accounts and settings are erased. The phone is not touched. Asks for confirmation.</value>
   </data>
   <data name="DragToReorderTip" xml:space="preserve">
-    <value>Drag to change the order. An instance can sit between those of another device, and this order is also the one the keyboard follows.</value>
+    <value>Drag to change the order, even between two phones' accounts. It is also the keyboard cycling order.</value>
   </data>
   <data name="LockWindowTip" xml:space="preserve">
     <value>Pins this window in place: stacking, side by side, resizing and keyboard cycling leave it alone. In the tab frame, one locked tab pins the whole frame.</value>
@@ -535,13 +535,13 @@
     <value>Open this account in the tabbed frame. Click again to give it back its own free window.</value>
   </data>
   <data name="RenameTip" xml:space="preserve">
-    <value>Click to rename. This text becomes the title of the game window, visible in the taskbar.</value>
+    <value>Click to rename: this name becomes the game window's title.</value>
   </data>
   <data name="OpenInstanceTip" xml:space="preserve">
-    <value>Open this instance now. Its window comes back to the place and the size it had last time.</value>
+    <value>Open this account. Its window comes back at its place and size.</value>
   </data>
   <data name="RestartTip" xml:space="preserve">
-    <value>Restart the game without closing the window. Useful when a window has frozen: it starts again at the login screen, at its place and its size.</value>
+    <value>Restarts the game without closing the window: useful if it froze. It comes back to the login screen, same place, same size.</value>
   </data>
   <data name="CloseWindowTip" xml:space="preserve">
     <value>Closes this account's window. Nothing is deleted: the Play button reopens it in the same place. It will not reopen on its own at startup.</value>
@@ -777,7 +777,7 @@ A phone already paired over Wi-Fi comes back on its own.</value>
     <value>reconnecting</value>
   </data>
   <data name="InstanceSettingsTip" xml:space="preserve">
-    <value>This account's own quality and distance, when they have to differ from the shared settings.</value>
+    <value>This account's own quality and distance, if it must differ from the others.</value>
   </data>
   <data name="VitalsHeatWarm" xml:space="preserve">
     <value>warm</value>
@@ -810,7 +810,7 @@ A phone already paired over Wi-Fi comes back on its own.</value>
     <value>Restore settings</value>
   </data>
   <data name="ExportSettingsTip" xml:space="preserve">
-    <value>Writes accounts, profiles, shortcuts and settings to one file, to carry to another PC.</value>
+    <value>Saves accounts, profiles, shortcuts and settings to a file, to take them to another PC.</value>
   </data>
   <data name="ImportSettingsTip" xml:space="preserve">
     <value>Replaces every setting with those of a file written by this application.</value>
@@ -888,7 +888,7 @@ A phone already paired over Wi-Fi comes back on its own.</value>
     <value>Simulated physical keyboard</value>
   </data>
   <data name="SimulatedKeyboardTip" xml:space="preserve">
-    <value>Present the keyboard to the phone as a plugged-in keyboard, instead of typing through its on-screen one.</value>
+    <value>Presents the keyboard to the phone as a plugged-in keyboard, bypassing its virtual keyboard.</value>
   </data>
   <data name="SimulatedKeyboardHelp" xml:space="preserve">
     <value>Turn on if the mouse works but nothing gets typed. Then set the Android keyboard layout like the PC's, or an AZERTY types as QWERTY.</value>
@@ -978,7 +978,7 @@ On a {0} device, the manual copy goes through: {1}.</value>
     <value>The week's offerings</value>
   </data>
   <data name="AlmanaxPrepareTip" xml:space="preserve">
-    <value>Reads the seven days of the strip from the official Almanax, one page a second, and lists what to bring.</value>
+    <value>Reads the next seven days of the official Almanax and lists the offerings to bring.</value>
   </data>
   <data name="AlmanaxNotRead" xml:space="preserve">
     <value>Could not be read</value>
@@ -1236,16 +1236,16 @@ On a {0} device, the manual copy goes through: {1}.</value>
     <value>Phone screen off or on</value>
   </data>
   <data name="ActionToggleSettingsDetail" xml:space="preserve">
-    <value>Shows or hides this window. The game windows stay open, and this combination is recalled in their title.</value>
+    <value>Shows or hides this window. Game windows stay open, and their title recalls this shortcut.</value>
   </data>
   <data name="ActionNextWindowDetail" xml:space="preserve">
-    <value>Moves to the next window, in the order of the device list. Windows set aside are skipped.</value>
+    <value>Goes to the next window, in the list's order. Windows set aside are skipped.</value>
   </data>
   <data name="ActionPreviousWindowDetail" xml:space="preserve">
-    <value>Moves to the previous window, in the order of the device list. Windows set aside are skipped.</value>
+    <value>Goes to the previous window, in the list's order. Windows set aside are skipped.</value>
   </data>
   <data name="ActionStackWindowsDetail" xml:space="preserve">
-    <value>Stacks every window onto the last one you used, at its position and its size. Locked windows do not move.</value>
+    <value>Stacks every window on the last one used, at its place and size. Locked windows do not move.</value>
   </data>
   <data name="ActionTileDetail" xml:space="preserve">
     <value>Lays two windows side by side, each on one half of the screen. The active window goes to the right.</value>
@@ -1254,7 +1254,7 @@ On a {0} device, the manual copy goes through: {1}.</value>
     <value>Lays the windows out in a grid, each on a quarter of the screen, in the order of the list. Beyond four, the next ones stack on the last cell.</value>
   </data>
   <data name="ActionToggleGuidesDetail" xml:space="preserve">
-    <value>Shows or hides the guides, which stay above the game windows. Quests, dungeons, raids, lairs and paths, from papycha.fr, in French.</value>
+    <value>Shows or hides the papycha.fr guides (quests, dungeons, paths…), which stay above the game windows.</value>
   </data>
   <data name="ActionSize1Detail" xml:space="preserve">
     <value>The smallest of the four sizes, adjustable with the slider.</value>
@@ -1266,7 +1266,7 @@ On a {0} device, the manual copy goes through: {1}.</value>
     <value>The third of the four sizes, adjustable with the slider.</value>
   </data>
   <data name="ActionSize4Detail" xml:space="preserve">
-    <value>The largest of the four sizes. It covers the usable area of the screen, taskbar excluded: this is not full screen.</value>
+    <value>The largest of the four sizes: the whole usable screen area, without the taskbar. Not full screen.</value>
   </data>
   <data name="ActionFullscreenDetail" xml:space="preserve">
     <value>Borderless full screen. Press again, or Esc, to leave it: while in full screen, Esc no longer reaches the game.</value>
@@ -1296,7 +1296,7 @@ On a {0} device, the manual copy goes through: {1}.</value>
     <value>Leave fullscreen</value>
   </data>
   <data name="ActionLeaveFullscreenDetail" xml:space="preserve">
-    <value>Esc, only while in fullscreen: leaves it like a second press on the fullscreen shortcut.</value>
+    <value>Esc, only in full screen: leaves it, like a second press on the full screen shortcut.</value>
   </data>
   <data name="HotkeyClearTip" xml:space="preserve">
     <value>Remove this shortcut</value>
@@ -1590,7 +1590,7 @@ The detail is in the logs:
     <value>Phone paired. It will connect on its own, now and at every start.</value>
   </data>
   <data name="NoInstanceChecked" xml:space="preserve">
-    <value>No instance is ticked.</value>
+    <value>No account is ticked.</value>
   </data>
   <data name="PhoneNotConnectedNamed" xml:space="preserve">
     <value>{0}: the phone is not connected.</value>
@@ -1964,7 +1964,7 @@ In the meantime, the button at the bottom opens the page in your browser.</value
     <value>Report on Discord</value>
   </data>
   <data name="ReportOnDiscordTip" xml:space="preserve">
-    <value>Copies the report and opens the DT Hub Discord server, to paste it there and get help.</value>
+    <value>Copies the report and opens the DT Hub Discord, to paste it there and get help.</value>
   </data>
   <data name="ReportContents" xml:space="preserve">
     <value>The report carries the version, your screens, the error and the useful lines of today's log. Device serials, addresses and your Windows account name are removed from it.</value>
@@ -2566,7 +2566,7 @@ To avoid it: {1}  ›  "Auto lock Secure Folder" › the longest option.</value>
     <value>DT portal</value>
   </data>
   <data name="LomitallTip" xml:space="preserve">
-    <value>Open lomitall.fr in a large window: DOFUS Touch guides, tools, classes, stuffs and dungeons. The site is in French.</value>
+    <value>Open lomitall.fr: DOFUS Touch guides, tools, classes, gear and dungeons.</value>
   </data>
   <data name="CheckAdbDriverUnusable" xml:space="preserve">
     <value>The PC sees the phone, but its driver, often the one from HiSuite or another maker's software, blocks debugging. Quit that software, then:
@@ -2620,7 +2620,7 @@ To avoid it: {1}  ›  "Auto lock Secure Folder" › the longest option.</value>
     <value>Available</value>
   </data>
   <data name="FilterToDoTip" xml:space="preserve">
-    <value>Hides the quests done or ignored. Those not started or in progress stay, even if you cannot start them yet.</value>
+    <value>Hides finished or ignored quests. Those to do or in progress stay, even if not startable yet.</value>
   </data>
   <data name="FilterAvailableTip" xml:space="preserve">
     <value>Keeps only the quests your character can start now, according to Papycha: level and earlier quests done. With “To do”, what you can do right away.</value>
@@ -2685,6 +2685,9 @@ To avoid it: {1}  ›  "Auto lock Secure Folder" › the longest option.</value>
   </data>
   <data name="HelpFixWifiRestart" xml:space="preserve">
     <value>• After a restart, turn “Wireless debugging” back on: the pairing is kept.</value>
+  </data>
+  <data name="HelpFixWifiOneNetwork" xml:space="preserve">
+    <value>• Box with two Wi-Fi networks (2.4 and 5 GHz): keep the phone on one, wireless debugging turns off when it switches.</value>
   </data>
   <data name="BrandSamsungFixCable" xml:space="preserve">
     <value>• Samsung: turn off “Auto Blocker” (Settings › Security and privacy), then “Block USB connections”: they hide the phone from the PC.</value>
