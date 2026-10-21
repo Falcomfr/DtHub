@@ -2284,7 +2284,7 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
     <value>Comprueba el cable y luego la depuración USB en el teléfono.</value>
   </data>
   <data name="OfflineHowWireless" xml:space="preserve">
-    <value>¿Misma Wi-Fi que el PC? En el teléfono, abre Opciones de desarrollador › Depuración inalámbrica: mostrarla suele bastar para reactivarla.</value>
+    <value>Wi-Fi: abre Depuración inalámbrica en el teléfono.</value>
   </data>
   <data name="OfflineHowUnknown" xml:space="preserve">
     <value>Comprueba que el teléfono esté encendido y su depuración activa.</value>

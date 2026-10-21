@@ -2284,7 +2284,7 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
     <value>Vérifiez le câble, puis le débogage USB sur le téléphone.</value>
   </data>
   <data name="OfflineHowWireless" xml:space="preserve">
-    <value>Même Wi-Fi que le PC ? Sur le téléphone, ouvrez Options de développement › Débogage sans fil : l'afficher suffit souvent à le relancer.</value>
+    <value>Wi-Fi : ouvrez Débogage sans fil sur le téléphone.</value>
   </data>
   <data name="OfflineHowUnknown" xml:space="preserve">
     <value>Vérifiez que le téléphone est allumé et son débogage actif.</value>

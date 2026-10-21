@@ -2284,7 +2284,7 @@ In the meantime, the button at the bottom opens the page in your browser.</value
     <value>Check the cable, then USB debugging on the phone.</value>
   </data>
   <data name="OfflineHowWireless" xml:space="preserve">
-    <value>Same Wi-Fi as the PC? On the phone, open Developer options › Wireless debugging: showing it is often enough to restart it.</value>
+    <value>Wi-Fi: open Wireless debugging on the phone.</value>
   </data>
   <data name="OfflineHowUnknown" xml:space="preserve">
     <value>Check that the phone is on and its debugging active.</value>
