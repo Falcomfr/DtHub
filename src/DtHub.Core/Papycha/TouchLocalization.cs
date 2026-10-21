@@ -9,11 +9,13 @@
 ///
 /// Rules:
 /// - with <c>translateNames</c>, a paired quest's title becomes the game
-///   names joined by " / " (distinct names only: some pages pair with many
-///   game quests sharing one name), and its search key covers the shown and
-///   the French title, so both find it;
-/// - each prerequisite that names a French quest title takes that quest's
-///   shown title, so the chain still resolves;
+///   names joined by " / " (distinct names only, ignoring case and accents:
+///   some pages pair with many game quests sharing one name), and its search
+///   key covers the shown and the French title, so both find it; quests with
+///   different French titles that would show one game name keep their French
+///   titles;
+/// - with <c>translateNames</c>, each prerequisite that names a French quest
+///   title takes that quest's shown title, so the chain still resolves;
 /// - the level is the first game quest's, when it is precise (min = max > 0);
 /// - the series name of a quest and the series order take the game
 ///   achievement name, in every language;
@@ -40,7 +42,7 @@ public static class TouchLocalization
         ArgumentNullException.ThrowIfNull(names);
 
         Dictionary<string, string> shownByFrench = [];
-        List<QuestSummary> quests = [];
+        List<(QuestSummary Quest, string Shown, int Level)> rows = [];
 
         foreach (var quest in source.Quests)
         {
@@ -67,7 +69,29 @@ public static class TouchLocalization
                 }
             }
 
-            shownByFrench.TryAdd(QuestSearch.Normalize(quest.Title), shown);
+            rows.Add((quest, shown, level));
+        }
+
+        // One game name over pages Papycha titles apart would merge them in
+        // the chain (a Spanish name shared by two Brakmar quests): they keep
+        // their French titles.
+        var shared = rows
+            .GroupBy(r => QuestSearch.Normalize(r.Shown))
+            .Where(g => g.Select(r => QuestSearch.Normalize(r.Quest.Title)).Distinct().Skip(1).Any())
+            .SelectMany(g => g.Select(r => r.Quest.Id))
+            .ToHashSet();
+
+        List<QuestSummary> quests = [];
+
+        foreach (var (quest, found, level) in rows)
+        {
+            var shown = shared.Contains(quest.Id) ? quest.Title : found;
+
+            // In French the titles are Papycha's: nothing to follow.
+            if (translateNames)
+            {
+                shownByFrench.TryAdd(QuestSearch.Normalize(quest.Title), shown);
+            }
 
             quests.Add(quest with
             {
@@ -148,7 +172,8 @@ public static class TouchLocalization
             : label[..at] + renamed + label[(at + target.Name.Length)..];
     }
 
-    private static string Join(IEnumerable<string> parts) => string.Join(Separator, parts.Distinct());
+    /// <summary>The game spells one name apart by case or accent across homonyms: shown once.</summary>
+    private static string Join(IEnumerable<string> parts) => string.Join(Separator, parts.DistinctBy(QuestSearch.Normalize));
 
     private static string Series(string name, TouchIdTable table, TouchLanguageNames names) =>
         table.Series.TryGetValue(name, out var id) && names.Achievements.TryGetValue(id, out var shown)

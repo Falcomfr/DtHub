@@ -95,6 +95,44 @@ public class TouchLocalizationTests
     }
 
     [Fact]
+    public void En_francais_un_prerequis_de_quete_n_est_pas_reecrit()
+    {
+        var source = Catalog();
+        source.Quests[1] = Quest(2, "Quête bêta", 0, "", 0, "Quete ALPHA");
+
+        var doc = TouchLocalization.Apply(source, Table, Names(), translateNames: false);
+
+        Assert.Equal("Quete ALPHA", Q(doc, 2).Prerequisites[0]);
+    }
+
+    [Fact]
+    public void Un_nom_du_jeu_partage_par_deux_titres_francais_differents_laisse_les_titres_francais()
+    {
+        var table = Table with { Quests = new() { [1] = [10], [2] = [11], [3] = [14] } };
+        var names = Names();
+        names.Quests[14] = new("invented en", 30, 30, []);
+
+        var doc = TouchLocalization.Apply(Catalog(), table, names, translateNames: true);
+
+        Assert.Equal("Quête alpha", Q(doc, 1).Title);
+        Assert.Equal("Quête gamma", Q(doc, 3).Title);
+        Assert.Equal(30, Q(doc, 3).Level);
+        Assert.Equal("Twin one", Q(doc, 2).Title);
+        Assert.Equal(1, new QuestChainIndex(doc.Quests).Find(Q(doc, 2).Prerequisites[0])!.Id);
+    }
+
+    [Fact]
+    public void Une_page_groupee_ne_repete_pas_un_nom_a_la_casse_ou_l_accent_pres()
+    {
+        var names = Names();
+        names.Quests[12] = new("Twín ONE", 1, 1, []);
+
+        var doc = TouchLocalization.Apply(Catalog(), Table, names, translateNames: true);
+
+        Assert.Equal("Twin one / Twin two", Q(doc, 2).Title);
+    }
+
+    [Fact]
     public void Le_niveau_du_jeu_ne_sert_que_s_il_est_precis()
     {
         var precise = TouchLocalization.Apply(Catalog(), Table, Names(120, 120), true);
