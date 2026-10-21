@@ -10680,3 +10680,17 @@ passe. Coût : les voisins reviennent une seconde après la fin du lancement,
 choisi par l'utilisateur contre l'option de les tenir pendant tout le lancement,
 ce que D97 avait écarté. Mesuré : les deux comptes du téléphone occupés dès le
 clic, libres ensemble à 4,5 s, sans trou entre les deux.
+
+## D207 - Fermer une fenêtre de jeu à la main la retire du démarrage
+
+**2026-10-21 - Acceptée, remplace D22 sur ce point**
+
+D22 voulait qu'une fenêtre fermée à la main se rouvre au démarrage suivant, seul
+le bouton « Fermer » retirant le compte. L'utilisateur l'a vécu comme une relance
+de ce qu'il venait de fermer : la croix de la fenêtre, et celle d'un onglet, font
+désormais comme ce bouton.
+
+Une fin propre que DT Hub n'a pas demandée est la croix de la fenêtre. Un
+téléphone perdu échoue au lieu de finir proprement, et le compte reste dans le
+démarrage, comme le veut toujours D22. Quitter DT Hub marque toutes les sessions
+arrêtées avant de fermer le cadre à onglets, et ne retire donc rien.

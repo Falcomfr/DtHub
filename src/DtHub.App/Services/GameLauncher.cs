@@ -573,9 +573,33 @@ public sealed partial class GameLauncher : IAsyncDisposable
             return;
         }
 
+        // A clean end nobody in DT Hub asked for is the window's cross: it
+        // does what the Close button does, the account leaves the next
+        // startup (D207). A lost phone fails instead, and stays.
+        if (session.State == ScrcpySessionState.Stopped)
+        {
+            _ = ForgetClosedByHandAsync([session.Target.Key]);
+        }
+
         if (_sessions.ActiveSessions.Count == 0)
         {
             LastWindowClosed?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    /// <summary>
+    /// Takes accounts closed by hand out of the next startup, as the Close
+    /// button does. Only logged if it fails: the window is already gone.
+    /// </summary>
+    private async Task ForgetClosedByHandAsync(IReadOnlyCollection<string> keys)
+    {
+        try
+        {
+            await _settings.SetInstancesEnabledAsync(keys, enabled: false).ConfigureAwait(false);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            LogForgetClosedFailure(exception);
         }
     }
 
@@ -3503,10 +3527,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
-    /// Closes an instance, and removes it from the next launch.
-    ///
-    /// This is the only action that removes it: closing the game
-    /// window by hand leaves it in the set and it will reopen.
+    /// Closes an instance, and removes it from the next launch, as
+    /// closing its game window by hand does (D207).
     /// </summary>
     public async Task StopAsync(DofusInstance instance, CancellationToken cancellationToken = default)
     {
@@ -5059,10 +5081,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// Closes the accounts the tabbed frame was housing.
     ///
     /// The account behaves as if its window had been closed one by
-    /// one: its place is remembered, and it reopens at the next
-    /// startup, as D22 wants for any window closed by hand. Only the
-    /// "Close" button takes it out of that set. It stays housed in
-    /// tabs, so it returns there.
+    /// one: its place is remembered, and like any window closed by hand
+    /// it leaves the next startup, as the Close button does (D207). It
+    /// stays housed in tabs, so it returns there once opened again. The
+    /// frame closing as DT Hub quits finds its accounts already being
+    /// stopped, and leaves them in the next startup.
     ///
     /// A session that survives the stop gets its window back
     /// visible: it left the frame hidden, and leaving it that way
@@ -5075,12 +5098,19 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // The frame then came back where it stood two runs ago.
         await CaptureTabsPlacementAsync(CancellationToken.None).ConfigureAwait(false);
 
+        List<string> byHand = [];
+
         foreach (var key in keys)
         {
             if (_sessions.ActiveSessions.FirstOrDefault(
                     s => string.Equals(s.Target.Key, key, StringComparison.Ordinal)) is not { } session)
             {
                 continue;
+            }
+
+            if (!session.StopRequested)
+            {
+                byHand.Add(key);
             }
 
             await StopSessionAsync(session, CancellationToken.None).ConfigureAwait(false);
@@ -5091,6 +5121,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     .ConfigureAwait(false);
             }
         }
+
+        await ForgetClosedByHandAsync(byHand).ConfigureAwait(false);
 
         // A session that outlived its stop is a free window again, and it
         // was docked when the colours were set: see SetTabbedAsync.
@@ -5914,6 +5946,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Warning,
         Message = "L'état du téléphone n'a pas pu être posé dans le titre des fenêtres.")]
     private partial void LogTitleStatusFailure(Exception exception);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "Un compte fermé à la main n'a pas pu être retiré du prochain démarrage.")]
+    private partial void LogForgetClosedFailure(Exception exception);
 
     [LoggerMessage(
         Level = LogLevel.Warning,
