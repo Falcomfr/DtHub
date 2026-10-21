@@ -513,6 +513,9 @@
   <data name="ForgetDeviceTip" xml:space="preserve">
     <value>Oublier cet appareil sur ce PC. Ses fenêtres se ferment, et ses instances comme leurs réglages sont effacés. Le téléphone, lui, n'est pas touché. Une confirmation est demandée.</value>
   </data>
+  <data name="StopDeviceTip" xml:space="preserve">
+    <value>Fermer tous les comptes de ce téléphone. Les autres téléphones ne sont pas touchés.</value>
+  </data>
   <data name="ForgetDeviceShortTip" xml:space="preserve">
     <value>Oublier cet appareil sur ce PC. Ses instances comme leurs réglages sont effacés. Le téléphone, lui, n'est pas touché. Une confirmation est demandée.</value>
   </data>

@@ -1205,6 +1205,32 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     }
 
     /// <summary>
+    /// Closes every session of one phone, the others untouched, and
+    /// returns the ones it closed.
+    /// </summary>
+    public async Task<IReadOnlyList<ScrcpySession>> StopDeviceAsync(
+        string deviceId,
+        CancellationToken cancellationToken = default)
+    {
+        var running = _sessions.Values
+            .Where(s => s.IsAlive && string.Equals(s.Target.DeviceId, deviceId, StringComparison.Ordinal))
+            .ToList();
+
+        // Marked first, as in StopAllAsync: none hands the sound to another.
+        foreach (var session in running)
+        {
+            session.StopRequested = true;
+        }
+
+        foreach (var id in running.Select(s => s.Id))
+        {
+            await StopAsync(id, cancellationToken).ConfigureAwait(false);
+        }
+
+        return running;
+    }
+
+    /// <summary>
     /// Requests the close and waits, without exceeding the timeout.
     /// Returns control as soon as the process is gone, to not slow
     /// down the shutdown.

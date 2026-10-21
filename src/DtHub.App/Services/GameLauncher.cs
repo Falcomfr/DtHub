@@ -3582,6 +3582,50 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// also closing the application: it is us doing the closing, not the
     /// game dying.
     /// </summary>
+    /// <summary>
+    /// Closes every account of a phone, as their rows' Close buttons would
+    /// one by one: they leave the next startup too.
+    /// </summary>
+    public async Task StopDeviceAsync(string deviceId, CancellationToken cancellationToken = default)
+    {
+        await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
+
+        var closed = await _sessions.StopDeviceAsync(deviceId, cancellationToken).ConfigureAwait(false);
+
+        if (closed.Count == 0)
+        {
+            return;
+        }
+
+        _sessions.PruneFinished();
+
+        if (_tabs is not null)
+        {
+            await OnUiAsync(() =>
+            {
+                foreach (var session in closed)
+                {
+                    _tabs?.Detach(session.Target.Key);
+                }
+            }).ConfigureAwait(false);
+        }
+
+        await _settings.SetInstancesEnabledAsync(
+                [.. closed.Select(s => s.Target.Key)], enabled: false, cancellationToken)
+            .ConfigureAwait(false);
+
+        try
+        {
+            _ = await RefreshWindowTitlesAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            LogTitleStatusFailure(exception);
+        }
+
+        NotifyIfNothingLeft();
+    }
+
     private async Task StopSessionAsync(ScrcpySession session, CancellationToken cancellationToken)
     {
         await _sessions.StopAsync(session.Id, cancellationToken).ConfigureAwait(false);

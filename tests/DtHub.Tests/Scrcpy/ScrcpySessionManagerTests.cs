@@ -231,6 +231,30 @@ public class ScrcpySessionManagerTests
         Assert.Empty(manager.ActiveSessions);
     }
 
+    [Fact]
+    public async Task Fermer_un_telephone_laisse_les_comptes_des_autres()
+    {
+        var first = new FakeProcessSession(1).Emit(NewDisplayLine);
+        var second = new FakeProcessSession(2).Emit(NewDisplayLine);
+        var elsewhere = new FakeProcessSession(3).Emit(NewDisplayLine);
+        var launcher = new FakeProcessLauncher().Prepare(first).Prepare(second).Prepare(elsewhere);
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        await manager.StartAsync(Target(0), ScrcpyOptions.Default, null, CancellationToken.None);
+        await manager.StartAsync(Target(999), ScrcpyOptions.Default, null, CancellationToken.None);
+        await manager.StartAsync(
+            Target(0, "USB0002") with { DeviceId = "AUTRE456" }, ScrcpyOptions.Default, null, CancellationToken.None);
+
+        var closed = await manager.StopDeviceAsync("MATERIEL123", CancellationToken.None);
+
+        Assert.Equal(2, closed.Count);
+        Assert.True(first.WasKilled);
+        Assert.True(second.WasKilled);
+        Assert.False(elsewhere.WasKilled);
+        Assert.Equal("AUTRE456", Assert.Single(manager.ActiveSessions).Target.DeviceId);
+    }
+
     private const string ScreenOffLine = "[server] INFO: Device display turned off";
 
     private static readonly ScrcpyOptions DarkScreen = ScrcpyOptions.Default with { TurnScreenOff = true };

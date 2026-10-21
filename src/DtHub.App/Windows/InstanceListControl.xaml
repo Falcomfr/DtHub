@@ -213,6 +213,25 @@
                   </Button.Visibility>
                 </Button>
 
+                <!-- Close every account of this phone: the rows' own stop
+                     square, while one of them is open. -->
+                <Button Style="{StaticResource IconButton}" AllowDrop="False"
+                        ToolTip="{loc:T StopDeviceTip}"
+                        Command="{Binding DataContext.StopDeviceCommand,
+                                          RelativeSource={RelativeSource AncestorType=UserControl}}"
+                        CommandParameter="{Binding Device}">
+                  <Rectangle Width="9" Height="9" RadiusX="1.5" RadiusY="1.5"
+                             Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+
+                  <Button.Visibility>
+                    <MultiBinding Converter="{StaticResource AllTrue}">
+                      <Binding Path="ShowActions" RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                      <Binding Path="IsFirstOfDevice" />
+                      <Binding Path="Device.IsPlaying" />
+                    </MultiBinding>
+                  </Button.Visibility>
+                </Button>
+
                 <!-- Breaking the pairing only applies at the device level:
                      on its first row only, otherwise the button would
                      appear twice for the same phone. -->

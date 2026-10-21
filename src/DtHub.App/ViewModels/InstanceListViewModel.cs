@@ -1708,6 +1708,22 @@ public sealed partial class InstanceListViewModel : ObservableObject
     }
 
     /// <summary>
+    /// Closes every account of a phone, the other phones untouched. No
+    /// question asked, like each row's Close button.
+    /// </summary>
+    [RelayCommand]
+    private async Task StopDeviceAsync(DeviceGroupViewModel? device)
+    {
+        if (device is null)
+        {
+            return;
+        }
+
+        await _launcher.StopDeviceAsync(device.DeviceId).ConfigureAwait(true);
+        RefreshRunningState();
+    }
+
+    /// <summary>
     /// Breaks the association with a device. Its windows close, its
     /// instances and their settings are erased: it will have to be
     /// paired again to be used once more.
