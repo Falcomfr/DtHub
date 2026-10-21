@@ -758,8 +758,9 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
             }
 
             // It pushes a server like an opening does, so it takes its turn
-            // in the same queue until its server answers.
-            await using var lease = await _gate.EnterAsync(deviceId, CancellationToken.None).ConfigureAwait(false);
+            // in the same queue until its server answers. Quietly: closing a
+            // window is no reason to grey the play buttons of its phone.
+            await using var lease = await _gate.EnterQuietlyAsync(deviceId, CancellationToken.None).ConfigureAwait(false);
 
             IProcessSession keeper;
 
@@ -901,8 +902,12 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
             // before the loop that opens the windows, so what it used to
             // cost was precisely the first launch on each phone. The
             // second click worked, which is how this was reported.
+            //
+            // Quietly: the probe runs inside an opening, which already greys
+            // the phone's rows, and the plus window's app list goes through
+            // here too, which greyed them for nothing while it read.
             await using var lease = await _gate
-                .EnterAsync(deviceId, cancellationToken)
+                .EnterQuietlyAsync(deviceId, cancellationToken)
                 .ConfigureAwait(false);
 
             await using var process = _launcher.Start(request);

@@ -1130,22 +1130,31 @@ public class ScrcpySessionManagerTests
         // opening does, so it belongs in the same queue. Outside it, the
         // first launch touching a device would lose to the probe that the
         // same click had just fired.
+        //
+        // Quietly, though: the plus window reads its app list through the
+        // same path, and greyed the phone's play buttons while it read.
         var process = new FakeProcessSession();
-        var launcher = new FakeProcessLauncher().Prepare(process);
+        var game = new FakeProcessSession(2).Emit(NewDisplayLine);
+        var launcher = new FakeProcessLauncher().Prepare(process).Prepare(game);
         await using var manager = Manager(launcher, new FakeAppLauncher());
 
         var probe = manager.ListEncodersAsync("MATERIEL123", "USB0001");
 
         Assert.True(
-            await Eventually(() => manager.IsDeviceBusy("MATERIEL123")).ConfigureAwait(true),
-            "la sonde n'a pas pris le verrou de l'appareil.");
+            await Eventually(() => launcher.Started.Contains(process)).ConfigureAwait(true),
+            "la sonde n'a pas démarré.");
+        Assert.False(manager.IsDeviceBusy("MATERIEL123"));
+
+        var opening = manager.StartAsync(Target(), ScrcpyOptions.Default, null, CancellationToken.None);
+
+        await Task.Delay(200).ConfigureAwait(true);
+        Assert.DoesNotContain(game, launcher.Started);
 
         process.Exit(0);
         await probe.ConfigureAwait(true);
+        await opening.ConfigureAwait(true);
 
-        Assert.True(
-            await Eventually(() => !manager.IsDeviceBusy("MATERIEL123")).ConfigureAwait(true),
-            "la sonde n'a pas rendu le verrou.");
+        Assert.Contains(game, launcher.Started);
     }
 
     [Fact]

@@ -1237,17 +1237,24 @@ public sealed partial class InstanceListViewModel : ObservableObject
     private Task LaunchInstanceAsync(InstanceRowViewModel? row) =>
         ActOnAsync(row, instance => _launcher.LaunchAsync([instance]), engageDevice: true);
 
-    /// <summary>Closes the game on the device, then reopens it.</summary>
+    /// <summary>
+    /// Closes the game on the device, then reopens it.
+    ///
+    /// Without engaging the device: the short restart is a forced stop and
+    /// a launch on the same display, outside the opening lock, and it greyed
+    /// the other accounts of the phone for nothing. When it falls back on a
+    /// full reopening, that one takes the lock and greys them as an opening.
+    /// </summary>
     [RelayCommand(AllowConcurrentExecutions = true)]
     private Task RestartAsync(InstanceRowViewModel? row) =>
-        ActOnAsync(row, instance => _launcher.RestartAsync(instance), engageDevice: true);
+        ActOnAsync(row, instance => _launcher.RestartAsync(instance), engageDevice: false);
 
     /// <summary>
     /// Puts the game back in the phone's standard game mode and restarts it,
     /// for a row the phone draws at a reduced resolution.
     /// </summary>
     private async void OnStandardModeRequested(object? sender, InstanceRowViewModel row) =>
-        await ActOnAsync(row, instance => _launcher.RestoreStandardGameModeAsync(instance), engageDevice: true)
+        await ActOnAsync(row, instance => _launcher.RestoreStandardGameModeAsync(instance), engageDevice: false)
             .ConfigureAwait(true);
 
     /// <summary>A game mode picked in the account's settings.</summary>
