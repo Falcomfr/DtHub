@@ -1177,6 +1177,10 @@
         <ColumnDefinition Width="Auto" />
         <ColumnDefinition Width="*" />
       </Grid.ColumnDefinitions>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+      </Grid.RowDefinitions>
 
       <!-- The triangle turns from yellow to red when the finding will
            cut the session short instead of just being a nuisance. -->
@@ -1211,6 +1215,12 @@
           </Style>
         </TextBlock.Style>
       </TextBlock>
+
+      <!-- On its own row so the failure's text keeps the full width. -->
+      <Button Grid.Row="1" Grid.Column="1" HorizontalAlignment="Left" Margin="0,2,0,0"
+              Style="{StaticResource LinkButton}" Content="{loc:T OpenLogFolder}"
+              Command="{Binding OpenLogsCommand}"
+              Visibility="{Binding ActionFailed, Converter={StaticResource BoolToVisibility}}" />
     </Grid>
 
   </StackPanel>

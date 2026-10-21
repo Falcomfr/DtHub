@@ -11,6 +11,7 @@ using DtHub.Core.Dofus;
 using DtHub.Core.Localization;
 using DtHub.Core.Sessions;
 using DtHub.Core.Settings;
+using DtHub.Core.Storage;
 
 namespace DtHub.App.ViewModels;
 
@@ -24,17 +25,20 @@ public sealed partial class InstanceListViewModel : ObservableObject
     private readonly GameLauncher _launcher;
     private readonly SettingsService _settings;
     private readonly IDialogService _dialogs;
+    private readonly IAppPaths _paths;
 
     public InstanceListViewModel(
         GameLauncher launcher,
         SettingsService settings,
         IDialogService dialogs,
-        IAppIconProvider icons)
+        IAppIconProvider icons,
+        IAppPaths paths)
     {
         _launcher = launcher;
         _settings = settings;
         _dialogs = dialogs;
         _icons = icons;
+        _paths = paths;
 
         // Closing a game window has to show at once. Waiting for the sweep
         // left the list announcing, for up to three seconds, a window that
@@ -235,10 +239,25 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// last: it describes what has just happened, and that is what one
     /// is looking for when one looks.
     /// </summary>
-    private void Render() =>
-        ShowBanner(_action.LineAt(DateTimeOffset.UtcNow, ActionNoticeLife) is { } said
-            ? [.. _health, said]
-            : _health);
+    private void Render()
+    {
+        var said = _action.LineAt(DateTimeOffset.UtcNow, ActionNoticeLife);
+
+        ActionFailed = said is not null;
+        ShowBanner(said is { } line ? [.. _health, line] : _health);
+    }
+
+    /// <summary>
+    /// True while the banner carries the notice of an action that
+    /// failed. The banner then offers the logs: a player who sent a
+    /// screenshot of "the display did not open in time" had no way to
+    /// find the scrcpy output that says why.
+    /// </summary>
+    [ObservableProperty]
+    private bool _actionFailed;
+
+    [RelayCommand]
+    private void OpenLogs() => _dialogs.OpenFolder(_paths.LogsDirectory);
 
     /// <summary>
     /// True during a drag and drop. The periodic sweep then holds off
