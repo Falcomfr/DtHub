@@ -36,7 +36,7 @@ embedded catalog (`assets/papycha-catalog.json`, 782 quests, 93 dungeons):
 | | Found in the game | How |
 | --- | --- | --- |
 | Quests | 765 of 782 | 745 by exact French name, 20 paired by hand |
-| Dungeons, raids, lairs | 86 of 93 | name, key, boss, or the two lairs of each kind |
+| Dungeons, raids, lairs | 87 of 93 | name, key, boss, or the two lairs of each kind |
 | Achievement series named by Papycha | 115 of 115 | 107 exact, 8 Papycha misspellings |
 | Quest-achievement links | 413 agree, 1 disagrees | game objectives `Qf=` / `QF>` |
 | Starting characters | 330 of 416 | the rest are objects, typos or descriptions |
@@ -199,8 +199,8 @@ invented names rather than copies of the game's.
 ### 3. What the window shows
 
 When a game name exists for the window's language, it replaces the French
-one everywhere listed in goal 1. A grouped page joins its parts with the
-separator the list already uses. Search indexes the shown names, keeping
+one everywhere listed in goal 1. A grouped page joins its parts with " / ", as
+Papycha writes most of them. Search indexes the shown names, keeping
 the French keys too.
 
 The list has 25 sections, all fixed by the embedded catalog: places
