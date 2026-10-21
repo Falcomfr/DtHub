@@ -369,7 +369,12 @@ public sealed class DofusInstanceService
                 .Select(p => names.TryGetValue(p, out var known)
                     ? known
                     : new DeviceApp(p, p, IsSystem: false))
-                .OrderBy(a => a.IsSystem)
+
+                // The game's companions first: they are what this list is
+                // opened for, more than anything else on the phone.
+                .OrderBy(a => !PartnerApps.IsPartner(a.PackageName)
+                              && !a.PackageName.Contains("dofus", StringComparison.OrdinalIgnoreCase))
+                .ThenBy(a => a.IsSystem)
                 .ThenBy(a => a.Label, StringComparer.CurrentCultureIgnoreCase)];
 
             profiles.Add(new ProfileApps(user.Id, user.DisplayName, user.Type, apps));

@@ -141,12 +141,15 @@ public sealed partial class AppPickerViewModel : ObservableObject
         var chosen = shown.Select(a => a.Key).ToHashSet(StringComparer.Ordinal);
 
         // A single profile needs no heading: naming it would only repeat
-        // the phone's name.
+        // the phone's name. Any other profile than the main one is always
+        // named, a secure folder must not pass for the phone's own apps.
         var named = profiles.Count(p => p.Apps.Count > 0) > 1;
 
         foreach (var profile in profiles)
         {
-            var heading = named ? ProfileHeading(profile) : string.Empty;
+            var heading = named || profile.Type != AndroidUserType.Primary
+                ? ProfileHeading(profile)
+                : string.Empty;
 
             foreach (var app in profile.Apps)
             {
@@ -161,8 +164,9 @@ public sealed partial class AppPickerViewModel : ObservableObject
         }
 
         // An application already shown that the phone no longer offers,
-        // or did not list this time: kept, ticked, so that it can still
-        // be unticked. Hiding it would leave a row nobody can remove.
+        // or did not list this time: kept ticked, so that saving keeps it.
+        // Hidden like every application already shown, the bin on its row
+        // in the list removes it.
         foreach (var app in shown.Where(a => !Rows.Any(r => r.UserId == a.UserId
                      && string.Equals(r.PackageName, a.PackageName, StringComparison.Ordinal))))
         {
@@ -179,7 +183,7 @@ public sealed partial class AppPickerViewModel : ObservableObject
     private static string ProfileHeading(ProfileApps profile) => profile.Type switch
     {
         AndroidUserType.Primary => Strings.Get("AppPickerMainProfile"),
-        _ => profile.UserName,
+        _ => Strings.Format("AppPickerOtherProfile", profile.UserName),
     };
 
     private bool Matches(object item)
@@ -189,13 +193,14 @@ public sealed partial class AppPickerViewModel : ObservableObject
             return false;
         }
 
-        // An application shown when the window opened always shows:
-        // filtering it out would hide a choice already made. Read from
-        // the opening and not from the box, or unticking it under the
-        // filter would make it vanish under the mouse.
+        // An application shown when the window opened is not offered
+        // again: it is already in the list, where its bin removes it. Its
+        // row stays ticked underneath, so that saving keeps it. Read from
+        // the opening and not from the box, or ticking one would make it
+        // vanish under the mouse.
         if (row.WasShown)
         {
-            return true;
+            return false;
         }
 
         if (row.IsSystem && !ShowSystemApps)

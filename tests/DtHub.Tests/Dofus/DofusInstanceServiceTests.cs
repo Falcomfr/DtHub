@@ -473,6 +473,39 @@ public class DofusInstanceServiceTests
         Assert.Empty(profiles.Single(p => p.UserId == 999).Apps);
     }
 
+    /// <summary>
+    /// Whoever opens this list comes for something to play alongside the
+    /// game: its companions come before the alphabet.
+    /// </summary>
+    [Fact]
+    public async Task La_liste_a_choisir_met_les_applications_de_dofus_en_tete()
+    {
+        var adb = new FakeAdbClient()
+            .WithShell("pm list users", RealUsers)
+            .WithShell("query-activities --brief --user 0",
+                """
+                4 activities found:
+                    com.aimp.player/.MainActivity
+                    com.makeintouch.dtstuff/.MainActivity
+                    fr.fan.dofusmap/.Main
+                    com.bank.app/.Main
+                """);
+
+        var profiles = await Service(adb).ListLaunchableAppsAsync(
+            Device(),
+            [
+                new DeviceApp("AIMP", "com.aimp.player", false),
+                new DeviceApp("DTStuff", "com.makeintouch.dtstuff", false),
+                new DeviceApp("Carte", "fr.fan.dofusmap", false),
+                new DeviceApp("Banque", "com.bank.app", false),
+            ],
+            CancellationToken.None);
+
+        Assert.Equal(
+            ["Carte", "DTStuff", "AIMP", "Banque"],
+            profiles.Single(p => p.UserId == 0).Apps.Select(a => a.Label));
+    }
+
     private const string SamsungUsers = """
         Users:
         	UserInfo{0:Propriétaire:c13} running

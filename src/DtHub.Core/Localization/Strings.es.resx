@@ -314,6 +314,9 @@
   <data name="AppPickerMainProfile" xml:space="preserve">
     <value>Perfil principal</value>
   </data>
+  <data name="AppPickerOtherProfile" xml:space="preserve">
+    <value>🔒 {0}</value>
+  </data>
   <data name="AppPickerCloneHeader" xml:space="preserve">
     <value>Clonar el juego en una cuenta nueva</value>
   </data>
