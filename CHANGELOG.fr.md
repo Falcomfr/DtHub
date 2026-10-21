@@ -11,6 +11,17 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Modifié
+
+- Les messages du journal suivent désormais la langue de l'application : français, anglais ou espagnol.
+
+### Corrigé
+
+- À l'ouverture, l'affichage du jeu s'adapte à la zone intérieure de la fenêtre, évitant les bandes noires dues au cadre.
+- Les jeux en onglets apparaissent directement dans leur cadre restauré, sans afficher brièvement une grande fenêtre indépendante.
+
 ## [0.9.6] - 2026-10-21
 
 ### Ajouté

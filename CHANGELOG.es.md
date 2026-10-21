@@ -10,6 +10,17 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Modificado
+
+- Los mensajes del registro siguen ahora el idioma de la aplicación: inglés, francés o español.
+
+### Corregido
+
+- Al abrirse, la pantalla del juego se adapta al área interior de la ventana, evitando los márgenes negros causados por el marco.
+- Los juegos en pestañas aparecen directamente en su marco restaurado, sin mostrar brevemente una ventana independiente grande.
+
 ## [0.9.6] - 2026-10-21
 
 ### Añadido
