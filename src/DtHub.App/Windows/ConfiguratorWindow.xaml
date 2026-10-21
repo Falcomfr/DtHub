@@ -963,8 +963,9 @@
               <!-- Profiles share the pairing button's line, which had room
                    to spare on the right. Unfolded in the page, they
                    took forty-seven pixels away from the account list,
-                   which is already short of them in a short window. -->
-              <Grid Margin="0,0,0,12">
+                   which is already short of them in a short window. The
+                   phone's own header already spaces the list from it. -->
+              <Grid Margin="0,0,0,2">
                 <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="Auto" />
                   <ColumnDefinition Width="*" />
