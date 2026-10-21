@@ -1021,9 +1021,14 @@ public partial class App : Application, IDisposable
                 return;
             }
 
-            LogLaunchProblems(
-                "La réouverture",
-                await launcher.LaunchAsync([request.Instance]).ConfigureAwait(true));
+            var report = await launcher.LaunchAsync([request.Instance]).ConfigureAwait(true);
+
+            LogLaunchProblems("La réouverture", report);
+
+            if (!report.AnyOpened)
+            {
+                launcher.AwaitPhoneIfGone(request.Instance);
+            }
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {

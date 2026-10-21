@@ -610,6 +610,43 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
+    /// Recovery has nothing left to try: the account waits for its phone.
+    /// </summary>
+    private void WaitForPhone(string key, DofusInstance instance)
+    {
+        _recovery = TimedNotice.Raised(
+            Strings.Format("SessionRecoveryGaveUp", instance.DisplayName),
+            DateTimeOffset.UtcNow);
+        _recoveryDevice = instance.DeviceId;
+
+        // Given up is the opposite of recovering: the row must stop
+        // promising a window that is not coming.
+        _ = _recovering.TryRemove(key, out _);
+
+        _awaitingPhone[key] = instance;
+        PhoneAwaited?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// A reopening refused before any window existed, its phone gone: no
+    /// session will end to try again, so the account waits for its phone
+    /// as if recovery had given up. Seen on 2026-10-21: the first try found
+    /// the phone gone, and the chain of tries stopped there for good.
+    /// </summary>
+    public void AwaitPhoneIfGone(DofusInstance instance)
+    {
+        ArgumentNullException.ThrowIfNull(instance);
+
+        if (_serials.ContainsKey(instance.DeviceId) || IsOpen(instance))
+        {
+            return;
+        }
+
+        LogRecoveryGaveUp(instance.DisplayName, _recoveries.TryGetValue(instance.Key, out var seen) ? seen.Count : 0);
+        WaitForPhone(instance.Key, instance);
+    }
+
+    /// <summary>
     /// Takes accounts closed by hand out of the next startup, as the Close
     /// button does. Only logged if it fails: the window is already gone.
     /// </summary>
@@ -657,19 +694,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
             // not come back.
             if (already > 0 && SessionRecovery.Recoverable(session.End.Failure))
             {
-                _recovery = TimedNotice.Raised(
-                    Strings.Format("SessionRecoveryGaveUp", instance.DisplayName),
-                    DateTimeOffset.UtcNow);
-                _recoveryDevice = instance.DeviceId;
-
-                // Given up is the opposite of recovering: the row must
-                // stop promising a window that is not coming.
-                _ = _recovering.TryRemove(key, out _);
-
                 LogRecoveryGaveUp(instance.DisplayName, already);
-
-                _awaitingPhone[key] = instance;
-                PhoneAwaited?.Invoke(this, EventArgs.Empty);
+                WaitForPhone(key, instance);
             }
 
             return false;
