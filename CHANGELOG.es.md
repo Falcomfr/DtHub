@@ -10,6 +10,19 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.9.6] - 2026-10-21
+
+### Añadido
+
+- Una nueva calidad Alta, en 1080 a 60 imágenes por segundo en lugar de 30,
+  entre Media y la antigua Alta: para la cuenta que juegas, mientras las
+  demás siguen en Media.
+
+### Modificado
+
+- La antigua calidad Alta se llama ahora Muy alta. Sus ajustes no cambian,
+  y las cuentas que la usaban la conservan.
+
 ## [0.9.5] - 2026-10-20
 
 ### Corregido

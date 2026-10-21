@@ -17,6 +17,19 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.9.6] - 2026-10-21
+
+### Added
+
+- A new High quality, 1080 at 60 frames per second instead of 30, between
+  Medium and the former High: for the account you play, while the others
+  stay at Medium.
+
+### Changed
+
+- The former High quality is now called Very high. Its settings do not
+  change, and the accounts that used it keep it.
+
 ## [0.9.5] - 2026-10-20
 
 ### Fixed

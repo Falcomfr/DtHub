@@ -11,6 +11,19 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.9.6] - 2026-10-21
+
+### Ajouté
+
+- Une nouvelle qualité Haute, en 1080 à 60 images par seconde au lieu de 30,
+  entre Moyenne et l'ancienne Haute : pour le compte joué, pendant que les
+  autres restent en Moyenne.
+
+### Modifié
+
+- L'ancienne qualité Haute s'appelle désormais Très haute. Ses réglages ne
+  changent pas, et les comptes qui l'utilisaient la gardent.
+
 ## [0.9.5] - 2026-10-20
 
 ### Corrigé
