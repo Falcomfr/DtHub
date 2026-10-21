@@ -15,6 +15,8 @@ import argparse, collections, difflib, json, os, re, sys, time, unicodedata, url
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 URL = "https://dt-proxy-production-login.ankama-games.com/data/map?lang=fr"
+# Named like the app's own requests, so Ankama sees who asks.
+USER_AGENT = "DtHub-touch-ids (+https://github.com/Falcomfr/DtHub)"
 CLASSES = ["Quests", "Dungeons", "Achievements", "AchievementObjectives"]
 
 
@@ -37,7 +39,7 @@ def post(cls, ids=None):
     body = {"class": cls}
     if ids is not None:
         body["ids"] = ids
-    req = urllib.request.Request(URL, json.dumps(body).encode(), {"Content-Type": "application/json"})
+    req = urllib.request.Request(URL, json.dumps(body).encode(), {"Content-Type": "application/json", "User-Agent": USER_AGENT})
     with urllib.request.urlopen(req) as r:  # a non-200 raises: the run stops there
         return json.load(r)
 
@@ -113,7 +115,7 @@ def main():
     ach = collections.defaultdict(list)
     for i, a in g["Achievements"].items():
         ach[norm(a["nameId"])].append(int(i))
-    series, missing_s = {}, []
+    series, missing_s, fuzzy = {}, [], []
     for name in sorted({r["successName"] for r in cat["quests"] if r["successName"]}):
         n = norm(name)
         if n in ach:
@@ -122,6 +124,7 @@ def main():
         best = max(ach, key=lambda k: difflib.SequenceMatcher(None, n, k).ratio())
         if difflib.SequenceMatcher(None, n, best).ratio() >= 0.75:
             series[name] = min(ach[best])
+            fuzzy.append(f"{name} -> {series[name]}")
         else:
             missing_s.append(name)
 
@@ -152,6 +155,8 @@ def main():
     print("Unpaired quests:", missing_q)
     print("Unpaired dungeons:", missing_d)
     print("Unpaired series:", missing_s)
+    # Approximate pairings, to check by hand against the achievement ids.
+    print("Series paired by fuzzy match:", fuzzy)
 
 
 main()
