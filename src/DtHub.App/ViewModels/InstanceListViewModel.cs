@@ -69,6 +69,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
         view.IsPanelLit = _launcher.LitPanels.Contains(view.Serial);
         view.IsScreenHeld = _launcher.HoldsScreenOff(view.DeviceId);
         view.IsPlaying = _launcher.IsPlaying(view.DeviceId);
+        view.IsScreenSwitching = _launcher.IsSwitchingPanel(view.DeviceId);
     }
 
     private void OnSessionChanged(object? sender, Core.Scrcpy.ScrcpySession session)
@@ -1541,22 +1542,18 @@ public sealed partial class InstanceListViewModel : ObservableObject
     [RelayCommand]
     private async Task TogglePanelAsync(DeviceGroupViewModel? device)
     {
-        if (device is null)
+        if (device is null || device.IsScreenSwitching)
         {
             return;
         }
 
-        if (device.IsScreenDark)
-        {
-            device.IsScreenHeld = false;
-            await _launcher.LightPanelAsync(device.DeviceId).ConfigureAwait(true);
-            return;
-        }
+        var light = device.IsScreenDark;
 
-        device.IsPanelLit = false;
-        device.IsScreenHeld = true;
+        device.IsScreenSwitching = true;
 
-        await _launcher.TurnPanelOffAsync(device.DeviceId).ConfigureAwait(true);
+        await _launcher.SwitchPanelAsync(device.DeviceId, light).ConfigureAwait(true);
+
+        RefreshScreen(device);
     }
 
     /// <summary>

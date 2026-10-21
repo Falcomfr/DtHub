@@ -2326,6 +2326,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 continue;
             }
 
+            LitPanelsChanged?.Invoke(this, EventArgs.Empty);
+
             try
             {
                 var lit = await _devices.IsPanelLitAsync(serial).ConfigureAwait(false);
@@ -2344,11 +2346,48 @@ public sealed partial class GameLauncher : IAsyncDisposable
             finally
             {
                 _ = _toggling.TryRemove(deviceId, out _);
+                LitPanelsChanged?.Invoke(this, EventArgs.Empty);
             }
         }
     }
 
-    /// <summary>The phones whose screen the shortcut is changing right now.</summary>
+    /// <summary>
+    /// The line under the phone: turns its screen on or off, through the same
+    /// one-change-at-a-time door as the shortcut. The line shows a spinner
+    /// meanwhile, asked for on 2026-10-21: presses during a change were lost
+    /// without a sign.
+    /// </summary>
+    public async Task SwitchPanelAsync(string deviceId, bool light)
+    {
+        if (!_toggling.TryAdd(deviceId, 0))
+        {
+            return;
+        }
+
+        LitPanelsChanged?.Invoke(this, EventArgs.Empty);
+
+        try
+        {
+            if (light)
+            {
+                await LightPanelAsync(deviceId).ConfigureAwait(false);
+            }
+            else
+            {
+                await TurnPanelOffAsync(deviceId).ConfigureAwait(false);
+            }
+        }
+        finally
+        {
+            _ = _toggling.TryRemove(deviceId, out _);
+            LitPanelsChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    /// <summary>True while this phone's screen is being switched on or off.</summary>
+    public bool IsSwitchingPanel(string deviceId) => _toggling.ContainsKey(deviceId);
+
+    /// <summary>The phones whose screen is being changed right now.</summary>
     private readonly ConcurrentDictionary<string, byte> _toggling = new(StringComparer.Ordinal);
 
     /// <summary>

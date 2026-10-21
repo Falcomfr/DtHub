@@ -328,9 +328,15 @@
                 <Button Style="{StaticResource LinkButton}" Content="{Binding Device.ScreenAction}"
                         Margin="8,0,0,0" FontSize="{StaticResource FontSmall}"
                         ToolTip="{Binding Device.ScreenActionTip}"
+                        Visibility="{Binding Device.IsScreenSwitching, Converter={StaticResource InverseBoolToVisibility}}"
                         Command="{Binding DataContext.TogglePanelCommand,
                                           RelativeSource={RelativeSource AncestorType=UserControl}}"
                         CommandParameter="{Binding Device}" />
+
+                <!-- In its place while the screen changes, by the line or
+                     Ctrl+E: a press then is ignored, and it says so. -->
+                <Control Style="{StaticResource Spinner}" Margin="10,0,0,0" VerticalAlignment="Center"
+                         Visibility="{Binding Device.IsScreenSwitching, Converter={StaticResource BoolToVisibility}}" />
               </StackPanel>
 
               <!-- Drop surface: the row and its two markers, nothing else. -->

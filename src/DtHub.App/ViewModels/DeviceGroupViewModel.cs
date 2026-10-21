@@ -50,6 +50,10 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(IsScreenDark), nameof(ScreenText), nameof(ScreenAction), nameof(ScreenActionTip))]
     private bool _isPanelLit;
 
+    /// <summary>True while the screen is being switched on or off: the line shows a spinner.</summary>
+    [ObservableProperty]
+    private bool _isScreenSwitching;
+
     /// <summary>True while DT Hub holds the phone's screen off.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsScreenDark), nameof(ScreenText), nameof(ScreenAction), nameof(ScreenActionTip))]
