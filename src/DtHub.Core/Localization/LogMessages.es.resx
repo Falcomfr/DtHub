@@ -715,4 +715,19 @@
   <data name="éteint" xml:space="preserve">
     <value>apagada</value>
   </data>
+  <data name="The game's steps could not be read" xml:space="preserve">
+    <value>No se pudieron leer los pasos del juego</value>
+  </data>
+  <data name="Noms officiels du jeu non lus : le catalogue reste celui de Papycha." xml:space="preserve">
+    <value>Nombres oficiales del juego no leídos: el catálogo sigue siendo el de Papycha.</value>
+  </data>
+  <data name="Données DOFUS Touch {route} ({language}) : {count} ligne(s)." xml:space="preserve">
+    <value>Datos de DOFUS Touch {route} ({language}): {count} fila(s).</value>
+  </data>
+  <data name="Table d'identifiants embarquée : {count} quête(s) appariée(s)." xml:space="preserve">
+    <value>Tabla de identificadores integrada: {count} misión(es) emparejada(s).</value>
+  </data>
+  <data name="Table d'identifiants embarquée illisible ({reason}) ; les noms restent en français." xml:space="preserve">
+    <value>Tabla de identificadores integrada ilegible ({reason}); los nombres siguen en francés.</value>
+  </data>
 </root>

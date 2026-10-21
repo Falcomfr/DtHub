@@ -715,4 +715,19 @@
   <data name="éteint" xml:space="preserve">
     <value>off</value>
   </data>
+  <data name="The game's steps could not be read" xml:space="preserve">
+    <value>The game's steps could not be read</value>
+  </data>
+  <data name="Noms officiels du jeu non lus : le catalogue reste celui de Papycha." xml:space="preserve">
+    <value>Official game names not read: the catalog stays Papycha's.</value>
+  </data>
+  <data name="Données DOFUS Touch {route} ({language}) : {count} ligne(s)." xml:space="preserve">
+    <value>DOFUS Touch data {route} ({language}): {count} row(s).</value>
+  </data>
+  <data name="Table d'identifiants embarquée : {count} quête(s) appariée(s)." xml:space="preserve">
+    <value>Embedded ID table: {count} quest(s) matched.</value>
+  </data>
+  <data name="Table d'identifiants embarquée illisible ({reason}) ; les noms restent en français." xml:space="preserve">
+    <value>Embedded ID table unreadable ({reason}); names stay in French.</value>
+  </data>
 </root>
