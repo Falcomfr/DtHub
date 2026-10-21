@@ -286,7 +286,8 @@ file extracted from Ankama's game. When the player's language is not French,
 the window credits the game under the list and under the steps.
 
 **If the server cannot be read**, the window falls back to papycha.fr's French
-titles and the official steps are not offered. Nothing breaks.
+titles; the official steps button still shows, and its panel says the steps
+could not be read. Nothing breaks.
 
 **What this does not authorise.** No image, no icon, no game file. DT Hub
 makes a handful of requests per language, one class at a time: the server
