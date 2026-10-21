@@ -368,6 +368,24 @@
   <data name="DeleteProfileTip" xml:space="preserve">
     <value>Eliminar este perfil. Las cuentas no se tocan.</value>
   </data>
+  <data name="ProfileOpenExplained" xml:space="preserve">
+    <value>Al abrirlo más tarde se cerrarán las ventanas de juego que no forman parte de él, y luego se abrirán sus cuentas en su sitio, con estos ajustes.</value>
+  </data>
+  <data name="ProfileExistsQuestion" xml:space="preserve">
+    <value>Ya existe un perfil «{0}». ¿Reemplazar lo que guarda por lo que está abierto ahora?</value>
+  </data>
+  <data name="UpdateProfileTitle" xml:space="preserve">
+    <value>Actualizar el perfil</value>
+  </data>
+  <data name="UpdateProfileTip" xml:space="preserve">
+    <value>Reemplazar lo que guarda este perfil por las cuentas abiertas ahora, sus ventanas y los ajustes actuales.</value>
+  </data>
+  <data name="UpdateProfileQuestion" xml:space="preserve">
+    <value>¿Actualizar el perfil «{0}» con lo que está abierto ahora?</value>
+  </data>
+  <data name="UpdateProfileReplaces" xml:space="preserve">
+    <value>Lo que guardaba hasta ahora se reemplazará. Su nombre, su lugar en la lista y su estrella de inicio se mantienen.</value>
+  </data>
   <data name="CreateProfile" xml:space="preserve">
     <value>Crear un perfil</value>
   </data>

@@ -485,10 +485,76 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
     /// <summary>
     /// Remembers the open accounts, their positions and the settings,
-    /// under a name.
+    /// under a name. The window says what the profile keeps and what
+    /// opening it will do, and a name already taken is replaced only once
+    /// confirmed.
     /// </summary>
     [RelayCommand]
     private async Task CreateProfileAsync()
+    {
+        var title = Strings.Get("CreateProfile");
+
+        if (await SnapshotForProfileAsync(title).ConfigureAwait(true) is not var (open, settings))
+        {
+            return;
+        }
+
+        if (_dialogs.PromptText(
+                Strings.Get("ProfileNameQuestion"),
+                null,
+                title,
+                ProfileDetails(open, settings),
+                Strings.Get("Create")) is not { } typed)
+        {
+            return;
+        }
+
+        if (LaunchProfiles.Find(settings.LaunchProfiles, typed) is { } taken
+            && !_dialogs.Confirm(Strings.Format("ProfileExistsQuestion", taken.Name), title))
+        {
+            return;
+        }
+
+        if (!await _settings.SaveLaunchProfileAsync(typed, open).ConfigureAwait(true))
+        {
+            _dialogs.ShowWarning(Strings.Get("ProfileNeedsName"), title);
+            return;
+        }
+
+        await SyncProfilesAsync().ConfigureAwait(true);
+    }
+
+    /// <summary>
+    /// Replaces what a profile remembers with the accounts open now, their
+    /// positions and the settings, once the player has read what changes.
+    /// Its name, its place in the list and its startup star stay.
+    /// </summary>
+    [RelayCommand]
+    private async Task UpdateProfileAsync(LaunchProfileRowViewModel? profile)
+    {
+        var title = Strings.Get("UpdateProfileTitle");
+
+        if (profile is null
+            || await SnapshotForProfileAsync(title).ConfigureAwait(true) is not var (open, settings)
+            || !_dialogs.Confirm(
+                Strings.Format("UpdateProfileQuestion", profile.Name)
+                + "\n\n" + ProfileDetails(open, settings)
+                + "\n\n" + Strings.Get("UpdateProfileReplaces"),
+                title))
+        {
+            return;
+        }
+
+        _ = await _settings.SaveLaunchProfileAsync(profile.Name, open).ConfigureAwait(true);
+
+        await SyncProfilesAsync().ConfigureAwait(true);
+    }
+
+    /// <summary>
+    /// The accounts a profile would remember now, with the settings it would
+    /// keep, or null once the player has been told there is nothing to keep.
+    /// </summary>
+    private async Task<(List<string> Open, AppSettingsDocument Settings)?> SnapshotForProfileAsync(string title)
     {
         // The geometry is recorded before the snapshot; otherwise the
         // profile would remember the positions from opening and not
@@ -513,39 +579,22 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
         if (open.Count == 0)
         {
-            _dialogs.ShowWarning(
-                Strings.Get("NothingToRemember"),
-                Strings.Get("CreateProfile"));
-
-            return;
+            _dialogs.ShowWarning(Strings.Get("NothingToRemember"), title);
+            return null;
         }
 
-        var tabbed = settings.Instances.Count(
-            i => i.IsTabbed && open.Contains(i.Key, StringComparer.Ordinal));
-
-        if (_dialogs.PromptText(
-                Strings.Get("ProfileNameQuestion"),
-                null,
-                Strings.Get("CreateProfile"),
-                LaunchProfiles.Announce(
-                    open.Count,
-                    settings.Quality,
-                    settings.GameZoom,
-                    tabbed,
-                    settings.AudioEnabled),
-                Strings.Get("Create")) is not { } typed)
-        {
-            return;
-        }
-
-        if (!await _settings.SaveLaunchProfileAsync(typed, open).ConfigureAwait(true))
-        {
-            _dialogs.ShowWarning(Strings.Get("ProfileNeedsName"), Strings.Get("CreateProfile"));
-            return;
-        }
-
-        await SyncProfilesAsync().ConfigureAwait(true);
+        return (open, settings);
     }
+
+    /// <summary>What a profile will keep, then what opening it will do.</summary>
+    private static string ProfileDetails(List<string> open, AppSettingsDocument settings) =>
+        LaunchProfiles.Announce(
+            open.Count,
+            settings.Quality,
+            settings.GameZoom,
+            settings.Instances.Count(i => i.IsTabbed && open.Contains(i.Key, StringComparer.Ordinal)),
+            settings.AudioEnabled)
+        + "\n\n" + Strings.Get("ProfileOpenExplained");
 
     /// <summary>Sets the startup profile, or removes it.</summary>
     [RelayCommand]

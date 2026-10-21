@@ -73,6 +73,21 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Mettre_a_jour_un_profil_lui_garde_sa_place()
+    {
+        // Updated in place: a profile that jumped to the bottom of the list
+        // each time looked like a new one.
+        await _service.SaveLaunchProfileAsync("Duo", ["a"]);
+        await _service.SaveLaunchProfileAsync("Trio", ["b"]);
+        await _service.SaveLaunchProfileAsync("Duo", ["c"]);
+
+        var profils = await _service.GetLaunchProfilesAsync();
+
+        Assert.Equal(["Duo", "Trio"], profils.Select(p => p.Name));
+        Assert.Equal(["c"], profils[0].InstanceKeys);
+    }
+
+    [Fact]
     public async Task Appliquer_une_session_coche_les_siens_et_decoche_les_autres()
     {
         var principal = Compte(0);

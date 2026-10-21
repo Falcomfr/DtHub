@@ -415,7 +415,12 @@ public sealed class SettingsService : IDisposable
         await UpdateAsync(
             settings =>
             {
+                // Replaced where it stands: updating a profile must not
+                // send it to the bottom of the list.
                 var existing = LaunchProfiles.Find(settings.LaunchProfiles, wanted);
+                var place = existing is null
+                    ? settings.LaunchProfiles.Count
+                    : settings.LaunchProfiles.IndexOf(existing);
 
                 if (existing is not null)
                 {
@@ -445,7 +450,7 @@ public sealed class SettingsService : IDisposable
                 // Passing them as parameters would have opened the
                 // door to a profile that remembers something other
                 // than what the screen shows.
-                settings.LaunchProfiles.Add(new StoredLaunchProfile
+                settings.LaunchProfiles.Insert(place, new StoredLaunchProfile
                 {
                     Name = wanted,
                     InstanceKeys = retenus,

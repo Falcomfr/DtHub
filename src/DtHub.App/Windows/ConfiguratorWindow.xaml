@@ -1075,6 +1075,7 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
                               </Grid.ColumnDefinitions>
 
                               <StackPanel VerticalAlignment="Center" Margin="2,0,8,0">
@@ -1093,13 +1094,24 @@
                                       Data="M 5.5,3.5 L 12,7.5 L 5.5,11.5 Z" />
                               </Button>
 
+                              <!-- Takes what is open now: an arrow turning
+                                   back on itself, the usual "refresh". -->
+                              <Button Grid.Column="2" Style="{StaticResource IconButton}"
+                                      ToolTip="{loc:T UpdateProfileTip}"
+                                      Command="{Binding DataContext.Instances.UpdateProfileCommand,
+                                                        RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                      CommandParameter="{Binding}">
+                                <Path Style="{StaticResource RowGlyph}"
+                                      Data="M 11.9,8.6 A 4.5,4.5 0 1 1 10.6,4.2 M 11.2,1.8 V 4.6 H 8.4" />
+                              </Button>
+
                               <!-- A button, not a toggle: "QuietButton" and
                                    its kin target Button, and applying
                                    them to a ToggleButton throws at load
                                    time without the compiler seeing it.
                                    The state is conveyed by the filled
                                    star. -->
-                              <Button Grid.Column="2" Style="{StaticResource IconButton}"
+                              <Button Grid.Column="3" Style="{StaticResource IconButton}"
                                       ToolTip="{loc:T DefaultProfileTip}"
                                       Command="{Binding DataContext.Instances.ToggleDefaultProfileCommand,
                                                         RelativeSource={RelativeSource AncestorType=ItemsControl}}"
@@ -1122,7 +1134,7 @@
                                 </Path>
                               </Button>
 
-                              <Button Grid.Column="3" Style="{StaticResource DangerIconButton}"
+                              <Button Grid.Column="4" Style="{StaticResource DangerIconButton}"
                                       ToolTip="{loc:T DeleteProfileTip}"
                                       Command="{Binding DataContext.Instances.DeleteProfileCommand,
                                                         RelativeSource={RelativeSource AncestorType=ItemsControl}}"

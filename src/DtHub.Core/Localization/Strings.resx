@@ -368,6 +368,24 @@
   <data name="DeleteProfileTip" xml:space="preserve">
     <value>Delete this profile. The accounts are not touched.</value>
   </data>
+  <data name="ProfileOpenExplained" xml:space="preserve">
+    <value>Opening it later will close the game windows that are not part of it, then open its accounts where they stood, with these settings.</value>
+  </data>
+  <data name="ProfileExistsQuestion" xml:space="preserve">
+    <value>A profile “{0}” already exists. Replace what it keeps with what is open now?</value>
+  </data>
+  <data name="UpdateProfileTitle" xml:space="preserve">
+    <value>Update the profile</value>
+  </data>
+  <data name="UpdateProfileTip" xml:space="preserve">
+    <value>Replace what this profile keeps with the accounts open now, their windows and the current settings.</value>
+  </data>
+  <data name="UpdateProfileQuestion" xml:space="preserve">
+    <value>Update the profile “{0}” with what is open now?</value>
+  </data>
+  <data name="UpdateProfileReplaces" xml:space="preserve">
+    <value>What it kept until now will be replaced. Its name, its place in the list and its startup star stay.</value>
+  </data>
   <data name="CreateProfile" xml:space="preserve">
     <value>Create a profile</value>
   </data>
