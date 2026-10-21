@@ -14,7 +14,7 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 
 ### Añadido
 
-- En inglés y en español, la lista de guías muestra misiones, mazmorras y logros con los nombres del juego, y el nivel de las misiones aparece en la lista en todos los idiomas.
+- En inglés y en español, la lista de guías muestra misiones, mazmorras y logros con los nombres del juego, el nivel de las misiones aparece en la lista en todos los idiomas, y las zonas y los encabezados de logros muestran su rango de niveles.
 - Un botón «Pasos oficiales» muestra los pasos de una misión tal como los escribe el juego, en inglés y en español.
 - Un cuadrado de parada en el encabezado de un teléfono cierra de golpe todas sus cuentas abiertas, sin tocar los demás teléfonos.
 - Cada equipo tiene un botón Actualizar que reemplaza su contenido por lo que está abierto, conservando su nombre y su lugar; crear un equipo dice ahora lo que hará su apertura.

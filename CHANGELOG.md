@@ -21,7 +21,7 @@ belongs in the commits and in `docs/DECISIONS.md`.
 
 ### Added
 
-- In English and Spanish, the guides list shows quests, dungeons and achievements under the names the game uses, and quest levels now show in the list in every language.
+- In English and Spanish, the guides list shows quests, dungeons and achievements under the names the game uses, quest levels now show in the list in every language, and zones and achievement headings show their level range.
 - An "Official steps" button shows a quest's steps as the game writes them, in English and Spanish.
 - A stop square in a phone's header closes all of its open accounts at once; the other phones are not touched.
 - Each team has an Update button that replaces its content with what is open now, keeping its name and place; creating a team now says what opening it will do.

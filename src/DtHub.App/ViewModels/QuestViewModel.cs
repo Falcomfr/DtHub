@@ -851,6 +851,7 @@ public sealed partial class QuestViewModel : ObservableObject
                     Nodes.Add(branch with
                     {
                         Label = filtering ? $"{_tree.NameOf(branch.Id)} ({QuestTree.Text(shown)})" : branch.Label,
+                        Detail = filtering ? QuestLevelRange.Of(quests.Where(Passes)) : branch.Detail,
                         Tally = QuestTracking.ZoneProgress(Tracker.Progress, [.. quests.Select(q => q.Id).Distinct()]),
                     });
                 }
@@ -990,6 +991,7 @@ public sealed partial class QuestViewModel : ObservableObject
                 Nodes.Add(new QuestNode(
                     QuestNodeKind.Branch,
                     $"{QuestSectionTitle.Of(zone)} ({_sectionCounts.GetValueOrDefault(zone.Id)})",
+                    QuestLevelRange.Of(_catalog.InSection(zone.Id)),
                     Id: zone.Id,
                     Glyph: QuestTree.GlyphOf(zone.Name)));
             }
@@ -1016,6 +1018,7 @@ public sealed partial class QuestViewModel : ObservableObject
                 Nodes.Add(new QuestNode(
                     QuestNodeKind.Success,
                     $"{success} ({quests.Count})",
+                    QuestLevelRange.Of(quests),
                     Glyph: QuestNodeGlyph.Success));
 
                 foreach (var quest in quests)

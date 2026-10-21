@@ -246,18 +246,18 @@ public class QuestTreeTests
     }
 
     [Fact]
-    public async Task Un_intertitre_de_succes_ne_porte_pas_de_niveau()
+    public async Task Un_intertitre_de_succes_porte_la_fourchette_de_ses_niveaux()
     {
-        // The site gives a level for 103 quests out of 762: a range drawn from
-        // so few says more about the gaps than about the achievement.
         var client = new FakePapychaClient()
             .WithQuest(1, "Première", 18).AtLevel(20)
             .WithQuest(2, "Deuxième", 18).AtLevel(60)
+            .WithQuest(3, "Sans niveau", 18)
             .WithSection(18, "Astrub");
         client.KnownQuests.AddRange(
         [
             new QuestSummary { Id = 1, Title = "Première", SectionIds = [18], SuccessName = "Devenir une légende" },
             new QuestSummary { Id = 2, Title = "Deuxième", SectionIds = [18], SuccessName = "Devenir une légende" },
+            new QuestSummary { Id = 3, Title = "Sans niveau", SectionIds = [18], SuccessName = "Devenir une légende" },
         ]);
 
         var (tree, _) = await BuildAsync(client);
@@ -266,8 +266,32 @@ public class QuestTreeTests
 
         var titre = tree.BySuccess(catalog.Quests).First(n => n.Kind == QuestNodeKind.Success);
 
-        Assert.Null(titre.Detail);
+        Assert.Equal("20-60", titre.Detail);
     }
+
+    [Fact]
+    public async Task Une_zone_porte_la_fourchette_de_ses_niveaux()
+    {
+        var (tree, _) = await BuildAsync(new FakePapychaClient()
+            .WithQuest(1, "Première", 18).AtLevel(100)
+            .WithQuest(2, "Deuxième", 18).AtLevel(200)
+            .WithQuest(3, "Autre zone", 19)
+            .WithSection(18, "Astrub")
+            .WithSection(19, "Amakna"));
+
+        var zones = tree.Branches().ToDictionary(n => n.Id);
+
+        Assert.Equal("100-200", zones[18].Detail);
+        Assert.Null(zones[19].Detail);
+    }
+
+    [Theory]
+    [InlineData(new[] { 100, 200, 0 }, "100-200")]
+    [InlineData(new[] { 150, 150 }, "150")]
+    [InlineData(new[] { 0, 0 }, null)]
+    [InlineData(new int[0], null)]
+    public void La_fourchette_ignore_les_quetes_sans_niveau(int[] niveaux, string? attendu) =>
+        Assert.Equal(attendu, QuestLevelRange.Of([.. niveaux.Select(n => new QuestSummary { Level = n })]));
 
     [Fact]
     public async Task Une_quete_hors_succes_reste_au_ras_de_la_marge()

@@ -312,10 +312,7 @@ public sealed class QuestTree
             yield return new QuestNode(
                 QuestNodeKind.Branch,
                 $"{QuestSectionTitle.Of(zone)} ({_sectionCounts[zone.Id]})",
-
-                // No level range: across a whole zone it said little ("niveau
-                // 1 - 179 (sur 7)"). The tracker's progress takes the column,
-                // laid on by the guides window.
+                Detail: QuestLevelRange.Of(_catalog.InSection(zone.Id)),
                 Id: zone.Id,
                 Glyph: GlyphOf(zone.Name),
                 Spaced: next is not null
@@ -346,6 +343,11 @@ public sealed class QuestTree
             .GroupBy(b => b.SuccessName, StringComparer.Ordinal)
             .ToDictionary(g => g.Key, g => g.Sum(b => b.Quests.Count), StringComparer.Ordinal);
 
+        var ranges = plan
+            .Where(b => b.IsSuccess)
+            .GroupBy(b => b.SuccessName, StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => QuestLevelRange.Of(g.SelectMany(b => b.Quests)), StringComparer.Ordinal);
+
         foreach (var block in plan)
         {
             if (block.IsSuccess)
@@ -355,6 +357,7 @@ public sealed class QuestTree
                     block.IsContinuation
                         ? $"{block.SuccessName} ({Strings.Get("SeriesContinued")})"
                         : $"{block.SuccessName} ({Text(total[block.SuccessName])})",
+                    block.IsContinuation ? null : ranges[block.SuccessName],
                     Glyph: QuestNodeGlyph.Success);
             }
 

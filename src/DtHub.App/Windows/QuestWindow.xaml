@@ -1192,7 +1192,7 @@
                          achievement's tally. Hidden when empty, since an
                          empty block still claims its margin. -->
                     <TextBlock Text="{Binding Detail}"
-                               VerticalAlignment="Center"
+                               VerticalAlignment="Center" Margin="8,0,0,0"
                                Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
                                Visibility="{Binding Detail,
                                                     Converter={StaticResource EmptyToVisibility},

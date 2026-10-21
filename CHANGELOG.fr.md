@@ -15,7 +15,7 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
 ### Ajouté
 
-- En anglais et en espagnol, la liste des guides affiche quêtes, donjons et succès sous les noms du jeu, et le niveau des quêtes apparaît dans la liste dans toutes les langues.
+- En anglais et en espagnol, la liste des guides affiche quêtes, donjons et succès sous les noms du jeu, le niveau des quêtes apparaît dans la liste dans toutes les langues, et les zones et les intertitres de succès affichent leur fourchette de niveaux.
 - Un bouton « Étapes officielles » affiche les étapes d'une quête telles que le jeu les écrit, en anglais et en espagnol.
 - Un carré d'arrêt dans l'en-tête d'un téléphone ferme d'un coup tous ses comptes ouverts, sans toucher aux autres téléphones.
 - Chaque équipe a un bouton Mettre à jour qui remplace son contenu par ce qui est ouvert, en gardant son nom et sa place ; créer une équipe dit maintenant ce que son ouverture fera.
