@@ -13,6 +13,7 @@ public sealed class FakeAppPaths : IAppPaths
         ProfilesFile = Path.Combine(root, "profiles.json");
         CacheDirectory = Path.Combine(root, "cache");
         QuestCatalogFile = Path.Combine(CacheDirectory, "quetes.json");
+        TouchNamesFile = Path.Combine(CacheDirectory, "dofus-touch-noms.json");
         LogsDirectory = Path.Combine(root, "logs");
         ToolsDirectory = Path.Combine(root, "tools");
         UpdatesDirectory = Path.Combine(root, "updates");
@@ -25,6 +26,7 @@ public sealed class FakeAppPaths : IAppPaths
     public string ProfilesFile { get; }
     public string CacheDirectory { get; }
     public string QuestCatalogFile { get; }
+    public string TouchNamesFile { get; }
     public string LogsDirectory { get; }
     public string ToolsDirectory { get; }
     public string UpdatesDirectory { get; }

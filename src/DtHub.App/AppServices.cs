@@ -57,6 +57,7 @@ public static class AppServices
         services.AddSingleton(CreateStore<AppSettingsDocument>(p => p.SettingsFile));
         services.AddSingleton(CreateStore<DeviceRegistryDocument>(p => p.DevicesFile));
         services.AddSingleton(CreateStore<QuestCatalogDocument>(p => p.QuestCatalogFile));
+        services.AddSingleton(CreateStore<TouchNamesDocument>(p => p.TouchNamesFile));
 
         services.AddSingleton<SettingsService>();
 
@@ -112,6 +113,7 @@ public static class AppServices
         services.AddSingleton<IQuestCatalogSnapshot, EmbeddedQuestCatalogSnapshot>();
         services.AddSingleton<QuestCatalogService>();
         services.AddSingleton<ITouchIdTableSource, EmbeddedTouchIdTable>();
+        services.AddSingleton<TouchNameService>();
         services.AddSingleton<IAdbLocator, AdbLocator>();
         services.AddSingleton<SdlFocusFix>();
         services.AddSingleton<IScrcpyLocator, ScrcpyLocator>();
