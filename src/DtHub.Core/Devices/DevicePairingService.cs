@@ -303,6 +303,9 @@ public sealed class DevicePairingService
     /// neighbor's phone.
     /// </summary>
     /// <returns>Addresses actually connected.</returns>
+    /// <param name="alreadyConnected">
+    /// Connected phones, by adb serial and by hardware identifier.
+    /// </param>
     /// <param name="discarded">
     /// Devices whose pairing was broken, by hardware identifier. An
     /// announcement alone is not enough to bring one back: ADB
@@ -324,7 +327,11 @@ public sealed class DevicePairingService
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (alreadyConnected.Contains(service.Address))
+            // By its serial too: a phone also on USB is listed under that
+            // one, and its Wi-Fi address was connected again on every scan.
+            if (alreadyConnected.Contains(service.Address)
+                || (MdnsDeviceName.HardwareSerialFromInstance(service.Name) is { Length: > 0 } connectedSerial
+                    && alreadyConnected.Contains(connectedSerial)))
             {
                 continue;
             }

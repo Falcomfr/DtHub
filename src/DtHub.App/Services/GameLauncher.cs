@@ -2978,7 +2978,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             var addresses = live.Devices
                 .Where(d => d.IsConnected)
-                .Select(d => d.Serial)
+                .SelectMany(d => new[] { d.Serial, d.Id })
                 .ToHashSet(StringComparer.Ordinal);
 
             // An attempt on an announcement only succeeds for a

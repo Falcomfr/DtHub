@@ -346,6 +346,22 @@ public class DevicePairingServiceTests
     }
 
     [Fact]
+    public async Task Un_telephone_branche_en_usb_n_est_pas_reconnecte_par_son_annonce()
+    {
+        // On USB and Wi-Fi at once, only the USB serial was kept: its Wi-Fi
+        // address, already connected, was connected again every 30 s and
+        // logged as a reconnection (Galaxy S25 Ultra, 2026-10-21).
+        var adb = new FakeAdbClient();
+        adb.MdnsOutputs.Enqueue(PairingAndConnect);
+        adb.ConnectableAddresses.Add("192.168.1.25:37845");
+
+        var connected = await Service(adb).ConnectAnnouncedAsync(["MATERIEL123"], null, CancellationToken.None);
+
+        Assert.Empty(connected.Connected);
+        Assert.Empty(adb.ConnectAttempts);
+    }
+
+    [Fact]
     public async Task Un_ecart_ne_vaut_que_pour_l_appareil_ecarte()
     {
         var adb = new FakeAdbClient();
