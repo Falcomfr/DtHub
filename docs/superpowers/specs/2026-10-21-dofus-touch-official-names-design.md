@@ -82,7 +82,7 @@ game is embedded.** DT Hub reads names, levels and steps from the game's
 data server on the player's PC, in the player's language, and keeps them in
 its cache. The repository only holds identifiers: which game ids answer
 which Papycha page. That table is DT Hub's own work and contains no game
-text. Record this as D208.
+text. Recorded as D212 (D208 to D211 were taken by work merged the same day).
 
 ## Goals
 
