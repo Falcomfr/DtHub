@@ -107,6 +107,7 @@ public static class AppServices
 
         services.AddSingleton<IQuestCatalogSnapshot, EmbeddedQuestCatalogSnapshot>();
         services.AddSingleton<QuestCatalogService>();
+        services.AddSingleton<ITouchIdTableSource, EmbeddedTouchIdTable>();
         services.AddSingleton<IAdbLocator, AdbLocator>();
         services.AddSingleton<SdlFocusFix>();
         services.AddSingleton<IScrcpyLocator, ScrcpyLocator>();
