@@ -54,6 +54,32 @@ public class QuestCatalogServiceTests
     }
 
     [Fact]
+    public async Task Un_index_de_chaine_refait_apres_les_noms_retrouve_le_titre_du_jeu()
+    {
+        Strings.Speak(CultureInfo.GetCultureInfo("en"));
+
+        try
+        {
+            var (_, client, store) = Build();
+            using var touch = new TouchNameService(new FakeDofusTouchClient(), new InMemoryDocumentStore<TouchNamesDocument>(), new OneQuestTable());
+            using var service = new QuestCatalogService(client, store, client, touch);
+
+            await service.GetAsync(cancellationToken: CancellationToken.None);
+            var before = new QuestChainIndex(service.Catalog.Quests);
+
+            await service.RefreshNamesAsync();
+            var after = new QuestChainIndex(service.Catalog.Quests);
+
+            Assert.Null(before.Find("nom 10 en"));
+            Assert.Equal(1, after.Find("nom 10 en")?.Id);
+        }
+        finally
+        {
+            Strings.Speak(null);
+        }
+    }
+
+    [Fact]
     public async Task Sans_noms_en_cache_le_catalogue_reste_celui_de_Papycha()
     {
         Strings.Speak(CultureInfo.GetCultureInfo("en"));

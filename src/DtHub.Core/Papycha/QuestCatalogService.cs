@@ -17,8 +17,9 @@ public sealed class QuestCatalogService : IDisposable
     private readonly TouchNameService? _touch;
     private readonly SemaphoreSlim _gate = new(1, 1);
 
-    private QuestCatalogDocument? _current;
-    private QuestCatalogDocument? _view;
+    // volatile: the UI thread reads them while a refresh swaps them.
+    private volatile QuestCatalogDocument? _current;
+    private volatile QuestCatalogDocument? _view;
 
     public QuestCatalogService(
         IPapychaClient client,
@@ -65,7 +66,8 @@ public sealed class QuestCatalogService : IDisposable
     public QuestCatalogDocument Catalog => _view ?? Source;
 
     /// <summary>
-    /// Returns the catalog, indexing it if it is missing or has gone stale.
+    /// Returns the catalog served (<see cref="Catalog"/>, possibly localized),
+    /// indexing it if it is missing or has gone stale.
     ///
     /// A failed indexing never clears what we had: it returns the stale
     /// catalog and lets the caller decide whether to report it. Searching in
@@ -99,7 +101,10 @@ public sealed class QuestCatalogService : IDisposable
         }
     }
 
-    /// <summary>Reindexes on demand, regardless of freshness.</summary>
+    /// <summary>
+    /// Reindexes on demand, regardless of freshness; returns the served
+    /// (possibly localized) <see cref="Catalog"/>.
+    /// </summary>
     public async Task<QuestCatalogDocument> RefreshAsync(
         IProgress<QuestIndexingProgress>? progress = null,
         CancellationToken cancellationToken = default)
@@ -154,21 +159,23 @@ public sealed class QuestCatalogService : IDisposable
     /// </summary>
     private async Task RebuildViewAsync(CancellationToken cancellationToken)
     {
-        _view = null;
-
-        if (_touch is null || _current is null)
-        {
-            return;
-        }
+        // Computed aside and swapped once: readers never see the French
+        // source between two localized views.
+        QuestCatalogDocument? view = null;
 
         try
         {
-            var language = TouchNameService.CurrentLanguage;
-
-            if (await _touch.CachedAsync(language, cancellationToken).ConfigureAwait(false) is { } names)
+            if (_touch is not null && _current is { } source)
             {
-                _view = TouchLocalization.Apply(_current, _touch.Table, names, language != "fr");
+                var language = TouchNameService.CurrentLanguage;
+
+                if (await _touch.CachedAsync(language, cancellationToken).ConfigureAwait(false) is { } names)
+                {
+                    view = TouchLocalization.Apply(source, _touch.Table, names, language != "fr");
+                }
             }
+
+            _view = view;
         }
         catch (OperationCanceledException)
         {

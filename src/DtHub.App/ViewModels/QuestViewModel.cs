@@ -419,7 +419,17 @@ public sealed partial class QuestViewModel : ObservableObject
         ShowRoot();
 
         // Not awaited: names that arrive later show at the next opening.
-        NamesRead = _catalog.RefreshNamesAsync(CancellationToken.None);
+        NamesRead = ReadNamesAsync();
+    }
+
+    /// <summary>
+    /// The chain index was built from the catalog before the names came:
+    /// rebuilt from the localized one so prerequisites resolve again.
+    /// </summary>
+    private async Task ReadNamesAsync()
+    {
+        await _catalog.RefreshNamesAsync(CancellationToken.None).ConfigureAwait(true);
+        _tree.Chain = new QuestChainIndex(_catalog.Catalog.Quests);
     }
 
     /// <summary>The names refresh started by the last load; never faults.</summary>
