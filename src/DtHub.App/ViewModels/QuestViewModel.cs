@@ -886,7 +886,7 @@ public sealed partial class QuestViewModel : ObservableObject
             {
                 Nodes.Add(new QuestNode(
                     QuestNodeKind.Branch,
-                    $"{QuestZoneOrder.DisplayName(zone.Name)} ({_sectionCounts.GetValueOrDefault(zone.Id)})",
+                    $"{QuestSectionTitle.Of(zone)} ({_sectionCounts.GetValueOrDefault(zone.Id)})",
                     Id: zone.Id,
                     Glyph: QuestTree.GlyphOf(zone.Name)));
             }

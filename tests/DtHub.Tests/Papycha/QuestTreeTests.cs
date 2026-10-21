@@ -287,6 +287,27 @@ public class QuestTreeTests
     }
 
     [Fact]
+    public async Task En_anglais_la_branche_porte_le_titre_anglais_de_sa_zone()
+    {
+        Strings.Speak(System.Globalization.CultureInfo.GetCultureInfo("en"));
+
+        try
+        {
+            var (tree, _) = await BuildAsync(new FakePapychaClient()
+                .WithQuest(3, "Complètement givré", 135)
+                .WithSection(135, "Île de Frigost"));
+
+            Assert.Contains(
+                tree.Branches(),
+                n => n.Kind == QuestNodeKind.Branch && n.Label == "Frigost Island (1)");
+        }
+        finally
+        {
+            Strings.Speak(null);
+        }
+    }
+
+    [Fact]
     public async Task Une_ligne_de_quete_porte_ses_prerequis()
     {
         var client = new FakePapychaClient()
