@@ -24,6 +24,7 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 - Un compte fermé pendant sa reconnexion, ou laissé en ouvrant une autre team, ne revient plus quelques secondes après.
 - Un compte dont le téléphone a décroché en jeu attend son retour et se rouvre, au lieu de rester fermé.
 - Installer une mise à jour ne peut plus laisser un DtHub.exe abîmé quand DT Hub est rangé sur un autre disque et que le PC s'éteint.
+- Décocher la mise à jour automatique empêche aussi d'installer en quittant une version déjà téléchargée.
 
 ## [0.9.6] - 2026-10-21
 

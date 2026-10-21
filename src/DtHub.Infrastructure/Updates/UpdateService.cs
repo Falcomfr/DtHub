@@ -230,11 +230,16 @@ public sealed partial class UpdateService(
     /// half fails, the first is undone: better the old version than no
     /// application at all.
     /// </summary>
-    public bool Apply()
+    /// <param name="automatic">
+    /// The box as it stands at shutdown, not as it stood when the update
+    /// was prepared: unchecked in between, the player keeps his version.
+    /// </param>
+    public bool Apply(bool automatic)
     {
         var current = _target.ExecutablePath;
 
-        if (!Ready
+        if (!automatic
+            || !Ready
             || Available is not { } release
             || string.IsNullOrEmpty(current)
             || !UpdatePaths.CanReplace(current, File.Exists))

@@ -1218,7 +1218,13 @@ public partial class App : Application, IDisposable
                 // nothing is running anymore, and the executable
                 // renaming itself interrupts no one. It will start at
                 // the next launch.
-                if (_host.Services.GetRequiredService<UpdateService>().Apply())
+                // Read now: the box unchecked after the download is
+                // ready means the player keeps his version.
+                var settings = await _host.Services.GetRequiredService<SettingsService>()
+                    .GetAsync()
+                    .ConfigureAwait(true);
+
+                if (_host.Services.GetRequiredService<UpdateService>().Apply(settings.UpdatesAutomatic))
                 {
                     Log.Information("Mise à jour posée, elle démarrera au prochain lancement.");
                 }

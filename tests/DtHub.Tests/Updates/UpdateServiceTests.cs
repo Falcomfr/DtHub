@@ -86,7 +86,7 @@ public sealed class UpdateServiceTests : IDisposable
         await service.CheckAsync(automatic: true);
 
         Assert.True(service.Ready);
-        Assert.True(service.Apply());
+        Assert.True(service.Apply(automatic: true));
 
         Assert.Equal("nouvelle version", File.ReadAllText(_executable));
         Assert.Equal(
@@ -110,9 +110,23 @@ public sealed class UpdateServiceTests : IDisposable
         // Apply no longer reads the download, only the copy beside the executable.
         File.Delete(UpdatePaths.Staged(_paths.UpdatesDirectory, new Version(0, 2, 0)));
 
-        Assert.True(service.Apply());
+        Assert.True(service.Apply(automatic: true));
         Assert.Equal("nouvelle version", File.ReadAllText(_executable));
         Assert.False(File.Exists(incoming));
+    }
+
+    [Fact]
+    public async Task Ne_pose_pas_une_livraison_prete_quand_la_case_a_ete_decochee()
+    {
+        // Prepared at startup, the box unchecked before quitting: the player
+        // wants to keep the version he has.
+        var (service, _) = Monter(Empreinte(Neuf), new Version(0, 2, 0));
+
+        await service.CheckAsync(automatic: true);
+
+        Assert.True(service.Ready);
+        Assert.False(service.Apply(automatic: false));
+        Assert.Equal("ancienne version", File.ReadAllText(_executable));
     }
 
     [Fact]
@@ -126,7 +140,7 @@ public sealed class UpdateServiceTests : IDisposable
         await service.CheckAsync(automatic: true);
 
         Assert.False(service.Ready);
-        Assert.False(service.Apply());
+        Assert.False(service.Apply(automatic: true));
         Assert.Equal("ancienne version", File.ReadAllText(_executable));
         Assert.Empty(Directory.GetFiles(_paths.UpdatesDirectory, "*.exe"));
     }
@@ -166,7 +180,7 @@ public sealed class UpdateServiceTests : IDisposable
         await service.CheckAsync(automatic: true);
 
         Assert.Null(service.Available);
-        Assert.False(service.Apply());
+        Assert.False(service.Apply(automatic: true));
         Assert.Equal("ancienne version", File.ReadAllText(_executable));
     }
 
@@ -320,7 +334,7 @@ public sealed class UpdateServiceTests : IDisposable
         var (service, _) = Monter(Empreinte(Neuf), new Version(0, 2, 0));
 
         await service.CheckAsync(automatic: true);
-        _ = service.Apply();
+        _ = service.Apply(automatic: true);
 
         // A copy prepared and never placed, the box unchecked meanwhile.
         var incoming = Path.Combine(Path.GetDirectoryName(_executable)!, UpdatePaths.Incoming);
