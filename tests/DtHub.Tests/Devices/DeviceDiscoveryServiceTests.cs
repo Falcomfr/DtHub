@@ -767,4 +767,33 @@ public class DeviceDiscoveryServiceTests
         Assert.Null(echec.Lit);
         Assert.False(string.IsNullOrWhiteSpace(echec.Answer));
     }
+
+    [Fact]
+    public async Task Le_wifi_du_telephone_est_tenu_eveille_vers_sa_box()
+    {
+        // Measured on 2026-10-21, the 13T Pro next to the router: pings to it
+        // at a median of 152 ms and 38 spikes in 60, its Wi-Fi dozing; 22 ms
+        // and none while it kept pinging its router five times over.
+        var adb = new FakeAdbClient().WithShell(
+            "ip route get",
+            "1.1.1.1 via 192.168.1.1 dev wlan0 table 1037 src 192.168.1.16 uid 2000 \n    cache ");
+
+        using var service = new DeviceDiscoveryService(adb, new InMemoryDeviceRegistry());
+
+        Assert.True(await service.KeepWifiAwakeAsync("192.168.1.16:41923", CancellationToken.None));
+
+        var envoi = Assert.Single(adb.ShellCalls, c => c.Contains("ping", StringComparison.Ordinal));
+        Assert.Contains("ping -i 0.2 -w 65 192.168.1.1", envoi, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Sans_box_connue_rien_n_est_envoye()
+    {
+        var adb = new FakeAdbClient().WithShell("ip route get", "RTNETLINK answers: Network is unreachable");
+
+        using var service = new DeviceDiscoveryService(adb, new InMemoryDeviceRegistry());
+
+        Assert.False(await service.KeepWifiAwakeAsync("192.168.1.16:41923", CancellationToken.None));
+        Assert.DoesNotContain(adb.ShellCalls, c => c.Contains("ping", StringComparison.Ordinal));
+    }
 }

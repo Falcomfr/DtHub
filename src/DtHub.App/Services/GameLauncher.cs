@@ -2295,6 +2295,39 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }
     }
 
+    /// <summary>
+    /// When each playing Wi-Fi phone was last asked to keep its Wi-Fi awake,
+    /// see <see cref="DeviceDiscoveryService.KeepWifiAwakeAsync" />.
+    /// </summary>
+    private readonly ConcurrentDictionary<string, DateTimeOffset> _keptAwake = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Asks the phone for one more round once a minute, a little before the
+    /// last one ends on its own.
+    /// </summary>
+    private void KeepWifiAwake(string serial)
+    {
+        var now = DateTimeOffset.UtcNow;
+        var first = !_keptAwake.TryGetValue(serial, out var last);
+
+        if (!first && now - last < DeviceDiscoveryService.KeepAwakeRound - TimeSpan.FromSeconds(5))
+        {
+            return;
+        }
+
+        _keptAwake[serial] = now;
+
+        _ = Task.Run(async () =>
+        {
+            var kept = await _devices.KeepWifiAwakeAsync(serial).ConfigureAwait(false);
+
+            if (first)
+            {
+                LogWifiKeptAwake(serial, kept ? "tenu éveillé" : "impossible à tenir éveillé, box introuvable");
+            }
+        });
+    }
+
     /// <summary>Wi-Fi latency spikes per device, fed by <see cref="SampleInBackground" />.</summary>
     private readonly System.Collections.Concurrent.ConcurrentDictionary<string, PingSpikes> _pings =
         new(StringComparer.Ordinal);
@@ -2371,6 +2404,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
             if (PingSpikes.HostOf(serial) is { } host)
             {
                 _ = PingAsync(host, _pings.GetOrAdd(serial, _ => new PingSpikes()));
+                KeepWifiAwake(serial);
             }
         }
 
@@ -2380,6 +2414,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         {
             _ = _pings.TryRemove(gone, out _);
             _ = _spiky.TryRemove(gone, out _);
+            _ = _keptAwake.TryRemove(gone, out _);
         }
 
         var strainDue = _sinceStrain is null || _sinceStrain.Elapsed >= StrainInterval;
@@ -6010,6 +6045,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Téléphone revenu : réouverture de {name}.")]
     private partial void LogReopenedOnReturn(string name);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Wi-Fi de {device} {how} pendant le jeu.")]
+    private partial void LogWifiKeptAwake(string device, string how);
 
     [LoggerMessage(
         Level = LogLevel.Information,

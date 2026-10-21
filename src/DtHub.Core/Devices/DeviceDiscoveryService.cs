@@ -458,6 +458,75 @@ public sealed class DeviceDiscoveryService : IDisposable
     }
 
     /// <summary>
+    /// How long one round of <see cref="KeepWifiAwakeAsync" /> lasts on the
+    /// phone. The caller starts the next one before it ends.
+    /// </summary>
+    public static readonly TimeSpan KeepAwakeRound = TimeSpan.FromSeconds(65);
+
+    /// <summary>
+    /// Keeps the phone's Wi-Fi from dozing for a minute: five pings from the
+    /// phone to its router, every 0.2 s each, the shortest Android allows
+    /// without root. A phone with nothing to send lets its Wi-Fi doze, and
+    /// what the PC sends it then waits at the router for its next wake.
+    ///
+    /// **Measured on 2026-10-21**, the 13T Pro next to the router at -13 dBm:
+    /// pings from the PC at a median of 152 to 187 ms and 38 to 46 spikes over
+    /// 100 ms in 60, against 22 ms and none with these running. Aimed at the
+    /// PC instead, 81 ms and 25 spikes. The rounds end on their own, so a
+    /// DT Hub that dies leaves nothing running on the phone.
+    /// </summary>
+    /// <returns>False when the phone's router could not be found.</returns>
+    public async Task<bool> KeepWifiAwakeAsync(string serial, CancellationToken cancellationToken = default)
+    {
+        string route;
+
+        try
+        {
+            route = await _adb.ShellAsync(serial, ["ip", "route", "get", "1.1.1.1"], cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (AdbException)
+        {
+            // Said by the false, and logged once by the caller: the Wi-Fi
+            // simply dozes as before, and the next round asks again.
+            return false;
+        }
+
+        // Its main table is empty on Android, the route lives in a per-network
+        // one: "ip route" alone found nothing.
+        var via = route.Split([' ', '\n', '\r', '\t'], StringSplitOptions.RemoveEmptyEntries)
+            .SkipWhile(w => w != "via")
+            .Skip(1)
+            .FirstOrDefault();
+
+        // Checked before it reaches the phone's shell.
+        if (!System.Net.IPAddress.TryParse(via, out var router)
+            || router.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork)
+        {
+            return false;
+        }
+
+        var seconds = (int)KeepAwakeRound.TotalSeconds;
+
+        try
+        {
+            _ = await _adb.ShellAsync(
+                    serial,
+                    [$"for i in 1 2 3 4 5; do (ping -i 0.2 -w {seconds} {router} > /dev/null 2>&1 &); sleep 0.04; done"],
+                    cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (AdbException)
+        {
+            // Same as above: a phone that dropped meanwhile is asked again
+            // at the next round.
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
     /// Last trust verdict for the display, per device.
     ///
     /// Kept for a long time: this flag says what the device is capable of, and
