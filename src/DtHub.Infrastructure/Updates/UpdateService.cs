@@ -178,6 +178,25 @@ public sealed partial class UpdateService(
                 return false;
             }
 
+            // Copied now, beside the executable, so that Apply only
+            // renames. The executable can live on another disk (D10), and
+            // a move across disks is a copy: cut short by a shutdown, it
+            // left a truncated DtHub.exe that no longer started. The copy
+            // is checked as the download was.
+            var incoming = Incoming();
+            File.Copy(staged, incoming, overwrite: true);
+
+            if (!string.Equals(
+                expected,
+                await Sha256Async(incoming, cancellationToken).ConfigureAwait(true),
+                StringComparison.OrdinalIgnoreCase))
+            {
+                LogDigestMismatch(release.Version.ToString());
+                Delete(incoming);
+
+                return false;
+            }
+
             await File
                 .WriteAllTextAsync(
                     UpdatePaths.Notes(_paths.UpdatesDirectory, release.Version),
@@ -223,9 +242,9 @@ public sealed partial class UpdateService(
             return false;
         }
 
-        var staged = UpdatePaths.Staged(_paths.UpdatesDirectory, release.Version);
+        var incoming = Incoming();
 
-        if (!File.Exists(staged))
+        if (!File.Exists(incoming))
         {
             return false;
         }
@@ -240,7 +259,7 @@ public sealed partial class UpdateService(
 
             try
             {
-                File.Move(staged, current);
+                File.Move(incoming, current);
             }
             // Denied too, by an antivirus blocking the new executable: the
             // old one must come back, or nothing would be left to start.
@@ -304,6 +323,10 @@ public sealed partial class UpdateService(
         if (directory is not null)
         {
             Delete(Path.Combine(directory, UpdatePaths.Retired));
+
+            // A copy prepared and never placed: the next preparation makes
+            // a fresh one, and an unchecked box would leave sixty megabytes.
+            Delete(Path.Combine(directory, UpdatePaths.Incoming));
         }
 
         try
@@ -329,6 +352,10 @@ public sealed partial class UpdateService(
             LogSweepFailed(exception);
         }
     }
+
+    /// <summary>The verified copy waiting beside the executable.</summary>
+    private string Incoming() =>
+        Path.Combine(Path.GetDirectoryName(_target.ExecutablePath) ?? string.Empty, UpdatePaths.Incoming);
 
     /// <summary>
     /// The digest carried by the companion file. The usual format is

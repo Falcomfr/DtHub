@@ -22,6 +22,7 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 - Los juegos en pestañas aparecen directamente en su marco restaurado, sin mostrar brevemente una ventana independiente grande.
 - Una cuenta cerrada durante su reconexión, o dejada al abrir otro equipo, ya no vuelve unos segundos después.
 - Una cuenta cuyo teléfono se desconectó en partida espera su regreso y se vuelve a abrir, en lugar de quedarse cerrada.
+- Instalar una actualización ya no puede dejar un DtHub.exe dañado cuando DT Hub está en otro disco y el PC se apaga.
 
 ## [0.9.6] - 2026-10-21
 

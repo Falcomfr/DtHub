@@ -20,6 +20,12 @@ public static class UpdatePaths
     public const string Retired = "DtHub.exe.ancien";
 
     /// <summary>
+    /// The verified copy of the update, next to the executable. Placing it
+    /// is then a rename on the same disk, never a copy a shutdown can cut.
+    /// </summary>
+    public const string Incoming = "DtHub.exe.nouveau";
+
+    /// <summary>
     /// True if the currently running executable can be replaced.
     ///
     /// It cannot when it comes from a source tree: the development

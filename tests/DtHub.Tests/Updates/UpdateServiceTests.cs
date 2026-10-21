@@ -95,6 +95,27 @@ public sealed class UpdateServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Prepare_la_copie_a_cote_de_l_executable_pour_que_la_pose_ne_fasse_que_renommer()
+    {
+        // The download lives in the user's folder, the executable wherever
+        // the player put it (D10): a move across disks is a copy that a
+        // shutdown can cut short, leaving a truncated DtHub.exe.
+        var (service, _) = Monter(Empreinte(Neuf), new Version(0, 2, 0));
+
+        await service.CheckAsync(automatic: true);
+
+        var incoming = Path.Combine(Path.GetDirectoryName(_executable)!, UpdatePaths.Incoming);
+        Assert.Equal("nouvelle version", File.ReadAllText(incoming));
+
+        // Apply no longer reads the download, only the copy beside the executable.
+        File.Delete(UpdatePaths.Staged(_paths.UpdatesDirectory, new Version(0, 2, 0)));
+
+        Assert.True(service.Apply());
+        Assert.Equal("nouvelle version", File.ReadAllText(_executable));
+        Assert.False(File.Exists(incoming));
+    }
+
+    [Fact]
     public async Task Refuse_une_livraison_dont_l_empreinte_ne_correspond_pas()
     {
         // The downloaded file does not stay on disk: an executable
@@ -301,6 +322,10 @@ public sealed class UpdateServiceTests : IDisposable
         await service.CheckAsync(automatic: true);
         _ = service.Apply();
 
+        // A copy prepared and never placed, the box unchecked meanwhile.
+        var incoming = Path.Combine(Path.GetDirectoryName(_executable)!, UpdatePaths.Incoming);
+        File.WriteAllText(incoming, "nouvelle version");
+
         var suivante = new UpdateService(
             new FakeReleaseSource(),
             _paths,
@@ -311,6 +336,7 @@ public sealed class UpdateServiceTests : IDisposable
 
         Assert.False(File.Exists(
             Path.Combine(Path.GetDirectoryName(_executable)!, UpdatePaths.Retired)));
+        Assert.False(File.Exists(incoming));
         Assert.Empty(Directory.GetFiles(_paths.UpdatesDirectory, "DtHub-*.exe"));
     }
 }
