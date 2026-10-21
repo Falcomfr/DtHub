@@ -2178,10 +2178,26 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// <summary>
     /// Lights the phone's screen again, its accounts left open, see
     /// <see cref="ScrcpySessionManager.LightScreenAsync" />.
+    ///
+    /// Then woken: a phone held dark goes to sleep after a few seconds,
+    /// and stopping the guard only restores a screen that sleep then keeps
+    /// off. Measured on the 13T Pro on 2026-10-21, the click did nothing
+    /// visible without the wake key, the screen lit with it.
     /// </summary>
     public async Task LightPanelAsync(string deviceId)
     {
         await _sessions.LightScreenAsync(deviceId).ConfigureAwait(false);
+
+        var serial = _sessions.ActiveSessions
+            .Where(s => s.IsAlive && string.Equals(s.Target.DeviceId, deviceId, StringComparison.Ordinal))
+            .Select(s => Routable(s.Target))
+            .FirstOrDefault();
+
+        if (serial is not null)
+        {
+            _ = await _devices.WakeAsync(serial).ConfigureAwait(false);
+        }
+
         LitPanelsChanged?.Invoke(this, EventArgs.Empty);
     }
 
