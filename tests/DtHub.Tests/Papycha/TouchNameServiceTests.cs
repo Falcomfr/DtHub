@@ -128,6 +128,23 @@ public class TouchNameServiceTests
         Assert.NotNull(await service.CachedAsync("fr"));
     }
 
+    [Fact]
+    public async Task Une_lecture_lente_ne_bloque_pas_le_cache_et_ne_se_double_pas()
+    {
+        using var service = Service();
+        _client.Pause = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        var first = service.RefreshAsync("en");
+        var second = service.RefreshAsync("en");
+
+        var cached = service.CachedAsync("en");
+
+        Assert.Same(cached, await Task.WhenAny(cached, Task.Delay(5000)));
+        Assert.Null(await cached);
+        _client.Pause.SetResult();
+        Assert.Same(await first, await second);
+        Assert.Single(_client.Requested["Quests"]);
+    }
+
     private void GiveSteps()
     {
         _client.Rows["QuestSteps"] = new()

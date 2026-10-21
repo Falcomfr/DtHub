@@ -15,7 +15,12 @@ public sealed class TouchNameService(
     IDocumentStore<TouchNamesDocument> store,
     ITouchIdTableSource table) : IDisposable
 {
+    /// <summary>Guards the document; held only for disk work, so <see cref="CachedAsync"/> answers at once.</summary>
     private readonly SemaphoreSlim _gate = new(1, 1);
+
+    /// <summary>One network read at a time, so a second refresh finds the first one's names instead of asking again.</summary>
+    private readonly SemaphoreSlim _read = new(1, 1);
+
     private readonly Lazy<TouchIdTable> _table = new(table.Load);
     private TouchNamesDocument? _document;
 
@@ -48,14 +53,21 @@ public sealed class TouchNameService(
     /// <summary>Reads the names unless the cache is fresh; never throws except on cancellation.</summary>
     public async Task<TouchLanguageNames?> RefreshAsync(string language, CancellationToken ct = default)
     {
-        await _gate.WaitAsync(ct).ConfigureAwait(false);
+        var previous = await CachedAsync(language, ct).ConfigureAwait(false);
+
+        if (IsFresh(previous))
+        {
+            return previous;
+        }
+
+        await _read.WaitAsync(ct).ConfigureAwait(false);
 
         try
         {
-            var document = await LoadAsync(ct).ConfigureAwait(false);
-            var previous = document.Languages.GetValueOrDefault(language);
+            // A refresh that held the read while this one waited may have just read them.
+            previous = await CachedAsync(language, ct).ConfigureAwait(false);
 
-            if (previous is not null && DateTimeOffset.UtcNow - previous.ReadUtc < Freshness)
+            if (IsFresh(previous))
             {
                 return previous;
             }
@@ -64,8 +76,7 @@ public sealed class TouchNameService(
             {
                 // Read before the swap: a half-read language must not replace a whole one.
                 var names = await ReadAsync(language, previous, ct).ConfigureAwait(false);
-                document.Languages[language] = names;
-                await store.SaveAsync(document, ct).ConfigureAwait(false);
+                await SaveAsync(document => document.Languages[language] = names, ct).ConfigureAwait(false);
                 LastFailure = null;
 
                 return names;
@@ -84,7 +95,7 @@ public sealed class TouchNameService(
         }
         finally
         {
-            _gate.Release();
+            _read.Release();
         }
     }
 
@@ -97,7 +108,7 @@ public sealed class TouchNameService(
     public async Task<IReadOnlyList<TouchStep>> StepsAsync(
         int papychaQuestId, string language, CancellationToken ct = default)
     {
-        // Outside the gate: both calls take it themselves.
+        // Before the read gate: RefreshAsync takes it itself.
         var known = await CachedAsync(language, ct).ConfigureAwait(false)
             ?? await RefreshAsync(language, ct).ConfigureAwait(false);
 
@@ -106,7 +117,7 @@ public sealed class TouchNameService(
             return [];
         }
 
-        await _gate.WaitAsync(ct).ConfigureAwait(false);
+        await _read.WaitAsync(ct).ConfigureAwait(false);
 
         try
         {
@@ -129,8 +140,7 @@ public sealed class TouchNameService(
             try
             {
                 var steps = await ReadStepsAsync(known, stepIds, language, ct).ConfigureAwait(false);
-                known.Steps[papychaQuestId] = steps;
-                await store.SaveAsync(await LoadAsync(ct).ConfigureAwait(false), ct).ConfigureAwait(false);
+                await SaveAsync(_ => known.Steps[papychaQuestId] = steps, ct).ConfigureAwait(false);
                 LastFailure = null;
 
                 return steps;
@@ -146,6 +156,26 @@ public sealed class TouchNameService(
 
                 return [];
             }
+        }
+        finally
+        {
+            _read.Release();
+        }
+    }
+
+    private bool IsFresh(TouchLanguageNames? names) =>
+        names is not null && DateTimeOffset.UtcNow - names.ReadUtc < Freshness;
+
+    /// <summary>Only the swap and the write take the gate, never a network read: the window waits on it.</summary>
+    private async Task SaveAsync(Action<TouchNamesDocument> change, CancellationToken ct)
+    {
+        await _gate.WaitAsync(ct).ConfigureAwait(false);
+
+        try
+        {
+            var document = await LoadAsync(ct).ConfigureAwait(false);
+            change(document);
+            await store.SaveAsync(document, ct).ConfigureAwait(false);
         }
         finally
         {
@@ -300,5 +330,9 @@ public sealed class TouchNameService(
             ? [.. value.EnumerateArray().Where(v => v.TryGetInt32(out _)).Select(v => v.GetInt32())]
             : [];
 
-    public void Dispose() => _gate.Dispose();
+    public void Dispose()
+    {
+        _gate.Dispose();
+        _read.Dispose();
+    }
 }

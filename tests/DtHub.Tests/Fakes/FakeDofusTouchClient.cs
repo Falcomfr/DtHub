@@ -23,9 +23,17 @@ public sealed class FakeDofusTouchClient : IDofusTouchClient
     /// <summary>Texts by id; an id without text is left out of the answer.</summary>
     public Dictionary<int, string> Texts { get; } = [];
 
-    public Task<IReadOnlyDictionary<int, JsonElement>> GetAsync(
+    /// <summary>When set, every class read waits for it, as a slow server would.</summary>
+    public TaskCompletionSource? Pause { get; set; }
+
+    public async Task<IReadOnlyDictionary<int, JsonElement>> GetAsync(
         string dataClass, IReadOnlyCollection<int>? ids, string language, CancellationToken cancellationToken = default)
     {
+        if (Pause is not null)
+        {
+            await Pause.Task;
+        }
+
         if (Failure is not null)
         {
             throw Failure;
@@ -40,15 +48,15 @@ public sealed class FakeDofusTouchClient : IDofusTouchClient
 
         if (Rows.TryGetValue(dataClass, out var rows))
         {
-            return Task.FromResult<IReadOnlyDictionary<int, JsonElement>>(rows
+            return rows
                 .Where(r => ids is null || ids.Contains(r.Key))
-                .ToDictionary(r => r.Key, r => JsonDocument.Parse(r.Value).RootElement));
+                .ToDictionary(r => r.Key, r => JsonDocument.Parse(r.Value).RootElement);
         }
 
-        return Task.FromResult<IReadOnlyDictionary<int, JsonElement>>(ids!.ToDictionary(
+        return ids!.ToDictionary(
             id => id,
             id => JsonDocument.Parse(
-                $$"""{"nameId":{{(Nameless ? "null" : $"\"nom {id} {language}\"")}},"levelMin":10,"levelMax":20,"stepIds":[{{id}}],"dungeonKey":{{id + 1000}}}""").RootElement));
+                $$"""{"nameId":{{(Nameless ? "null" : $"\"nom {id} {language}\"")}},"levelMin":10,"levelMax":20,"stepIds":[{{id}}],"dungeonKey":{{id + 1000}}}""").RootElement);
     }
 
     public Task<IReadOnlyDictionary<int, string>> GetTextsAsync(
