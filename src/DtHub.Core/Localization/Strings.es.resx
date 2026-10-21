@@ -618,7 +618,7 @@ Cruza las pruebas: otro dispositivo en este puerto, y este teléfono en otro PC.
     <value>La conexión con {0} se cortó. Su ventana se vuelve a abrir.</value>
   </data>
   <data name="SessionRecoveryGaveUp" xml:space="preserve">
-    <value>{0} no pudo reabrirse tras varios intentos. Revisa el teléfono y vuelve a lanzarlo tú mismo.</value>
+    <value>La conexión con {0} se perdió. Su ventana se volverá a abrir en cuanto vuelva el teléfono.</value>
   </data>
   <data name="ReducedRender" xml:space="preserve">
     <value>{0}: el teléfono ejecuta el juego a una resolución reducida ({1} %), de ahí la imagen borrosa. Viene de un ajuste del teléfono, el modo de juego de esta copia de la aplicación: el triángulo de su línea lo devuelve a estándar.</value>
@@ -2284,7 +2284,7 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
     <value>Comprueba el cable y luego la depuración USB en el teléfono.</value>
   </data>
   <data name="OfflineHowWireless" xml:space="preserve">
-    <value>Comprueba el Wi-Fi y luego la depuración inalámbrica en el teléfono.</value>
+    <value>¿Misma Wi-Fi que el PC? En el teléfono, abre Opciones de desarrollador › Depuración inalámbrica: mostrarla suele bastar para reactivarla.</value>
   </data>
   <data name="OfflineHowUnknown" xml:space="preserve">
     <value>Comprueba que el teléfono esté encendido y su depuración activa.</value>

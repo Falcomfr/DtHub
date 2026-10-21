@@ -211,6 +211,16 @@ public partial class App : Application, IDisposable
         launcher.RecoveryRequested += (_, request) =>
             Dispatcher.Invoke(() => _ = RecoverAsync(launcher, request));
 
+        // Accounts waiting for their phone: the panel says so, and its
+        // sweep is what brings the phone, then the accounts, back.
+        launcher.PhoneAwaited += (_, _) => Dispatcher.Invoke(() =>
+        {
+            if (!_quitting)
+            {
+                _configurator?.Reveal();
+            }
+        });
+
         // The panel was already hidden: hidden is indeed what we want
         // remembered.
         launcher.LastWindowClosed += (_, _) => Dispatcher.Invoke(
@@ -737,8 +747,10 @@ public partial class App : Application, IDisposable
         }
 
         // Also called when the panel is hidden: game windows may
-        // still remain then, and the application must continue.
-        if (_host?.Services.GetRequiredService<GameLauncher>().ActiveSessions.Count > 0)
+        // still remain then, and the application must continue. So must
+        // it while accounts wait for their phone to come back.
+        if (_host?.Services.GetRequiredService<GameLauncher>() is { } launcher
+            && (launcher.ActiveSessions.Count > 0 || launcher.AwaitsPhone))
         {
             return;
         }

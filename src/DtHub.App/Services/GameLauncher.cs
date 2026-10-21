@@ -329,6 +329,27 @@ public sealed partial class GameLauncher : IAsyncDisposable
         new(StringComparer.Ordinal);
 
     /// <summary>
+    /// Accounts lost with their phone once recovery gave up, by key: they
+    /// reopen when the phone answers again. Lomitall reopens them so; the
+    /// three tries over twenty seconds left a four-minute Wi-Fi drop with
+    /// everything closed (2026-10-21). A window the player opens or closes
+    /// meanwhile takes its account off.
+    /// </summary>
+    private readonly ConcurrentDictionary<string, DofusInstance> _awaitingPhone = new(StringComparer.Ordinal);
+
+    /// <summary>True while accounts wait for their phone to come back.</summary>
+    public bool AwaitsPhone => !_awaitingPhone.IsEmpty;
+
+    /// <summary>
+    /// Raised when accounts start waiting for their phone: the panel shows
+    /// then, to say so, and because its sweep is what reconnects phones.
+    /// </summary>
+    public event EventHandler? PhoneAwaited;
+
+    /// <summary>Last reconnection outcome per phone, logged only when it changes.</summary>
+    private readonly Dictionary<string, ReconnectOutcome> _reconnectOutcomes = new(StringComparer.Ordinal);
+
+    /// <summary>
     /// What recovery has to say, or <c>null</c>. Joins the same
     /// banner as the heat: that is where one looks when something is
     /// wrong.
@@ -538,6 +559,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         {
             _recovery = default;
             _ = _recovering.TryRemove(session.Target.Key, out _);
+            _ = _awaitingPhone.TryRemove(session.Target.Key, out _);
         }
 
         if (session.IsAlive)
@@ -645,6 +667,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 _ = _recovering.TryRemove(key, out _);
 
                 LogRecoveryGaveUp(instance.DisplayName, already);
+
+                _awaitingPhone[key] = instance;
+                PhoneAwaited?.Invoke(this, EventArgs.Empty);
             }
 
             return false;
@@ -2840,6 +2865,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     var outcomes = await _reconnect.TryReconnectAllAsync(missing, cancellationToken)
                         .ConfigureAwait(false);
 
+                    NoteReconnectOutcomes(outcomes);
+
                     recovered += outcomes.Count(o => o.Value is ReconnectOutcome.ReconnectedToLastAddress
                                                      or ReconnectOutcome.ReconnectedByDiscovery);
 
@@ -2855,11 +2882,56 @@ public sealed partial class GameLauncher : IAsyncDisposable
             {
                 LogReconnected(recovered);
             }
+
+            if (AwaitsPhone)
+            {
+                await ReopenReturnedAsync(cancellationToken).ConfigureAwait(false);
+            }
         }
         catch (AdbException)
         {
             // Nothing to reconnect if ADB itself is unavailable: the
             // next sweep will report it.
+        }
+    }
+
+    /// <summary>
+    /// Writes each phone's reconnection outcome when it changes. A failed
+    /// attempt used to leave no trace: four minutes of a lost phone read as
+    /// silence in the log (2026-10-21).
+    /// </summary>
+    private void NoteReconnectOutcomes(IReadOnlyDictionary<string, ReconnectOutcome> outcomes)
+    {
+        foreach (var (device, outcome) in outcomes)
+        {
+            if (!_reconnectOutcomes.TryGetValue(device, out var before) || before != outcome)
+            {
+                _reconnectOutcomes[device] = outcome;
+                LogReconnectOutcome(device, outcome.ToString());
+            }
+        }
+    }
+
+    /// <summary>Reopens the accounts lost with a phone, once it answers again.</summary>
+    private async Task ReopenReturnedAsync(CancellationToken cancellationToken)
+    {
+        var back = (await _devices.RefreshAsync(cancellationToken).ConfigureAwait(false)).Devices
+            .Where(d => d.IsConnected)
+            .Select(d => d.Id)
+            .ToHashSet(StringComparer.Ordinal);
+
+        foreach (var (key, instance) in _awaitingPhone)
+        {
+            if (!back.Contains(instance.DeviceId) || !_awaitingPhone.TryRemove(key, out _))
+            {
+                continue;
+            }
+
+            // A fresh credit of tries: the phone is back, the link is new.
+            _ = _recoveries.TryRemove(key, out _);
+
+            LogReopenedOnReturn(instance.DisplayName);
+            RecoveryRequested?.Invoke(this, new RecoveryRequest(instance, TimeSpan.Zero));
         }
     }
 
@@ -3534,6 +3606,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         ArgumentNullException.ThrowIfNull(instance);
 
+        _ = _awaitingPhone.TryRemove(instance.Key, out _);
+
         if (FindSession(instance) is { } session)
         {
             // Geometry is captured before closing: otherwise the
@@ -3588,6 +3662,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     public async Task StopDeviceAsync(string deviceId, CancellationToken cancellationToken = default)
     {
+        foreach (var key in _awaitingPhone.Where(a => a.Value.DeviceId == deviceId).Select(a => a.Key).ToList())
+        {
+            _ = _awaitingPhone.TryRemove(key, out _);
+        }
         await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
 
         var closed = await _sessions.StopDeviceAsync(deviceId, cancellationToken).ConfigureAwait(false);
@@ -5910,6 +5988,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     [LoggerMessage(Level = LogLevel.Information, Message = "{count} téléphone(s) reconnecté(s) automatiquement.")]
     private partial void LogReconnected(int count);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Reconnexion de {device} : {outcome}.")]
+    private partial void LogReconnectOutcome(string device, string outcome);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Téléphone revenu : réouverture de {name}.")]
+    private partial void LogReopenedOnReturn(string name);
 
     [LoggerMessage(
         Level = LogLevel.Information,

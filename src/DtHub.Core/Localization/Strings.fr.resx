@@ -618,7 +618,7 @@ Croisez les essais : un autre appareil sur ce port, et ce téléphone sur un aut
     <value>La liaison avec {0} a lâché. Sa fenêtre se rouvre.</value>
   </data>
   <data name="SessionRecoveryGaveUp" xml:space="preserve">
-    <value>{0} n'a pas pu être rouvert après plusieurs tentatives. Vérifiez le téléphone, puis relancez-le vous-même.</value>
+    <value>La liaison avec {0} est perdue. Sa fenêtre se rouvrira dès que le téléphone reviendra.</value>
   </data>
   <data name="ReducedRender" xml:space="preserve">
     <value>{0} : le téléphone fait tourner le jeu en résolution réduite ({1} %), d'où une image floue. Cela vient d'un réglage du téléphone, le mode jeu de cette copie de l'application : le triangle sur sa ligne le remet en standard.</value>
@@ -2284,7 +2284,7 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
     <value>Vérifiez le câble, puis le débogage USB sur le téléphone.</value>
   </data>
   <data name="OfflineHowWireless" xml:space="preserve">
-    <value>Vérifiez le Wi-Fi, puis le débogage sans fil sur le téléphone.</value>
+    <value>Même Wi-Fi que le PC ? Sur le téléphone, ouvrez Options de développement › Débogage sans fil : l'afficher suffit souvent à le relancer.</value>
   </data>
   <data name="OfflineHowUnknown" xml:space="preserve">
     <value>Vérifiez que le téléphone est allumé et son débogage actif.</value>

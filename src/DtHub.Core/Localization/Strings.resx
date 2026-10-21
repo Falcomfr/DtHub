@@ -618,7 +618,7 @@ Cross the tests: another device on this port, and this phone on another PC. You 
     <value>The link to {0} dropped. Reopening its window.</value>
   </data>
   <data name="SessionRecoveryGaveUp" xml:space="preserve">
-    <value>{0} could not be reopened after several tries. Check the phone, then relaunch it yourself.</value>
+    <value>The link to {0} is lost. Its window will reopen as soon as the phone is back.</value>
   </data>
   <data name="ReducedRender" xml:space="preserve">
     <value>{0}: the phone runs the game at a reduced resolution ({1} %), hence a blurry image. It comes from a phone setting, the game mode of this copy of the app: the warning sign on its row puts it back to standard.</value>
@@ -2284,7 +2284,7 @@ In the meantime, the button at the bottom opens the page in your browser.</value
     <value>Check the cable, then USB debugging on the phone.</value>
   </data>
   <data name="OfflineHowWireless" xml:space="preserve">
-    <value>Check the Wi-Fi, then wireless debugging on the phone.</value>
+    <value>Same Wi-Fi as the PC? On the phone, open Developer options › Wireless debugging: showing it is often enough to restart it.</value>
   </data>
   <data name="OfflineHowUnknown" xml:space="preserve">
     <value>Check that the phone is on and its debugging active.</value>
