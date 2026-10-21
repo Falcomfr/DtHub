@@ -552,6 +552,45 @@ public sealed class DeviceDiscoveryService : IDisposable
         }
     }
 
+    /// <summary>The pause between the sleep and the wake of <see cref="RelightAsync" />.</summary>
+    public TimeSpan RelightPause { get; init; } = TimeSpan.FromMilliseconds(400);
+
+    /// <summary>
+    /// Lights the phone's own screen again through Android: put to sleep,
+    /// then woken. True if the phone took both.
+    ///
+    /// **Seen on the 13T Pro on 2026-10-21**: the screen-off guard powers the
+    /// panel off behind Android's back, which still holds the phone awake;
+    /// once the guard was stopped, Android read the screen on and composed
+    /// the lock screen, and the panel stayed dark. A wake key does nothing to
+    /// a phone Android thinks awake. A sleep first makes the wake a real one,
+    /// and the panel comes on with it. The game's display has its own power
+    /// group and keeps running through the sleep.
+    /// </summary>
+    public async Task<bool> RelightAsync(string serial, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(serial))
+        {
+            return false;
+        }
+
+        try
+        {
+            _ = await _adb
+                .ShellAsync(serial, ["input", "-d", "0", "keyevent", "KEYCODE_SLEEP"], cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (AdbException)
+        {
+            // Not put to sleep, the wake below is the old behaviour: it still
+            // lights a phone that was asleep.
+        }
+
+        await Task.Delay(RelightPause, cancellationToken).ConfigureAwait(false);
+
+        return await WakeAsync(serial, cancellationToken).ConfigureAwait(false);
+    }
+
     /// <summary>
     /// How long one round of <see cref="KeepWifiAwakeAsync" /> lasts on the
     /// phone. The caller starts the next one before it ends.

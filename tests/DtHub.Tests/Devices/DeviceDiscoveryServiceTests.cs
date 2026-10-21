@@ -852,4 +852,23 @@ public class DeviceDiscoveryServiceTests
         Assert.True(await service.WakeAsync("192.168.1.16:34249", CancellationToken.None));
         Assert.Contains("input -d 0 keyevent KEYCODE_WAKEUP", adb.ShellCalls);
     }
+
+    [Fact]
+    public async Task Rallumer_fait_dormir_puis_reveille_le_telephone()
+    {
+        // 2026-10-21: lit again while Android still thought it awake, the 13T
+        // Pro composed its lock screen behind a panel left dark. Only a real
+        // sleep then wake, through Android, powers the panel again.
+        var adb = new FakeAdbClient();
+
+        using var service = new DeviceDiscoveryService(adb, new InMemoryDeviceRegistry())
+        {
+            RelightPause = TimeSpan.Zero,
+        };
+
+        Assert.True(await service.RelightAsync("192.168.1.16:34249", CancellationToken.None));
+        Assert.Equal(
+            ["input -d 0 keyevent KEYCODE_SLEEP", "input -d 0 keyevent KEYCODE_WAKEUP"],
+            adb.ShellCalls.Where(c => c.StartsWith("input", StringComparison.Ordinal)));
+    }
 }

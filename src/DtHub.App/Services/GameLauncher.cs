@@ -2228,7 +2228,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
             .Select(s => Routable(s.Target))
             .FirstOrDefault();
 
-        var woken = serial is not null && await _devices.WakeAsync(serial).ConfigureAwait(false);
+        // A real sleep and wake, not a bare wake key: see RelightAsync.
+        var woken = serial is not null && await _devices.RelightAsync(serial).ConfigureAwait(false);
 
         LogScreenRequest(deviceId, woken ? "réveil accepté par le téléphone" : "réveil refusé ou téléphone injoignable");
 
