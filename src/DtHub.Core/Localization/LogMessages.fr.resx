@@ -192,6 +192,9 @@
   <data name="La fenêtre de signalement n'a pas pu s'ouvrir." xml:space="preserve">
     <value>La fenêtre de signalement n'a pas pu s'ouvrir.</value>
   </data>
+  <data name="La livraison n'a pas pu être copiée à côté de l'exécutable." xml:space="preserve">
+    <value>La livraison n'a pas pu être copiée à côté de l'exécutable.</value>
+  </data>
   <data name="La livraison n'a pas pu être préparée." xml:space="preserve">
     <value>La livraison n'a pas pu être préparée.</value>
   </data>

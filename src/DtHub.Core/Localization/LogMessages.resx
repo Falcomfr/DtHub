@@ -192,6 +192,9 @@
   <data name="La fenêtre de signalement n'a pas pu s'ouvrir." xml:space="preserve">
     <value>Could not open the issue report window.</value>
   </data>
+  <data name="La livraison n'a pas pu être copiée à côté de l'exécutable." xml:space="preserve">
+    <value>Could not copy the release next to the executable.</value>
+  </data>
   <data name="La livraison n'a pas pu être préparée." xml:space="preserve">
     <value>Could not prepare the release.</value>
   </data>

@@ -116,6 +116,30 @@ public sealed class UpdateServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Garde_le_telechargement_quand_la_copie_a_cote_de_l_executable_echoue()
+    {
+        // A folder DT Hub cannot write to: a directory in the copy's place
+        // refuses it the same way. Losing the download would cost sixty
+        // megabytes at every startup, and never become ready.
+        var incoming = Path.Combine(Path.GetDirectoryName(_executable)!, UpdatePaths.Incoming);
+        _ = Directory.CreateDirectory(incoming);
+        var (service, _) = Monter(Empreinte(Neuf), new Version(0, 2, 0));
+
+        await service.CheckAsync(automatic: true);
+
+        Assert.False(service.Ready);
+        Assert.True(File.Exists(UpdatePaths.Staged(_paths.UpdatesDirectory, new Version(0, 2, 0))));
+
+        Directory.Delete(incoming);
+        var (suivant, source) = Monter(Empreinte(Neuf), new Version(0, 2, 0));
+
+        await suivant.CheckAsync(automatic: true);
+
+        Assert.True(suivant.Ready);
+        Assert.Equal(0, source.Downloads);
+    }
+
+    [Fact]
     public async Task Ne_pose_pas_une_livraison_prete_quand_la_case_a_ete_decochee()
     {
         // Prepared at startup, the box unchecked before quitting: the player

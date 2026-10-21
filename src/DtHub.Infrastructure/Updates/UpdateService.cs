@@ -178,22 +178,8 @@ public sealed partial class UpdateService(
                 return false;
             }
 
-            // Copied now, beside the executable, so that Apply only
-            // renames. The executable can live on another disk (D10), and
-            // a move across disks is a copy: cut short by a shutdown, it
-            // left a truncated DtHub.exe that no longer started. The copy
-            // is checked as the download was.
-            var incoming = Incoming();
-            File.Copy(staged, incoming, overwrite: true);
-
-            if (!string.Equals(
-                expected,
-                await Sha256Async(incoming, cancellationToken).ConfigureAwait(true),
-                StringComparison.OrdinalIgnoreCase))
+            if (!await CopyBesideAsync(staged, expected, release.Version, cancellationToken).ConfigureAwait(true))
             {
-                LogDigestMismatch(release.Version.ToString());
-                Delete(incoming);
-
                 return false;
             }
 
@@ -218,6 +204,55 @@ public sealed partial class UpdateService(
 
             return false;
         }
+    }
+
+    /// <summary>
+    /// Copies the verified download beside the executable, so that Apply
+    /// only renames. The executable can live on another disk (D10), and a
+    /// move across disks is a copy: cut short by a shutdown, it left a
+    /// truncated DtHub.exe that no longer started. The copy is checked as
+    /// the download was.
+    ///
+    /// A failed copy keeps the download: a folder DT Hub cannot write to,
+    /// Program Files or a protected folder, would otherwise cost sixty
+    /// megabytes at every startup and still never be ready.
+    /// </summary>
+    private async Task<bool> CopyBesideAsync(
+        string staged,
+        string expected,
+        Version version,
+        CancellationToken cancellationToken)
+    {
+        var incoming = Incoming();
+
+        try
+        {
+            // Off the UI thread, which the startup chain comes back to:
+            // sixty megabytes copied and hashed there froze the panel.
+            var actual = await Task.Run(
+                async () =>
+                {
+                    File.Copy(staged, incoming, overwrite: true);
+
+                    return await Sha256Async(incoming, cancellationToken).ConfigureAwait(false);
+                },
+                cancellationToken).ConfigureAwait(true);
+
+            if (string.Equals(expected, actual, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            LogDigestMismatch(version.ToString());
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            LogCopyFailed(exception);
+        }
+
+        Delete(incoming);
+
+        return false;
     }
 
     /// <summary>
@@ -422,6 +457,9 @@ public sealed partial class UpdateService(
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "La livraison n'a pas pu être préparée.")]
     private partial void LogPrepareFailed(Exception exception);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "La livraison n'a pas pu être copiée à côté de l'exécutable.")]
+    private partial void LogCopyFailed(Exception exception);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Version {version} posée, elle démarrera au prochain lancement.")]
     private partial void LogApplied(string version);
