@@ -740,66 +740,159 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
                 return;
             }
 
-            if (ending.SoundArguments is null || running is { HasExited: false })
+            // The sound to the PC switched off since this window opened: the
+            // window carried it until now, nothing takes it over (D216).
+            if (!SoundToPc || ending.SoundArguments is null)
             {
                 return;
             }
 
-            // Died on its own, a Wi-Fi drop for instance: released before
-            // the next one starts.
-            if (running is not null)
-            {
-                _ = _soundKeepers.TryRemove(deviceId, out _);
-                await StopKeeperAsync(running).ConfigureAwait(false);
-            }
-
-            string scrcpyPath;
-            string adbPath;
-
-            try
-            {
-                scrcpyPath = await _scrcpy.GetScrcpyPathAsync().ConfigureAwait(false);
-                adbPath = await _adbLocator.GetAdbPathAsync().ConfigureAwait(false);
-            }
-            catch (Exception exception) when (exception is DependencyProvisioningException or Adb.AdbException)
-            {
-                // Both were found to open the account: missing now, the
-                // other accounts stay silent on the PC, as before.
-                return;
-            }
-
-            // It pushes a server like an opening does, so it takes its turn
-            // in the same queue until its server answers. Quietly: closing a
-            // window is no reason to grey the play buttons of its phone.
-            await using var lease = await _gate.EnterQuietlyAsync(deviceId, CancellationToken.None).ConfigureAwait(false);
-
-            IProcessSession keeper;
-
-            try
-            {
-                keeper = _launcher.Start(new ProcessRequest
-                {
-                    FileName = scrcpyPath,
-                    Arguments = ending.SoundArguments,
-                    Environment = new Dictionary<string, string?> { ["ADB"] = adbPath },
-                });
-            }
-            catch (ProcessLaunchException)
-            {
-                // The other accounts stay silent on the PC, as before, and
-                // keep their game: closing one account must not fail for it.
-                return;
-            }
-
-            _soundKeepers[deviceId] = keeper;
-
-            _ = await AwaitLineAsync(keeper, ServerLine, CancellationToken.None).ConfigureAwait(false);
-            _ = Task.Run(() => DrainAsync(keeper), CancellationToken.None);
+            await StartSoundKeeperLockedAsync(deviceId, ending.SoundArguments, running).ConfigureAwait(false);
         }
         finally
         {
             _soundKeepersLock.Release();
         }
+    }
+
+    /// <summary>
+    /// False once the player switched the sound to the PC off: a window
+    /// closing then hands its sound to nobody. Kept by the launcher.
+    /// </summary>
+    public bool SoundToPc { get; set; } = true;
+
+    /// <summary>
+    /// Follows the sound to the PC switched on or off with accounts open,
+    /// without restarting any game (D216). Off stops every windowless
+    /// relay at once; a window carrying the sound keeps it until reopened.
+    /// </summary>
+    public async Task SetSoundToPcAsync(bool enabled)
+    {
+        SoundToPc = enabled;
+
+        if (enabled)
+        {
+            return;
+        }
+
+        await _soundKeepersLock.WaitAsync().ConfigureAwait(false);
+
+        try
+        {
+            foreach (var deviceId in _soundKeepers.Keys.ToList())
+            {
+                if (_soundKeepers.TryRemove(deviceId, out var keeper))
+                {
+                    await StopKeeperAsync(keeper).ConfigureAwait(false);
+                }
+            }
+        }
+        finally
+        {
+            _soundKeepersLock.Release();
+        }
+    }
+
+    /// <summary>
+    /// Gives a phone's sound to a windowless relay when the sound to the PC
+    /// is switched on while its accounts are open, all of them opened
+    /// without it: reopening them would restart their games (D216).
+    /// Nothing when no game is open there, or one already carries it.
+    /// </summary>
+    public async Task CarrySoundAsync(string deviceId, IReadOnlyList<string> soundArguments)
+    {
+        ArgumentNullException.ThrowIfNull(soundArguments);
+
+        await _soundKeepersLock.WaitAsync().ConfigureAwait(false);
+
+        try
+        {
+            var games = _sessions.Values
+                .Where(s => s.IsAlive
+                            && !s.StopRequested
+                            && !s.Target.IsTransient
+                            && string.Equals(s.Target.DeviceId, deviceId, StringComparison.Ordinal))
+                .ToList();
+
+            if (games.Count == 0 || games.Exists(s => s.CarriesAudio))
+            {
+                return;
+            }
+
+            _ = _soundKeepers.TryGetValue(deviceId, out var running);
+
+            await StartSoundKeeperLockedAsync(deviceId, soundArguments, running).ConfigureAwait(false);
+        }
+        finally
+        {
+            _soundKeepersLock.Release();
+        }
+    }
+
+    /// <summary>
+    /// Starts the phone's windowless sound session, unless one runs.
+    /// Called under <see cref="_soundKeepersLock" />.
+    /// </summary>
+    private async Task StartSoundKeeperLockedAsync(
+        string deviceId,
+        IReadOnlyList<string> soundArguments,
+        IProcessSession? running)
+    {
+        if (running is { HasExited: false })
+        {
+            return;
+        }
+
+        // Died on its own, a Wi-Fi drop for instance: released before
+        // the next one starts.
+        if (running is not null)
+        {
+            _ = _soundKeepers.TryRemove(deviceId, out _);
+            await StopKeeperAsync(running).ConfigureAwait(false);
+        }
+
+        string scrcpyPath;
+        string adbPath;
+
+        try
+        {
+            scrcpyPath = await _scrcpy.GetScrcpyPathAsync().ConfigureAwait(false);
+            adbPath = await _adbLocator.GetAdbPathAsync().ConfigureAwait(false);
+        }
+        catch (Exception exception) when (exception is DependencyProvisioningException or Adb.AdbException)
+        {
+            // Both were found to open the account: missing now, the
+            // other accounts stay silent on the PC, as before.
+            return;
+        }
+
+        // It pushes a server like an opening does, so it takes its turn
+        // in the same queue until its server answers. Quietly: closing a
+        // window is no reason to grey the play buttons of its phone.
+        await using var lease = await _gate.EnterQuietlyAsync(deviceId, CancellationToken.None).ConfigureAwait(false);
+
+        IProcessSession keeper;
+
+        try
+        {
+            keeper = _launcher.Start(new ProcessRequest
+            {
+                FileName = scrcpyPath,
+                Arguments = soundArguments,
+                Environment = new Dictionary<string, string?> { ["ADB"] = adbPath },
+            });
+        }
+        catch (ProcessLaunchException)
+        {
+            // The other accounts stay silent on the PC, as before, and
+            // keep their game: closing one account must not fail for it.
+            return;
+        }
+
+        _soundKeepers[deviceId] = keeper;
+
+        _ = await AwaitLineAsync(keeper, ServerLine, CancellationToken.None).ConfigureAwait(false);
+        _ = Task.Run(() => DrainAsync(keeper), CancellationToken.None);
     }
 
     /// <summary>What scrcpy writes once its server runs on the phone.</summary>

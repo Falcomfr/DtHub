@@ -682,6 +682,95 @@ public class ScrcpySessionManagerTests
     }
 
     [Fact]
+    public async Task Activer_le_son_avec_des_comptes_ouverts_lance_le_relais_sans_relancer_le_jeu()
+    {
+        // D216: the sound to the PC switched on no longer reopens the windows.
+        var launcher = new FakeProcessLauncher()
+            .Prepare(new FakeProcessSession(1).Emit(NewDisplayLine))
+            .Prepare(new FakeProcessSession(9).Emit(ServerLine));
+        var apps = new FakeAppLauncher();
+
+        await using var manager = Manager(launcher, apps);
+
+        await manager.StartAsync(Target(0), ScrcpyOptions.Default, null, CancellationToken.None);
+        var launches = apps.Calls.Count;
+        var stops = apps.ForceStops.Count;
+
+        await manager.CarrySoundAsync("MATERIEL123", ScrcpyCommandBuilder.BuildSoundArguments("USB0001", WithSound));
+
+        Assert.Single(launcher.Requests, IsSoundKeeper);
+        Assert.True(manager.HoldsSound("MATERIEL123"));
+        Assert.Equal(launches, apps.Calls.Count);
+        Assert.Equal(stops, apps.ForceStops.Count);
+    }
+
+    [Fact]
+    public async Task Activer_le_son_ne_double_pas_celui_d_une_fenetre_qui_le_porte()
+    {
+        var launcher = new FakeProcessLauncher()
+            .Prepare(new FakeProcessSession(1).Emit(NewDisplayLine))
+            .Prepare(new FakeProcessSession(9).Emit(ServerLine));
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        await manager.StartAsync(Target(0), WithSound, null, CancellationToken.None);
+
+        await manager.CarrySoundAsync("MATERIEL123", ScrcpyCommandBuilder.BuildSoundArguments("USB0001", WithSound));
+
+        Assert.DoesNotContain(launcher.Requests, IsSoundKeeper);
+    }
+
+    [Fact]
+    public async Task Activer_le_son_sans_compte_ouvert_ne_lance_rien()
+    {
+        var launcher = new FakeProcessLauncher().Prepare(new FakeProcessSession(9).Emit(ServerLine));
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        await manager.CarrySoundAsync("MATERIEL123", ScrcpyCommandBuilder.BuildSoundArguments("USB0001", WithSound));
+
+        Assert.Empty(launcher.Requests);
+    }
+
+    [Fact]
+    public async Task Couper_le_son_arrete_le_relais_aussitot()
+    {
+        var sound = new FakeProcessSession(9).Emit(ServerLine);
+        var launcher = new FakeProcessLauncher()
+            .Prepare(new FakeProcessSession(1).Emit(NewDisplayLine))
+            .Prepare(sound);
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        await manager.StartAsync(Target(0), ScrcpyOptions.Default, null, CancellationToken.None);
+        await manager.CarrySoundAsync("MATERIEL123", ScrcpyCommandBuilder.BuildSoundArguments("USB0001", WithSound));
+
+        await manager.SetSoundToPcAsync(false);
+
+        Assert.True(sound.WasKilled);
+        Assert.False(manager.HoldsSound("MATERIEL123"));
+    }
+
+    [Fact]
+    public async Task Son_coupe_fermer_la_fenetre_qui_le_portait_ne_le_rend_pas()
+    {
+        var launcher = new FakeProcessLauncher()
+            .Prepare(new FakeProcessSession(1).Emit(NewDisplayLine))
+            .Prepare(new FakeProcessSession(2).Emit(NewDisplayLine))
+            .Prepare(new FakeProcessSession(9).Emit(ServerLine));
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        var a = await manager.StartAsync(Target(0), WithSound, null, CancellationToken.None);
+        await manager.StartAsync(Target(999), WithSound with { AudioEnabled = false }, null, CancellationToken.None);
+
+        await manager.SetSoundToPcAsync(false);
+        await manager.StopAsync(a.Id, CancellationToken.None);
+
+        Assert.DoesNotContain(launcher.Requests, IsSoundKeeper);
+    }
+
+    [Fact]
     public async Task Reeteindre_sans_gardien_en_demarre_un()
     {
         // The setting was ticked after the account opened.

@@ -2319,6 +2319,60 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
+    /// The sound to the PC switched with accounts open, applied at once
+    /// without restarting any game (D216). On: each playing phone whose
+    /// windows all opened without sound gets the windowless relay. Off:
+    /// the relays stop; a window carrying the sound keeps it until reopened.
+    /// </summary>
+    public async Task ApplySoundToPcAsync(bool enabled, CancellationToken cancellationToken = default)
+    {
+        await _sessions.SetSoundToPcAsync(enabled).ConfigureAwait(false);
+
+        if (!enabled)
+        {
+            return;
+        }
+
+        var options = await _settings.GetScrcpyOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+        foreach (var (deviceId, serial) in PlayingPhones())
+        {
+            var phone = options with { AudioEnabled = true, DeviceSdkVersion = _sdks.GetValueOrDefault(deviceId) };
+
+            await _sessions
+                .CarrySoundAsync(deviceId, ScrcpyCommandBuilder.BuildSoundArguments(serial, phone))
+                .ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// The phone's screen setting switched with accounts open, applied at
+    /// once (D216): the screen-off session lives beside the game windows,
+    /// so starting or stopping it restarts no game.
+    /// </summary>
+    public async Task ApplyScreenOffAsync(bool enabled)
+    {
+        foreach (var (deviceId, _) in PlayingPhones())
+        {
+            if (enabled && !_sessions.HoldsScreenOff(deviceId))
+            {
+                await TurnPanelOffAsync(deviceId).ConfigureAwait(false);
+            }
+            else if (!enabled && _sessions.HoldsScreenOff(deviceId))
+            {
+                await LightPanelAsync(deviceId).ConfigureAwait(false);
+            }
+        }
+    }
+
+    /// <summary>The phones with a game window open, and the route to each.</summary>
+    private List<(string DeviceId, string Serial)> PlayingPhones() =>
+        [.. _sessions.ActiveSessions
+            .Where(s => s.IsAlive && !s.Target.IsTransient)
+            .GroupBy(s => s.Target.DeviceId, StringComparer.Ordinal)
+            .Select(g => (g.Key, Routable(g.First().Target)))];
+
+    /// <summary>
     /// The shortcut's action: the phone of the game in front, the free
     /// window or the frame's shown tab, and every playing phone when the
     /// keyboard is in another of DT Hub's windows (asked on 2026-10-15).
@@ -5714,6 +5768,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         _zoom = settings.GameZoom;
         _sharpImage = settings.SharpImage;
         _sessions.StopAppOnClose = settings.StopAppOnClose;
+        _sessions.SoundToPc = settings.AudioEnabled;
         _windows.Anchor = settings.GameAnchor;
         _windows.Presets = await _settings.GetSizePresetsAsync(cancellationToken).ConfigureAwait(false);
 

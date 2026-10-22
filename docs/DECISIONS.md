@@ -10936,7 +10936,7 @@ main à chaque démarrage, c'est voulu.
 **2026-10-22 - Acceptée, revient sur D108, D149 et D192**
 
 Un joueur : « dès que je change un réglage, ça déconnecte et reconnecte tous
-les comptes à chaque fois ». Les réglages fixés au démarrage de scrcpy (qualité,
+les comptes à chaque fois ». Les réglages lus au démarrage de scrcpy (qualité,
 qualité personnalisée quand elle est en vigueur, distance, image plus nette,
 son vers le PC, écran du téléphone éteint, clavier et souris simulés)
 fermaient et rouvraient aussitôt toutes les fenêtres de jeu ouvertes (D108,
@@ -10945,19 +10945,39 @@ relance le jeu sur le téléphone, arrêt forcé puis `am start`, puisque Androi
 ne déplace pas une tâche vers le nouvel écran virtuel (D202) : chaque compte
 était déconnecté, et deux réglages de suite le déconnectaient deux fois.
 
-Désormais rien ne se rouvre seul. Le réglage est enregistré comme avant, et si
-des fenêtres de jeu sont ouvertes, un bandeau en haut du panneau, visible
-depuis tous les onglets, dit « Ce réglage s'appliquera à la prochaine
-ouverture des fenêtres. » avec un bouton « Rouvrir maintenant ». Ce bouton
-lance exactement la réouverture d'avant : même regroupement des demandes
-(`CoalescedRun`, D192), même pause de 5 s et même surveillance du son (D202).
-Une fenêtre ouverte après le changement lit déjà le nouveau réglage, le
-lancement relisant les réglages à chaque fois.
+Désormais rien ne se rouvre seul, et les réglages se rangent en deux familles.
 
-Le bandeau disparaît au clic, ou dès qu'aucune des fenêtres ouvertes au moment
-du changement ne reste ouverte : fermée, ou rouverte à la main, qui donne une
-nouvelle session. L'état vit dans `PendingReopen` (Core), éprouvé par les
-tests. Un réglage changé pendant une réouverture déjà lancée la relance une
+**Ce qui vit hors des fenêtres de jeu s'applique tout de suite**, sans relancer
+aucun jeu :
+
+- son vers le PC activé : chaque téléphone dont les fenêtres de jeu se sont
+  toutes ouvertes sans le son reçoit aussitôt le relais sans fenêtre, celui qui
+  prend déjà le relais quand la fenêtre qui portait le son se ferme. Sans cela,
+  une fenêtre ouverte ensuite restait muette (le son va à la première fenêtre
+  d'un téléphone) et rien ne le portait jamais ;
+- son vers le PC coupé : les relais sans fenêtre s'arrêtent aussitôt, et une
+  fenêtre qui le portait ne le passe plus à personne en se fermant ;
+- écran du téléphone éteint, coché ou décoché : la session qui tient l'écran
+  éteint, une par téléphone à côté des fenêtres, démarre ou s'arrête (l'écran
+  se rallume comme avec Ctrl+E).
+
+**Ce qui vit dans les fenêtres de jeu attend** : qualité, qualité
+personnalisée, distance, image plus nette, clavier et souris simulés, et le son
+coupé pour la seule fenêtre qui le porte encore. Si une telle fenêtre est
+ouverte, un bandeau en haut du panneau, visible depuis tous les onglets, dit
+« Ce réglage s'appliquera à la prochaine ouverture des fenêtres. » avec un
+bouton « Rouvrir maintenant ». Ce bouton lance exactement la réouverture
+d'avant : même regroupement des demandes (`CoalescedRun`, D192), même pause de
+5 s et même surveillance du son (D202). Une fenêtre ouverte après le changement
+lit déjà le nouveau réglage, le lancement relisant les réglages à chaque fois.
+
+Le bandeau disparaît au clic, ou dès qu'aucune des fenêtres concernées ne reste
+ouverte : fermée, ou rouverte à la main, qui donne une nouvelle session. L'état
+vit dans `PendingReopen` (Core) ; le relais et son arrêt dans
+`ScrcpySessionManager` (`CarrySoundAsync`, `SetSoundToPcAsync`, `SoundToPc`),
+éprouvés par les tests. Le choix de la famille de chaque réglage est fait dans
+`ConfiguratorViewModel`, que les tests n'atteignent pas : il est vérifié à la
+lecture. Un réglage changé pendant une réouverture déjà lancée la relance une
 fois, comme avant, puisqu'elle a pu lire l'ancien réglage.
 
 Pas fait : revenir à la valeur d'origine ne fait pas disparaître le bandeau.

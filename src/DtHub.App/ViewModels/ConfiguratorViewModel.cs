@@ -606,6 +606,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     public IReadOnlyList<IntChoice> HeightChoices { get; } =
     [
         new("1280 x 720", 720),
+        // Rendered 1360 x 768 in 16:9: DisplayLadder aligns each side on 8.
         new("1366 x 768", 768),
         new("1600 x 900", 900),
         new("1920 x 1080", 1080),
@@ -811,8 +812,8 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
 
     /// <summary>
     /// True when the phone's own screen goes dark while its accounts
-    /// play on the PC. A scrcpy startup argument, so the open windows
-    /// wait for a reopen to apply it, as for the sound.
+    /// play on the PC. Held by its own windowless session beside the game
+    /// windows, so it applies at once to the open ones (D216).
     /// </summary>
     [ObservableProperty]
     private bool _turnScreenOff;
@@ -824,7 +825,13 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             return;
         }
 
-        _ = ApplyStartupSettingAsync(() => _settings.SetTurnScreenOffAsync(value));
+        _ = ApplyStartupSettingAsync(
+            async () =>
+            {
+                await _settings.SetTurnScreenOffAsync(value).ConfigureAwait(true);
+                await _launcher.ApplyScreenOffAsync(value).ConfigureAwait(true);
+            },
+            keepsOld: _ => false);
     }
 
     /// <summary>
@@ -1561,7 +1568,15 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             return;
         }
 
-        _ = ApplyStartupSettingAsync(() => _settings.SetAudioEnabledAsync(value));
+        // On, a windowless relay carries the sound at once; off, only a
+        // window carrying it keeps it until reopened (D216).
+        _ = ApplyStartupSettingAsync(
+            async () =>
+            {
+                await _settings.SetAudioEnabledAsync(value).ConfigureAwait(true);
+                await _launcher.ApplySoundToPcAsync(value).ConfigureAwait(true);
+            },
+            keepsOld: s => !value && s.CarriesAudio);
     }
 
     /// <summary>
@@ -1579,18 +1594,25 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Saves a setting that only takes effect when a session opens.
+    /// Saves a setting read when a session opens.
     ///
     /// The windows used to reopen at once so the change could be seen,
     /// but a reopen restarts the game on the phone and logs every
-    /// account out. They now wait for "Reopen now" (D216); a window
-    /// opened meanwhile already reads the new setting.
+    /// account out (D216). What lives outside the game windows now
+    /// applies at once: the sound relay and the screen-off session. What
+    /// lives in them (quality, custom quality, distance, sharper image,
+    /// simulated keyboard and mouse, and the sound switched off for the
+    /// window carrying it) waits for "Reopen now"; <paramref name="keepsOld" />
+    /// names the open windows that still run with the old value, all of
+    /// them by default. A window opened meanwhile reads the new setting.
     ///
     /// The setting is saved first, always: a change made while the
     /// windows were reopening used to be dropped without a word. That
     /// reopen then runs again once, see <see cref="CoalescedRun" />.
     /// </summary>
-    private async Task ApplyStartupSettingAsync(Func<Task> write)
+    private async Task ApplyStartupSettingAsync(
+        Func<Task> write,
+        Func<Core.Scrcpy.ScrcpySession, bool>? keepsOld = null)
     {
         // Fire and forget from the setter, like the title's: a write that
         // threw left the switch on a value never saved, and said nothing.
@@ -1604,7 +1626,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             return;
         }
 
-        if (_pendingReopen.SettingChanged(OpenSessions(), _reopen.IsRunning))
+        if (_pendingReopen.SettingChanged(OpenSessions().Where(keepsOld ?? (_ => true)), _reopen.IsRunning))
         {
             await ReopenNowAsync().ConfigureAwait(true);
             return;
@@ -1649,7 +1671,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     }
 
     /// <summary>The open game windows, tool windows aside.</summary>
-    private IEnumerable<object> OpenSessions() =>
+    private IEnumerable<Core.Scrcpy.ScrcpySession> OpenSessions() =>
         _launcher.ActiveSessions.Where(s => s.IsAlive && !s.Target.IsTransient);
 
     private readonly PendingReopen _pendingReopen = new();
