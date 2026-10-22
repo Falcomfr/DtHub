@@ -877,7 +877,10 @@ public partial class App : Application, IDisposable
 
         var launcher = services.GetRequiredService<GameLauncher>();
 
-        if (launcher.ActiveSessions.Count > 0)
+        // "Open nothing" holds for a relaunch too: only the panel comes back.
+        if (launcher.ActiveSessions.Count > 0
+            || (await services.GetRequiredService<SettingsService>().GetAsync().ConfigureAwait(true))
+                .OpenNothingAtStartup)
         {
             return;
         }

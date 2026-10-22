@@ -230,17 +230,6 @@ public class LaunchProfilesTests
     }
 
     [Fact]
-    public void Le_mode_de_demarrage_distingue_rien_rouvrir_et_team()
-    {
-        List<StoredLaunchProfile> teams = [Profil("Donjons", Principal)];
-
-        Assert.Equal(StartupMode.Nothing, LaunchProfiles.StartupModeFor(teams, string.Empty, true));
-        Assert.Equal(StartupMode.Reopen, LaunchProfiles.StartupModeFor(teams, string.Empty, false));
-        Assert.Equal(StartupMode.Reopen, LaunchProfiles.StartupModeFor(teams, "Disparue", false));
-        Assert.Equal(StartupMode.Team, LaunchProfiles.StartupModeFor(teams, "donjons", false));
-    }
-
-    [Fact]
     public void Le_profil_retenu_donne_son_nom_au_bouton()
     {
         // This is the whole point: knowing without opening the

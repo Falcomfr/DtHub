@@ -10912,14 +10912,16 @@ invasive et préfère les lancer lui-même. La liste « Au démarrage » (D208) 
 proposait que « Rouvrir ce qui était ouvert » et une ligne par team, et
 n'apparaissait qu'avec au moins une team.
 
-Désormais la liste est toujours affichée et commence par « Ne rien ouvrir »
-(« Ouvrir la team » et « Rouvrir » suivent). Ce choix est un booléen des
+Désormais la liste est toujours affichée et commence par « Ne rien ouvrir »,
+suivi de « Rouvrir ce qui était ouvert », puis d'une ligne « Ouvrir la team X »
+par team. Ce choix est un booléen des
 réglages, `OpenNothingAtStartup`, faux par défaut : un fichier ancien se charge
 sans changement et rouvre comme avant. Au démarrage, DT Hub ne lance aucun jeu,
 journalise le choix, et affiche le panneau comme pour tout démarrage sans
 fenêtre ; les comptes gardent leur case cochée et la place de leurs fenêtres,
-et le joueur les lance d'un clic. Rien d'autre ne change (connexion du
-téléphone, panneau, outils).
+et le joueur les lance d'un clic. Un second lancement de
+DT Hub n'ouvre pas non plus les jeux, il ramène seulement le panneau. Rien
+d'autre ne change (connexion du téléphone, panneau, outils).
 
 Choisir « Ne rien ouvrir » oublie la team du démarrage ; choisir une team ou
 « Rouvrir » remet le booléen à faux. Comme il n'y a alors aucune team de

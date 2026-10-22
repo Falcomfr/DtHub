@@ -14,13 +14,6 @@ namespace DtHub.Core.Settings;
 /// from this set would therefore rewrite itself, and would have kept
 /// nothing at all.
 /// </summary>
-public enum StartupMode
-{
-    Reopen,
-    Team,
-    Nothing,
-}
-
 public static class LaunchProfiles
 {
     /// <summary>
@@ -78,18 +71,6 @@ public static class LaunchProfiles
     /// character: no team name, trimmed and typed by a player, can equal it.
     /// </summary>
     public const string OpenNothingChoice = "\u0001open-nothing";
-
-    /// <summary>
-    /// What startup does: nothing, reopen what was open, or open a team.
-    /// A team that no longer exists counts as reopening, as it always has.
-    /// </summary>
-    public static StartupMode StartupModeFor(
-        IEnumerable<StoredLaunchProfile>? profiles,
-        string? defaultProfile,
-        bool openNothing) =>
-        openNothing ? StartupMode.Nothing
-        : Find(profiles, defaultProfile) is null ? StartupMode.Reopen
-        : StartupMode.Team;
 
     /// <summary>
     /// What the "at startup" list offers: opening nothing, reopening what
