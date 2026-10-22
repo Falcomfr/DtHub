@@ -10882,3 +10882,22 @@ puis de redémarrer le téléphone. Le message s'efface dès que le jeu rejoue u
 Coût : un joueur qui a coupé le son dans les options du jeu voit le message
 alors que rien n'est en panne ; le texte lui demande d'abord de vérifier cette
 option. La cause du blocage côté Samsung reste à trouver, avec ces journaux.
+
+## D214 - La team du démarrage suit les réglages du joueur
+
+**2026-10-22 - Acceptée, complète D208**
+
+Un joueur a signalé qu'à chaque réouverture de DT Hub la qualité revenait à
+Moyenne. La team choisie « Au démarrage » rejoue à chaque lancement les
+réglages qu'elle a enregistrés (qualité, qualité personnalisée, zoom, ancrage,
+taille, son vers le PC, presse-papiers), et efface donc ce que le joueur a
+changé depuis qu'il l'a créée.
+
+Désormais, quand le joueur modifie l'un de ces réglages et qu'une team est
+choisie au démarrage, la même écriture met aussi à jour la copie de cette
+team : le prochain lancement restitue le dernier choix. Les autres teams
+gardent leurs réglages, et ouvrir une team à la main applique toujours les
+siens sans toucher à celle du démarrage.
+
+Coût : la team du démarrage dérive de ce qu'elle contenait à l'enregistrement ;
+le bouton Mettre à jour reste le moyen de la figer volontairement.

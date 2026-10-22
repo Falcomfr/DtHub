@@ -10,6 +10,12 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Corregido
+
+- El equipo de inicio conserva ahora la calidad y los ajustes de pantalla que elegiste por última vez, en lugar de restablecer los que tenía al guardarse.
+
 ## [0.10.0] - 2026-10-22
 
 ### Añadido

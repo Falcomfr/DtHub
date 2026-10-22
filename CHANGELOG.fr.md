@@ -11,6 +11,12 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Corrigé
+
+- L'équipe de démarrage garde désormais la qualité et les réglages d'affichage choisis en dernier, au lieu de rétablir ceux avec lesquels elle a été enregistrée.
+
 ## [0.10.0] - 2026-10-22
 
 ### Ajouté

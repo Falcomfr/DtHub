@@ -378,6 +378,84 @@ public sealed class SettingsServiceTests : IDisposable
         Assert.Equal(GameZoom.Close, document.GameZoom);
     }
 
+    // The startup team follows the player's changes
+
+    private async Task DeuxTeamsDontUneAuDemarrageAsync()
+    {
+        var xspace = Compte(999);
+        await _service.UpdateAsync(s => s.Instances.Add(xspace));
+        await _service.SaveLaunchProfileAsync("Demarrage", [xspace.Key]);
+        await _service.SaveLaunchProfileAsync("Autre", [xspace.Key]);
+        await _service.SetDefaultLaunchProfileAsync("Demarrage");
+    }
+
+    [Fact]
+    public async Task Changer_la_qualite_met_a_jour_la_team_de_demarrage()
+    {
+        await DeuxTeamsDontUneAuDemarrageAsync();
+
+        await _service.SetQualityAsync(StreamQuality.Maximum);
+        await _service.UpdateAsync(s => s.Quality = StreamQuality.Low);
+        await _service.ApplyLaunchProfileAsync("Demarrage");
+
+        Assert.Equal(StreamQuality.Low, (await _service.GetAsync()).Quality);
+    }
+
+    [Fact]
+    public async Task Changer_la_qualite_ne_touche_pas_une_team_qui_n_est_pas_au_demarrage()
+    {
+        await DeuxTeamsDontUneAuDemarrageAsync();
+        var avant = (await _service.GetLaunchProfilesAsync()).Single(p => p.Name == "Autre").Quality;
+
+        await _service.SetQualityAsync(avant == StreamQuality.Low ? StreamQuality.Maximum : StreamQuality.Low);
+
+        var autre = (await _service.GetLaunchProfilesAsync()).Single(p => p.Name == "Autre");
+        Assert.Equal(avant, autre.Quality);
+    }
+
+    [Fact]
+    public async Task Sans_team_au_demarrage_aucune_team_ne_change()
+    {
+        await DeuxTeamsDontUneAuDemarrageAsync();
+        await _service.SetDefaultLaunchProfileAsync(null);
+        var avant = (await _service.GetLaunchProfilesAsync()).Select(p => p.Quality).ToList();
+        var autre = avant[0] == StreamQuality.Low ? StreamQuality.Maximum : StreamQuality.Low;
+
+        await _service.SetQualityAsync(autre);
+
+        Assert.Equal(avant, (await _service.GetLaunchProfilesAsync()).Select(p => p.Quality));
+    }
+
+    [Fact]
+    public async Task Changer_le_son_ou_le_zoom_met_a_jour_la_team_de_demarrage()
+    {
+        await DeuxTeamsDontUneAuDemarrageAsync();
+        var audio = !(await _service.GetAsync()).AudioEnabled;
+
+        await _service.SetAudioEnabledAsync(audio);
+        await _service.SetZoomAsync(GameZoom.Widest);
+
+        var profils = await _service.GetLaunchProfilesAsync();
+        var demarrage = profils.Single(p => p.Name == "Demarrage");
+        Assert.Equal(audio, demarrage.AudioEnabled);
+        Assert.Equal(GameZoom.Widest, demarrage.GameZoom);
+        Assert.NotEqual(GameZoom.Widest, profils.Single(p => p.Name == "Autre").GameZoom);
+    }
+
+    [Fact]
+    public async Task Ouvrir_une_team_a_la_main_ne_recopie_pas_ses_reglages_dans_celle_du_demarrage()
+    {
+        await DeuxTeamsDontUneAuDemarrageAsync();
+        await _service.SetZoomAsync(GameZoom.Close);
+        await _service.SaveLaunchProfileAsync("Autre", [(await _service.GetAsync()).Instances[0].Key]);
+        await _service.SetZoomAsync(GameZoom.Widest);
+
+        await _service.ApplyLaunchProfileAsync("Autre");
+
+        var demarrage = (await _service.GetLaunchProfilesAsync()).Single(p => p.Name == "Demarrage");
+        Assert.Equal(GameZoom.Widest, demarrage.GameZoom);
+    }
+
     [Fact]
     public async Task Un_profil_qui_ne_place_pas_un_compte_lui_laisse_sa_position()
     {

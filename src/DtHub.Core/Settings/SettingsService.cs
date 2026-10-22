@@ -204,10 +204,54 @@ public sealed class SettingsService : IDisposable
         return changed;
     }
 
-    /// <summary>Modifies the settings and writes them.</summary>
-    public async Task UpdateAsync(
+    /// <summary>
+    /// Modifies the settings and writes them. A change to a setting
+    /// the teams store is copied into the startup team in the same
+    /// write, so the next launch restores what the player last chose.
+    /// </summary>
+    public Task UpdateAsync(
         Action<AppSettingsDocument> mutate,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default) =>
+        WriteAsync(mutate, followStartupTeam: true, cancellationToken);
+
+    /// <summary>
+    /// The settings a team stores and replays when it opens (the ones
+    /// <see cref="ApplyLaunchProfileAsync"/> writes back). Kept in one
+    /// place so that "what a team stores" and "what the startup team
+    /// follows" cannot drift apart.
+    /// </summary>
+    private sealed record TeamSettings(
+        StreamQuality Quality,
+        CustomQuality CustomQuality,
+        GameZoom GameZoom,
+        WindowAnchor GameAnchor,
+        int SizeIndex,
+        int CustomSizePercent,
+        bool AudioEnabled,
+        bool ClipboardSyncEnabled)
+    {
+        public static TeamSettings From(AppSettingsDocument d) => new(
+            d.Quality, d.CustomQuality, d.GameZoom, d.GameAnchor,
+            d.SizeIndex, d.CustomSizePercent, d.AudioEnabled, d.ClipboardSyncEnabled);
+
+        /// <summary>Copies into the team only what the player changed since this snapshot.</summary>
+        public void CopyChangesTo(AppSettingsDocument d, StoredLaunchProfile team)
+        {
+            if (Quality != d.Quality) team.Quality = d.Quality;
+            if (CustomQuality != d.CustomQuality) team.CustomQuality = d.CustomQuality.Sanitized();
+            if (GameZoom != d.GameZoom) team.GameZoom = d.GameZoom;
+            if (GameAnchor != d.GameAnchor) team.GameAnchor = d.GameAnchor;
+            if (SizeIndex != d.SizeIndex) team.SizeIndex = d.SizeIndex;
+            if (CustomSizePercent != d.CustomSizePercent) team.CustomSizePercent = d.CustomSizePercent;
+            if (AudioEnabled != d.AudioEnabled) team.AudioEnabled = d.AudioEnabled;
+            if (ClipboardSyncEnabled != d.ClipboardSyncEnabled) team.ClipboardSyncEnabled = d.ClipboardSyncEnabled;
+        }
+    }
+
+    private async Task WriteAsync(
+        Action<AppSettingsDocument> mutate,
+        bool followStartupTeam,
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(mutate);
 
@@ -217,7 +261,14 @@ public sealed class SettingsService : IDisposable
         try
         {
             document = await LoadOrMigrateAsync(cancellationToken).ConfigureAwait(false);
+            var before = followStartupTeam ? TeamSettings.From(document) : null;
             mutate(document);
+
+            if (before is not null
+                && LaunchProfiles.Find(document.LaunchProfiles, document.DefaultLaunchProfile) is { } startup)
+            {
+                before.CopyChangesTo(document, startup);
+            }
 
             // The stamp is set by the migration, and only by it:
             // setting it here would mark as up to date a document
@@ -563,7 +614,7 @@ public sealed class SettingsService : IDisposable
         // every time, and the list would refresh on an intermediate
         // state where the accounts are set but the positions are not
         // yet.
-        await UpdateAsync(
+        await WriteAsync(
             document =>
             {
                 var keys = wanted.ToHashSet(StringComparer.Ordinal);
@@ -619,6 +670,7 @@ public sealed class SettingsService : IDisposable
                 document.SizeIndex = profile.SizeIndex;
                 document.CustomSizePercent = profile.CustomSizePercent;
             },
+            followStartupTeam: false,
             cancellationToken).ConfigureAwait(false);
 
         return wanted;

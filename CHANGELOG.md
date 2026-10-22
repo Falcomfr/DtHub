@@ -17,6 +17,12 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Fixed
+
+- The startup team now keeps the quality and display settings you last chose, instead of restoring the ones it was saved with.
+
 ## [0.10.0] - 2026-10-22
 
 ### Added
