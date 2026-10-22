@@ -38,7 +38,20 @@ public sealed partial class QuestViewModel : ObservableObject
         _catalog = catalog;
         _tree = new QuestTree(catalog, _sectionCounts);
         _dialogs = dialogs;
+        Nodes.CollectionChanged += (_, _) =>
+        {
+            ListHasQuestLevels = QuestListColumns.HasQuestLevels(Nodes);
+            ListHasQuestMarks = QuestListColumns.HasQuestMarks(Nodes);
+        };
     }
+
+    /// <summary>True when a quest row of the displayed list has a level: the level column is kept only then.</summary>
+    [ObservableProperty]
+    private bool _listHasQuestLevels;
+
+    /// <summary>True when a quest row of the displayed list is marked: the mark's room is kept only then.</summary>
+    [ObservableProperty]
+    private bool _listHasQuestMarks;
 
     /// <summary>The player's Papycha tracker, laid over the open quest.</summary>
     public QuestTrackerViewModel Tracker { get; }

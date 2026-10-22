@@ -10,6 +10,12 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Corregido
+
+- Las listas de guías ya no dejan un espacio vacío antes del nombre de las misiones cuando ninguna tiene nivel ni marca de seguimiento.
+
 ## [0.10.2] - 2026-10-22
 
 ### Corregido

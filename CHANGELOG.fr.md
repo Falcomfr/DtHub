@@ -11,6 +11,12 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Corrigé
+
+- Les listes de guides ne gardent plus un espace vide avant le nom des quêtes quand aucune n'a de niveau ni de marque de suivi.
+
 ## [0.10.2] - 2026-10-22
 
 ### Corrigé

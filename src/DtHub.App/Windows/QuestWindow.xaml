@@ -1013,7 +1013,7 @@
                        Empty for the three dungeons the site gives no
                        level for: they sit under a header that says so. -->
                   <DockPanel Grid.Column="1">
-                    <TextBlock DockPanel.Dock="Left" Width="22" Margin="0,0,4,0"
+                    <TextBlock x:Name="Niveau" DockPanel.Dock="Left" Width="22" Margin="0,0,4,0"
                                Text="{Binding Level}"
                                TextAlignment="Right" TextWrapping="NoWrap"
                                VerticalAlignment="Center"
@@ -1577,6 +1577,25 @@
                                Value="False">
                     <Setter TargetName="Marque" Property="Visibility" Value="Collapsed" />
                   </DataTrigger>
+
+                  <DataTrigger Binding="{Binding DataContext.ListHasQuestMarks,
+                                                 RelativeSource={RelativeSource AncestorType=Window}}"
+                               Value="False">
+                    <Setter TargetName="Marque" Property="Visibility" Value="Collapsed" />
+                  </DataTrigger>
+
+                  <!-- A quest row keeps the level column only when a quest
+                       of the list has a level; a dungeon row (Facts) always
+                       does. -->
+                  <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                      <Condition Binding="{Binding Facts}" Value="{x:Null}" />
+                      <Condition Binding="{Binding DataContext.ListHasQuestLevels,
+                                                   RelativeSource={RelativeSource AncestorType=Window}}"
+                                 Value="False" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter TargetName="Niveau" Property="Visibility" Value="Collapsed" />
+                  </MultiDataTrigger>
 
                   <DataTrigger Binding="{Binding Status}" Value="Completed">
                     <Setter TargetName="Marque" Property="Visibility" Value="Visible" />
