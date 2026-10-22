@@ -22,6 +22,7 @@ belongs in the commits and in `docs/DECISIONS.md`.
 ### Fixed
 
 - The guides list no longer leaves a wide gap between a quest's level and its name.
+- The guides open at once on the list kept from last time, instead of waiting for papycha.fr to answer.
 
 ## [0.10.1] - 2026-10-22
 

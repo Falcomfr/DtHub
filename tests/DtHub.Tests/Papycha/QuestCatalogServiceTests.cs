@@ -424,6 +424,47 @@ public class QuestCatalogServiceTests
     }
 
     [Fact]
+    public async Task Le_cache_est_charge_sans_aucun_appel_au_site_puis_le_site_est_quand_meme_verifie()
+    {
+        var client = new FakePapychaClient().WithQuest(1, "Le dragon d'Astrub", 18).WithSection(18, "Astrub");
+        client.Stamp = Empreinte(joursAvant: 1);
+        var store = new InMemoryDocumentStore<QuestCatalogDocument>();
+
+        await store.SaveAsync(
+            new QuestCatalogDocument
+            {
+                IndexedUtc = DateTimeOffset.UtcNow - TimeSpan.FromHours(1),
+                SiteModifiedUtc = client.Stamp.Modified,
+                Quests = [new QuestSummary { Id = 9, Title = "Gardée en cache" }],
+            },
+            CancellationToken.None);
+
+        using var service = new QuestCatalogService(client, store, client);
+
+        var cached = await service.LoadCachedAsync(CancellationToken.None);
+
+        Assert.Equal("Gardée en cache", Assert.Single(cached.Quests).Title);
+        Assert.Equal((0, 0), (client.Calls, client.StampCalls));
+
+        await service.GetAsync(cancellationToken: CancellationToken.None);
+
+        Assert.Equal(1, client.StampCalls);
+    }
+
+    [Fact]
+    public async Task Sans_cache_le_chargement_sans_reseau_rend_le_catalogue_embarque()
+    {
+        var client = new FakePapychaClient().WithSection(18, "Astrub");
+        client.KnownQuests.Add(new QuestSummary { Id = 2, Title = "Embarquée", SectionIds = [18] });
+        using var service = new QuestCatalogService(client, new InMemoryDocumentStore<QuestCatalogDocument>(), client);
+
+        var cached = await service.LoadCachedAsync(CancellationToken.None);
+
+        Assert.Equal("Embarquée", Assert.Single(cached.Quests).Title);
+        Assert.Equal((0, 0), (client.Calls, client.StampCalls));
+    }
+
+    [Fact]
     public async Task Un_cache_d_un_ancien_schema_cede_la_place_au_catalogue_embarque()
     {
         var client = new FakePapychaClient().WithSection(18, "Astrub");

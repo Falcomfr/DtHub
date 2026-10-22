@@ -15,6 +15,7 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 ### Corregido
 
 - La lista de guías ya no deja un gran espacio entre el nivel de una misión y su nombre.
+- Las guías se abren al instante con la lista guardada la vez anterior, en lugar de esperar la respuesta de papycha.fr.
 
 ## [0.10.1] - 2026-10-22
 

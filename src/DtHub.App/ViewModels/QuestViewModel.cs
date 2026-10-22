@@ -485,6 +485,9 @@ public sealed partial class QuestViewModel : ObservableObject
     /// </summary>
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
+        // Disk only, no network: the first opening has nothing in memory yet.
+        await _catalog.LoadCachedAsync(cancellationToken).ConfigureAwait(true);
+
         var before = QuestTally.Of(_catalog.Catalog);
 
         var saved = await _settings.GetAsync(cancellationToken).ConfigureAwait(true);
@@ -495,12 +498,11 @@ public sealed partial class QuestViewModel : ObservableObject
 
         IsBusy = true;
 
-        // **Yesterday's tree is better than an empty tree.** The cached
-        // catalogue is already loaded in memory by the time we get here, and
-        // yet the window used to show "Quests 0" throughout the whole reread:
-        // it was waiting for a network read to finish before showing what it
-        // already had on disk. We show it right away, with the status line
-        // saying elsewhere that an update is in progress.
+        // **Yesterday's tree is better than an empty tree.** The window used
+        // to show "Quests 0" until the network check returned, though the
+        // catalogue was on disk. LoadCachedAsync loaded it above, so we show
+        // it right away, with the status line saying elsewhere that an
+        // update is in progress.
         if (before.Quests > 0)
         {
             CountSections();

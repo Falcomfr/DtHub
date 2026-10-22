@@ -16,6 +16,7 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 ### Corrigé
 
 - La liste des guides ne laisse plus un grand espace entre le niveau d'une quête et son nom.
+- Les guides s'ouvrent aussitôt sur la liste gardée de la fois précédente, au lieu d'attendre la réponse de papycha.fr.
 
 ## [0.10.1] - 2026-10-22
 

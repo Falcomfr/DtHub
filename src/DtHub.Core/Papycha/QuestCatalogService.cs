@@ -105,6 +105,28 @@ public sealed class QuestCatalogService : IDisposable
     }
 
     /// <summary>
+    /// Loads the cached catalog (or the shipped one) and builds the served
+    /// view, without any network call: the window can show it at once while
+    /// <see cref="GetAsync"/> checks the site.
+    /// </summary>
+    public async Task<QuestCatalogDocument> LoadCachedAsync(CancellationToken cancellationToken = default)
+    {
+        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+        try
+        {
+            await BaselineAsync(cancellationToken).ConfigureAwait(false);
+            await RebuildViewAsync(cancellationToken).ConfigureAwait(false);
+
+            return Catalog;
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+
+    /// <summary>
     /// Reindexes on demand, regardless of freshness; returns the served
     /// (possibly localized) <see cref="Catalog"/>.
     /// </summary>
