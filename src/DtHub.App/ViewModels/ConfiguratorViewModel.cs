@@ -272,6 +272,9 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             // The input verdict is settled when the first window
             // opens, so this is where the remedy can appear.
             OnPropertyChanged(nameof(ShowsSimulatedMouse));
+
+            _pendingReopen.SessionsChanged(OpenSessions());
+            ReopenPending = _pendingReopen.IsPending;
         });
 
     /// <summary>
@@ -809,7 +812,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     /// <summary>
     /// True when the phone's own screen goes dark while its accounts
     /// play on the PC. A scrcpy startup argument, so the open windows
-    /// are reopened to apply it, as for the sound.
+    /// wait for a reopen to apply it, as for the sound.
     /// </summary>
     [ObservableProperty]
     private bool _turnScreenOff;
@@ -870,9 +873,8 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             return;
         }
 
-        // The keyboard mode is a scrcpy startup argument: without
-        // reopening, the setting would look dead until the next
-        // session.
+        // The keyboard mode is a scrcpy startup argument: the open
+        // windows wait for a reopen.
         _ = ApplyStartupSettingAsync(() => _settings.SetSimulatedPhysicalKeyboardAsync(value));
     }
 
@@ -904,6 +906,13 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     /// <summary>True while the windows close and reopen.</summary>
     [ObservableProperty]
     private bool _isReopening;
+
+    /// <summary>
+    /// True while a window open at a startup setting's change still runs
+    /// without it: the panel then offers "Reopen now" (D216).
+    /// </summary>
+    [ObservableProperty]
+    private bool _reopenPending;
 
     /// <summary>
     /// Send the phone's sound out to the PC.
@@ -1514,12 +1523,11 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Remembers the four fine values, and only reopens the windows
-    /// if the custom tier is the one in force.
+    /// Remembers the four fine values, and only offers to reopen the
+    /// windows if the custom tier is the one in force.
     ///
     /// Setting them while another tier is checked changes nothing
-    /// about the image: reopening in that case would make every
-    /// window flicker for nothing.
+    /// about the image: a reopen in that case would be for nothing.
     /// </summary>
     private void SaveCustomQuality()
     {
@@ -1558,7 +1566,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
 
     /// <summary>
     /// Applied like the quality: the display's resolution is fixed when a
-    /// session opens, so the windows reopen.
+    /// session opens, so the open windows wait for a reopen.
     /// </summary>
     partial void OnSharpImageChanged(bool value)
     {
@@ -1571,24 +1579,21 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Saves a setting that only takes effect when a session opens,
-    /// then reopens the windows so it can be seen.
+    /// Saves a setting that only takes effect when a session opens.
     ///
-    /// Without this, changing the quality or the distance showed
-    /// nothing: these are scrcpy startup arguments, fixed for the
-    /// whole session. The choice to reopen rather than wait for next
-    /// time belongs to the user, who did not understand why the
-    /// setting seemed dead.
+    /// The windows used to reopen at once so the change could be seen,
+    /// but a reopen restarts the game on the phone and logs every
+    /// account out. They now wait for "Reopen now" (D216); a window
+    /// opened meanwhile already reads the new setting.
     ///
     /// The setting is saved first, always: a change made while the
-    /// windows were reopening used to be dropped without a word. The
+    /// windows were reopening used to be dropped without a word. That
     /// reopen then runs again once, see <see cref="CoalescedRun" />.
     /// </summary>
     private async Task ApplyStartupSettingAsync(Func<Task> write)
     {
-        // Fire and forget from the setter, like the title's: a write or a
-        // reopen that threw left the switch on a value never saved, or the
-        // windows closed with none back, and said nothing.
+        // Fire and forget from the setter, like the title's: a write that
+        // threw left the switch on a value never saved, and said nothing.
         try
         {
             await write().ConfigureAwait(true);
@@ -1599,6 +1604,24 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             return;
         }
 
+        if (_pendingReopen.SettingChanged(OpenSessions(), _reopen.IsRunning))
+        {
+            await ReopenNowAsync().ConfigureAwait(true);
+            return;
+        }
+
+        ReopenPending = _pendingReopen.IsPending;
+    }
+
+    /// <summary>
+    /// The reopen a startup setting used to run by itself: same
+    /// coalescing, same pause and sound handling in the launcher.
+    /// </summary>
+    [RelayCommand]
+    private async Task ReopenNowAsync()
+    {
+        _pendingReopen.Reopening();
+        ReopenPending = false;
         IsReopening = true;
 
         try
@@ -1624,6 +1647,12 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             IsReopening = _reopen.IsRunning;
         }
     }
+
+    /// <summary>The open game windows, tool windows aside.</summary>
+    private IEnumerable<object> OpenSessions() =>
+        _launcher.ActiveSessions.Where(s => s.IsAlive && !s.Target.IsTransient);
+
+    private readonly PendingReopen _pendingReopen = new();
 
     private readonly CoalescedRun _reopen = new();
 

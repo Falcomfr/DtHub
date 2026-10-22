@@ -23,6 +23,10 @@ belongs in the commits and in `docs/DECISIONS.md`.
 
 - A 1366 x 768 resolution in custom quality.
 
+### Changed
+
+- Changing a setting no longer reopens the game windows and logs the accounts out: a "Reopen now" button applies it when you choose.
+
 ## [0.10.3] - 2026-10-22
 
 ### Fixed

@@ -10930,3 +10930,41 @@ démarrage retombe sur « Rouvrir », comme avant.
 
 Coût : un joueur qui choisit « Ne rien ouvrir » doit lancer ses comptes à la
 main à chaque démarrage, c'est voulu.
+
+## D216 - Un réglage changé ne rouvre plus les fenêtres, il attend « Rouvrir maintenant »
+
+**2026-10-22 - Acceptée, revient sur D108, D149 et D192**
+
+Un joueur : « dès que je change un réglage, ça déconnecte et reconnecte tous
+les comptes à chaque fois ». Les réglages fixés au démarrage de scrcpy (qualité,
+qualité personnalisée quand elle est en vigueur, distance, image plus nette,
+son vers le PC, écran du téléphone éteint, clavier et souris simulés)
+fermaient et rouvraient aussitôt toutes les fenêtres de jeu ouvertes (D108,
+D149 : « un réglage qui ne montre rien passe pour mort »). Or une réouverture
+relance le jeu sur le téléphone, arrêt forcé puis `am start`, puisque Android
+ne déplace pas une tâche vers le nouvel écran virtuel (D202) : chaque compte
+était déconnecté, et deux réglages de suite le déconnectaient deux fois.
+
+Désormais rien ne se rouvre seul. Le réglage est enregistré comme avant, et si
+des fenêtres de jeu sont ouvertes, un bandeau en haut du panneau, visible
+depuis tous les onglets, dit « Ce réglage s'appliquera à la prochaine
+ouverture des fenêtres. » avec un bouton « Rouvrir maintenant ». Ce bouton
+lance exactement la réouverture d'avant : même regroupement des demandes
+(`CoalescedRun`, D192), même pause de 5 s et même surveillance du son (D202).
+Une fenêtre ouverte après le changement lit déjà le nouveau réglage, le
+lancement relisant les réglages à chaque fois.
+
+Le bandeau disparaît au clic, ou dès qu'aucune des fenêtres ouvertes au moment
+du changement ne reste ouverte : fermée, ou rouverte à la main, qui donne une
+nouvelle session. L'état vit dans `PendingReopen` (Core), éprouvé par les
+tests. Un réglage changé pendant une réouverture déjà lancée la relance une
+fois, comme avant, puisqu'elle a pu lire l'ancien réglage.
+
+Pas fait : revenir à la valeur d'origine ne fait pas disparaître le bandeau.
+Le lanceur ne retient que la distance de chaque fenêtre (D149), pas les autres
+réglages ; le savoir aurait demandé de les relever tous à l'ouverture. Le
+réordonnancement des comptes, qui rouvre aussi les fenêtres pour l'ordre des
+vignettes de la barre des tâches, n'est pas un réglage et reste inchangé.
+
+Coût : un joueur qui change la qualité ne voit plus l'effet sans cliquer ;
+c'est le bandeau qui empêche le réglage de paraître mort.

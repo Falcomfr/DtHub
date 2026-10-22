@@ -16,6 +16,10 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 
 - Una resolución de 1366 x 768 en la calidad personalizada.
 
+### Cambiado
+
+- Cambiar un ajuste ya no reabre las ventanas de juego ni desconecta las cuentas: un botón «Reabrir ahora» lo aplica cuando lo decidas.
+
 ## [0.10.3] - 2026-10-22
 
 ### Corregido

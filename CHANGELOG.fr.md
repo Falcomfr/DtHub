@@ -17,6 +17,10 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
 - Une définition 1366 x 768 dans la qualité personnalisée.
 
+### Modifié
+
+- Changer un réglage ne rouvre plus les fenêtres de jeu en déconnectant les comptes : un bouton « Rouvrir maintenant » l'applique quand vous le choisissez.
+
 ## [0.10.3] - 2026-10-22
 
 ### Corrigé
