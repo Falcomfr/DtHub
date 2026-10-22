@@ -559,8 +559,10 @@ public sealed partial class QuestViewModel : ObservableObject
         IsBusy = false;
 
         // What the reread brought back, when there was something before to
-        // compare it with. The first indexing stays silent: announcing "seven
-        // hundred and eighty-two quests more" would teach nothing.
+        // compare it with: the cached catalogue, or the one shipped with the
+        // application on a first run. Only a catalogue that was empty stays
+        // silent: announcing "seven hundred and eighty-two quests more" would
+        // teach nothing.
         //
         // This is said without being asked, because nobody asks for a reread:
         // the sentinel decides, and we want to know what it found.
