@@ -14,6 +14,13 @@ namespace DtHub.Core.Settings;
 /// from this set would therefore rewrite itself, and would have kept
 /// nothing at all.
 /// </summary>
+public enum StartupMode
+{
+    Reopen,
+    Team,
+    Nothing,
+}
+
 public static class LaunchProfiles
 {
     /// <summary>
@@ -67,14 +74,33 @@ public static class LaunchProfiles
         Normalize(defaultProfile) ?? Strings.Get("Profiles");
 
     /// <summary>
-    /// What the "at startup" list offers: reopening what was open, then
-    /// each team. The empty name is the first choice, the one that applies
+    /// Value of the "Open nothing" row in the "at startup" list. A control
+    /// character: no team name, trimmed and typed by a player, can equal it.
+    /// </summary>
+    public const string OpenNothingChoice = "\u0001open-nothing";
+
+    /// <summary>
+    /// What startup does: nothing, reopen what was open, or open a team.
+    /// A team that no longer exists counts as reopening, as it always has.
+    /// </summary>
+    public static StartupMode StartupModeFor(
+        IEnumerable<StoredLaunchProfile>? profiles,
+        string? defaultProfile,
+        bool openNothing) =>
+        openNothing ? StartupMode.Nothing
+        : Find(profiles, defaultProfile) is null ? StartupMode.Reopen
+        : StartupMode.Team;
+
+    /// <summary>
+    /// What the "at startup" list offers: opening nothing, reopening what
+    /// was open, then each team. The empty name is the choice that applies
     /// when no team is kept. A star on the row used to say this, and nothing
     /// showed what happened once it was removed.
     /// </summary>
     public static IReadOnlyList<(string Label, string Name)> StartupChoices(
         IEnumerable<StoredLaunchProfile> profiles) =>
     [
+        (Strings.Get("StartupOpensNothing"), OpenNothingChoice),
         (Strings.Get("StartupReopens"), string.Empty),
         .. profiles.Select(p => (Strings.Format("StartupOpensTeam", p.Name), p.Name)),
     ];

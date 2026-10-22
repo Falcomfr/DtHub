@@ -111,7 +111,7 @@ window on your PC.
   says whether the phone, its Wi-Fi or the PC is to blame, and what to do.
   The same state can sit in each game window's title.
 - **Teams**: groups of accounts with their positions and settings, opened in
-  one gesture, one of them at startup if you like.
+  one gesture, one of them at startup if you like, or nothing at all.
 - **Quality per account**, from Low to a custom step up to 120 frames per
   second, a sharper image option for coloured text, and the in-game
   distance. The PC's graphics card decodes the image, so each window costs

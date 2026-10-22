@@ -62,6 +62,13 @@ public sealed class AppSettingsDocument
     /// </summary>
     public string DefaultLaunchProfile { get; set; } = string.Empty;
 
+    /// <summary>
+    /// True when the player chose "Open nothing" at startup: DT Hub starts
+    /// and opens no game window. Never true together with a startup team.
+    /// A file without it loads as false, which reopens as before.
+    /// </summary>
+    public bool OpenNothingAtStartup { get; set; }
+
     // Windows
 
     /// <summary>Position of the block of game windows on the screen.</summary>

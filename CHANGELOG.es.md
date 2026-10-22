@@ -12,6 +12,10 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 
 ## [Unreleased]
 
+### Añadido
+
+- Una nueva opción «No abrir nada» al iniciar permite que DT Hub arranque sin abrir ningún juego, para quienes prefieren iniciar sus cuentas ellos mismos.
+
 ### Corregido
 
 - El equipo de inicio conserva ahora la calidad y los ajustes de pantalla que elegiste por última vez, en lugar de restablecer los que tenía al guardarse.

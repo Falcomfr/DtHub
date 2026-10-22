@@ -356,21 +356,25 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// <summary>True if there is at least one profile to show.</summary>
     public bool HasProfiles => Profiles.Count > 0;
 
-    /// <summary>The "at startup" list: reopen what was open, or one team.</summary>
+    /// <summary>The "at startup" list: open nothing, reopen what was open, or one team.</summary>
     public ObservableCollection<TextChoice> StartupChoices { get; } = [];
+
+    /// <summary>True when "Open nothing" is the startup choice.</summary>
+    private bool _openNothing;
 
     /// <summary>True while the startup list is rebuilt.</summary>
     private bool _rebuildingStartupChoices;
 
     /// <summary>
-    /// The team opened at startup, empty to reopen what was open.
+    /// The team opened at startup, empty to reopen what was open, or
+    /// <see cref="LaunchProfiles.OpenNothingChoice" /> to open nothing.
     ///
     /// Emptying the list makes it push back a null: that is not a choice,
     /// and saving it would have forgotten the team on every sweep.
     /// </summary>
     public string StartupProfile
     {
-        get => ActiveProfileName;
+        get => _openNothing ? LaunchProfiles.OpenNothingChoice : ActiveProfileName;
         set
         {
             if (_rebuildingStartupChoices || value is null)
@@ -431,11 +435,13 @@ public sealed partial class InstanceListViewModel : ObservableObject
             settings.LaunchProfiles,
             settings.DefaultLaunchProfile);
 
-        if (string.Equals(name, ActiveProfileName, StringComparison.Ordinal))
+        if (string.Equals(name, ActiveProfileName, StringComparison.Ordinal)
+            && _openNothing == settings.OpenNothingAtStartup)
         {
             return;
         }
 
+        _openNothing = settings.OpenNothingAtStartup;
         ActiveProfileName = name;
 
         OnPropertyChanged(nameof(ActiveProfileName));
@@ -483,6 +489,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
             _rebuildingStartupChoices = false;
         }
 
+        _openNothing = settings.OpenNothingAtStartup;
         ActiveProfileName = LaunchProfiles.ActiveName(settings.LaunchProfiles, settings.DefaultLaunchProfile);
 
         OnPropertyChanged(nameof(HasProfiles));
@@ -658,11 +665,15 @@ public sealed partial class InstanceListViewModel : ObservableObject
             settings.AudioEnabled)
         + "\n\n" + Strings.Get("ProfileOpenExplained");
 
-    /// <summary>Keeps a team for startup, or none with the empty name.</summary>
+    /// <summary>
+    /// Keeps a team for startup, or none with the empty name, or opens
+    /// nothing with <see cref="LaunchProfiles.OpenNothingChoice" />.
+    /// </summary>
     private async Task ChooseStartupProfileAsync(string name)
     {
-        await _settings
-            .SetDefaultLaunchProfileAsync(name.Length == 0 ? null : name)
+        await (name == LaunchProfiles.OpenNothingChoice
+            ? _settings.SetOpenNothingAtStartupAsync()
+            : _settings.SetDefaultLaunchProfileAsync(name.Length == 0 ? null : name))
             .ConfigureAwait(true);
 
         await SyncProfilesAsync().ConfigureAwait(true);

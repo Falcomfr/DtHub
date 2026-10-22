@@ -1054,9 +1054,7 @@
                       <!-- Every choice is written out. A star on the row
                            used to keep a team for startup, and nothing
                            said that removing it reopened what was open. -->
-                      <Grid Margin="0,2,0,8"
-                            Visibility="{Binding Instances.HasProfiles,
-                                                 Converter={StaticResource BoolToVisibility}}">
+                      <Grid Margin="0,2,0,8">
                         <Grid.ColumnDefinitions>
                           <ColumnDefinition Width="Auto" />
                           <ColumnDefinition Width="*" />

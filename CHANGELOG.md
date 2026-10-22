@@ -19,6 +19,10 @@ belongs in the commits and in `docs/DECISIONS.md`.
 
 ## [Unreleased]
 
+### Added
+
+- A new "Open nothing" choice at startup lets DT Hub start without opening any game, for those who prefer launching their accounts themselves.
+
 ### Fixed
 
 - The startup team now keeps the quality and display settings you last chose, instead of restoring the ones it was saved with.

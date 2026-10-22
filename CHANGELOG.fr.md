@@ -13,6 +13,10 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
 ## [Unreleased]
 
+### Ajouté
+
+- Un nouveau choix « Ne rien ouvrir » au démarrage permet à DT Hub de se lancer sans ouvrir aucun jeu, pour ceux qui préfèrent lancer leurs comptes eux-mêmes.
+
 ### Corrigé
 
 - L'équipe de démarrage garde désormais la qualité et les réglages d'affichage choisis en dernier, au lieu de rétablir ceux avec lesquels elle a été enregistrée.

@@ -10901,3 +10901,30 @@ siens sans toucher à celle du démarrage.
 
 Coût : la team du démarrage dérive de ce qu'elle contenait à l'enregistrement ;
 le bouton Mettre à jour reste le moyen de la figer volontairement.
+
+## D215 - Un choix « Ne rien ouvrir » au démarrage
+
+**2026-10-22 - Acceptée, complète D208**
+
+Un joueur a signalé que la petite case pour ne pas lancer les comptes au
+démarrage de DT Hub manquait : il trouve l'ouverture automatique trop
+invasive et préfère les lancer lui-même. La liste « Au démarrage » (D208) ne
+proposait que « Rouvrir ce qui était ouvert » et une ligne par team, et
+n'apparaissait qu'avec au moins une team.
+
+Désormais la liste est toujours affichée et commence par « Ne rien ouvrir »
+(« Ouvrir la team » et « Rouvrir » suivent). Ce choix est un booléen des
+réglages, `OpenNothingAtStartup`, faux par défaut : un fichier ancien se charge
+sans changement et rouvre comme avant. Au démarrage, DT Hub ne lance aucun jeu,
+journalise le choix, et affiche le panneau comme pour tout démarrage sans
+fenêtre ; les comptes gardent leur case cochée et la place de leurs fenêtres,
+et le joueur les lance d'un clic. Rien d'autre ne change (connexion du
+téléphone, panneau, outils).
+
+Choisir « Ne rien ouvrir » oublie la team du démarrage ; choisir une team ou
+« Rouvrir » remet le booléen à faux. Comme il n'y a alors aucune team de
+démarrage, rien ne suit les réglages du joueur (D214). Supprimer la team du
+démarrage retombe sur « Rouvrir », comme avant.
+
+Coût : un joueur qui choisit « Ne rien ouvrir » doit lancer ses comptes à la
+main à chaque démarrage, c'est voulu.

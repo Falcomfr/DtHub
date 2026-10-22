@@ -578,12 +578,33 @@ public sealed class SettingsService : IDisposable
                 var wanted = LaunchProfiles.Find(settings.LaunchProfiles, name)?.Name
                     ?? string.Empty;
 
-                if (string.Equals(settings.DefaultLaunchProfile, wanted, StringComparison.Ordinal))
+                if (!settings.OpenNothingAtStartup
+                    && string.Equals(settings.DefaultLaunchProfile, wanted, StringComparison.Ordinal))
                 {
                     return false;
                 }
 
                 settings.DefaultLaunchProfile = wanted;
+                settings.OpenNothingAtStartup = false;
+                return true;
+            },
+            cancellationToken);
+
+    /// <summary>
+    /// Starts DT Hub without opening any game window. The startup team is
+    /// forgotten, so that nothing follows the settings (D214).
+    /// </summary>
+    public Task SetOpenNothingAtStartupAsync(CancellationToken cancellationToken = default) =>
+        UpdateIfChangedAsync(
+            settings =>
+            {
+                if (settings.OpenNothingAtStartup && settings.DefaultLaunchProfile.Length == 0)
+                {
+                    return false;
+                }
+
+                settings.OpenNothingAtStartup = true;
+                settings.DefaultLaunchProfile = string.Empty;
                 return true;
             },
             cancellationToken);

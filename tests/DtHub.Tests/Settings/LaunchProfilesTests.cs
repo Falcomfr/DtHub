@@ -198,7 +198,7 @@ public class LaunchProfilesTests
     }
 
     [Fact]
-    public void Le_demarrage_propose_de_rouvrir_puis_chaque_team_dans_l_ordre()
+    public void Le_demarrage_propose_de_ne_rien_ouvrir_puis_de_rouvrir_puis_chaque_team_dans_l_ordre()
     {
         // Reopening what was open comes first: it is what happens
         // when no team is chosen, and it must be visible as a choice.
@@ -207,11 +207,37 @@ public class LaunchProfilesTests
         Assert.Equal(
             new[]
             {
+                (Strings.Get("StartupOpensNothing"), LaunchProfiles.OpenNothingChoice),
                 (Strings.Get("StartupReopens"), string.Empty),
                 (Strings.Format("StartupOpensTeam", "Donjons"), "Donjons"),
                 (Strings.Format("StartupOpensTeam", "Kolizéum"), "Kolizéum"),
             },
             choix);
+    }
+
+    [Fact]
+    public void Sans_team_le_demarrage_propose_ne_rien_ouvrir_et_rouvrir()
+    {
+        var choix = LaunchProfiles.StartupChoices([]);
+
+        Assert.Equal(
+            new[]
+            {
+                (Strings.Get("StartupOpensNothing"), LaunchProfiles.OpenNothingChoice),
+                (Strings.Get("StartupReopens"), string.Empty),
+            },
+            choix);
+    }
+
+    [Fact]
+    public void Le_mode_de_demarrage_distingue_rien_rouvrir_et_team()
+    {
+        List<StoredLaunchProfile> teams = [Profil("Donjons", Principal)];
+
+        Assert.Equal(StartupMode.Nothing, LaunchProfiles.StartupModeFor(teams, string.Empty, true));
+        Assert.Equal(StartupMode.Reopen, LaunchProfiles.StartupModeFor(teams, string.Empty, false));
+        Assert.Equal(StartupMode.Reopen, LaunchProfiles.StartupModeFor(teams, "Disparue", false));
+        Assert.Equal(StartupMode.Team, LaunchProfiles.StartupModeFor(teams, "donjons", false));
     }
 
     [Fact]

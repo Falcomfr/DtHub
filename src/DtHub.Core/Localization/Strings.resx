@@ -365,6 +365,9 @@
   <data name="StartupLabel" xml:space="preserve">
     <value>At startup</value>
   </data>
+  <data name="StartupOpensNothing" xml:space="preserve">
+    <value>Open nothing</value>
+  </data>
   <data name="StartupReopens" xml:space="preserve">
     <value>Reopen what was open</value>
   </data>

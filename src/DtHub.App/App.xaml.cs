@@ -253,7 +253,7 @@ public partial class App : Application, IDisposable
         // opens. Without it we touch nothing, and the application
         // reopens what was open the previous time, as it has always
         // done.
-        await ApplyDefaultLaunchProfileAsync(settings).ConfigureAwait(true);
+        var openNothing = await ApplyDefaultLaunchProfileAsync(settings).ConfigureAwait(true);
 
         // The settings are reread after the named session, which just
         // wrote its own choices there.
@@ -273,7 +273,12 @@ public partial class App : Application, IDisposable
             RevealConfigurator(document);
         }
 
-        var report = await launcher.LaunchEnabledAsync().ConfigureAwait(true);
+        // "Open nothing": the accounts stay checked and keep their places,
+        // the player launches them. The panel then shows, as for any
+        // startup that opens no window.
+        var report = openNothing
+            ? new LaunchReport(0, [])
+            : await launcher.LaunchEnabledAsync().ConfigureAwait(true);
 
         _shape.Tick += (_, _) =>
         {
@@ -354,7 +359,11 @@ public partial class App : Application, IDisposable
         // settings.
         _started = true;
 
-        if (!report.AnyOpened)
+        if (openNothing)
+        {
+            // Already logged by the startup choice.
+        }
+        else if (!report.AnyOpened)
         {
             Log.Warning(
                 "Aucune fenêtre ouverte, les réglages restent affichés : {Problems}",
@@ -1300,14 +1309,20 @@ public partial class App : Application, IDisposable
     /// trace, and we cannot tell apart a badly saved profile from an
     /// account that vanished from the phone.
     /// </summary>
-    private static async Task ApplyDefaultLaunchProfileAsync(SettingsService settings)
+    private static async Task<bool> ApplyDefaultLaunchProfileAsync(SettingsService settings)
     {
+        if ((await settings.GetAsync().ConfigureAwait(true)).OpenNothingAtStartup)
+        {
+            Log.Information("Démarrage sans ouvrir de jeu, par choix : les comptes restent à lancer à la main.");
+            return true;
+        }
+
         var name = await settings.GetDefaultLaunchProfileAsync().ConfigureAwait(true);
 
         if (name is null)
         {
             Log.Information("Démarrage sans session nommée : on rouvre ce qui était ouvert.");
-            return;
+            return false;
         }
 
         var keys = await settings.ApplyLaunchProfileAsync(name).ConfigureAwait(true);
@@ -1319,10 +1334,11 @@ public partial class App : Application, IDisposable
                 + "ou tous ses comptes ont été retirés du téléphone.",
                 name);
 
-            return;
+            return false;
         }
 
         Log.Information("Session « {Profile} » retenue : {Count} compte(s).", name, keys.Count);
+        return false;
     }
 
     /// <summary>

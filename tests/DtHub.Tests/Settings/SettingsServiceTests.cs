@@ -297,6 +297,54 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Ne_rien_ouvrir_au_demarrage_se_retient_et_par_defaut_on_rouvre()
+    {
+        Assert.False((await _service.GetAsync()).OpenNothingAtStartup);
+
+        await _service.SetOpenNothingAtStartupAsync();
+
+        Assert.True((await _service.GetAsync()).OpenNothingAtStartup);
+    }
+
+    [Fact]
+    public async Task Ne_rien_ouvrir_oublie_la_team_du_demarrage()
+    {
+        await _service.SaveLaunchProfileAsync("Solo", ["a"]);
+        await _service.SetDefaultLaunchProfileAsync("Solo");
+
+        await _service.SetOpenNothingAtStartupAsync();
+
+        Assert.Null(await _service.GetDefaultLaunchProfileAsync());
+    }
+
+    [Fact]
+    public async Task Choisir_une_team_ou_rouvrir_efface_ne_rien_ouvrir()
+    {
+        await _service.SaveLaunchProfileAsync("Solo", ["a"]);
+
+        await _service.SetOpenNothingAtStartupAsync();
+        await _service.SetDefaultLaunchProfileAsync("Solo");
+        Assert.False((await _service.GetAsync()).OpenNothingAtStartup);
+        Assert.Equal("Solo", await _service.GetDefaultLaunchProfileAsync());
+
+        await _service.SetOpenNothingAtStartupAsync();
+        await _service.SetDefaultLaunchProfileAsync(null);
+        Assert.False((await _service.GetAsync()).OpenNothingAtStartup);
+    }
+
+    [Fact]
+    public async Task Ne_rien_ouvrir_ne_fait_suivre_aucune_team()
+    {
+        await _service.SaveLaunchProfileAsync("Solo", ["a"]);
+        await _service.SetOpenNothingAtStartupAsync();
+
+        await _service.UpdateAsync(s => s.Quality = StreamQuality.Low);
+
+        var team = Assert.Single(await _service.GetLaunchProfilesAsync());
+        Assert.NotEqual(StreamQuality.Low, team.Quality);
+    }
+
+    [Fact]
     public async Task Le_demarrage_se_remet_a_aucun()
     {
         await _service.SaveLaunchProfileAsync("Solo", ["a"]);

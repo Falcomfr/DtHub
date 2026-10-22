@@ -117,6 +117,9 @@
   <data name="Démarrage du serveur ADB" xml:space="preserve">
     <value>Inicio del servidor ADB</value>
   </data>
+  <data name="Démarrage sans ouvrir de jeu, par choix : les comptes restent à lancer à la main." xml:space="preserve">
+    <value>Inicio sin abrir ningún juego, por elección: las cuentas quedan para que el jugador las inicie.</value>
+  </data>
   <data name="Démarrage sans session nommée : on rouvre ce qui était ouvert." xml:space="preserve">
     <value>Inicio sin sesión con nombre: se vuelven a abrir las ventanas que estaban abiertas.</value>
   </data>
