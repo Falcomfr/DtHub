@@ -10873,11 +10873,11 @@ n'empêchait pas le son d'arriver au PC : la capture se fait avant le volume, la
 piste n'est donc pas là.
 
 D202 ne prenait l'état du son qu'après une réouverture, et n'en disait rien au
-joueur ailleurs. Désormais, dès que le jeu reste muet trois relevés de suite
-alors que son son part vers le PC, le journal reçoit l'état du téléphone
-(serveurs scrcpy, pistes et leur état, durcissement audio d'Android, focus, flux
-musique) et le panneau dit au joueur de vérifier le son dans le jeu puis de
-redémarrer le téléphone. Le message s'efface dès que le jeu rejoue un son.
+joueur ailleurs. Désormais, dès que le jeu reste muet trois relevés de suite,
+le journal reçoit l'état du téléphone (serveurs scrcpy, pistes et leur état,
+durcissement audio d'Android, focus, flux musique). Si le son de ce téléphone
+part vers le PC, le panneau dit en plus au joueur de vérifier le son dans le jeu
+puis de redémarrer le téléphone. Le message s'efface dès que le jeu rejoue un son.
 
 Coût : un joueur qui a coupé le son dans les options du jeu voit le message
 alors que rien n'est en panne ; le texte lui demande d'abord de vérifier cette
