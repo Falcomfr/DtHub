@@ -11,6 +11,12 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Corrigé
+
+- La liste des guides ne laisse plus un grand espace entre le niveau d'une quête et son nom.
+
 ## [0.10.1] - 2026-10-22
 
 ### Ajouté

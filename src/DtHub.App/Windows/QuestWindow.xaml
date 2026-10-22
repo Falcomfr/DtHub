@@ -1013,7 +1013,7 @@
                        Empty for the three dungeons the site gives no
                        level for: they sit under a header that says so. -->
                   <DockPanel Grid.Column="1">
-                    <TextBlock DockPanel.Dock="Left" Width="22" Margin="0,0,10,0"
+                    <TextBlock DockPanel.Dock="Left" Width="22" Margin="0,0,4,0"
                                Text="{Binding Level}"
                                TextAlignment="Right" TextWrapping="NoWrap"
                                VerticalAlignment="Center"
@@ -1026,9 +1026,11 @@
                          quest, a dot for one in progress. Hidden, not
                          collapsed, on an unmarked quest row so every
                          quest label starts at the same place; collapsed
-                         on rows that are not quests. -->
+                         on rows that are not quests, and while no tracker
+                         is linked: the room it kept read as a gap between
+                         the level and the name. -->
                     <Path x:Name="Marque" DockPanel.Dock="Left" Width="12" Height="12"
-                          Margin="0,0,6,0" VerticalAlignment="Center" Stretch="None"
+                          Margin="0,0,4,0" VerticalAlignment="Center" Stretch="None"
                           Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.5"
                           StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                           StrokeLineJoin="Round" Visibility="Hidden" />
@@ -1567,6 +1569,12 @@
                   </DataTrigger>
 
                   <DataTrigger Binding="{Binding Quest}" Value="{x:Null}">
+                    <Setter TargetName="Marque" Property="Visibility" Value="Collapsed" />
+                  </DataTrigger>
+
+                  <DataTrigger Binding="{Binding DataContext.Tracker.IsLinked,
+                                                 RelativeSource={RelativeSource AncestorType=Window}}"
+                               Value="False">
                     <Setter TargetName="Marque" Property="Visibility" Value="Collapsed" />
                   </DataTrigger>
 
