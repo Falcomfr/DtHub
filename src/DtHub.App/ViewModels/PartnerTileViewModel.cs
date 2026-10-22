@@ -75,6 +75,6 @@ public sealed class PartnerTileViewModel(
     /// <summary>The turn button's tooltip: the orientation it gives.</summary>
     public string? TurnTip { get; init; }
 
-        /// <summary>False with no phone to act on: the button greys out.</summary>
+    /// <summary>False with no phone to act on: the button greys out.</summary>
     public bool CanAct => targets.Count > 0;
 }
