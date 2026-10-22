@@ -814,7 +814,9 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
                             && string.Equals(s.Target.DeviceId, deviceId, StringComparison.Ordinal))
                 .ToList();
 
-            if (games.Count == 0 || games.Exists(s => s.CarriesAudio))
+            // Rechecked under the lock: sound turned off again while this
+            // call waited must not leave a relay playing.
+            if (!SoundToPc || games.Count == 0 || games.Exists(s => s.CarriesAudio))
             {
                 return;
             }
