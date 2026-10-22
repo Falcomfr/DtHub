@@ -11,7 +11,7 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
-## [Unreleased]
+## [0.10.1] - 2026-10-22
 
 ### Ajouté
 
@@ -19,7 +19,7 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
 ### Corrigé
 
-- L'équipe de démarrage garde désormais la qualité et les réglages d'affichage choisis en dernier, au lieu de rétablir ceux avec lesquels elle a été enregistrée.
+- La team de démarrage garde désormais la qualité et les réglages d'affichage choisis en dernier, au lieu de rétablir ceux avec lesquels elle a été enregistrée.
 
 ## [0.10.0] - 2026-10-22
 
@@ -28,7 +28,7 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 - En anglais et en espagnol, la liste des guides affiche quêtes, donjons et succès sous les noms du jeu, le niveau des quêtes apparaît dans la liste dans toutes les langues, et les zones et les intertitres de succès affichent leur fourchette de niveaux.
 - Un bouton « Étapes officielles » affiche les étapes d'une quête telles que le jeu les écrit, en anglais et en espagnol.
 - Un carré d'arrêt dans l'en-tête d'un téléphone ferme d'un coup tous ses comptes ouverts, sans toucher aux autres téléphones.
-- Chaque équipe a un bouton Mettre à jour qui remplace son contenu par ce qui est ouvert, en gardant son nom et sa place ; créer une équipe dit maintenant ce que son ouverture fera.
+- Chaque team a un bouton Mettre à jour qui remplace son contenu par ce qui est ouvert, en gardant son nom et sa place ; créer une team dit maintenant ce que son ouverture fera.
 - Un lien « Allumer l'écran » ou « Éteindre l'écran » dans l'en-tête du téléphone, affiché dès qu'un de ses comptes est ouvert et faisant ce que fait Ctrl+E, avec un indicateur pendant le changement d'écran.
 - Les comptes perdus avec leur téléphone se rouvrent tout seuls dès qu'il est de retour, et le panneau dit qu'ils attendent.
 - Un lancement qui échoue affiche maintenant un lien vers le dossier des journaux sous son bandeau.
@@ -39,7 +39,7 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
 - Les messages du journal suivent désormais la langue de l'application : français, anglais ou espagnol.
 - Fermer une fenêtre de jeu ou un onglet par sa croix retire le compte du prochain démarrage, comme le bouton Fermer.
-- Les profils de lancement s'appellent désormais des équipes, et une liste « Au démarrage » dit exactement ce qui s'ouvre au lancement de DT Hub.
+- Les profils de lancement s'appellent désormais des teams, et une liste « Au démarrage » dit exactement ce qui s'ouvre au lancement de DT Hub.
 - Dans la fenêtre plus, les applications Dofus passent en premier, celles déjà affichées ne sont plus proposées, et un profil autre que celui du téléphone est nommé avec un cadenas.
 - Les infobulles et les textes d'aide sont plus courts, avec les étapes une par ligne, et les notes de batterie par marque s'affichent dans l'aide sur la mise en veille.
 - Le conseil hors ligne suit le lien qu'avait le téléphone et suggère de le rapprocher du routeur s'il décroche sans cesse.
