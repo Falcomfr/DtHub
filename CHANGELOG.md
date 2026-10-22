@@ -17,6 +17,12 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.10.5] - 2026-10-22
+
+### Added
+
+- DTStuff can open in landscape: the new button on its tile in the tools menu switches it, and reopens it if it is open.
+
 ## [0.10.4] - 2026-10-22
 
 ### Added

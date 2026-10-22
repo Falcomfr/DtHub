@@ -10,6 +10,12 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.10.5] - 2026-10-22
+
+### Añadido
+
+- DTStuff puede abrirse en horizontal: el nuevo botón en su icono del menú de herramientas lo cambia y lo reabre si está abierto.
+
 ## [0.10.4] - 2026-10-22
 
 ### Añadido
