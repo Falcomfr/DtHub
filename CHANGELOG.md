@@ -17,6 +17,12 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Added
+
+- A 1366 x 768 resolution in custom quality.
+
 ## [0.10.3] - 2026-10-22
 
 ### Fixed

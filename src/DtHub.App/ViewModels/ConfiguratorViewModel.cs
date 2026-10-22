@@ -603,6 +603,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     public IReadOnlyList<IntChoice> HeightChoices { get; } =
     [
         new("1280 x 720", 720),
+        new("1366 x 768", 768),
         new("1600 x 900", 900),
         new("1920 x 1080", 1080),
         new("2560 x 1440", 1440),

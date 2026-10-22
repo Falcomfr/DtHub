@@ -11,6 +11,12 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Ajouté
+
+- Une définition 1366 x 768 dans la qualité personnalisée.
+
 ## [0.10.3] - 2026-10-22
 
 ### Corrigé
