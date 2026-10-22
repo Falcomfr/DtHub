@@ -1927,7 +1927,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 strain,
                 playing.Count > 0 && serial == playing[0] ? pcBusy : null,
                 unpreparedTools,
-                running.Any(s => !s.Target.IsTransient) && _soundAfterReopen.IsStuck(serial));
+                running.Any(s => !s.Target.IsTransient) && _soundAfterReopen.IsStuck(serial),
+                running.Any(s => !s.Target.IsTransient) && _gameSilence.Shows(serial));
 
             if (DeviceHealth.Every(seen) is { } said)
             {
@@ -2670,11 +2671,16 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             if (await _devices.GetGameSoundAsync(serial).ConfigureAwait(false) is { } sound)
             {
-                WatchSound(serial, sound);
+                var silent = WatchSound(serial, sound);
 
+                // One probe for the same silence: the reopen is the better lead.
                 if (_soundAfterReopen.Read(serial, sound, DateTimeOffset.UtcNow))
                 {
-                    await LogStuckSoundAsync(serial).ConfigureAwait(false);
+                    await LogSoundStateAsync(serial, afterReopen: true).ConfigureAwait(false);
+                }
+                else if (silent)
+                {
+                    await LogSoundStateAsync(serial, afterReopen: false).ConfigureAwait(false);
                 }
             }
 
@@ -2722,29 +2728,39 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     private readonly SoundAfterReopen _soundAfterReopen = new();
 
+    private readonly GameSilence _gameSilence = new();
+
     /// <summary>
     /// Writes what the phone says of its sound once it is found stuck since
-    /// a reopen, beside the windows DT Hub has open on it: a scrcpy server
-    /// more than these is one no window owns.
+    /// a reopen, or silent without one, beside the windows DT Hub has open
+    /// on it: a scrcpy server more than these is one no window owns.
     /// </summary>
-    private async Task LogStuckSoundAsync(string serial)
+    private async Task LogSoundStateAsync(string serial, bool afterReopen)
     {
         var windows = _sessions.ActiveSessions.Count(s =>
             !s.Target.IsTransient && string.Equals(Routable(s.Target), serial, StringComparison.Ordinal));
 
+        string state;
+
         try
         {
-            var state = await _adb.ShellAsync(serial, [SoundAfterReopen.Probe], TimeSpan.FromSeconds(10)).ConfigureAwait(false);
-            LogSoundStuck(serial, windows, state.Trim());
+            state = (await _adb.ShellAsync(serial, [SoundAfterReopen.Probe], TimeSpan.FromSeconds(10)).ConfigureAwait(false)).Trim();
         }
         catch (AdbException exception)
         {
-            LogSoundStuck(serial, windows, exception.UserMessage);
+            // Written below in place of the state.
+            state = exception.UserMessage;
+        }
+
+        if (afterReopen)
+        {
+            LogSoundStuck(serial, windows, state);
+        }
+        else
+        {
+            LogSilentSoundState(serial, windows, state);
         }
     }
-
-    /// <summary>Silent readings in a row, by serial.</summary>
-    private readonly Dictionary<string, int> _silentReadings = new(StringComparer.Ordinal);
 
     /// <summary>Readings in a row where the game played and nothing took it for the PC.</summary>
     private readonly Dictionary<string, int> _uncapturedReadings = new(StringComparer.Ordinal);
@@ -2763,26 +2779,37 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// phone alike, and relaunching DT Hub brought it back (2026-10-16). The
     /// moment it went was recorded nowhere, and the lines around it are what
     /// says why: a reconnection, a window reopened, the screen turned off.
-    /// Nothing is shown: a game whose sound the player turned off in its own
-    /// options is silent too.
+    /// The panel says it only while the sound goes to the PC, and asks to
+    /// check the game's options first: a game whose sound the player turned
+    /// off there is silent too. See <see cref="GameSilence" />.
     /// </summary>
-    private void WatchSound(string serial, GameSound sound)
+    /// <returns>True on the reading that finds the game silent, once per silence.</returns>
+    private bool WatchSound(string serial, GameSound sound)
     {
-        if (Count(_silentReadings, serial, sound.IsSilent) == SoundReadingsBeforeWarning)
-        {
-            LogGameSilent(serial, sound.GameProcesses, sound.Captured, sound.MediaVolume?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "?");
-        }
-
         var carried = _sessions.ActiveSessions.Any(s =>
             s.IsAlive
             && (s.CarriesAudio || _sessions.HoldsSound(s.Target.DeviceId))
             && string.Equals(Routable(s.Target), serial, StringComparison.Ordinal));
+
+        var lasted = _gameSilence.Lasts(serial);
+        var silent = _gameSilence.Read(serial, sound, carried);
+
+        if (silent)
+        {
+            LogGameSilent(serial, sound.GameProcesses, sound.Captured, sound.MediaVolume?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "?");
+        }
+        else if (lasted && !_gameSilence.Lasts(serial))
+        {
+            LogSoundBack(serial);
+        }
 
         if (Count(_uncapturedReadings, serial, carried && sound.GamePlayers > 0 && !sound.Captured)
             == SoundReadingsBeforeWarning)
         {
             LogSoundNotCaptured(serial, sound.GamePlayers);
         }
+
+        return silent;
     }
 
     /// <summary>
@@ -6382,6 +6409,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Warning,
         Message = "Le son du jeu n'est pas revenu sur l'appareil {serial} depuis la réouverture des fenêtres ({windows} fenêtre(s) de DT Hub). Son du téléphone :\n{state}")]
     private partial void LogSoundStuck(string serial, int windows, string state);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "Son du téléphone {serial} pendant le silence du jeu ({windows} fenêtre(s) de DT Hub) :\n{state}")]
+    private partial void LogSilentSoundState(string serial, int windows, string state);
 
     [LoggerMessage(
         Level = LogLevel.Warning,

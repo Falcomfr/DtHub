@@ -29,6 +29,7 @@ belongs in the commits and in `docs/DECISIONS.md`.
 - Accounts lost with their phone reopen by themselves once it is back, and the panel says they are waiting.
 - A failed launch now shows a link to the logs folder under its banner.
 - Custom quality now offers a 1600 x 900 resolution, between 720 and 1080.
+- When the game stops playing any sound on the phone, DT Hub now says so and suggests restarting the phone.
 
 ### Changed
 

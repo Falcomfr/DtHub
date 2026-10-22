@@ -318,4 +318,22 @@ public class DeviceHealthTests
         Assert.Equal(HealthSeverity.Warning, finding.Severity);
         Assert.Equal(Strings.Get("SoundStuckAfterReopen"), finding.Message);
     }
+
+    [Fact]
+    public void Le_jeu_muet_dit_de_redemarrer_le_telephone_si_son_son_est_active()
+    {
+        var finding = Assert.Single(DeviceHealth.Review(null, null, null, gameSilent: true));
+
+        Assert.Equal(HealthSeverity.Warning, finding.Severity);
+        Assert.Equal(Strings.Get("GameSilent"), finding.Message);
+    }
+
+    [Fact]
+    public void Le_son_bloque_apres_une_reouverture_passe_avant_le_jeu_muet()
+    {
+        // The same silence, said once: the reopen is the better lead.
+        var finding = Assert.Single(DeviceHealth.Review(null, null, null, soundStuck: true, gameSilent: true));
+
+        Assert.Equal(Strings.Get("SoundStuckAfterReopen"), finding.Message);
+    }
 }

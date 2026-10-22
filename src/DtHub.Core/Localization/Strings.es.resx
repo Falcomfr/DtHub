@@ -2294,6 +2294,9 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="SoundStuckAfterReopen" xml:space="preserve">
     <value>El sonido del juego no volvió tras reabrir las ventanas. Reinicia el teléfono para recuperarlo.</value>
   </data>
+  <data name="GameSilent" xml:space="preserve">
+    <value>El juego ya no reproduce sonido en el teléfono. Si el sonido está activado en el juego, reinicia el teléfono.</value>
+  </data>
   <data name="SimulatedMouse" xml:space="preserve">
     <value>Ratón físico simulado</value>
   </data>

@@ -450,6 +450,10 @@
   <data name="Session « {Profile} » retenue : {Count} compte(s)." xml:space="preserve">
     <value>Session “{Profile}” selected: {Count} account(s).</value>
   </data>
+  <data name="Son du téléphone {serial} pendant le silence du jeu ({windows} fenêtre(s) de DT Hub) :&#10;{state}" xml:space="preserve">
+    <value>Phone audio on device {serial} while the game is silent ({windows} DT Hub window(s)):
+{state}</value>
+  </data>
   <data name="Suivi Papycha : l'état de la quête n'a pas pu être écrit ({reason})." xml:space="preserve">
     <value>Papycha tracking: failed to write the quest state ({reason}).</value>
   </data>

@@ -35,13 +35,16 @@ public sealed class SoundAfterReopen
     /// What the phone says of its sound when it is found stuck, written to
     /// the log as is: the scrcpy servers still running, which outlive a
     /// closed window and die with a restart; every player and capture with
-    /// its state; Android's own mutes; who holds the audio focus.
+    /// its state; Android's own mutes; who holds the audio focus; the media
+    /// stream's mute and volume. Written too when the game falls silent
+    /// without a reopen, see <see cref="GameSilence" />.
     /// </summary>
     public const string Probe =
         "echo serveurs; for p in $(pgrep -f com.genymobile.scrcpy.Server); do tr '\\0' ' ' < /proc/$p/cmdline | grep -oE 'scid=[0-9a-f]+'; done; "
         + "echo lecteurs; dumpsys media.audio_policy | grep -E 'uid [0-9]+; State:' | head -40; "
         + "echo durcissement; dumpsys audio | grep -i hardening | tail -4; "
-        + "echo focus; dumpsys audio | grep -A4 'Audio Focus stack'; true";
+        + "echo focus; dumpsys audio | grep -A4 'Audio Focus stack'; "
+        + "echo flux; dumpsys audio | grep -A2 '^- STREAM_MUSIC'; true";
 
     private readonly Lock _gate = new();
 

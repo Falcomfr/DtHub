@@ -22,6 +22,7 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 - Las cuentas perdidas con su teléfono se reabren solas en cuanto vuelve, y el panel indica que esperan.
 - Un inicio fallido muestra ahora un enlace a la carpeta de registros bajo su aviso.
 - La calidad personalizada ofrece una resolución de 1600 x 900, entre 720 y 1080.
+- Cuando el juego deja de reproducir sonido en el teléfono, DT Hub ahora lo indica y sugiere reiniciar el teléfono.
 
 ### Modificado
 

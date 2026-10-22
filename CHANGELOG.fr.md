@@ -23,6 +23,7 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 - Les comptes perdus avec leur téléphone se rouvrent tout seuls dès qu'il est de retour, et le panneau dit qu'ils attendent.
 - Un lancement qui échoue affiche maintenant un lien vers le dossier des journaux sous son bandeau.
 - La qualité personnalisée propose une définition 1600 x 900, entre 720 et 1080.
+- Quand le jeu ne joue plus aucun son sur le téléphone, DT Hub le dit désormais et propose de redémarrer le téléphone.
 
 ### Modifié
 

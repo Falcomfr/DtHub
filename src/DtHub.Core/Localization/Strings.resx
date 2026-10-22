@@ -2294,6 +2294,9 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="SoundStuckAfterReopen" xml:space="preserve">
     <value>The game's sound did not come back after the windows reopened. Restart the phone to get it back.</value>
   </data>
+  <data name="GameSilent" xml:space="preserve">
+    <value>The game no longer plays any sound on the phone. If its sound is on in the game's options, restart the phone.</value>
+  </data>
   <data name="SimulatedMouse" xml:space="preserve">
     <value>Simulated physical mouse</value>
   </data>

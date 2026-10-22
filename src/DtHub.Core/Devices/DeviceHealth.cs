@@ -93,6 +93,10 @@ public static class DeviceHealth
     /// True when the games played before their windows reopened and have
     /// played nothing since. See <see cref="SoundAfterReopen" />.
     /// </param>
+    /// <param name="gameSilent">
+    /// True when the game has played nothing for a while and its sound goes
+    /// to the PC, reopen or not. See <see cref="GameSilence" />.
+    /// </param>
     /// <param name="lockedWindows">
     /// True when this device's game windows show its lock screen
     /// instead of the game, that is, when its virtual display follows
@@ -109,7 +113,8 @@ public static class DeviceHealth
         PhoneStrain? strain = null,
         int? pcBusyPercent = null,
         IReadOnlyList<string>? unpreparedTools = null,
-        bool soundStuck = false)
+        bool soundStuck = false,
+        bool gameSilent = false)
     {
         List<HealthFinding> findings = [];
 
@@ -136,6 +141,11 @@ public static class DeviceHealth
         if (soundStuck)
         {
             findings.Add(new HealthFinding(HealthSeverity.Warning, Strings.Get("SoundStuckAfterReopen")));
+        }
+        else if (gameSilent)
+        {
+            // The same silence without a reopen to blame, said once.
+            findings.Add(new HealthFinding(HealthSeverity.Warning, Strings.Get("GameSilent")));
         }
 
         if (battery?.Describe() is { } power && battery.Concern is { } level)

@@ -450,6 +450,10 @@
   <data name="Session « {Profile} » retenue : {Count} compte(s)." xml:space="preserve">
     <value>Sesión «{Profile}» seleccionada: {Count} cuenta(s).</value>
   </data>
+  <data name="Son du téléphone {serial} pendant le silence du jeu ({windows} fenêtre(s) de DT Hub) :&#10;{state}" xml:space="preserve">
+    <value>Sonido del teléfono {serial} mientras el juego está en silencio ({windows} ventana(s) de DT Hub):
+{state}</value>
+  </data>
   <data name="Suivi Papycha : l'état de la quête n'a pas pu être écrit ({reason})." xml:space="preserve">
     <value>Seguimiento de Papycha: no se ha podido escribir el estado de la misión ({reason}).</value>
   </data>
