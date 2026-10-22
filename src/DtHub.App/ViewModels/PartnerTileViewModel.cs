@@ -67,6 +67,14 @@ public sealed class PartnerTileViewModel(
     /// <summary>The question above the phones, when there is a choice.</summary>
     public string PickPrompt => Strings.Format("PartnerPickDevice", ActionText);
 
-    /// <summary>False with no phone to act on: the button greys out.</summary>
+    /// <summary>Turns the app's windows, for an app that lays itself out in landscape too.</summary>
+    public ICommand? Turn { get; init; }
+
+    public bool CanTurn => Turn is not null;
+
+    /// <summary>The turn button's tooltip: the orientation it gives.</summary>
+    public string? TurnTip { get; init; }
+
+        /// <summary>False with no phone to act on: the button greys out.</summary>
     public bool CanAct => targets.Count > 0;
 }

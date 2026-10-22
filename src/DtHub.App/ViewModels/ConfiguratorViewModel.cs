@@ -125,7 +125,11 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
                 [.. (installed ? availability.WithApp : availability.WithoutApp).Select(deviceId =>
                     new PartnerTarget(
                         _launcher.PartnerDeviceNames.GetValueOrDefault(deviceId, deviceId),
-                        new AsyncRelayCommand(() => ActOnPartnerAsync(app, installed, deviceId))))]));
+                        new AsyncRelayCommand(() => ActOnPartnerAsync(app, installed, deviceId))))])
+            {
+                Turn = app.CanTurn && installed ? new AsyncRelayCommand(TurnDtStuffAsync) : null,
+                TurnTip = Strings.Get(_dtStuffLandscape ? "PartnerTurnPortrait" : "PartnerTurnLandscape"),
+            });
         }
 
         // Fourth, as asked: the calculators, a web site like the map.
@@ -177,6 +181,24 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
 
         PickingTile = tile.Targets.Count > 1 && PickingTile != tile ? tile : null;
         return false;
+    }
+
+    /// <summary>DTStuff opens in landscape, as the settings say.</summary>
+    private bool _dtStuffLandscape;
+
+    /// <summary>Turns DTStuff, its open windows included, then redraws its tile.</summary>
+    private async Task TurnDtStuffAsync()
+    {
+        try
+        {
+            _dtStuffLandscape = await _launcher.TurnDtStuffAsync().ConfigureAwait(true);
+        }
+        catch (AdbException exception)
+        {
+            Instances.ShowBanner(exception.UserMessage);
+        }
+
+        RebuildPartnerTiles();
     }
 
     /// <summary>
@@ -967,6 +989,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             Language = settings.Language;
             AudioEnabled = settings.AudioEnabled;
             SharpImage = settings.SharpImage;
+            _dtStuffLandscape = settings.DtStuffLandscape;
             ReadCustomQuality(settings);
 
             SizePercent = settings.CustomSizePercent > 0

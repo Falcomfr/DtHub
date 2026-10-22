@@ -1293,6 +1293,7 @@
                     <DataTemplate>
                       <!-- 68 wide: six tiles stay within the panel's width,
                            74 overhung its right edge by fifty pixels. -->
+                      <Grid>
                       <Button Width="68" Padding="2,6" Margin="1,0" Cursor="Hand"
                               ToolTip="{Binding Detail}" IsEnabled="{Binding CanAct}"
                               Click="OnToolTile">
@@ -1324,6 +1325,16 @@
                                                           ConverterParameter=inverse}" />
                         </StackPanel>
                       </Button>
+                      <!-- Beside the tile, not in it: a click here must not
+                           also open the app. A landscape phone under an arrow. -->
+                      <Button Style="{StaticResource IconButton}" Width="20" Height="20"
+                              HorizontalAlignment="Right" VerticalAlignment="Top"
+                              ToolTip="{Binding TurnTip}" Command="{Binding Turn}"
+                              Visibility="{Binding CanTurn, Converter={StaticResource BoolToVisibility}}">
+                        <Path Style="{StaticResource RowGlyph}"
+                              Data="M 2.5,8.5 H 12.5 V 13 H 2.5 Z M 4,5.5 A 4,3 0 0 1 11,4.5 M 11,2 V 4.5 H 8.5" />
+                      </Button>
+                      </Grid>
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>

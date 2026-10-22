@@ -2360,6 +2360,12 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="PartnerOcrAppLine" xml:space="preserve">
     <value>Suivez vos captures du Dofus Ocre, étape par étape.</value>
   </data>
+  <data name="PartnerTurnLandscape" xml:space="preserve">
+    <value>Passer en paysage</value>
+  </data>
+  <data name="PartnerTurnPortrait" xml:space="preserve">
+    <value>Passer en portrait</value>
+  </data>
   <data name="PartnerInstall" xml:space="preserve">
     <value>Installer</value>
   </data>

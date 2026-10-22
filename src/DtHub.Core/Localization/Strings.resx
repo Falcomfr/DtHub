@@ -2360,6 +2360,12 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="PartnerOcrAppLine" xml:space="preserve">
     <value>Track your Ochre Dofus captures, step by step.</value>
   </data>
+  <data name="PartnerTurnLandscape" xml:space="preserve">
+    <value>Switch to landscape</value>
+  </data>
+  <data name="PartnerTurnPortrait" xml:space="preserve">
+    <value>Switch to portrait</value>
+  </data>
   <data name="PartnerInstall" xml:space="preserve">
     <value>Install</value>
   </data>

@@ -264,6 +264,9 @@ public sealed class AppSettingsDocument
     /// </summary>
     public bool SharpImage { get; set; }
 
+    /// <summary>DTStuff opens in landscape instead of portrait.</summary>
+    public bool DtStuffLandscape { get; set; }
+
     /// <summary>
     /// Apparent distance in the game. Like quality, it is fixed when a
     /// session opens: changing it reopens the windows.

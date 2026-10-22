@@ -10988,3 +10988,31 @@ vignettes de la barre des tâches, n'est pas un réglage et reste inchangé.
 
 Coût : un joueur qui change la qualité ne voit plus l'effet sans cliquer ;
 c'est le bandeau qui empêche le réglage de paraître mort.
+
+## D217 - DTStuff peut s'ouvrir en paysage, OcrApp reste en portrait
+
+Les outils MakeInTouch s'ouvraient toujours sur un afficheur 1080 x 1920 à
+320 ppp, pensé pour le Play Store qui cassait sa page en paysage (mesure du
+10/10/2026). Le joueur voulait basculer DTStuff et OcrApp en paysage.
+
+Mesuré le 22/10/2026 sur le 13T Pro (Android 16), chaque app ouverte par
+scrcpy 5.0.1 sur un afficheur 1920 x 1080 à 320 ppp : DTStuff a une vraie mise
+en page paysage (menu à gauche, outils en rangée) ; OcrApp ramène l'afficheur
+en portrait dans la seconde, l'enregistrement passe de 1920 x 1080 à
+1080 x 1920. Le paquet ne déclare pourtant aucun blocage d'orientation.
+
+Décision : une icône sur la tuile DTStuff du menu des outils, à côté de la
+tuile et non dedans, pour qu'un clic ne l'ouvre pas. Elle inverse un réglage
+unique pour tous les téléphones (`DtStuffLandscape`, portrait par défaut) et
+rouvre les fenêtres DTStuff ouvertes dans l'autre sens. La taille vient de
+`PartnerApps.ToolDisplay`, qui ne passe en paysage que pour une app marquée
+`CanTurn` : OcrApp et le Play Store gardent le portrait.
+
+On rouvre plutôt que de rendre l'afficheur souple (`--flex-display`, retiré
+pour le jeu en D17) : c'est le chemin d'ouverture existant, et la fenêtre
+reste à une taille fixe. Coût : la fermeture d'une fenêtre d'outil arrête
+toujours son app, donc DTStuff redémarre à chaque bascule, écran de
+chargement compris.
+
+Non vérifié : la bande grise d'environ 95 pixels que DTStuff laisse en bas de
+son afficheur, vue en paysage, n'a pas été comparée au portrait.

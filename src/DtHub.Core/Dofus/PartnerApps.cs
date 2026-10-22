@@ -8,7 +8,8 @@
 /// <param name="Name">Its name, the same in every language.</param>
 /// <param name="LineKey">The resource key of its one line presentation.</param>
 /// <param name="IconAsset">The pack path of its bundled icon.</param>
-public sealed record PartnerApp(string PackageName, string Name, string LineKey, string IconAsset);
+/// <param name="CanTurn">True when it lays itself out in landscape too.</param>
+public sealed record PartnerApp(string PackageName, string Name, string LineKey, string IconAsset, bool CanTurn = false);
 
 /// <summary>Which connected devices have one partner app, and which lack it.</summary>
 /// <param name="App">The app.</param>
@@ -27,12 +28,24 @@ public static class PartnerApps
 {
     public static IReadOnlyList<PartnerApp> All { get; } =
     [
-        new("com.makeintouch.dtstuff", "DTStuff", "PartnerDtStuffLine", "/assets/dtstuff.png"),
+        new("com.makeintouch.dtstuff", "DTStuff", "PartnerDtStuffLine", "/assets/dtstuff.png", CanTurn: true),
         new("com.makeintouch.ocrapp", "OcrApp", "PartnerOcrAppLine", "/assets/ocrapp.png"),
     ];
 
     public static bool IsPartner(string? packageName) =>
         All.Any(a => string.Equals(a.PackageName, packageName, StringComparison.Ordinal));
+
+    /// <summary>
+    /// The display of a window opened in passing: a portrait phone screen,
+    /// or a landscape one for an app that can turn, when chosen. Measured
+    /// on 2026-10-22 on the 13T Pro: DTStuff has a landscape layout, OcrApp
+    /// turned its 1920x1080 display back to portrait within the second.
+    /// </summary>
+    public static (int Width, int Height) ToolDisplay(string? packageName, bool landscape) =>
+        landscape && CanTurn(packageName) ? (1920, 1080) : (1080, 1920);
+
+    public static bool CanTurn(string? packageName) =>
+        All.Any(a => a.CanTurn && string.Equals(a.PackageName, packageName, StringComparison.Ordinal));
 
     /// <summary>The app's page in the Play Store, as Android opens it.</summary>
     public static string StoreUri(string packageName) => $"market://details?id={packageName}";

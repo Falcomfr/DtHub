@@ -1389,6 +1389,33 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
+    /// Turns DTStuff for its next openings and reopens its open windows the
+    /// other way: a display's size is fixed when scrcpy creates it. Closing
+    /// stops the app, so it starts again in the new window.
+    /// </summary>
+    /// <returns>True when it is now in landscape.</returns>
+    public async Task<bool> TurnDtStuffAsync(CancellationToken cancellationToken = default)
+    {
+        var landscape = false;
+
+        await _settings.UpdateAsync(s => landscape = s.DtStuffLandscape = !s.DtStuffLandscape, cancellationToken)
+            .ConfigureAwait(false);
+
+        var open = _sessions.ActiveSessions
+            .Where(s => s.Target.IsTransient && PartnerApps.CanTurn(s.Target.PackageName))
+            .ToList();
+
+        foreach (var session in open)
+        {
+            await StopSessionAsync(session, cancellationToken).ConfigureAwait(false);
+            _ = await OpenPartnerAppAsync(session.Target.DeviceId, session.Target.PackageName, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        return landscape;
+    }
+
+    /// <summary>
     /// Notes where the phone actually draws the game, for the log and the
     /// diagnostic report. On 14/10/2026 this line, sent by a player, showed
     /// that Android gave the game its whole display: the fault was in how
@@ -3416,6 +3443,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         await ApplyWindowSettingsAsync(cancellationToken).ConfigureAwait(false);
 
         var options = await _settings.GetScrcpyOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var dtStuffLandscape = (await _settings.GetAsync(cancellationToken).ConfigureAwait(false)).DtStuffLandscape;
 
         LogPreamble(
             raccourcis,
@@ -3523,8 +3551,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
             // left to scrcpy: measured on 2026-10-10, a window scrcpy sized
             // alone ignored clicks until it was resized by hand.
             var fitWindow = !instance.IsTransient && phoneAspect is null;
+            var tool = PartnerApps.ToolDisplay(instance.PackageName, dtStuffLandscape);
             var (placement, launchGeometry) = instance.IsTransient
-                ? ComputePlacement(options with { VirtualDisplayWidth = 1080, VirtualDisplayHeight = 1920 }, remembered: null)
+                ? ComputePlacement(options with { VirtualDisplayWidth = tool.Width, VirtualDisplayHeight = tool.Height }, remembered: null)
                 : ComputePlacement(gameOptions, stored, fitWindow);
 
             // Explicit portrait/phone formats still get their frame-aware
@@ -3616,8 +3645,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 // opened next.
                 display = display with
                 {
-                    VirtualDisplayWidth = 1080,
-                    VirtualDisplayHeight = 1920,
+                    VirtualDisplayWidth = tool.Width,
+                    VirtualDisplayHeight = tool.Height,
                     VirtualDisplayDpi = 320,
                     AudioEnabled = false,
                     WindowTitleHint = null,

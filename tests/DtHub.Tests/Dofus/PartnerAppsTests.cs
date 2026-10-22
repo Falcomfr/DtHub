@@ -196,4 +196,16 @@ public sealed class PartnerAppsTests
         // The portal links to every other tool: those go to the browser.
         Assert.Equal(own, Lomitall.IsOwnPage(url));
     }
+
+    [Theory]
+    [InlineData(DtStuff, false, 1080, 1920)]
+    [InlineData(DtStuff, true, 1920, 1080)]
+    [InlineData(OcrApp, true, 1080, 1920)]
+    [InlineData("com.android.vending", true, 1080, 1920)]
+    public void Seul_dtstuff_passe_en_paysage(string package, bool landscape, int width, int height)
+    {
+        // OcrApp turns its display back to portrait, the store breaks on a
+        // landscape one: both stay as they were.
+        Assert.Equal((width, height), PartnerApps.ToolDisplay(package, landscape));
+    }
 }
