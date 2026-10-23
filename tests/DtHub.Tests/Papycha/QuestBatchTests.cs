@@ -21,6 +21,16 @@ public class QuestBatchTests
 
         public Dictionary<int, string> Refusals { get; } = [];
 
+        // Refusals without a word, as a throttling site gives, counted down per quest.
+        public Dictionary<int, int> Silent { get; } = [];
+
+        // Quests the site infers as done without storing a status.
+        public HashSet<int> Inferred { get; } = [];
+
+        public bool ReadThrows { get; init; }
+
+        public bool Archived { get; init; }
+
         public List<int> Writes { get; } = [];
 
         public int Reads { get; private set; }
@@ -32,12 +42,17 @@ public class QuestBatchTests
         public Task<TrackerReadResult> ReadAsync(string cookie, CancellationToken cancellationToken = default)
         {
             Reads++;
+            if (ReadThrows)
+            {
+                throw new InvalidOperationException("unexpected page");
+            }
+
             var progress = new TrackerProgress(
                 new Dictionary<int, QuestStatus>(Statuses),
-                Statuses.Where(s => s.Value == QuestStatus.Completed).Select(s => s.Key).ToHashSet(),
+                Statuses.Where(s => s.Value == QuestStatus.Completed).Select(s => s.Key).Concat(Inferred).ToHashSet(),
                 new HashSet<int>(),
                 []);
-            var state = new TrackerState("n", [new TrackerCharacter(Hero, "Falcom", 190)], Hero, new Dictionary<string, TrackerProgress> { [Hero] = progress });
+            var state = new TrackerState("n", [new TrackerCharacter(Hero, "Falcom", 190)], Hero, Archived ? [] : new Dictionary<string, TrackerProgress> { [Hero] = progress });
 
             return Task.FromResult(new TrackerReadResult(TrackerReadOutcome.Linked, state));
         }
@@ -59,6 +74,12 @@ public class QuestBatchTests
             if (Refusals.TryGetValue(questId, out var message))
             {
                 return Task.FromResult(new TrackerWriteResult(false, message));
+            }
+
+            if (Silent.TryGetValue(questId, out var silent) && silent > 0)
+            {
+                Silent[questId] = silent - 1;
+                return Task.FromResult(new TrackerWriteResult(false, null, TrackerReadOutcome.Linked));
             }
 
             // The site answers success but forgets the write.
@@ -195,6 +216,66 @@ public class QuestBatchTests
     }
 
     [Fact]
+    public async Task Un_refus_sans_message_est_reecrit_et_finit_par_tenir()
+    {
+        var tracker = new FakeTracker { Silent = { [2] = 1 } };
+
+        var result = await Run(tracker, [1, 2]);
+
+        Assert.Equal([1, 2], result.Done);
+        Assert.Empty(result.Missing);
+        Assert.Equal([1, 2, 2], tracker.Writes);
+    }
+
+    [Fact]
+    public async Task Trois_refus_sans_message_de_suite_arretent_le_lot_et_un_succes_remet_le_compte_a_zero()
+    {
+        var tracker = new FakeTracker { Silent = { [1] = 99, [2] = 99, [4] = 99, [5] = 99 } };
+
+        var result = await Run(tracker, [1, 2, 3, 4, 5]);
+
+        Assert.Equal(TrackerReadOutcome.Unreadable, result.StoppedBy);
+        Assert.Equal([3], result.Done);
+        Assert.Equal([1, 2, 4, 5], result.Missing);
+        Assert.Equal([1, 2, 3, 4, 5, 1], tracker.Writes);
+    }
+
+    [Fact]
+    public async Task Une_erreur_inattendue_du_suivi_arrete_le_lot_sans_perdre_le_compte()
+    {
+        var tracker = new FakeTracker { ReadThrows = true };
+
+        var result = await Run(tracker, [1, 2]);
+
+        Assert.Equal(TrackerReadOutcome.Unreadable, result.StoppedBy);
+        Assert.Equal([1, 2], result.Done);
+        Assert.Empty(result.Missing);
+    }
+
+    [Fact]
+    public async Task Un_personnage_archive_en_cours_de_route_arrete_le_lot_sans_tout_reecrire()
+    {
+        var tracker = new FakeTracker { Archived = true };
+
+        var result = await Run(tracker, [1, 2]);
+
+        Assert.Equal(TrackerReadOutcome.NotLinked, result.StoppedBy);
+        Assert.Equal([1, 2], tracker.Writes);
+        Assert.Equal([1, 2], result.Done);
+    }
+
+    [Fact]
+    public async Task Une_quete_que_le_site_deduit_terminee_compte_comme_faite()
+    {
+        var tracker = new FakeTracker { Drops = { [2] = 99 }, Inferred = { 2 } };
+
+        var result = await Run(tracker, [1, 2]);
+
+        Assert.Equal([1, 2], result.Done);
+        Assert.Equal([1, 2], tracker.Writes);
+    }
+
+    [Fact]
     public void Tout_marquer_termine_garde_les_quetes_non_terminees_non_repetables_dans_l_ordre_sans_doublon()
     {
         QuestSummary[] quests =
@@ -205,10 +286,12 @@ public class QuestBatchTests
             new() { Id = 3, SectionIds = [QuestRecurrenceLabel.RepeatableSection] },
             new() { Id = 4 },
             new() { Id = 6 },
+            new() { Id = 7 },
+            new() { Id = 8 },
             new() { Id = 5 },
         ];
         var progress = new TrackerProgress(
-            new Dictionary<int, QuestStatus> { [4] = QuestStatus.Completed, [6] = QuestStatus.InProgress },
+            new Dictionary<int, QuestStatus> { [4] = QuestStatus.Completed, [6] = QuestStatus.InProgress, [7] = QuestStatus.Ignored, [8] = QuestStatus.Blocked },
             new HashSet<int> { 1, 4 },
             new HashSet<int>(),
             []);

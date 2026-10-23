@@ -30,9 +30,13 @@ public static class QuestBatch
     /// <summary>Passes after the first; the import converged in one or two.</summary>
     public const int ExtraRounds = 3;
 
+    /// <summary>Refusals without a word in a row after which the site is taken as throttling and the run stops.</summary>
+    public const int SilentRefusalLimit = 3;
+
     /// <summary>
     /// The quests "mark all done" sends: not done yet and done once only,
-    /// in the order given, each once.
+    /// in the order given, each once. Ignored and blocked ones stay out: a
+    /// batch never overrides a choice the player made one quest at a time.
     /// </summary>
     public static IReadOnlyList<int> ToMarkDone(IEnumerable<QuestSummary> quests, TrackerProgress? progress)
     {
@@ -42,7 +46,7 @@ public static class QuestBatch
         [
             .. quests
                 .Where(q => !QuestRecurrenceLabel.IsRepeatable(q)
-                    && QuestTracking.StatusOf(progress, q.Id) != QuestStatus.Completed)
+                    && QuestTracking.StatusOf(progress, q.Id) is not (QuestStatus.Completed or QuestStatus.Ignored or QuestStatus.Blocked))
                 .Select(q => q.Id)
                 .Distinct(),
         ];
@@ -72,6 +76,7 @@ public static class QuestBatch
         var done = new HashSet<int>();
         var refused = new Dictionary<int, string>();
         var first = true;
+        var silent = 0;
 
         async Task Pace()
         {
@@ -109,6 +114,7 @@ public static class QuestBatch
                     if (write.Success)
                     {
                         done.Add(id);
+                        silent = 0;
                     }
                     else if (write.After is TrackerReadOutcome.Unreadable or TrackerReadOutcome.NotLinked)
                     {
@@ -117,9 +123,15 @@ public static class QuestBatch
                     else if (!string.IsNullOrWhiteSpace(write.Message))
                     {
                         refused[id] = write.Message;
+                        silent = 0;
+                    }
+                    else if (++silent >= SilentRefusalLimit)
+                    {
+                        // A site that throttles writes while it still serves reads would loop here.
+                        return End(TrackerReadOutcome.Unreadable);
                     }
 
-                    // A refusal without a word is left to the read below, which writes it again.
+                    // A lone refusal without a word is left to the read below, which writes it again.
                     progress?.Report(new QuestBatchProgress(done.Count + refused.Count, ids.Count, round));
                 }
 
@@ -130,7 +142,12 @@ public static class QuestBatch
                     return End(read.Outcome);
                 }
 
-                var held = read.State?.Progress.GetValueOrDefault(characterId);
+                // The page drops archived characters: rewriting everything for one would be pointless.
+                if (read.State?.Progress.TryGetValue(characterId, out var held) != true)
+                {
+                    return End(TrackerReadOutcome.NotLinked);
+                }
+
                 todo = [.. ids.Where(id => !refused.ContainsKey(id) && QuestTracking.StatusOf(held, id) != status)];
                 var lost = todo.ToHashSet();
                 done = [.. ids.Where(id => !refused.ContainsKey(id) && !lost.Contains(id))];
@@ -142,6 +159,11 @@ public static class QuestBatch
         {
             // The player's own cancel: the result says so and lists what is left.
             return End(cancelled: true);
+        }
+        catch (Exception ex) when (ex is not (OperationCanceledException or OutOfMemoryException))
+        {
+            // The run must not throw at the window: whatever the tracker did, report it as unreadable with the count kept.
+            return End(TrackerReadOutcome.Unreadable);
         }
     }
 
