@@ -124,6 +124,9 @@ public sealed class TouchNameService(
 
         try
         {
+            // A refresh may have swapped the record while this waited: write into the live one.
+            known = await CachedAsync(language, ct).ConfigureAwait(false) ?? known;
+
             // A cache from before the rewards existed has none: read it again, once.
             if (known.Steps.TryGetValue(papychaQuestId, out var cached)
                 && (cached.All(s => s.Reward is not null) || _rewardsReread.Contains(papychaQuestId)))
@@ -144,10 +147,10 @@ public sealed class TouchNameService(
 
             try
             {
+                LastFailure = null;
                 var steps = await ReadStepsAsync(known, stepIds, language, ct).ConfigureAwait(false);
                 _rewardsReread.Add(papychaQuestId);
                 await SaveAsync(_ => known.Steps[papychaQuestId] = steps, ct).ConfigureAwait(false);
-                LastFailure = null;
 
                 return steps;
             }
@@ -266,41 +269,52 @@ public sealed class TouchNameService(
             Single(step, "optimalLevel") is not null && Single(step, "duration") is not null
             && Single(step, "xpRatio") is not null && Single(step, "kamasRatio") is not null;
 
-        var rewards = await GetAsync(
-            "QuestStepRewards", [.. steps.Where(HasFormula).SelectMany(step => Ints(step, "rewardsIds"))], language, ct).ConfigureAwait(false);
+        Dictionary<int, TouchRewardRow>? rewardRows;
 
-        TouchItemReward[] ItemRewards(JsonElement row) =>
-            row.TryGetProperty("itemsReward", out var list) && list.ValueKind == JsonValueKind.Array
-                ? [.. list.EnumerateArray()
-                    .Where(pair => pair.ValueKind == JsonValueKind.Array && pair.GetArrayLength() >= 2)
-                    .Select(pair => new TouchItemReward(
-                        pair[0].TryGetInt32(out var id) ? id : 0,
-                        pair[1].TryGetInt32(out var quantity) ? quantity : 0))
-                    .Where(item => item.ItemId != 0)]
-                : [];
-
-        var rewardRows = rewards.ToDictionary(r => r.Key, r => new TouchRewardRow(
-            Int(r.Value, "levelMin"),
-            Int(r.Value, "levelMax"),
-            ItemRewards(r.Value),
-            Ints(r.Value, "emotesReward").Length,
-            Ints(r.Value, "spellsReward").Length,
-            Ints(r.Value, "titlesReward").Length,
-            Ints(r.Value, "ornamentsReward").Length,
-            Ints(r.Value, "companionsReward").Length,
-            Ints(r.Value, "jobsReward").Length));
-
-        // Reward item names share the dungeon keys' map.
-        var rewardItems = await GetAsync(
-            "Items", [.. rewardRows.Values.SelectMany(r => r.Items).Select(i => i.ItemId)], language, ct).ConfigureAwait(false);
-
-        foreach (var item in rewardItems.Where(i => Name(i.Value) is not null))
+        try
         {
-            known.Items[item.Key] = Name(item.Value)!;
+            var rewards = await GetAsync(
+                "QuestStepRewards", [.. steps.Where(HasFormula).SelectMany(step => Ints(step, "rewardsIds"))], language, ct).ConfigureAwait(false);
+
+            TouchItemReward[] ItemRewards(JsonElement row) =>
+                row.TryGetProperty("itemsReward", out var list) && list.ValueKind == JsonValueKind.Array
+                    ? [.. list.EnumerateArray()
+                        .Where(pair => pair.ValueKind == JsonValueKind.Array && pair.GetArrayLength() >= 2)
+                        .Select(pair => new TouchItemReward(
+                            pair[0].TryGetInt32(out var id) ? id : 0,
+                            pair[1].TryGetInt32(out var quantity) ? quantity : 0))
+                        .Where(item => item.ItemId != 0)]
+                    : [];
+
+            rewardRows = rewards.ToDictionary(r => r.Key, r => new TouchRewardRow(
+                Int(r.Value, "levelMin"),
+                Int(r.Value, "levelMax"),
+                ItemRewards(r.Value),
+                Ints(r.Value, "emotesReward").Length,
+                Ints(r.Value, "spellsReward").Length,
+                Ints(r.Value, "titlesReward").Length,
+                Ints(r.Value, "ornamentsReward").Length,
+                Ints(r.Value, "companionsReward").Length,
+                Ints(r.Value, "jobsReward").Length));
+
+            // Reward item names share the dungeon keys' map.
+            var rewardItems = await GetAsync(
+                "Items", [.. rewardRows.Values.SelectMany(r => r.Items).Select(i => i.ItemId)], language, ct).ConfigureAwait(false);
+
+            foreach (var item in rewardItems.Where(i => Name(i.Value) is not null))
+            {
+                known.Items[item.Key] = Name(item.Value)!;
+            }
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException and not OutOfMemoryException)
+        {
+            // The steps still show; only the reward line goes.
+            LastFailure = exception;
+            rewardRows = null;
         }
 
         TouchStepReward? Reward(JsonElement step) =>
-            HasFormula(step)
+            rewardRows is not null && HasFormula(step)
                 ? new((int)Single(step, "optimalLevel")!, Single(step, "duration")!.Value, Single(step, "xpRatio")!.Value, Single(step, "kamasRatio")!.Value,
                     step.TryGetProperty("kamasScaleWithPlayerLevel", out var scale) && scale.ValueKind == JsonValueKind.True,
                     [.. Ints(step, "rewardsIds").Where(rewardRows.ContainsKey).Select(id => rewardRows[id])])

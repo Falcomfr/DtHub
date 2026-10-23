@@ -37,8 +37,8 @@ public class QuestRewardTextTests : IDisposable
             QuestRewardText.Format(Total(100, 0, 1, 2), 5, 0, Names));
 
     [Fact]
-    public void Un_objet_sans_nom_est_omis()
-        => Assert.Equal($"Niv. 5 : {100L.ToString("N0", Fr)} XP · 1 × A",
+    public void Un_objet_sans_nom_masque_la_ligne()
+        => Assert.Equal("",
             QuestRewardText.Format(Total(100, 0, items: [new(1, 1), new(9, 4)]), 5, 0, Names));
 
     [Fact]

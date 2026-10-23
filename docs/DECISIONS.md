@@ -11039,11 +11039,12 @@ Formule, par étape, avec `L` le niveau, `opt` le niveau optimal, `d` la durée,
 
 - `fixe(x) = floor(x * (100 + 2x)^2 / 20) * d * xpRatio`, sans arrondi après les ratios
 - `L <= opt` : XP = `floor(fixe(L) * (1 + bonus))`
-- `L > opt` : XP = `floor(floor(0,3 * fixe(opt) + 0,7 * fixe(min(L, 1,5 * opt))) * (1 + bonus))`
+- `L > opt` : XP = `floor(floor((1 - 0,7) * fixe(opt) + 0,7 * fixe(min(L, 1,5 * opt))) * (1 + bonus))`
 - kamas = `floor((K^2 + 20K - 20) * kamasRatio * d)`, avec `K = L` si
   `kamasScaleWithPlayerLevel`, sinon `K = opt`
 
-`d`, les ratios et 0,7 sont des float32 élargis en double. La récompense d'une
+`d`, les ratios et 0,7 sont des float32 élargis en double, donc `1 - 0,7`
+n'est pas exactement 0,3. La récompense d'une
 quête est la somme de ses étapes.
 
 Vérifiée à l'unité sur le journal du jeu le 2026-10-23 : Cra niveau 191, Gare
@@ -11055,7 +11056,7 @@ près du double de la formule (581 040), mais pas exactement (le double ferait
 1 162 080). Le plafond `1,5 * opt` est le seul de ces trois cas à s'appliquer,
 donc c'est la règle plafonnée qui est en doute. À trancher avant la sortie par
 une lecture en jeu d'une quête de niveau inférieur aux deux tiers de celui du
-personnage ; d'ici là le code porte la règle ci-dessus.
+personnage ; d'ici là le code porte la règle ci-dessus, et la ligne reste masquée dans le cas plafonné (niveau au-dessus de 1,5 fois le niveau optimal d'une étape) tant que ce n'est pas vérifié en jeu.
 
 Le niveau vient du personnage Papycha choisi quand le suivi est lié, d'un
 réglage local sinon. Une case de niveau dans la fenêtre des guides le change et,

@@ -160,8 +160,8 @@ public sealed partial class QuestTrackerViewModel(
         var version = _writeVersion;
         var held = await settings.GetAsync();
         _rememberedId = held.PapychaCharacterId;
-        _settingLevel = held.RewardLevel;
-        _settingBonus = held.RewardXpBonus;
+        _settingLevel = RewardInput.IsLevel(held.RewardLevel) ? held.RewardLevel : 0;
+        _settingBonus = RewardInput.IsBonus(held.RewardXpBonus) ? held.RewardXpBonus : 0;
         OnPropertyChanged(nameof(RewardLevel));
         OnPropertyChanged(nameof(RewardXpBonus));
         var (cookie, cookieFailed) = await ReadCookieAsync();
@@ -515,7 +515,10 @@ public sealed partial class QuestTrackerViewModel(
                     Characters[index] = updated;
                 }
 
-                SelectedCharacter = updated;
+                if (SelectedCharacter?.Id == character.Id)
+                {
+                    SelectedCharacter = updated;
+                }
 
                 return true;
             }

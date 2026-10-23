@@ -11,6 +11,9 @@ public static class QuestRewards
     {
         if (steps.Count == 0 || level < 1 || steps.Any(s => s.Reward is null)) return null;
 
+        // shortcut: capped rule unverified in game, see D218; lift once checked
+        if (steps.Any(s => level > 1.5 * s.Reward!.OptimalLevel)) return null;
+
         long xp = 0, kamas = 0;
         int emotes = 0, spells = 0, titles = 0, ornaments = 0, companions = 0, jobs = 0;
         var items = new Dictionary<int, int>();

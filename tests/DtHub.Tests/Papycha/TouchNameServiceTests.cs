@@ -230,6 +230,37 @@ public class TouchNameServiceTests
     }
 
     [Fact]
+    public async Task Les_noms_d_objets_vont_dans_le_record_vivant_apres_un_rafraichissement_concurrent()
+    {
+        GiveRewardStep(RewardStep);
+        using var service = new TouchNameService(_client, _store, new FakeTable()) { Freshness = TimeSpan.Zero };
+        _ = await service.RefreshAsync("fr");
+        _client.Pause = new TaskCompletionSource();
+
+        var refresh = service.RefreshAsync("fr");
+        var steps = service.StepsAsync(2, "fr");
+        await Task.Delay(200);
+        _client.Pause.SetResult();
+        _ = await refresh;
+        _ = await steps;
+
+        Assert.Equal("nom 361 fr", (await service.CachedAsync("fr"))!.Items[361]);
+    }
+
+    [Fact]
+    public async Task Une_lecture_de_recompenses_en_echec_laisse_les_etapes()
+    {
+        GiveRewardStep(RewardStep);
+        _client.FailingClasses.Add("QuestStepRewards");
+        using var service = Service();
+
+        var step = (await service.StepsAsync(2, "fr")).Single();
+
+        Assert.Null(step.Reward);
+        Assert.NotNull(service.LastFailure);
+    }
+
+    [Fact]
     public async Task Une_etape_sans_champ_de_recompense_reste_sans_recompense()
     {
         GiveRewardStep("""{"id":11,"nameId":"e","descriptionId":"d","objectiveIds":[],"duration":1,"xpRatio":0.8,"kamasRatio":1,"rewardsIds":[500]}""");

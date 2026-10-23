@@ -21,8 +21,13 @@ public static class QuestRewardText
             parts.Add($"{total.Kamas.ToString("N0", culture)} {Strings.Get("RewardKamas")}");
         }
 
+        // An unnamed item would be a silent gap in the line: hide the line instead.
+        if (total.Items.Any(i => !itemNames.ContainsKey(i.ItemId)))
+        {
+            return "";
+        }
+
         var gains = total.Items
-            .Where(i => itemNames.ContainsKey(i.ItemId))
             .Select(i => $"{i.Quantity.ToString("N0", culture)} × {itemNames[i.ItemId]}")
             .ToList();
         AddKind(gains, total.Spells, "RewardSpell");

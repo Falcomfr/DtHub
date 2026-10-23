@@ -369,7 +369,7 @@
           <TextBlock Text="{Binding QuestTitle}" FontWeight="SemiBold"
                      TextTrimming="CharacterEllipsis" />
 
-          <TextBlock Text="{Binding RewardText}" Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
+          <TextBlock Text="{Binding RewardText}" ToolTip="{Binding RewardText}" Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
                      TextTrimming="CharacterEllipsis"
                      Visibility="{Binding RewardText, Converter={StaticResource EmptyToVisibility},
                                           ConverterParameter=inverse}" />

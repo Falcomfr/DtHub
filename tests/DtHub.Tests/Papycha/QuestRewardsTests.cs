@@ -33,7 +33,7 @@ public class QuestRewardsTests
     public void Seules_les_lignes_dont_les_bornes_contiennent_le_niveau_comptent()
     {
         TouchRewardRow Row(int min, int max, int item) => new(min, max, [new(item, 1)], 0, 0, 0, 0, 0, 0);
-        var step = new TouchStepReward(50, 1f, 1f, 0f, false, [Row(-1, -1, 1), Row(1, 99, 2), Row(100, 200, 3)]);
+        var step = new TouchStepReward(100, 1f, 1f, 0f, false, [Row(-1, -1, 1), Row(1, 99, 2), Row(100, 200, 3)]);
         var total = QuestRewards.For([new TouchStep("", "", [], step)], 150, 0)!;
         Assert.Equal([1, 3], total.Items.Select(i => i.ItemId));
     }
@@ -52,6 +52,14 @@ public class QuestRewardsTests
     [Fact]
     public void Une_etape_sans_recompense_connue_ne_donne_aucun_total()
         => Assert.Null(QuestRewards.For([new TouchStep("", "", [], null)], 100, 0));
+
+    [Fact]
+    public void Le_cas_plafonne_masque_la_ligne_tant_qu_il_n_est_pas_verifie()
+    {
+        var step = new TouchStepReward(60, 1f, 1f, 1f, false, []);
+        Assert.Null(QuestRewards.For([new TouchStep("", "", [], step)], 91, 0));
+        Assert.NotNull(QuestRewards.For([new TouchStep("", "", [], step)], 90, 0));
+    }
 
     [Fact]
     public void Aucun_total_sans_niveau_ou_sans_etape()

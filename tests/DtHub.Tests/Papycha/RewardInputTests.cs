@@ -20,6 +20,15 @@ public class RewardInputTests
         Assert.Equal(191, level);
     }
 
+    [Fact]
+    public void Saved_values_are_range_checked()
+    {
+        Assert.True(RewardInput.IsLevel(1) && RewardInput.IsLevel(200));
+        Assert.False(RewardInput.IsLevel(0) || RewardInput.IsLevel(201));
+        Assert.True(RewardInput.IsBonus(0) && RewardInput.IsBonus(1000));
+        Assert.False(RewardInput.IsBonus(-1) || RewardInput.IsBonus(1001));
+    }
+
     [Theory]
     [InlineData("-5")]
     [InlineData("abc")]

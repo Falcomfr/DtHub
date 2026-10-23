@@ -26,6 +26,9 @@ public sealed class FakeDofusTouchClient : IDofusTouchClient
     /// <summary>When set, every class read waits for it, as a slow server would.</summary>
     public TaskCompletionSource? Pause { get; set; }
 
+    /// <summary>Classes whose read fails while the others answer.</summary>
+    public HashSet<string> FailingClasses { get; } = [];
+
     public async Task<IReadOnlyDictionary<int, JsonElement>> GetAsync(
         string dataClass, IReadOnlyCollection<int>? ids, string language, CancellationToken cancellationToken = default)
     {
@@ -37,6 +40,11 @@ public sealed class FakeDofusTouchClient : IDofusTouchClient
         if (Failure is not null)
         {
             throw Failure;
+        }
+
+        if (FailingClasses.Contains(dataClass))
+        {
+            throw new HttpRequestException(dataClass);
         }
 
         if (!Requested.TryGetValue(dataClass, out var calls))
