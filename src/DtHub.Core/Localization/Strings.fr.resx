@@ -3004,11 +3004,14 @@ Pour l'éviter : {1}  ›  « Verrouillage auto. Dossier sécurisé » › l'opt
   <data name="ProfitWholeLevel" xml:space="preserve">
     <value>Ces {0} quêtes valent un niveau entier ({1} → {2})</value>
   </data>
-  <data name="DungeonAdvancesOne" xml:space="preserve">
-    <value>Fait avancer {0} quête : {1}</value>
+  <data name="DungeonStepRewards" xml:space="preserve">
+    <value>Récompense des étapes de quête qui passent par ce donjon : {0}</value>
   </data>
-  <data name="DungeonAdvances" xml:space="preserve">
-    <value>Fait avancer {0} quêtes : {1}</value>
+  <data name="DungeonQuestStep" xml:space="preserve">
+    <value>{0} (étape {1})</value>
+  </data>
+  <data name="RewardWholeQuest" xml:space="preserve">
+    <value>Récompense totale, {0} étapes</value>
   </data>
   <data name="RewardItem" xml:space="preserve">
     <value>objet</value>

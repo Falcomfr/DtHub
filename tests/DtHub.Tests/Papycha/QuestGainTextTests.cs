@@ -56,6 +56,12 @@ public class QuestGainTextTests : IDisposable
             QuestGainText.Tip(new QuestGain(10, 35), 1, true));
 
     [Fact]
+    public void L_infobulle_d_une_quete_de_plusieurs_etapes_dit_que_c_est_la_recompense_totale() =>
+        Assert.Equal(
+            "10 XP · 35 kamas\nRécompense totale, 7 étapes\nDemande ≈ 25 min",
+            QuestGainText.Tip(new QuestGain(10, 35), 0, false, new QuestEffort(25, []), steps: 7));
+
+    [Fact]
     public void Sans_rang_ni_raison_l_infobulle_reste_au_gain() =>
         Assert.Equal("10 XP · 0 kamas", QuestGainText.Tip(new QuestGain(10, 0), 0, false, null));
 }

@@ -11218,15 +11218,23 @@ accents ni ponctuation, sans article au début (le, la, les, l, du, des, de, the
 el, los, las, del), mots entiers, le nom le plus long d'abord et son texte
 retiré une fois trouvé, donc « Donjon des Bouftous Royaux » ne compte pas aussi
 « Donjon des Bouftous ». Seuls les objectifs de texte sont lus : une quête qui ne
-nomme son donjon que par un monstre n'est pas reliée. La valeur additionne les
-gains des quêtes faisables maintenant ; la suite d'une série pas encore
-démarrable n'y entre pas. Son temps est celui du donjon lui-même (D221), pas la
+nomme son donjon que par un monstre n'est pas reliée. La valeur additionne, pour
+chaque quête faisable maintenant, la récompense des seules étapes dont un
+objectif nomme le donjon (au niveau et au Bonus Pack du personnage), jamais la
+quête entière : le Bworker affichait 5,7 M d'XP parce que « La voie du
+guerrier », sept étapes, ne le traverse qu'à la sixième (revue du 23/10/2026).
+Une quête dont l'étape n'est pas connue (cache d'avant) n'y entre pas. La suite
+d'une série pas encore démarrable n'y entre pas non plus. Son temps est celui du donjon lui-même (D221), pas la
 somme des temps de ces quêtes : la première version les additionnait et donnait
 des durées énormes (revue du 23/10/2026). Son score se compare à celui des quêtes
 seules. Chaque ligne de donjon que la table du jeu connaît montre ce temps, même
 sans quête faisable ; ses gains et sa marque, seulement avec des quêtes
 faisables, dans ses listes, et
-l'infobulle dit « Fait avancer n quêtes : titres ». Dans les deux listes courtes
+l'infobulle dit « Récompense des étapes de quête qui passent par ce donjon :
+quête (étape n), ... », jamais rien qui ressemble à l'XP des combats du donjon,
+que le jeu ne publie pas. Sur une ligne de quête de plusieurs étapes,
+l'infobulle du gain précise « Récompense totale, n étapes » : DT Hub ne sait
+pas à quelle étape en est le personnage. Dans les deux listes courtes
 de D219, un donjon n'entre que s'il fait avancer au moins deux quêtes faisables :
 avec une seule, il doublait la ligne de cette quête.
 

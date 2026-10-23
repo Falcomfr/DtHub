@@ -321,22 +321,23 @@ public static class QuestProfit
             .Where(d => d.Name.Length > 0).OrderByDescending(d => d.Name.Length)];
     }
 
-    private static IReadOnlyList<int> DungeonsOf(TouchQuestFacts facts, List<(int Id, string Name)> names)
+    private static IReadOnlyList<int> DungeonsOf(TouchQuestFacts facts, List<(int Id, string Name)> names) =>
+        [.. Named(facts, names).Select(n => n.Id).Distinct().Order()];
+
+    /// <summary>Each game dungeon an objective names, with that objective's step.</summary>
+    private static IEnumerable<(int Id, int? Step)> Named(TouchQuestFacts facts, List<(int Id, string Name)> names)
     {
-        var found = new SortedSet<int>();
         foreach (var o in facts.Objectives.Where(o => !string.IsNullOrEmpty(o.Text)))
         {
             var text = $" {Normalised(o.Text!)} ";
             foreach (var (id, name) in names)
             {
                 if (!text.Contains($" {name} ", StringComparison.Ordinal)) continue;
-                found.Add(id);
+                yield return (id, o.Step);
                 // The bar keeps the words around a match from forming a shorter name.
                 text = text.Replace($" {name} ", " | ", StringComparison.Ordinal);
             }
         }
-
-        return [.. found];
     }
 
     private static string Normalised(string text)
@@ -350,7 +351,8 @@ public static class QuestProfit
 
     /// <summary>
     /// By Papycha dungeon: the doable quests of <paramref name="entries"/> (what "Recommandées" lists) whose objectives
-    /// name one of its game dungeons, summed and scored for the run's own time (<see cref="QuestTime.DungeonMinutes"/>)
+    /// name one of its game dungeons, each worth the reward of the steps naming it (an advance's title says which), not
+    /// the whole quest's; summed and scored for the run's own time (<see cref="QuestTime.DungeonMinutes"/>)
     /// against the quest maxima. A dungeon with none is left out.
     /// </summary>
     /// <param name="rooms">Game dungeon id to its room count.</param>
@@ -368,15 +370,29 @@ public static class QuestProfit
         var names = NormalisedNames(dungeonNames);
         // Doable now only: a run's later quests cannot be started yet, so a dungeon they name has nothing to do there.
         var named = entries.SelectMany(e => e.Quests).Where(q => scores.ContainsKey(q.Id)).DistinctBy(q => q.Id)
-            .Select(q => (Quest: q, Dungeons: DungeonsOf(facts[q.Id], names)))
-            .Where(q => q.Dungeons.Count > 0).ToList();
+            .Select(q => (Quest: q, Named: Named(facts[q.Id], names).ToList()))
+            .Where(q => q.Named.Count > 0).ToList();
         var result = new Dictionary<int, DungeonValue>();
         foreach (var (papychaId, ids) in dungeons)
         {
-            var advances = named.Where(q => q.Dungeons.Any(ids.Dungeons.Contains))
-                .Select(q => Build(q.Quest.Title, [q.Quest], scores, facts, level, bonusPercent, best,
-                    QuestTracking.StatusOf(progress, q.Quest.Id) == QuestStatus.InProgress))
-                .ToList();
+            var advances = new List<(ProfitEntry, double)>();
+            foreach (var (quest, found) in named)
+            {
+                var steps = found.Where(n => ids.Dungeons.Contains(n.Id)).Select(n => n.Step).Distinct().Order().ToList();
+                var own = facts[quest.Id].Steps;
+                // A step not kept (a cache read before steps were) leaves the quest out: its whole reward would be a guess.
+                if (steps.Count == 0 || steps.Any(s => s is not { } i || i < 0 || i >= own.Length)) continue;
+                if (QuestRewards.For([.. steps.Select(s => new TouchStep("", "", [], own[s!.Value]))], level, bonusPercent) is not { } reward)
+                {
+                    continue;
+                }
+
+                var (entry, rank) = Build(quest.Title, [quest], scores, facts, level, bonusPercent, best,
+                    QuestTracking.StatusOf(progress, quest.Id) == QuestStatus.InProgress);
+                var title = Strings.Format("DungeonQuestStep", quest.Title, string.Join(", ", steps.Select(s => s + 1)));
+                advances.Add((entry with { Title = title, Gain = new QuestGain(reward.Experience, reward.Kamas) }, rank));
+            }
+
             if (advances.Count == 0) continue;
             var gain = new QuestGain(advances.Sum(a => a.Item1.Gain.Xp), advances.Sum(a => a.Item1.Gain.Kamas));
             // The run, not the quests' whole time: they take the player there anyway.

@@ -306,7 +306,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             GainXp = xp,
             GainKamas = kamas,
             Tier = tier,
-            ProfitTip = QuestGainText.Tip(gain, tier, score?.ByKamas ?? false, effort),
+            ProfitTip = QuestGainText.Tip(gain, tier, score?.ByKamas ?? false, effort, facts.Steps.Length),
             OtherRewards = QuestRewardText.Others(reward, _itemNames),
         };
     }
@@ -359,11 +359,11 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         return blocks.Count == 0 ? null : string.Join("\n\n", blocks);
     }
 
-    /// <summary>A dungeon row with what it is worth: the quests it advances, their gains and its mark.</summary>
+    /// <summary>A dungeon row with what it is worth: the quest steps that go through it, their gains and its mark.</summary>
     private static QuestNode Valued(QuestNode node, DungeonValue value)
     {
         var (xp, kamas) = QuestGainText.Columns(value.Gain);
-        var titles = string.Join(", ", value.Advances.Select(a => a.Title));
+        var steps = string.Join(", ", value.Advances.Select(a => a.Title));
 
         return node with
         {
@@ -371,7 +371,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             GainKamas = kamas,
             Tier = value.Tier,
             ProfitTip = QuestGainText.Tip(value.Gain, effort: new QuestEffort(value.Minutes, [])) + "\n"
-                + Strings.Format(value.Advances.Count == 1 ? "DungeonAdvancesOne" : "DungeonAdvances", value.Advances.Count, titles),
+                + Strings.Format("DungeonStepRewards", steps),
         };
     }
 
@@ -1687,7 +1687,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
                 GainKamas = kamas,
                 Tier = t.Tier,
                 Detail = node.Detail is { Length: > 0 } detail ? $"{detail} · {count}" : count,
-                ProfitTip = QuestGainText.Tip(t.Gain, effort: t.Entry.Effort)
+                ProfitTip = QuestGainText.Tip(t.Gain, effort: t.Entry.Effort, steps: StepsOf(t.Entry))
                     + "\n" + string.Join(", ", t.Characters.Select(c => c.Name)),
             });
         }),
@@ -1705,8 +1705,10 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
 
         // No tier in the hover either: the short lists carry no mark (see ShowProfit), and the tier's side would
         // contradict the list ("pour l'XP" in the kamas list).
-        return node.ProfitTip is null ? node : node with { ProfitTip = QuestGainText.Tip(entry.Gain, effort: entry.Effort) };
+        return node.ProfitTip is null ? node : node with { ProfitTip = QuestGainText.Tip(entry.Gain, effort: entry.Effort, steps: StepsOf(entry)) };
     }
+
+    private int StepsOf(ProfitEntry entry) => _facts?.GetValueOrDefault(entry.Quests[0].Id)?.Steps.Length ?? 1;
 
     /// <summary>The catalogue quests to suggest next: the site's, or read from the previous quests done.</summary>
     private IReadOnlyList<QuestSummary> NextQuests() => QuestTracking.NextQuests(Tracker.Progress, _catalog.Catalog.Quests, _facts, Tracker.RewardLevel);

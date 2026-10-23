@@ -23,7 +23,7 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 - Cada misión muestra un tiempo estimado, por ejemplo ≈ 25 min, calculado por DT Hub a partir de los objetivos y los mapas del juego; «Recomendadas» ordena por XP y kamas por minuto y deja fuera lo que dura más de una hora.
 - Marcar muchas misiones como terminadas de una vez: el botón de selección de la lista de guías marca misiones (Mayús+clic para un rango), y los títulos de logro y de zona ofrecen «Marcar todo terminado»; DT Hub las escribe una a una, comprueba lo que Papycha guardó y vuelve a escribir lo que se perdió.
 - Con varios personajes vinculados, «Recomendadas» tiene un botón «Yo» y «Equipo»: las misiones que varios de tus personajes pueden hacer, con las ganancias sumadas; marca qué personajes cuentan.
-- Las mazmorras que hacen avanzar al menos dos misiones recomendadas aparecen en «Recomendadas», y en las listas de mazmorras con sus ganancias; cada mazmorra muestra el tiempo estimado de una partida.
+- Las mazmorras que hacen avanzar al menos dos misiones recomendadas aparecen en «Recomendadas», y en las listas de mazmorras con la recompensa de las etapas de misión que pasan por ellas; cada mazmorra muestra el tiempo estimado de una partida.
 - Un icono de regalo en una fila de misión lista los objetos y otras recompensas que da a tu nivel.
 - Pasa el cursor sobre una misión para ver dónde encontrar los objetos que pide: monstruos que los sueltan, recolección, fabricación, arquimonstruos y sus zonas.
 - «Accesibles» y las misiones siguientes funcionan ahora para los personajes distintos del activo en Papycha, a partir de las misiones que han terminado.

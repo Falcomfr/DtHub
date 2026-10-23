@@ -24,8 +24,11 @@ public static class QuestGainText
         return (Compact(gain.Xp), gain.Kamas > 0 ? Compact(gain.Kamas) : null);
     }
 
-    /// <summary>XP and kamas; then, for a doable quest, its tier with the side it is worth it for; then its time and what it asks for.</summary>
-    public static string Tip(QuestGain gain, int tier = 0, bool byKamas = false, QuestEffort? effort = null)
+    /// <summary>
+    /// XP and kamas, said to be the whole quest's past one step (DT Hub does not know the step reached); then, for a
+    /// doable quest, its tier with the side it is worth it for; then its time and what it asks for.
+    /// </summary>
+    public static string Tip(QuestGain gain, int tier = 0, bool byKamas = false, QuestEffort? effort = null, int steps = 1)
     {
         ArgumentNullException.ThrowIfNull(gain);
 
@@ -34,6 +37,11 @@ public static class QuestGainText
         {
             $"{Strings.Format("RewardXp", gain.Xp.ToString("N0", culture))} · {gain.Kamas.ToString("N0", culture)} {Strings.Get("RewardKamas")}",
         };
+
+        if (steps > 1)
+        {
+            lines.Add(Strings.Format("RewardWholeQuest", steps));
+        }
 
         if (tier > 0)
         {

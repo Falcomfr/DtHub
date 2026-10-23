@@ -3004,11 +3004,14 @@ Para evitarlo: {1}  ›  «Bloqueo automático de Carpeta segura» › la opció
   <data name="ProfitWholeLevel" xml:space="preserve">
     <value>Estas {0} misiones valen un nivel entero ({1} → {2})</value>
   </data>
-  <data name="DungeonAdvancesOne" xml:space="preserve">
-    <value>Hace avanzar {0} misión: {1}</value>
+  <data name="DungeonStepRewards" xml:space="preserve">
+    <value>Recompensa de las etapas de misión que pasan por esta mazmorra: {0}</value>
   </data>
-  <data name="DungeonAdvances" xml:space="preserve">
-    <value>Hace avanzar {0} misiones: {1}</value>
+  <data name="DungeonQuestStep" xml:space="preserve">
+    <value>{0} (etapa {1})</value>
+  </data>
+  <data name="RewardWholeQuest" xml:space="preserve">
+    <value>Recompensa total, {0} etapas</value>
   </data>
   <data name="RewardItem" xml:space="preserve">
     <value>objeto</value>

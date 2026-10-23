@@ -317,7 +317,7 @@ public class QuestProfitTests
         Assert.Equal([false, true, false], entries.Select(e => e.ByKamas));
     }
 
-    private static TouchObjective Said(string text) => new(4, [1], 10, text);
+    private static TouchObjective Said(string text, int step = 0) => new(4, [1], 10, text, Step: step);
 
     [Fact]
     public void Dungeons_of_a_quest_match_names_without_case_accents_punctuation_or_leading_articles()
@@ -415,6 +415,35 @@ public class QuestProfitTests
         Assert.Equal(QuestProfit.GainOf(facts[1], 10, 0)!.Xp, fungus.Gain.Xp);
         Assert.Equal(QuestProfit.GainOf(facts[1], 10, 0)!.Kamas, fungus.Gain.Kamas);
         Assert.Equal(2, Assert.Single(values[8].Advances).Quests.Single().Id);
+    }
+
+    [Fact]
+    public void A_dungeon_is_worth_the_reward_of_the_steps_naming_it_not_the_whole_quest()
+    {
+        // "La voie du guerrier": seven steps, the Bworker in the sixth (index 5).
+        var catalog = new[] { Quest(1) };
+        var steps = Enumerable.Range(1, 7).Select(i => Step(10, i, i)).ToArray();
+        var facts = new Dictionary<int, TouchQuestFacts>
+        {
+            [1] = new(steps, [Obj(1) with { Step = 0 }, new TouchObjective(6, [1, 1], 10, Step: 5), Said("Sortie du Donjon du Bworker", 5)]),
+        };
+
+        var values = DungeonValues(catalog, Progress([1]), facts, new Dictionary<int, string> { [70] = "Donjon du Bworker" });
+
+        var sixth = QuestRewards.For([new TouchStep("", "", [], steps[5])], 10, 0)!;
+        Assert.Equal(new QuestGain(sixth.Experience, sixth.Kamas), values[7].Gain);
+        Assert.True(values[7].Gain.Xp < QuestProfit.GainOf(facts[1], 10, 0)!.Xp);
+        Assert.Equal("Q1 (étape 6)", Assert.Single(values[7].Advances).Title);
+    }
+
+    [Fact]
+    public void A_quest_naming_a_dungeon_in_an_unknown_step_adds_nothing()
+    {
+        // A cache read before steps were kept: the whole quest would be a guess.
+        var catalog = new[] { Quest(1) };
+        var facts = new Dictionary<int, TouchQuestFacts> { [1] = new([Step(10, 1f)], [new TouchObjective(4, [1], 10, "Donjon Fungus")]) };
+
+        Assert.Empty(DungeonValues(catalog, Progress([1]), facts, new Dictionary<int, string> { [70] = "Donjon Fungus" }));
     }
 
     [Fact]
