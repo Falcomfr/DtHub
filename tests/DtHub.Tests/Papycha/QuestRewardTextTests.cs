@@ -49,4 +49,14 @@ public class QuestRewardTextTests : IDisposable
         Assert.Equal($"Lvl 191 · bonus +150%: {1_976_445L.ToString("N0", en)} XP · {11_512L.ToString("N0", en)} kamas · 10 × A, 1 × B",
             QuestRewardText.Format(Total(items: [new(1, 10), new(2, 1)]), 191, 150, Names));
     }
+
+    [Fact]
+    public void Les_autres_recompenses_une_par_ligne_les_objets_sans_nom_comptes()
+        => Assert.Equal(
+            "10 × A\n2 objets\n1 sort\n2 titres",
+            QuestRewardText.Others(Total(spells: 1, titles: 2, items: [new(1, 10), new(8, 1), new(9, 3)]), Names));
+
+    [Fact]
+    public void Sans_autre_recompense_rien()
+        => Assert.Null(QuestRewardText.Others(Total(), Names));
 }

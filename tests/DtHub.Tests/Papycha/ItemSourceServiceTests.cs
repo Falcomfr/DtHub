@@ -55,6 +55,7 @@ public class ItemSourceServiceTests
         Assert.Equal(new MonsterSource(10, "Bouftou", 55, false, null, dropper.SubAreas), dropper);
         Assert.Equal(["Plaine", "Bois"], dropper.SubAreas);
         Assert.False(source.NoKnownSource);
+        Assert.Equal("objet 1", source.Name);
     }
 
     [Fact]

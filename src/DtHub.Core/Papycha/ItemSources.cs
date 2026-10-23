@@ -10,9 +10,13 @@ public sealed record MonsterSource(
 /// <summary>A job and the level it needs. A record, not a tuple: the JSON cache drops tuple fields.</summary>
 public sealed record JobLevel(string Job, int Level);
 
-/// <summary>Where an item comes from; <see cref="NoKnownSource"/> when the game names no monster, harvest or recipe (event or shop).</summary>
+/// <summary>
+/// Where an item comes from; <see cref="NoKnownSource"/> when the game names no monster, harvest or recipe (event or shop).
+/// <see cref="Name"/> is the item's own, null in a cache written before it was kept.
+/// </summary>
 public sealed record ItemSource(
-    IReadOnlyList<MonsterSource> Droppers, IReadOnlyList<JobLevel> Harvest, IReadOnlyList<JobLevel> Craft, bool NoKnownSource);
+    IReadOnlyList<MonsterSource> Droppers, IReadOnlyList<JobLevel> Harvest, IReadOnlyList<JobLevel> Craft, bool NoKnownSource,
+    string? Name = null);
 
 /// <summary>
 /// Item sources read from the game at runtime and cached on disk, one entry

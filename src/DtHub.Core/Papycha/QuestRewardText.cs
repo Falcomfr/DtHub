@@ -44,6 +44,30 @@ public static class QuestRewardText
         return Strings.Format("RewardJoin", head, string.Join(" · ", parts));
     }
 
+    /// <summary>
+    /// What a quest gives besides XP and kamas, one per line: named items with their quantity, the unnamed ones
+    /// counted, then the other kinds counted. Null when there is nothing else.
+    /// </summary>
+    public static string? Others(QuestRewardTotal total, IReadOnlyDictionary<int, string> itemNames)
+    {
+        ArgumentNullException.ThrowIfNull(total);
+        ArgumentNullException.ThrowIfNull(itemNames);
+
+        var culture = Strings.Spoken;
+        var lines = total.Items.Where(i => itemNames.ContainsKey(i.ItemId))
+            .Select(i => $"{i.Quantity.ToString("N0", culture)} × {itemNames[i.ItemId]}")
+            .ToList();
+        AddKind(lines, total.Items.Count(i => !itemNames.ContainsKey(i.ItemId)), "RewardItem");
+        AddKind(lines, total.Spells, "RewardSpell");
+        AddKind(lines, total.Titles, "RewardTitle");
+        AddKind(lines, total.Emotes, "RewardEmote");
+        AddKind(lines, total.Ornaments, "RewardOrnament");
+        AddKind(lines, total.Companions, "RewardCompanion");
+        AddKind(lines, total.Jobs, "RewardJob");
+
+        return lines.Count == 0 ? null : string.Join("\n", lines);
+    }
+
     private static void AddKind(List<string> gains, int count, string key)
     {
         if (count > 0)

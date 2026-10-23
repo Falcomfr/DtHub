@@ -2980,4 +2980,34 @@ Pour l'éviter : {1}  ›  « Verrouillage auto. Dossier sécurisé » › l'opt
   <data name="DungeonAdvances" xml:space="preserve">
     <value>Fait avancer {0} quêtes : {1}</value>
   </data>
+  <data name="RewardItem" xml:space="preserve">
+    <value>objet</value>
+  </data>
+  <data name="RewardItems" xml:space="preserve">
+    <value>objets</value>
+  </data>
+  <data name="SourceOf" xml:space="preserve">
+    <value>{0} :</value>
+  </data>
+  <data name="SourceDroppedBy" xml:space="preserve">
+    <value>Lâché par {0} (niv. {1})</value>
+  </data>
+  <data name="SourceDuringQuest" xml:space="preserve">
+    <value>pendant la quête</value>
+  </data>
+  <data name="SourceArchimonster" xml:space="preserve">
+    <value>Archimonstre : {0} (niv. {1})</value>
+  </data>
+  <data name="SourceNormal" xml:space="preserve">
+    <value>(version normale : {0})</value>
+  </data>
+  <data name="SourceHarvest" xml:space="preserve">
+    <value>Récolte : {0} niv. {1}</value>
+  </data>
+  <data name="SourceCraft" xml:space="preserve">
+    <value>Fabrication : {0} niv. {1}</value>
+  </data>
+  <data name="SourceUnknown" xml:space="preserve">
+    <value>Source inconnue</value>
+  </data>
 </root>

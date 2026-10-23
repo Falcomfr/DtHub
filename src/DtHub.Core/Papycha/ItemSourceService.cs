@@ -180,7 +180,7 @@ public sealed class ItemSourceService(IDofusTouchClient client, IDocumentStore<I
         var gathered = harvest.GetValueOrDefault(itemId) ?? [];
         MonsterSource[] sources = [.. droppers.Select(Source)];
 
-        return new(sources, gathered, craft, sources.Length == 0 && gathered.Length == 0 && craft.Length == 0);
+        return new(sources, gathered, craft, sources.Length == 0 && gathered.Length == 0 && craft.Length == 0, Name(item));
     }
 
     /// <summary>The whole Skills class (about 200 rows, 90 KB in 2026), the only way from an item to its harvest.</summary>

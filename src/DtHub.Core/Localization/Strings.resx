@@ -2980,4 +2980,34 @@ To avoid it: {1}  ›  "Auto lock Secure Folder" › the longest option.</value>
   <data name="DungeonAdvances" xml:space="preserve">
     <value>Advances {0} quests: {1}</value>
   </data>
+  <data name="RewardItem" xml:space="preserve">
+    <value>item</value>
+  </data>
+  <data name="RewardItems" xml:space="preserve">
+    <value>items</value>
+  </data>
+  <data name="SourceOf" xml:space="preserve">
+    <value>{0}:</value>
+  </data>
+  <data name="SourceDroppedBy" xml:space="preserve">
+    <value>Dropped by {0} (lvl {1})</value>
+  </data>
+  <data name="SourceDuringQuest" xml:space="preserve">
+    <value>during the quest</value>
+  </data>
+  <data name="SourceArchimonster" xml:space="preserve">
+    <value>Archmonster: {0} (lvl {1})</value>
+  </data>
+  <data name="SourceNormal" xml:space="preserve">
+    <value>(normal version: {0})</value>
+  </data>
+  <data name="SourceHarvest" xml:space="preserve">
+    <value>Harvest: {0} lvl {1}</value>
+  </data>
+  <data name="SourceCraft" xml:space="preserve">
+    <value>Craft: {0} lvl {1}</value>
+  </data>
+  <data name="SourceUnknown" xml:space="preserve">
+    <value>Unknown source</value>
+  </data>
 </root>

@@ -2980,4 +2980,34 @@ Para evitarlo: {1}  ›  «Bloqueo automático de Carpeta segura» › la opció
   <data name="DungeonAdvances" xml:space="preserve">
     <value>Hace avanzar {0} misiones: {1}</value>
   </data>
+  <data name="RewardItem" xml:space="preserve">
+    <value>objeto</value>
+  </data>
+  <data name="RewardItems" xml:space="preserve">
+    <value>objetos</value>
+  </data>
+  <data name="SourceOf" xml:space="preserve">
+    <value>{0}:</value>
+  </data>
+  <data name="SourceDroppedBy" xml:space="preserve">
+    <value>Lo suelta {0} (nv. {1})</value>
+  </data>
+  <data name="SourceDuringQuest" xml:space="preserve">
+    <value>durante la misión</value>
+  </data>
+  <data name="SourceArchimonster" xml:space="preserve">
+    <value>Archimonstruo: {0} (nv. {1})</value>
+  </data>
+  <data name="SourceNormal" xml:space="preserve">
+    <value>(versión normal: {0})</value>
+  </data>
+  <data name="SourceHarvest" xml:space="preserve">
+    <value>Recolección: {0} nv. {1}</value>
+  </data>
+  <data name="SourceCraft" xml:space="preserve">
+    <value>Fabricación: {0} nv. {1}</value>
+  </data>
+  <data name="SourceUnknown" xml:space="preserve">
+    <value>Origen desconocido</value>
+  </data>
 </root>

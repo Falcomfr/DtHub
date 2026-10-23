@@ -1010,6 +1010,54 @@ public partial class QuestWindow : Window
 
     private void OnRecommendedClick(object sender, RoutedEventArgs e) => _viewModel.ToggleRecommended();
 
+    /// <summary>Fills the gain's hover with where the quest's items come from, once read; the hover stays open meanwhile.</summary>
+    private async void OnGainTipOpening(object sender, ToolTipEventArgs e)
+    {
+        if (sender is not FrameworkElement { DataContext: QuestNode { Quest: { } quest } node, ToolTip: ToolTip { Content: StackPanel panel } }
+            || panel.Children.Count < 2
+            || panel.Children[1] is not TextBlock sources)
+        {
+            return;
+        }
+
+        // Never throws: a cancelled read gives null.
+        var text = await _viewModel.WhereToFindAsync(quest).ConfigureAwait(true);
+
+        // The row may show another quest by now.
+        if (!ReferenceEquals(((FrameworkElement)sender).DataContext, node))
+        {
+            return;
+        }
+
+        sources.Text = text ?? string.Empty;
+        sources.Visibility = string.IsNullOrEmpty(text) ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    private void OnGainTipClosing(object sender, ToolTipEventArgs e) => _viewModel.StopFinding();
+
+    /// <summary>
+    /// The tracker bar's right-hand group (link, or status buttons, "Mes quêtes" and the menu) goes under the
+    /// character's line when both no longer fit: at the 440 px minimum with a guide open, about 310 px of buttons
+    /// left the character selector some 90 px of its 150.
+    /// </summary>
+    private void OnTrackerBarSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        // The selector and its margin; the level boxes already wrap under it.
+        const double characterLine = 160;
+        var under = TrackerBar.ActualWidth - TrackerRight.DesiredSize.Width < characterLine;
+
+        if (under == (Grid.GetRow(TrackerRight) == 1))
+        {
+            return;
+        }
+
+        Grid.SetRow(TrackerRight, under ? 1 : 0);
+        Grid.SetColumn(TrackerRight, under ? 0 : 1);
+        Grid.SetColumnSpan(TrackerRight, under ? 2 : 1);
+        TrackerRight.HorizontalAlignment = under ? HorizontalAlignment.Right : HorizontalAlignment.Stretch;
+        TrackerRight.Margin = under ? new Thickness(0, 6, 0, 0) : default;
+    }
+
     private void OnProfitMe(object sender, RoutedEventArgs e) => _viewModel.ShowTeam(false);
 
     private void OnProfitTeam(object sender, RoutedEventArgs e) => _viewModel.ShowTeam(true);

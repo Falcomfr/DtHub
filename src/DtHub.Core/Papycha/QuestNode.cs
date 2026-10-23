@@ -128,6 +128,7 @@ public enum QuestNodeGlyph
 /// <param name="ProfitTip">The gain's hover: XP and kamas, then the tier and the effort when doable.</param>
 /// <param name="Started">A recommended series the character already started: an hourglass before its title.</param>
 /// <param name="Suffix">Muted words right after the label, " · Frigost" on a recommended row.</param>
+/// <param name="OtherRewards">What the quest gives besides XP and kamas, one per line; <c>null</c> hides the gift.</param>
 public sealed record QuestNode(
     QuestNodeKind Kind,
     string Label,
@@ -150,7 +151,8 @@ public sealed record QuestNode(
     int Tier = 0,
     string? ProfitTip = null,
     bool Started = false,
-    string? Suffix = null)
+    string? Suffix = null,
+    string? OtherRewards = null)
 {
     /// <summary>
     /// Neither unmade branches nor subheadings are clickable.

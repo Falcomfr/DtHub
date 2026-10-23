@@ -83,14 +83,16 @@ public static class QuestProfit
         return Strings.Format(key, n);
     }
 
-    public static QuestGain? GainOf(TouchQuestFacts facts, int level, int bonusPercent)
+    public static QuestGain? GainOf(TouchQuestFacts facts, int level, int bonusPercent) =>
+        RewardOf(facts, level, bonusPercent) is { } total ? new QuestGain(total.Experience, total.Kamas) : null;
+
+    /// <summary>The quest's whole reward at this level, null when a step lacks a formula field.</summary>
+    public static QuestRewardTotal? RewardOf(TouchQuestFacts facts, int level, int bonusPercent)
     {
         ArgumentNullException.ThrowIfNull(facts);
 
         var steps = facts.Steps.Select(r => r is null ? null : new TouchStep("", "", [], r)).ToList();
-        if (steps.Contains(null)) return null;
-        var total = QuestRewards.For(steps!, level, bonusPercent);
-        return total is null ? null : new QuestGain(total.Experience, total.Kamas);
+        return steps.Contains(null) ? null : QuestRewards.For(steps!, level, bonusPercent);
     }
 
     public static bool IsDoable(QuestSummary quest, TrackerProgress? progress, TouchQuestFacts facts, int level, QuestChainIndex chain) =>

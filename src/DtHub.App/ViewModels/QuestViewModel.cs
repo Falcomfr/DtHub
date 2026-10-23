@@ -15,16 +15,21 @@ namespace DtHub.App.ViewModels;
 /// <summary>
 /// What the quest window shows: the search, its results, and the open quest.
 /// </summary>
-public sealed partial class QuestViewModel : ObservableObject
+public sealed partial class QuestViewModel : ObservableObject, IDisposable
 {
     private readonly QuestCatalogService _catalog;
     private readonly IDialogService _dialogs;
     private readonly SettingsService _settings;
     private readonly TouchNameService _touchNames;
 
-    public QuestViewModel(QuestCatalogService catalog, IDialogService dialogs, QuestTrackerViewModel tracker, SettingsService settings, TouchNameService touchNames)
+    private readonly ItemSourceService _itemSources;
+
+    public QuestViewModel(
+        QuestCatalogService catalog, IDialogService dialogs, QuestTrackerViewModel tracker, SettingsService settings,
+        TouchNameService touchNames, ItemSourceService itemSources)
     {
         _touchNames = touchNames;
+        _itemSources = itemSources;
         Tracker = tracker;
         _settings = settings;
         tracker.ProgressChanged += (_, _) => Rescore();
@@ -82,6 +87,9 @@ public sealed partial class QuestViewModel : ObservableObject
 
     /// <summary>The game's dungeon names by game dungeon id, read with the facts.</summary>
     private IReadOnlyDictionary<int, string> _dungeonNames = new Dictionary<int, string>();
+
+    /// <summary>The item names the names cache holds, by game item id: the gift's hover names those.</summary>
+    private IReadOnlyDictionary<int, string> _itemNames = new Dictionary<int, string>();
 
     private IReadOnlyDictionary<int, DungeonValue>? _dungeonValues;
 
@@ -144,6 +152,7 @@ public sealed partial class QuestViewModel : ObservableObject
         _facts = await _touchNames.FactsAsync(TouchNameService.CurrentLanguage).ConfigureAwait(true);
         var names = await _touchNames.CachedAsync(TouchNameService.CurrentLanguage).ConfigureAwait(true);
         _dungeonNames = names?.Dungeons.ToDictionary(d => d.Key, d => d.Value.Name) ?? [];
+        _itemNames = names?.Items ?? [];
 
         if (UnloggedTouchFailure() is { } failure)
         {
@@ -151,6 +160,9 @@ public sealed partial class QuestViewModel : ObservableObject
         }
 
         Rescore();
+
+        // The guide opened before the facts landed had no objectives to look up.
+        _ = RefreshSourcesAsync();
     }
 
     // Each show reads again: past the week, the cache hands over to a fresh read.
@@ -218,10 +230,12 @@ public sealed partial class QuestViewModel : ObservableObject
 
         // Unknown data hides the gain and the mark, as it hides the reward line.
         if (_facts is null || level <= 0 || !_facts.TryGetValue(quest.Id, out var facts)
-            || QuestProfit.GainOf(facts, level, Tracker.RewardXpBonus) is not { } gain)
+            || QuestProfit.RewardOf(facts, level, Tracker.RewardXpBonus) is not { } reward)
         {
             return node;
         }
+
+        var gain = new QuestGain(reward.Experience, reward.Kamas);
 
         var score = Scores.GetValueOrDefault(quest.Id);
         var tier = score?.Tier ?? 0;
@@ -234,7 +248,58 @@ public sealed partial class QuestViewModel : ObservableObject
             GainKamas = kamas,
             Tier = tier,
             ProfitTip = QuestGainText.Tip(gain, tier, score?.ByKamas ?? false, score?.Effort.Reasons),
+            OtherRewards = QuestRewardText.Others(reward, _itemNames),
         };
+    }
+
+    /// <summary>The read behind the hover in flight, cancelled when the hover goes: a sweep of the list reads nothing more.</summary>
+    private CancellationTokenSource? _finding;
+
+    /// <summary>
+    /// Where the items a quest asks for come from, for the gain's hover; null when it asks none or nothing is known.
+    /// Read on demand, cached by the service; the previous hover's read is cancelled.
+    /// </summary>
+    public async Task<string?> WhereToFindAsync(QuestSummary quest)
+    {
+        StopFinding();
+        _finding = new CancellationTokenSource();
+
+        try
+        {
+            return await FindAsync(quest, _finding.Token).ConfigureAwait(true);
+        }
+        catch (OperationCanceledException)
+        {
+            // The hover went or another opened: nobody reads this one any more.
+            return null;
+        }
+    }
+
+    /// <summary>The hover went: its read stops. The token source is not disposed, the service may still link to it.</summary>
+    public void StopFinding() => _finding?.Cancel();
+
+    public void Dispose() => _finding?.Dispose();
+
+    private async Task<string?> FindAsync(QuestSummary quest, CancellationToken ct)
+    {
+        if (_facts is null || !_facts.TryGetValue(quest.Id, out var facts))
+        {
+            return null;
+        }
+
+        var blocks = new List<string>();
+
+        // Bring (3) or show (2) an item: its id is the second parameter.
+        foreach (var item in facts.Objectives.Where(o => o.TypeId is 2 or 3 && o.Parameters.Length > 1)
+                     .Select(o => o.Parameters[1]).Distinct())
+        {
+            if (await _itemSources.SourceAsync(item, TouchNameService.CurrentLanguage, ct).ConfigureAwait(true) is { } source)
+            {
+                blocks.Add(ItemSourceText.Of(source));
+            }
+        }
+
+        return blocks.Count == 0 ? null : string.Join("\n\n", blocks);
     }
 
     /// <summary>A dungeon row with what it is worth: the quests it advances, their gains and its mark.</summary>
@@ -631,9 +696,37 @@ public sealed partial class QuestViewModel : ObservableObject
         RewardText = total is null ? string.Empty : QuestRewardText.Format(total, level, Tracker.RewardXpBonus, names!);
     }
 
+    /// <summary>
+    /// Says under the reward line where the shown quest's items come from. Reads the game only for items not seen
+    /// this month, in the background; a refusing server is spared by the service's cooldown.
+    /// </summary>
+    private async Task RefreshSourcesAsync()
+    {
+        if (_current is not { } quest)
+        {
+            return;
+        }
+
+        var sources = await FindAsync(quest, CancellationToken.None).ConfigureAwait(true);
+
+        if (_current?.Id == quest.Id)
+        {
+            SourcesText = sources ?? string.Empty;
+        }
+    }
+
+    /// <summary>Where the open quest's items come from, under the reward line; empty hides it.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SourcesLine))]
+    private string _sourcesText = string.Empty;
+
+    /// <summary>The same on one line, the whole text on hover.</summary>
+    public string SourcesLine => SourcesText.Replace("\n\n", " · ", StringComparison.Ordinal).Replace("\n", " · ", StringComparison.Ordinal);
+
     private void ResetOfficialSteps()
     {
         RewardText = string.Empty;
+        SourcesText = string.Empty;
         ShowsOfficialSteps = false;
         OfficialSteps = [];
         _officialStepsOf = 0;
@@ -1578,6 +1671,7 @@ public sealed partial class QuestViewModel : ObservableObject
         SetStep(-1);
 
         _ = RefreshRewardsAsync();
+        _ = RefreshSourcesAsync();
     }
 
     /// <summary>
