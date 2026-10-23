@@ -11085,7 +11085,16 @@ Si une donnée manque, le gain et la marque sont masqués, jamais devinés.
 elle n'est pas répétable (journalière, hebdomadaire, saisonnière : leur
 disponibilité dépend d'un délai ou d'un événement que DT Hub ne voit pas) ; le
 niveau optimal de sa première étape ne dépasse pas le niveau du personnage ; et
-elle est dans `available_quests` de Papycha pour lui, ou en cours.
+elle est démarrable : dans `available_quests` de Papycha pour lui, en cours, ou
+dont toutes les quêtes précédentes sont terminées. Papycha ne remplit
+`available_quests` que pour le personnage actif du site : pour les autres la
+liste est vide, et sans la troisième voie « Recommandées » et « Accessibles »
+restaient vides. Les quêtes précédentes sont résolues par `QuestChainIndex` (titre,
+« ... atteint », succès = dernière quête du succès) ; un prérequis qui ne
+désigne aucune quête (alignement, texte libre) est ignoré. Même règle pour
+« Accessibles » et pour les « Suivantes » calculées, répétables exclues (le
+dernier cas ne vaut que pour la liste calculée : celle du site est gardée telle
+quelle).
 
 **Série.** Une entrée de série commence à sa première quête faisable et continue
 avec les quêtes suivantes, dans l'ordre de jeu, pas encore faites, qui passent
@@ -11094,37 +11103,54 @@ ne contient que ce qui est démarrable maintenant, pas la suite de la chaîne). 
 s'arrête à la première qui en échoue une, et la quête faisable suivante de la même
 série ouvre une nouvelle entrée : une quête faisable classée ne disparaît jamais du
 classement. Une entrée d'une seule quête s'affiche comme une quête seule. Un membre
-sans gain calculable reste dans la série et n'y ajoute rien. Le classement suit
-le seul score, le plus intéressant d'abord : une série déjà commencée (un membre
-fait ou en cours) garde son rang et porte un sablier avant son titre.
+sans gain calculable reste dans la série et n'y ajoute rien. Une série déjà
+commencée (un membre fait ou en cours) porte un sablier avant son titre.
 
-**Effort.** Somme des objectifs lus dans le jeu, plus 1 par quête. Aller, revenir
-ou montrer : 1 ; découvrir une carte : 1,5 ; rapporter des objets : 2 + quantité /
-10, au plus 7 ; fabriquer : 3 ; combattre : 3, ou 8 pour un combat unique (un boss
-en pratique), plus 4 si le niveau optimal de l'étape dépasse celui du personnage ;
-rapporter des âmes : 5 ; texte libre ou type inconnu : 6.
+**Effort.** Remplacé par le temps estimé, en minutes : voir D221. Le plafond des
+objets à 7 de la première version, puis à 40, n'existe plus.
 
 **Score : XP et kamas ensemble.** Pas de choix entre XP et kamas : le joueur veut
 savoir ce qui vaut la peine en priorité, pour l'un ou pour l'autre. Pour chaque
-quête faisable au gain connu, l'XP pour l'effort et les kamas pour l'effort (Bonus
+quête faisable au gain connu, l'XP par minute et les kamas par minute (Bonus
 Pack compris) sont chacun rapportés au meilleur rapport parmi les quêtes faisables
 (un côté où personne ne gagne rien vaut 0) ; le score est le plus grand des deux,
 et l'infobulle dit lequel l'emporte (« surtout pour l'XP » ou « surtout pour les
 kamas », l'XP en cas d'égalité). Une quête qui ne donne ni XP ni kamas n'est pas
 classée. Une série fait de même avec la somme des gains de ses quêtes restantes
-divisée par la somme de leurs efforts, rapportée aux mêmes maxima des quêtes, et
-séries et quêtes seules sont classées ensemble sur ce même score. Les raisons affichées sont les
-trois plus coûteuses, par genre (boss, combats, objets, âmes, fabrication, trajet,
-dialogues, tâche vague). Ces valeurs sont des choix de Claude, réglables.
+divisée par la somme de leurs minutes, rapportée aux mêmes maxima des quêtes. Ce
+score combiné ne sert plus qu'aux marques de priorité des autres listes : le
+classement de « Recommandées » est celui des deux listes courtes ci-dessous. Les
+raisons affichées sont les trois plus longues, par genre (boss, combats, objets,
+âmes, fabrication, trajet, dialogues, tâche vague). Ces valeurs sont des choix de
+Claude, réglables.
 
 **Paliers.** Parmi les quêtes faisables classées par score : les 10 % de tête
 (au moins une) au palier 3, les 15 % suivants au 2, les 25 % suivants au 1, le
 reste sans marque, sur le score combiné : la meilleure quête en XP et la meilleure
-en kamas valent toutes deux 1.
+en kamas valent toutes deux 1. Ces marques sont celles des autres listes ; les
+lignes de « Recommandées » n'en portent pas (voir plus bas).
+
+**Deux listes courtes.** « Recommandées » n'est plus une liste unique sur le
+score combiné mais deux : « Pour l'XP » et « Pour les kamas », 8 lignes au plus
+chacune, chaque côté classé sur son propre rapport par minute (une ligne peut
+être dans les deux). Cette valeur ne dépend que de la ligne : classer sur le score
+combiné faisait changer l'ordre à chaque affichage, parce que le meilleur rapport
+de chaque côté, qui sert de diviseur, bougeait avec l'ensemble des quêtes
+faisables (une quête finie en entre-temps réordonnait des lignes inchangées).
+Égalités : ordre du catalogue, puis identifiant de la quête. Exclus des listes
+courtes : une ligne de plus de 60 minutes, un côté sans gain, les séries coupées
+à leurs 4 premières quêtes, une série qui arrive à une quête « trousseau » (objectif
+texte contenant trousseau, keyring ou llavero), une quête de plus de 5 âmes. Les
+lignes de « Recommandées » ne portent pas de marque : l'ordre et le titre de la
+liste la disent déjà, et les paliers du score combiné contredisaient l'ordre.
+Un donjon n'y entre que s'il fait avancer au moins deux quêtes faisables (D220).
+Avec au moins deux personnages reliés, un bouton « Moi » / « Équipe » (D220)
+bascule sur les mêmes deux listes pour l'équipe.
 
 **Lecture en masse et pauses.** Les étapes, objectifs et récompenses d'étapes de
 toutes les quêtes appariées sont lus en trois requêtes (`QuestSteps`,
-`QuestObjectives`, `QuestStepRewards`) espacées d'au moins 60 s, en arrière-plan,
+`QuestObjectives`, `QuestStepRewards`), plus une quatrième pour les textes des
+objectifs libres (D220), espacées d'au moins 60 s, en arrière-plan,
 une seule lecture à la fois, et gardés 7 jours avec les noms, par langue. Après un
 refus du serveur, aucune nouvelle tentative pendant 6 h dans la session (le délai
 est gardé en mémoire), et on garde les données de
@@ -11133,9 +11159,13 @@ une quête (étape en cours, objectifs faits), que seul le jeu montre, et les
 monstres (environ 30 Ko chacun, trop lourd pour toutes les quêtes).
 
 **Affichage.** Deux colonnes de gain à droite de chaque ligne de quête, l'XP en
-bleu puis les kamas en or (vide sans kamas), une marque à
+bleu puis les kamas en or (vide sans kamas), une icône cadeau quand la quête donne
+des objets ou d'autres récompenses à ce niveau (survol : une ligne par
+récompense), le nom de la zone en suffixe gris après le titre dans
+« Recommandées » (le regroupement « Par zone » prévu n'existe pas : il aurait
+cassé l'ordre des deux listes), une marque à
 trois paliers (flamme pleine, flamme creuse, point), une vue « Quêtes
-recommandées » ouverte par un bouton « Recommandées » de la barre du haut, à côté
+recommandées » (deux listes courtes, voir plus haut) ouverte par un bouton « Recommandées » de la barre du haut, à côté
 de « À faire » et « Accessibles » (seule entrée : la branche des zones est
 retirée ; pressé de nouveau, il rend la section ou le guide quitté, Retour
 rend la section quittée, liste ouverte ; non relié, une ligne dit de relier le suivi Papycha), et les cases de niveau et de Bonus Pack dans toutes
@@ -11156,6 +11186,80 @@ de la virtualisation, sont réduites à leur contenu (18, 60 et 19 px au lieu de
 mot de l'infobulle, et les pierres attendent les quatre mots tels que l'API les
 écrit (« Petite », « Moyenne », « Grande », « Gigantesque ») ; une autre casse
 n'affichait aucune pierre.
+
+## D220 - Les outils des guides : valeur des donjons, équipe, où trouver
+
+**2026-10-23 - Acceptée, complète D219**
+
+Demandés par l'utilisateur, qui joue quatre personnages : valoriser aussi les
+donjons, voir ce qui vaut la peine en équipe, savoir où trouver les objets
+qu'une quête demande, et où vivent les archimonstres. Même règle que D212, D218
+et D219 : tout est lu chez le joueur, rien d'embarqué, une donnée manquante
+masque la ligne au lieu d'être devinée.
+
+**Valeur d'un donjon.** L'XP et les butins d'un combat de donjon ne sont pas
+calculables (le jeu ne publie pas la composition des salles). Un donjon vaut les
+quêtes faisables qu'il fait avancer. Pour les trouver, la lecture en masse de
+D219 a une quatrième requête : `data/text` des objectifs de texte libre (types 0,
+4 et 10), espacée de 60 s comme les autres, sautée quand aucun objectif n'en a ;
+un cache d'avant est relu une fois. Les textes (« Découvrir la carte Sortie du
+Donjon Fungus ») sont rapprochés des noms des donjons du jeu : minuscules, sans
+accents ni ponctuation, sans article au début (le, la, les, l, du, des, de, the,
+el, los, las, del), mots entiers, le nom le plus long d'abord et son texte
+retiré une fois trouvé, donc « Donjon des Bouftous Royaux » ne compte pas aussi
+« Donjon des Bouftous ». Seuls les objectifs de texte sont lus : une quête qui ne
+nomme son donjon que par un monstre n'est pas reliée. La valeur additionne les
+gains et les minutes des quêtes faisables maintenant ; la suite d'une série pas
+encore démarrable n'y entre pas. Son score se compare à celui des quêtes
+seules. La ligne du donjon montre ses gains et sa marque dans ses listes, et
+l'infobulle dit « Fait avancer n quêtes : titres ». Dans les deux listes courtes
+de D219, un donjon n'entre que s'il fait avancer au moins deux quêtes faisables :
+avec une seule, il doublait la ligne de cette quête.
+
+**Équipe.** Avec au moins deux personnages reliés, « Moi » / « Équipe » dans la
+barre de « Recommandées ». Les séries sont rapprochées par leur nom (le succès de
+leur première quête, sinon la quête elle-même) ; de chaque personnage on garde sa
+meilleure suite pour cette série, au niveau et avec les quêtes faites de ce
+personnage, et les gains de ces suites sont additionnés. Seules les séries
+partagées par au moins deux personnages restent ; la ligne dit « 3 persos » et
+l'infobulle nomme les personnages. Le Bonus Pack est un réglage unique pour le
+compte. Pas de donjons dans la vue d'équipe.
+
+**Où trouver.** Pour les objectifs qui demandent des objets (rapporter, montrer),
+l'infobulle du gain et le guide ouvert disent où les obtenir. Les classes
+`Items`, `Monsters`, `SubAreas`, `Skills`, `Recipes` et `Jobs` sont lues par
+identifiants, à la demande, jamais en entier : 4 à 6 requêtes pour un objet, une
+fois par mois pour l'index des récoltes (`Skills`, `Jobs`). Gardé 30 jours par
+objet. Après un échec, aucune requête pendant 10 minutes (la valeur périmée du
+cache, sinon rien, est rendue) ; un identifiant inconnu est retenu pour la
+session et jamais écrit sur disque ; une lecture qui s'arrête dépasse 30 s et
+compte comme un échec. La lecture ne part qu'après 400 ms de survol (D221).
+Résultat : « Lâché par M (niv. L) · zones » (5 monstres au plus, dans l'ordre du
+jeu, sans tri sur le niveau, qui coûterait la lecture de tous), « pendant la
+quête » pour un butin conditionnel (`conditionnalDropMonsterIds`, jamais vu non
+vide dans les sondes : son contenu n'est pas vérifié), « Récolte : métier niv. »
+(`Skills`), « Fabrication : métier niv. » (`Recipes`, indexé par l'objet
+produit), ou « Source inconnue » quand rien ne s'applique (le texte « Événement
+ou boutique » prévu a été retiré : DT Hub ne sait pas que c'en est un).
+
+**Archimonstres.** Un monstre qui lâche l'objet est un archimonstre quand
+`isMiniBoss` est vrai. Le jeu ne pointe que du monstre normal vers
+l'archimonstre (`correspondingMiniBossId`, 0 dans l'autre sens) : la version
+normale est cherchée dans les monstres de la première sous-zone de l'archimonstre
+(`SubAreas.monsters`, au plus 30 voisins, une lecture de plus gardée un mois) et
+reste vide si elle n'y est pas. Fuji Givrefoux n'en est pas un : `isMiniBoss`
+faux, `isQuestMonster` vrai, c'est un monstre de quête, et son âme est affichée
+comme un butin ordinaire.
+
+**Niveau entier : câblé, vide.** Une ligne « Ces N quêtes valent un niveau entier
+(191 → 192) » devait s'appuyer sur la table d'XP du jeu. Le serveur de données ne
+la publie pas : la classe `Experiences` répond 400 et la liste des 115 classes du
+client n'en contient aucune (le client reçoit l'XP du niveau par les messages du
+jeu). La ligne est donc câblée (`QuestPlanning.WholeLevel`) mais reçoit une table
+vide et ne s'affiche jamais. L'utilisateur n'a pas décidé d'embarquer une table :
+rien n'est embarqué, et la ligne reste vide tant qu'il n'en décide pas autrement.
+`QuestPlanning.ByArea` (regroupement par zone) est écrit mais inutilisé : le
+suffixe de zone de D219 le remplace.
 
 ## D221 - Le temps estimé d'une quête remplace l'effort : gain par minute
 

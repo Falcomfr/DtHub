@@ -282,8 +282,16 @@ no Ankama graphical resource enters this repository.
   on the player's PC, kept in the same cache, nothing embedded
 - The objectives (type and parameters) and the step rewards of every quest
   paired with the game are read from the same server in the same way, in three
-  requests at least 60 seconds apart, to rank quests by reward for the effort:
-  on the player's PC, kept in the same cache for 7 days, nothing embedded
+  requests at least 60 seconds apart, to rank quests by reward per estimated
+  minute: on the player's PC, kept in the same cache for 7 days, nothing
+  embedded. A fourth request of the same kind reads the texts of the free-text
+  objectives (data/text), to link dungeons to the quests that name them
+- Where to find the items a quest asks for: the classes Items, Monsters,
+  SubAreas, Skills, Recipes and Jobs are read by identifiers, on demand (after
+  400 ms of hovering a quest or when a guide opens), never whole, with at most a
+  few requests per item and a pause of 10 minutes after any failure; the result
+  is kept in the local cache for 30 days, nothing embedded
+- The game's experience table is not served by that server and is not used
 
 **No resource is copied or redistributed.** The guides window reads the
 official names of quests, dungeons, bosses, key items and achievements, the

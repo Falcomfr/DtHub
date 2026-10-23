@@ -19,10 +19,16 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 - Une case de niveau dans la fenêtre des guides : la changer met aussi à jour le niveau de votre personnage sur Papycha.
 - Chaque liste de quêtes affiche ce que rapporte chaque quête à votre personnage, XP et kamas côte à côte.
 - Avec le suivi Papycha relié, une petite marque de priorité sur les quêtes faisables maintenant, du point à la flamme, pour celles qui valent le plus la peine, pour l'XP ou pour les kamas.
-- Un bouton « Recommandées » à côté de « À faire » et « Accessibles » liste ce que vous pouvez faire maintenant avec le suivi Papycha relié, séries comprises, le plus intéressant d'abord, que ça rapporte en XP ou en kamas.
+- Un bouton « Recommandées » à côté de « À faire » et « Accessibles » montre deux listes courtes avec le suivi Papycha relié, « Pour l'XP » et « Pour les kamas », les meilleures quêtes et séries à faire maintenant, 8 au plus chacune, classées par gain à la minute.
 - Les cases de niveau et de Bonus Pack sont maintenant dans toutes les vues de la fenêtre des guides.
 - Chaque quête affiche un temps estimé, par exemple ≈ 25 min, calculé par DT Hub à partir des objectifs et des cartes du jeu ; « Recommandées » classe sur l'XP et les kamas par minute et écarte ce qui prend plus d'une heure.
 - Marquer beaucoup de quêtes terminées d'un coup : le bouton de sélection de la liste des guides coche des quêtes (Maj+clic pour une plage), et les titres de succès et de zone proposent « Tout marquer terminé » ; DT Hub les écrit une à une, vérifie ce que Papycha a gardé et réécrit ce qui s'est perdu.
+- Avec plusieurs personnages reliés, « Recommandées » a un bouton « Moi » et « Équipe » : les séries que plusieurs de vos personnages peuvent faire, gains additionnés.
+- Les donjons qui font avancer au moins deux quêtes recommandées apparaissent dans « Recommandées », et dans les listes de donjons avec leurs gains.
+- Une icône cadeau sur une ligne de quête liste les objets et autres récompenses qu'elle donne à votre niveau.
+- Survolez une quête pour voir où trouver les objets qu'elle demande : monstres qui les lâchent, récolte, fabrication, archimonstres et leurs zones.
+- « Accessibles » et les quêtes suivantes marchent maintenant pour les personnages autres que l'actif sur Papycha, d'après les quêtes qu'ils ont terminées.
+- La barre du suivi de la fenêtre des guides passe sous le personnage quand la fenêtre est étroite, et chaque quête recommandée affiche sa zone.
 
 ## [0.10.5] - 2026-10-22
 

@@ -17,27 +17,28 @@ A dungeon's value = the recommended quests it advances (doable, in progress, or 
 matching objective texts ("Découvrir la carte Sortie du Donjon Fungus", "Braver les dangers de la Serre du Royalmouth") to
 the game's dungeon names. The weekly facts read adds a fourth request: the `data/text` of objective types 0, 4, 10. Dungeon
 rows show the priority mark, both gains and "Fait avancer n quêtes"; dungeons join "Recommandées", ranked the same way.
-Detailed brief: the controller's dungeon brief (copied into the plan).
+Only doable quests count, not the not-yet-startable rest of a series; a dungeon joins the short lists only when it advances at
+least two of them. Detailed brief: the controller's dungeon brief (copied into the plan).
 
 ## 2. Team recommendations
 
-Papycha's tracker already holds every character of the account with its level and progress. A "En équipe" toggle in
-"Recommandées" ranks entries by their gain summed over every character for which they are doable (each at its own level and
-Bonus Pack setting, Claude's choice: one Bonus Pack setting for the account), shows "3 persos" with their names in the tooltip,
-and lists only entries doable by at least two characters. No new data.
+Papycha's tracker already holds every character of the account with its level and progress. A "Moi" / "Équipe" toggle in
+"Recommandées" matches series by name, takes each character's best run of a series at its own level (one Bonus Pack setting
+for the account, Claude's choice), sums the gains, shows "3 persos" with their names in the tooltip, and lists only series
+shared by at least two characters. No new data.
 
 ## 3. Where to find (items asked by quests)
 
 For objectives "Ramener / Montrer x N <item>", the tooltip and the guide's reward area say how to get the item, from the game's
 data, read on demand (hover or guide open) and cached: monsters that drop it (`Items.dropMonsterIds` -> `Monsters` names and
 level, at most 5 shown), harvest (`Skills` whose gathered item is it: job and level), craft (`Recipes` producing it: job and
-level), or "Événement ou boutique" when none applies. Requests: a handful of ids per item, never a whole heavy class.
+level), or "Source inconnue" when none applies (D220: DT Hub cannot tell an event or a shop from a gap in the data). Also read: `Items`, `Monsters`, `SubAreas`, `Skills`, `Recipes` and `Jobs` by ids, cached 30 days, 10 minutes of cooldown after a failure, 30 s read timeout, 400 ms hover delay; a drop that only exists in `conditionnalDropMonsterIds` reads "pendant la quête". Requests: a handful of ids per item, never a whole heavy class.
 
 ## 4. Itinerary by zone
 
-In "Recommandées", a "Par zone" grouping: entries grouped by the area of their first quest's start position (Papycha's
-`StartPosition` and the quest's section), groups ordered by their summed score, rows inside by score; each group header gives
-the area and the number of recommended entries. No new data.
+Built as a grouping, then dropped: grouping by area would break the two per-side orders of "Recommandées" (D219). Each row
+carries a muted zone suffix after its title instead (the first quest's section name). `QuestPlanning.ByArea` exists but is
+unused. No new data.
 
 ## 5. Archimonsters
 
@@ -47,7 +48,10 @@ lives (`Monsters.subareas` -> `SubAreas` names, at most 5). Read on demand like 
 
 ## 6. Levels
 
-The game's XP table (`Experiences`: level -> total XP) is read once with the facts. In "Recommandées", a line above the list:
+Finding: the game's data server publishes no XP table. `Experiences` answers 400 and the 115 classes of the client's script
+hold none (the client gets the level's XP from the game's messages). The line is wired (`QuestPlanning.WholeLevel`, fed an empty
+table) and never shows. Embedding a table is the user's call and is not decided. The intended behaviour: in "Recommandées", a
+line above the list:
 "Ces N quêtes valent un niveau entier (191 → 192)" when the best-ranked entries' summed XP (for the chosen character, in the
 shown order, smallest N) reaches the XP between the current level and the next; nothing at level 200. DT Hub does not know the
 XP already earned inside the level, so the sentence promises a whole level, never "te font passer" a given threshold

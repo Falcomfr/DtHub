@@ -25,10 +25,16 @@ belongs in the commits and in `docs/DECISIONS.md`.
 - A level box in the guides window: changing it updates your character's level on Papycha too.
 - Every quest list shows what each quest gives your character, XP and kamas side by side.
 - With the Papycha tracker linked, a small priority mark on the quests you can do now, from a dot to a flame, for the ones most worth doing, for XP or for kamas.
-- A "Recommended" button next to "To do" and "Available" lists what you can do now with the Papycha tracker linked, series included, most worth doing first, whether it pays in XP or in kamas.
+- A "Recommended" button next to "To do" and "Available" shows two short lists with the Papycha tracker linked, "For XP" and "For kamas", the best quests and series to do now, at most 8 each, ranked by gain per minute.
 - The level and Bonus Pack boxes are now in every view of the guides window.
 - Each quest shows an estimated time, about 25 min for example, worked out by DT Hub from the game's objectives and maps; Recommended ranks on XP and kamas per minute and leaves out what takes over an hour.
 - Mark many quests done at once: the selection button in the guides list ticks quests (Shift+click for a range), and achievement and zone headings offer "Mark all done"; DT Hub writes them one by one, checks what Papycha kept and writes again what was lost.
+- With several characters linked, "Recommended" has a "Me" and a "Team" toggle: the series several of your characters can do, with the gains added up.
+- Dungeons that advance at least two recommended quests appear in "Recommended", and in the dungeon lists with their gains.
+- A gift icon on a quest row lists the items and other rewards it gives at your level.
+- Hover a quest to see where to find the items it asks for: which monsters drop them, harvesting, crafting, archimonsters and their areas.
+- "Available" and the next quests now work for characters other than the one active on Papycha, from the quests they have finished.
+- The tracker bar of the guides window wraps under the character on a narrow window, and each recommended quest shows its zone.
 
 ## [0.10.5] - 2026-10-22
 

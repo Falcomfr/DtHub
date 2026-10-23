@@ -26,9 +26,10 @@ usable from the lists too, not only in a quest's guide.
    quests doable now, ranked among the character's doable quests; tooltip explains the
    tier, whether the quest is worth it mostly for XP or for kamas, and the effort reasons.
 4. **"Recommandées" view**, opened by a button in the window's top bar next to "À faire"
-   and "Accessibles" (its only entry point): the doable quests and series ranked by the
-   combined score below, most worth doing first; a started series keeps its rank and shows
-   an hourglass. Pressed again, it returns to where the reader was, guide included; Back
+   and "Accessibles" (its only entry point): two short lists, "Pour l'XP" and "Pour les kamas", 8 rows at most
+   each, every side ranked on its own gain per minute (ties by catalog order, then quest id), a row possibly in both;
+   a started series shows an hourglass. Rows carry no priority mark; the combined score below only drives the marks of
+   the other lists (D219). Pressed again, it returns to where the reader was, guide included; Back
    returns to the section left, with its list open.
 
 ## Non-goals
@@ -42,11 +43,12 @@ usable from the lists too, not only in a quest's guide.
 ## Anti-goals
 
 - Proposing a quest the character cannot start: not done, not blocked or ignored on the
-  tracker, in Papycha's `available_quests` for that character or in progress, and its
+  tracker, in Papycha's `available_quests` for that character, in progress, or with every previous quest done
+  (`available_quests` is empty for a character that is not the site's active one), and its
   first step's optimal level at most the character's level (Claude's choice).
 - A wrong gain: same rule as D218, unknown data hides the gain and the mark.
 - Hammering the game's server: the steps, objectives and rewards of every paired quest are
-  read once, in the background, in at most three requests a minute apart (about 2.5 MB in
+  read once, in the background, in at most four requests a minute apart (about 2.5 MB in
   all), and kept with the names for 7 days.
 
 ## Data
@@ -60,6 +62,9 @@ New: a bulk read of `QuestSteps` (reward fields and `objectiveIds`), `QuestObjec
 like the names. Item names stay read on demand (tooltip, open guide).
 
 ## Effort model (Claude's choice, tunable)
+
+Superseded by an estimated time in minutes (D221): the ranking is gain per minute and the short lists drop what takes more
+than 60 minutes. The first-version table follows, kept for the record.
 
 Per objective, by `typeId` (templates from `QuestObjectiveTypes`, read 2026-10-23):
 
@@ -77,6 +82,11 @@ A quest's effort is 1 + the sum of its objectives.
 
 ## Combined score
 
+Now per minute (D221), and only used for the priority marks, not for the order of the short lists. The reason for that last
+point (stability): each side is divided by the best doable ratio, so a quest finished between two displays rescaled the sides
+against each other and reordered rows that had not changed. Each short list now ranks on its own side's gain per minute, which
+depends on the row alone.
+
 For each doable quest with a known gain (XP and kamas at the character's level, Bonus Pack
 included), `xpRatio = XP / effort` and `kamasRatio = kamas / effort`. Each is divided by its
 maximum among those quests (a maximum of 0 makes that side 0); the score is the larger of the
@@ -88,9 +98,8 @@ quests and takes the same two ratios against the same quest maxima.
 
 Among the character's doable quests, ranked by the combined score: top 10 % tier 3, next 15 % tier 2,
 next 25 % tier 1, the rest no mark (Claude's choice). Marks: a filled flame, a half flame, a
-small dot (glyphs in the list's style, priority brush). The view lists series and single
-quests together on the combined score, each with both gains, effort reasons in a few words
-and its tier mark; clicking opens the guide as any row does. Not linked, it shows a muted
+small dot (glyphs in the list's style, priority brush). The view shows the two short lists, series and single
+quests together, each with both gains, its time and its reasons in a few words (no tier mark); clicking opens the guide as any row does. Not linked, it shows a muted
 line asking to link the Papycha tracker.
 
 ## Left to the builder
