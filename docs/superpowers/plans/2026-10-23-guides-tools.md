@@ -74,3 +74,18 @@ QuestViewModel / QuestTrackerViewModel / QuestWindow.xaml / resx x3:
 ### Task E: Records
 
 D220 (French): dungeon value rule, team, where to find, archimonsters, itinerary, level line, the extra requests. Notices: Items, Monsters, SubAreas, Skills, Recipes, Jobs, Experiences read by ids on demand, nothing embedded. Changelogs x3. Commit `docs: record guides tools`.
+
+### Task F: Mark many quests done at once (after D)
+
+Asked by the user: "un outil pour valider rapidement les quêtes pour ceux qui ont déjà beaucoup de quêtes à valider d'un coup,
+dans les listes pouvoir valider rapidement les lots". Lesson from the 2026-10-23 import: papycha.fr answers success but loses
+about one write in seven when writes follow each other quickly; refusals for the "Dévotion à …" quests ("Statut invalide").
+
+- Core: `QuestBatch` plan + runner: given quest ids and a status, write them one by one through `IPapychaTracker.SetStatusAsync`
+  with a pause (1.8-3 s, injectable), then re-read the tracker, retry what did not hold (at most 3 extra rounds), report done /
+  refused (with the site's message) / still missing; cancellable; progress callback. Tests with a fake tracker that drops some
+  writes and refuses one.
+- UI: a "Sélection" toggle in the list toolbar shows a checkbox on quest rows (Shift+click selects a range); achievement and
+  zone headers get a "Tout marquer terminé" action (quests not done, repeatables excluded); a "Marquer terminées (n)" button
+  with a confirmation when n > 20; a progress line "42 / 140" with Cancel; at the end a summary line (done, refused, missing).
+- Strings x3, decision note in D220, changelogs. Commit `feat: mark many quests done at once`.
