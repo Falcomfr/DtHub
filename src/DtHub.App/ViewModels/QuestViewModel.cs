@@ -51,19 +51,13 @@ public sealed partial class QuestViewModel : ObservableObject
         Nodes.CollectionChanged += (_, _) =>
         {
             ListHasQuestLevels = QuestListColumns.HasQuestLevels(Nodes);
-            ListHasQuestMarks = QuestListColumns.HasQuestMarks(Nodes);
             ListHasQuestGains = QuestListColumns.HasQuestGains(Nodes);
-            ListHasQuestTiers = QuestListColumns.HasQuestTiers(Nodes);
         };
     }
 
     /// <summary>True when a quest row of the displayed list shows a gain: the column is kept only then.</summary>
     [ObservableProperty]
     private bool _listHasQuestGains;
-
-    /// <summary>True when a quest row of the displayed list has a priority mark: its room is kept only then.</summary>
-    [ObservableProperty]
-    private bool _listHasQuestTiers;
 
     /// <summary>Every paired quest's rewards and objectives, by Papycha id; <c>null</c> until read.</summary>
     private IReadOnlyDictionary<int, TouchQuestFacts>? _facts;
@@ -143,10 +137,6 @@ public sealed partial class QuestViewModel : ObservableObject
     /// <summary>True when a quest row of the displayed list has a level: the level column is kept only then.</summary>
     [ObservableProperty]
     private bool _listHasQuestLevels;
-
-    /// <summary>True when a quest row of the displayed list is marked: the mark's room is kept only then.</summary>
-    [ObservableProperty]
-    private bool _listHasQuestMarks;
 
     /// <summary>The player's Papycha tracker, laid over the open quest.</summary>
     public QuestTrackerViewModel Tracker { get; }

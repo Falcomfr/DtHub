@@ -1258,24 +1258,23 @@
                       </Border>
                     </Grid>
 
-                    <!-- The tracker's mark, the row's only status sign: a
-                         check, an hourglass, a barred circle, a dash; the
-                         word comes on hover. First of the fixed right-hand
-                         columns: at the left of the name it kept a gap
-                         between the level and the name on every unmarked
-                         row. Hidden, not collapsed, on an unmarked quest row
-                         so the columns stay straight; collapsed on rows that
-                         are not quests, and while no tracker is linked. The
-                         transparent border carries the tooltip, an open
+                    <!-- The right-hand icons of a quest row: priority,
+                         rhythm, status, lock, then the two gains. Each icon
+                         is collapsed when it has nothing to say, so the
+                         ones present pack to the right four pixels apart:
+                         the user prefers no gaps to straight icon columns.
+                         The lock comes last as it is on most quests, so the
+                         status mark beside it lines up in practice. Only the
+                         gains keep fixed columns, numbers have to line up.
+                         Everything is collapsed on rows that are not quests.
+                         A transparent border carries each tooltip, an open
                          stroke catches no hover. -->
                     <!-- The priority mark of a quest doable now, among the
                          character's doable quests: a flame, a hollow flame,
-                         a dot. Just before the status mark, hidden on a
-                         quest row without one, collapsed on other rows and
-                         in a list where no row has one. -->
+                         a dot. -->
                     <Border x:Name="Priorite" Width="12" Height="12"
-                            Margin="8,0,0,0" VerticalAlignment="Center"
-                            Background="Transparent" Visibility="Hidden"
+                            Margin="4,0,0,0" VerticalAlignment="Center"
+                            Background="Transparent" Visibility="Collapsed"
                             ToolTip="{Binding ProfitTip}"
                             ToolTipService.InitialShowDelay="200">
                       <Path x:Name="PrioriteTrait" Stretch="None"
@@ -1284,28 +1283,30 @@
                             StrokeLineJoin="Round" />
                     </Border>
 
+                    <!-- A quest's rhythm; a quest done once has none. The
+                         word comes on hover. -->
+                    <Border x:Name="Rythme" Width="15" Margin="4,0,0,0"
+                            Background="Transparent" VerticalAlignment="Center"
+                            ToolTip="{Binding RecurrenceLabel}"
+                            ToolTipService.InitialShowDelay="200"
+                            Visibility="Collapsed">
+                      <Path x:Name="RythmeTrait" Style="{StaticResource ListGlyph}"
+                            HorizontalAlignment="Center" />
+                    </Border>
+
+                    <!-- The tracker's mark, the row's only status sign: a
+                         check, an hourglass, a barred circle, a dash; the
+                         word comes on hover. At the left of the name it
+                         kept a gap between the level and the name on every
+                         unmarked row. -->
                     <Border x:Name="Marque" Width="12" Height="12"
-                            Margin="8,0,0,0" VerticalAlignment="Center"
-                            Background="Transparent" Visibility="Hidden"
+                            Margin="4,0,0,0" VerticalAlignment="Center"
+                            Background="Transparent" Visibility="Collapsed"
                             ToolTipService.InitialShowDelay="200">
                       <Path x:Name="MarqueTrait" Stretch="None"
                             Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.5"
                             StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                             StrokeLineJoin="Round" />
-                    </Border>
-
-                    <!-- A quest's rhythm, drawn in a column of fixed width
-                         before the lock, so that rhythms and locks stand
-                         in two straight columns down the list. Hidden, not
-                         collapsed, on a quest done once, collapsed on rows
-                         that are not quests. The word comes on hover. -->
-                    <Border x:Name="Rythme" Width="18" Margin="8,0,0,0"
-                            Background="Transparent" VerticalAlignment="Center"
-                            ToolTip="{Binding RecurrenceLabel}"
-                            ToolTipService.InitialShowDelay="200"
-                            Visibility="Hidden">
-                      <Path x:Name="RythmeTrait" Style="{StaticResource ListGlyph}"
-                            HorizontalAlignment="Center" />
                     </Border>
 
                     <!-- A lock: what keeps the quest closed. A key had
@@ -1334,16 +1335,12 @@
                          It stays displayed for a long time, because a
                          list of prerequisites reads more slowly than a
                          button's single word. -->
-                    <!-- Hidden on a quest row, shown when the quest has
-                         prerequisites, collapsed on every other row
-                         (triggers below): a quest row without a lock keeps
-                         its room, and the rhythm column does not shift. -->
                     <Button x:Name="Cadenas" Style="{StaticResource IconButton}"
-                            VerticalAlignment="Center" Margin="6,0,2,0"
+                            Width="16" VerticalAlignment="Center" Margin="4,0,0,0"
                             Click="OnShowNeeds"
                             ToolTipService.InitialShowDelay="200"
                             ToolTipService.ShowDuration="30000"
-                            Visibility="Hidden">
+                            Visibility="Collapsed">
                       <Button.ToolTip>
                         <ToolTip Style="{StaticResource RichToolTip}">
                           <StackPanel MaxWidth="330">
@@ -1737,24 +1734,6 @@
                                Value="False">
                     <Setter TargetName="GainXp" Property="Visibility" Value="Collapsed" />
                     <Setter TargetName="GainKamas" Property="Visibility" Value="Collapsed" />
-                  </DataTrigger>
-
-                  <DataTrigger Binding="{Binding DataContext.ListHasQuestTiers,
-                                                 RelativeSource={RelativeSource AncestorType=Window}}"
-                               Value="False">
-                    <Setter TargetName="Priorite" Property="Visibility" Value="Collapsed" />
-                  </DataTrigger>
-
-                  <DataTrigger Binding="{Binding DataContext.Tracker.IsLinked,
-                                                 RelativeSource={RelativeSource AncestorType=Window}}"
-                               Value="False">
-                    <Setter TargetName="Marque" Property="Visibility" Value="Collapsed" />
-                  </DataTrigger>
-
-                  <DataTrigger Binding="{Binding DataContext.ListHasQuestMarks,
-                                                 RelativeSource={RelativeSource AncestorType=Window}}"
-                               Value="False">
-                    <Setter TargetName="Marque" Property="Visibility" Value="Collapsed" />
                   </DataTrigger>
 
                   <!-- A quest row keeps the level column only when a quest

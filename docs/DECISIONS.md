@@ -11136,3 +11136,11 @@ bleu puis les kamas en or (vide sans kamas), une marque à
 trois paliers (flamme pleine, flamme creuse, point), l'entrée « Quêtes rentables »
 à côté de « Suivantes », et les cases de niveau et de Bonus Pack dans toutes
 les vues de la fenêtre des guides.
+
+**Icônes serrées.** Sur une ligne de quête, les icônes de droite (priorité, rythme,
+statut, cadenas) ne gardent plus de place vide : absentes, elles sont repliées et
+les présentes se serrent à droite, 4 px d'écart. L'utilisateur préfère une ligne
+sans trous à des colonnes d'icônes droites. Le cadenas vient en dernier : il est
+sur la plupart des quêtes, la marque de statut à côté de lui s'aligne donc en
+pratique. Seuls les gains gardent des colonnes fixes, des nombres doivent
+s'aligner.
