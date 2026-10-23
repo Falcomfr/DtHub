@@ -606,10 +606,13 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
     private bool Passes(QuestSummary quest) =>
         QuestTracking.Passes(Tracker.Progress, quest.Id, FilterToDo, FilterAvailable, Startable(quest));
 
+    // The site's list leaves the level to the site; without one, every doable rule but the gain applies.
     private bool Startable(QuestSummary quest) =>
         FilterAvailable && Tracker.Progress is { } progress && _tree.Chain is { } chain
-        && _facts is not null && _facts.TryGetValue(quest.Id, out var facts)
-        && QuestProfit.IsDoable(quest, progress, facts, Tracker.RewardLevel, chain);
+        && (progress.Available.Count > 0
+            ? QuestProfit.Startable(quest, progress, chain)
+            : _facts is not null && _facts.TryGetValue(quest.Id, out var facts)
+                && QuestProfit.IsDoable(quest, progress, facts, Tracker.RewardLevel, chain));
 
     /// <summary>The "to do" filter of the list, remembered.</summary>
     [ObservableProperty]
@@ -1663,11 +1666,14 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         ((row.InProgress && ProfitInProgress) || (row.NotStarted && ProfitNotStarted))
         && (row.Dungeon ? ProfitWithDungeon : ProfitNoDungeon);
 
-    /// <summary>A quest row of the short lists, its filters read from the chosen character and the quest's objectives.</summary>
-    private ProfitRow QuestRow(QuestGain gain, ProfitEntry entry, QuestNode node)
+    /// <summary>
+    /// A quest row of the short lists, its filters read from <paramref name="started"/> and the quest's objectives: a
+    /// dungeon run, or a dungeon named as the dungeon rows find them.
+    /// </summary>
+    private ProfitRow QuestRow(QuestGain gain, ProfitEntry entry, QuestNode node, bool started)
     {
-        var started = node.Status == QuestStatus.InProgress;
-        var dungeon = _facts?.GetValueOrDefault(entry.Quests[0].Id) is { } facts && QuestTime.HasDungeonRun(facts);
+        var dungeon = _facts?.GetValueOrDefault(entry.Quests[0].Id) is { } facts
+            && (QuestTime.HasDungeonRun(facts) || QuestProfit.DungeonsOf(facts, _dungeonNames).Count > 0);
         return new ProfitRow(gain, entry.Effort.Minutes, entry.Quests[0], node, started, !started, dungeon, entry);
     }
 
@@ -1731,7 +1737,11 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
     /// <summary>The chosen character's entries and the dungeons that advance two of them or more.</summary>
     private List<ProfitRow> MyRows()
     {
-        var rows = Recommendable.Select(e => QuestRow(e.Gain, e, EntryNode(e))).ToList();
+        var rows = Recommendable.Select(e =>
+        {
+            var node = EntryNode(e);
+            return QuestRow(e.Gain, e, node, node.Status == QuestStatus.InProgress);
+        }).ToList();
 
         // A dungeon advancing one quest only would repeat that quest's row.
         foreach (var value in DungeonValues.Values.Where(v => v.Advances.Count >= 2))
@@ -1748,26 +1758,41 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         return rows;
     }
 
-    /// <summary>The account's shared entries, gains summed, the characters named on hover.</summary>
-    private List<ProfitRow> TeamRows() =>
-    [
-        .. Team.Select(t =>
-        {
-            var node = EntryNode(t.Entry);
-            var (xp, kamas) = QuestGainText.Columns(t.Gain);
-            var count = Strings.Format("ProfitCharacters", t.Characters.Count);
-
-            return QuestRow(t.Gain, t.Entry, node with
+    /// <summary>
+    /// The account's shared entries, gains summed, the characters named on hover. The lock is the chosen character's,
+    /// so it stays neutral on an entry not shared with them; "in progress" is any of the entry's characters'.
+    /// </summary>
+    private List<ProfitRow> TeamRows()
+    {
+        var team = Tracker.TeamProgress();
+        return
+        [
+            .. Team.Select(t =>
             {
-                GainXp = xp,
-                GainKamas = kamas,
-                Tier = t.Tier,
-                Detail = node.Detail is { Length: > 0 } detail ? $"{detail} · {count}" : count,
-                ProfitTip = QuestGainText.Tip(t.Gain, effort: t.Entry.Effort, steps: StepsOf(t.Entry))
-                    + "\n" + string.Join(", ", t.Characters.Select(c => c.Name)),
-            });
-        }),
-    ];
+                var node = EntryNode(t.Entry);
+                if (!t.Characters.Any(c => c.Id == Tracker.SelectedCharacter?.Id))
+                {
+                    node = node with { NeedsMet = null, Needs = node.Needs is { } needs ? [.. needs.Select(n => n with { Met = null })] : null };
+                }
+
+                var id = t.Entry.Quests[0].Id;
+                var started = team.Any(m => t.Characters.Any(c => c.Id == m.Character.Id)
+                    && QuestTracking.StatusOf(m.Progress, id) == QuestStatus.InProgress);
+                var (xp, kamas) = QuestGainText.Columns(t.Gain);
+                var count = Strings.Format("ProfitCharacters", t.Characters.Count);
+
+                return QuestRow(t.Gain, t.Entry, node with
+                {
+                    GainXp = xp,
+                    GainKamas = kamas,
+                    Tier = t.Tier,
+                    Detail = node.Detail is { Length: > 0 } detail ? $"{detail} · {count}" : count,
+                    ProfitTip = QuestGainText.Tip(t.Gain, effort: t.Entry.Effort, steps: StepsOf(t.Entry))
+                        + "\n" + string.Join(", ", t.Characters.Select(c => c.Name)),
+                }, started);
+            }),
+        ];
+    }
 
     /// <summary>A recommended quest as a row: its zone, then its series and place in it ("· Agriculture et Alchimie 3/11").</summary>
     private QuestNode EntryNode(ProfitEntry entry)

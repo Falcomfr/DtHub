@@ -120,6 +120,36 @@ public class QuestProfitTests
         Assert.Equal([5], QuestProfit.Score(catalog, facts, Progress([5], completed: [1, 6]), 10, 0).Keys);
     }
 
+    [Fact]
+    public void Startable_follows_the_site_s_list_and_the_previous_quests()
+    {
+        // 2 is "Tour de l'île" (one previous); 3 is "La fatalité" (two previous, alternatives by alignment); 5 names
+        // itself ("L'Ascension"); 6 names no quest.
+        var catalog = new List<QuestSummary>
+        {
+            Quest(1), Quest(2) with { Prerequisites = ["Q1"] }, Quest(3) with { Prerequisites = ["Q1", "Q4"] }, Quest(4),
+            Quest(5) with { Prerequisites = ["Q5"] }, Quest(6) with { Prerequisites = ["Alignement bontarien 40 minimum."] },
+        };
+        var chain = new QuestChainIndex(catalog);
+        bool Startable(int id, TrackerProgress progress) => QuestProfit.Startable(catalog.First(q => q.Id == id), progress, chain);
+
+        // Listed: one previous done is enough, none done is not.
+        Assert.False(Startable(2, Progress([2])));
+        Assert.True(Startable(2, Progress([2], completed: [1])));
+        Assert.True(Startable(3, Progress([3], completed: [1])));
+        Assert.False(Startable(3, Progress([3])));
+        // Not listed by the site: never, unless in progress.
+        Assert.False(Startable(3, Progress([2], completed: [1, 4])));
+        Assert.True(Startable(3, Progress([2], new() { [3] = QuestStatus.InProgress })));
+        // Nothing listed (another character): every previous done.
+        Assert.False(Startable(3, Progress([], completed: [1])));
+        Assert.True(Startable(3, Progress([], completed: [1, 4])));
+        // Itself and free text name no previous quest.
+        Assert.True(Startable(5, Progress([5])));
+        Assert.True(Startable(5, Progress([])));
+        Assert.True(Startable(6, Progress([6])));
+    }
+
     private static (List<QuestSummary> Catalog, Dictionary<int, TouchQuestFacts> Facts) Twenty()
     {
         var catalog = Enumerable.Range(1, 20).Select(i => Quest(i)).ToList();
@@ -663,29 +693,36 @@ public class QuestProfitTests
     public void A_recommended_quest_never_shows_an_unmet_lock()
     {
         // 2 follows done 1; 3 and 6 follow undone 4, 6 with free text too; 5 follows 4 but is in progress; 7 needs the
-        // achievement S, closed by the undone 9.
+        // achievement S, closed by the undone 9; 10 follows 1 or 4 ("La fatalité": one alignment or the other).
         QuestSummary Q(int id, string success = "", int order = 0, params string[] needs) =>
             Quest(id, success, order) with { Prerequisites = needs };
         var catalog = new[]
         {
             Q(1), Q(2, needs: "Q1"), Q(3, needs: "Q4"), Q(4), Q(5, needs: "Q4"), Q(6, needs: ["Q4", "Un objet"]),
-            Q(7, needs: "Succès S réalisé"), Q(8, "S", 1), Q(9, "S", 2),
+            Q(7, needs: "Succès S réalisé"), Q(8, "S", 1), Q(9, "S", 2), Q(10, needs: ["Q1", "Q4"]),
         };
         var facts = catalog.ToDictionary(q => q.Id, _ => Xp(1f));
         var chain = new QuestChainIndex(catalog);
         var inProgress = new Dictionary<int, QuestStatus> { [5] = QuestStatus.InProgress };
+        bool? Lock(QuestSummary q, TrackerProgress progress) => QuestTracking.Locked(
+            new QuestNode(QuestNodeKind.Quest, q.Title, Quest: q, Needs: [.. q.Prerequisites.Select(n => new QuestNeed(n, chain.Find(n)))]),
+            progress, chain).NeedsMet;
 
         // The active character, whose list the site fills (here wrongly listing 3, 6 and 7), then another one.
-        foreach (var progress in new[] { Progress([2, 3, 4, 6, 7, 8], inProgress, [1]), Progress([], inProgress, [1]) })
+        var active = Progress([2, 3, 4, 6, 7, 8, 10], inProgress, [1]);
+        var other = Progress([], inProgress, [1]);
+        foreach (var (progress, expected) in new[] { (active, new[] { 2, 4, 5, 8, 10 }), (other, [2, 4, 5, 8]) })
         {
             var shown = Recommendable(catalog, progress, facts).Select(e => e.Quests[0]).ToList();
 
-            Assert.Equal([2, 4, 5, 8], shown.Select(q => q.Id).Order());
-            Assert.All(shown, q => Assert.NotEqual(
-                false,
-                QuestTracking.Locked(
-                    new QuestNode(QuestNodeKind.Quest, q.Title, Quest: q, Needs: [.. q.Prerequisites.Select(n => new QuestNeed(n, chain.Find(n)))]),
-                    progress, chain).NeedsMet));
+            Assert.Equal(expected, shown.Select(q => q.Id).Order());
+            Assert.All(shown, q => Assert.NotEqual(false, Lock(q, progress)));
         }
+
+        // The team list: each entry's lock is met for every character it names.
+        var characters = new[] { (new TrackerCharacter("a", "A", 10), active), (new TrackerCharacter("b", "B", 10), other) };
+        var team = QuestPlanning.Team(catalog, facts, characters, 0);
+        Assert.NotEmpty(team);
+        Assert.All(team, t => Assert.All(t.Characters, c => Assert.NotEqual(false, Lock(t.Entry.Quests[0], characters.Single(x => x.Item1 == c).Item2))));
     }
 }

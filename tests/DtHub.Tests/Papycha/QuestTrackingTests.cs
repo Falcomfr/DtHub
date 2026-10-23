@@ -42,6 +42,15 @@ public class QuestTrackingTests
         Assert.Equal([6, 1], QuestTracking.NextQuests(progress, [Named(1), Named(6)]).Select(q => q.Id));
     }
 
+    [Fact]
+    public void NextQuests_from_the_site_keep_only_startable_quests()
+    {
+        // 6 is listed and follows nothing; 7 is listed but its only previous, 8, is not done ("Tour de l'île").
+        var progress = Progress with { Next = [7, 6], Available = new HashSet<int> { 6, 7 } };
+
+        Assert.Equal([6], QuestTracking.NextQuests(progress, [Named(6), Named(7, 0, "Q8"), Named(8)]).Select(q => q.Id));
+    }
+
     /// <summary>
     /// The site fills nextQuests for its active character only: for the
     /// others "Suivantes" comes from the previous quests done.
@@ -117,11 +126,15 @@ public class QuestTrackingTests
 
     [Fact]
     public void Passes_available_keeps_available_only() =>
-        Assert.Equal([1, 6], Enumerable.Range(1, 6).Where(i => QuestTracking.Passes(Progress, i, false, true, false)));
+        Assert.Equal([1, 6], Enumerable.Range(1, 6).Where(i => QuestTracking.Passes(Progress, i, false, true, true)));
+
+    [Fact]
+    public void Passes_available_drops_a_listed_quest_that_is_not_startable() =>
+        Assert.Equal([6], Enumerable.Range(1, 6).Where(i => QuestTracking.Passes(Progress, i, false, true, i != 1)));
 
     [Fact]
     public void Passes_both_filters_combine() =>
-        Assert.Equal([1, 6], Enumerable.Range(1, 6).Where(i => QuestTracking.Passes(Progress, i, true, true, false)));
+        Assert.Equal([1, 6], Enumerable.Range(1, 6).Where(i => QuestTracking.Passes(Progress, i, true, true, true)));
 
     [Fact]
     public void Passes_available_keeps_what_is_startable_when_the_site_lists_none() =>
@@ -129,7 +142,7 @@ public class QuestTrackingTests
 
     [Fact]
     public void Passes_available_trusts_the_site_s_list_for_its_active_character() =>
-        Assert.Equal([1, 6], Enumerable.Range(1, 6).Where(i => QuestTracking.Passes(Progress, i, false, true, i == 3)));
+        Assert.Equal([1, 6], Enumerable.Range(1, 6).Where(i => QuestTracking.Passes(Progress, i, false, true, i is 1 or 3 or 6)));
 
     [Fact]
     public void Passes_is_always_true_without_progress() =>
@@ -337,6 +350,31 @@ public class QuestTrackingTests
 
         Assert.True(row.NeedsMet);
         Assert.Equal([true, null, null], row.Needs!.Select(n => n.Met));
+    }
+
+    [Fact]
+    public void A_listed_quest_with_one_previous_done_of_two_has_a_met_lock_and_no_missing_mark()
+    {
+        // "La fatalité": "Cliquetis fou." or "Entraînement avec Tarche", one per alignment.
+        var row = QuestTracking.Locked(Row(Needy, NeedyChain), Done([10]) with { Available = new HashSet<int> { 12 } }, NeedyChain);
+
+        Assert.True(row.NeedsMet);
+        Assert.Equal([true, null, null], row.Needs!.Select(n => n.Met));
+    }
+
+    [Fact]
+    public void A_quest_naming_no_other_quest_keeps_a_neutral_lock_and_its_own_name_no_mark()
+    {
+        var self = Named(20, 0, "Q20", "Un objet");
+        var chain = new QuestChainIndex([self]);
+
+        var row = QuestTracking.Locked(Row(self, chain), Done([]), chain);
+        Assert.Null(row.NeedsMet);
+        Assert.All(row.Needs!, n => Assert.Null(n.Met));
+
+        var started = QuestTracking.Locked(Row(self, chain), Done([], new() { [20] = QuestStatus.InProgress }), chain);
+        Assert.True(started.NeedsMet);
+        Assert.All(started.Needs!, n => Assert.Null(n.Met));
     }
 
     [Fact]

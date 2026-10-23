@@ -30,10 +30,11 @@ public static class QuestTracking
     }
 
     /// <summary>
-    /// A quest row's lock for the chosen character: met when every prerequisite naming a quest
-    /// (<see cref="QuestChainIndex.Resolve"/>, as <see cref="QuestProfit.IsDoable"/> reads them) is done, or when the
-    /// quest itself is in progress or done. Each such prerequisite gets a check when done and, on an unmet lock only,
-    /// a missing mark; the others (items, free text) get none. Without a tracker the row is left neutral.
+    /// A quest row's lock for the chosen character: met when the quest is in progress, done, or startable
+    /// (<see cref="QuestProfit.Startable"/>, as <see cref="QuestProfit.IsDoable"/> reads it). Each prerequisite naming
+    /// another quest gets a check when done and, on an unmet lock only, a missing mark; the others (items, free text,
+    /// the quest itself) get none. Without a tracker, or with no prerequisite naming another quest on a quest neither
+    /// started nor done, the row is left neutral.
     /// </summary>
     public static QuestNode Locked(QuestNode node, TrackerProgress? progress, QuestChainIndex? chain)
     {
@@ -44,14 +45,19 @@ public static class QuestTracking
             return node;
         }
 
-        var met = StatusOf(progress, quest.Id) is QuestStatus.InProgress or QuestStatus.Completed
-            || QuestProfit.PreviousDone(quest, progress, chain);
+        var touched = StatusOf(progress, quest.Id) is QuestStatus.InProgress or QuestStatus.Completed;
+        if (!touched && QuestProfit.Previous(quest, chain).Count == 0)
+        {
+            return node;
+        }
+
+        var met = touched || QuestProfit.Startable(quest, progress, chain);
 
         return node with
         {
             NeedsMet = met,
-            Needs = [.. needs.Select(n => chain.Resolve(n.Text) is { } p
-                ? n with { Met = p.Id == quest.Id || StatusOf(progress, p.Id) == QuestStatus.Completed ? true : met ? null : false }
+            Needs = [.. needs.Select(n => chain.Resolve(n.Text) is { } p && p.Id != quest.Id
+                ? n with { Met = StatusOf(progress, p.Id) == QuestStatus.Completed ? true : met ? null : false }
                 : n)],
         };
     }
@@ -115,8 +121,10 @@ public static class QuestTracking
     /// <summary>
     /// Whether a quest stays in the list under the two filters. Without a
     /// linked tracker nothing is filtered: the list must read as before.
-    /// <paramref name="startable"/> is DT Hub's own reading, used only when
-    /// the site lists no available quest: it does for its active character only.
+    /// <paramref name="startable"/> is DT Hub's own reading
+    /// (<see cref="QuestProfit.Startable"/>): when the site lists available
+    /// quests (it does for its active character only), a quest must be listed
+    /// and startable; otherwise startable alone decides.
     /// </summary>
     public static bool Passes(TrackerProgress? progress, int questId, bool toDo, bool available, bool startable)
     {
@@ -130,13 +138,14 @@ public static class QuestTracking
             return false;
         }
 
-        // The site's list, when it gives one, is the truth for its active character.
-        return !available || progress.Available.Contains(questId) || (progress.Available.Count == 0 && startable);
+        // The site's list, when it gives one, bounds what its active character can start.
+        return !available || ((progress.Available.Count == 0 || progress.Available.Contains(questId)) && startable);
     }
 
     /// <summary>
     /// The quests to suggest next. The site's own list, in its order, when
-    /// it gives one; it does for its active character only, so otherwise
+    /// it gives one, less what is not startable (<see cref="QuestProfit.Startable"/>);
+    /// it does for its active character only, so otherwise
     /// the quests not done whose previous quests are all completed, in play
     /// order. A quest naming no previous quest is no one's follow-up and
     /// stays out, as do ignored, blocked and repeatable ones, and, as under
@@ -154,21 +163,20 @@ public static class QuestTracking
             return [];
         }
 
+        var chain = new QuestChainIndex(catalog);
         if (progress.Next.Count > 0)
         {
             var byId = catalog.ToLookup(q => q.Id);
 
-            return [.. progress.Next.Distinct().SelectMany(id => byId[id].Take(1))];
+            return [.. progress.Next.Distinct().SelectMany(id => byId[id].Take(1)).Where(q => QuestProfit.Startable(q, progress, chain))];
         }
-
-        var chain = new QuestChainIndex(catalog);
 
         // Repeatable quests follow their previous quests forever: they made the list very long.
         return QuestPlayOrder.Sorted(catalog.Where(q =>
             !QuestRecurrenceLabel.IsRepeatable(q)
             && StatusOf(progress, q.Id) is not (QuestStatus.Completed or QuestStatus.Ignored or QuestStatus.Blocked)
             && !(level > 0 && facts?.GetValueOrDefault(q.Id)?.Steps.FirstOrDefault() is { } first && first.OptimalLevel > level)
-            && q.Prerequisites.Select(chain.Resolve).OfType<QuestSummary>().Where(p => p.Id != q.Id).ToList() is { Count: > 0 } previous
+            && QuestProfit.Previous(q, chain) is { Count: > 0 } previous
             && previous.All(p => StatusOf(progress, p.Id) == QuestStatus.Completed)));
     }
 

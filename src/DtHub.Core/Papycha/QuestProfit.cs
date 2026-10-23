@@ -98,17 +98,32 @@ public static class QuestProfit
     }
 
     public static bool IsDoable(QuestSummary quest, TrackerProgress? progress, TouchQuestFacts facts, int level, QuestChainIndex chain) =>
-        progress is not null && Continuable(quest, progress, facts, level)
-        && (QuestTracking.StatusOf(progress, quest.Id) == QuestStatus.InProgress
-            || ((progress.Available.Count == 0 || progress.Available.Contains(quest.Id)) && PreviousDone(quest, progress, chain)));
+        progress is not null && Continuable(quest, progress, facts, level) && Startable(quest, progress, chain);
 
-    // The site fills Available for its active character only, and for it a quest it leaves out is not startable: for the
-    // others (an empty list), every previous quest done makes it startable. A listed quest needs its previous quests done
-    // too, or the lock (QuestTracking.Locked) would call a recommended row unmet.
-    // A prerequisite naming no quest (alignment, free text) is not checked.
-    public static bool PreviousDone(QuestSummary quest, TrackerProgress progress, QuestChainIndex chain) =>
-        quest.Prerequisites.Select(chain.Resolve)
-            .All(p => p is null || p.Id == quest.Id || QuestTracking.StatusOf(progress, p.Id) == QuestStatus.Completed);
+    /// <summary>
+    /// Whether the character can start the quest now: in progress, or by the site's <c>Available</c>, which it fills
+    /// for its active character only. Listed: at least one previous quest done, or none named (some previous quests
+    /// are alternatives, one per alignment, as in "La fatalité"); not listed while others are: no; nothing listed (the
+    /// other characters): every previous quest done. Previous quests are the prerequisites naming another quest
+    /// (<see cref="QuestChainIndex.Resolve"/>); the others (alignment, free text) are not checked.
+    /// </summary>
+    public static bool Startable(QuestSummary quest, TrackerProgress progress, QuestChainIndex chain)
+    {
+        ArgumentNullException.ThrowIfNull(quest);
+        ArgumentNullException.ThrowIfNull(progress);
+        ArgumentNullException.ThrowIfNull(chain);
+
+        if (QuestTracking.StatusOf(progress, quest.Id) == QuestStatus.InProgress) return true;
+        var previous = Previous(quest, chain);
+        bool Done(QuestSummary p) => QuestTracking.StatusOf(progress, p.Id) == QuestStatus.Completed;
+        return progress.Available.Count == 0
+            ? previous.All(Done)
+            : progress.Available.Contains(quest.Id) && (previous.Count == 0 || previous.Any(Done));
+    }
+
+    /// <summary>The quests the prerequisites name, the quest itself left out ("L'Ascension" names itself).</summary>
+    public static IReadOnlyList<QuestSummary> Previous(QuestSummary quest, QuestChainIndex chain) =>
+        [.. quest.Prerequisites.Select(chain.Resolve).OfType<QuestSummary>().Where(p => p.Id != quest.Id)];
 
     // Every doable rule except being startable now (Available, in progress, previous quests done).
     private static bool Continuable(QuestSummary quest, TrackerProgress progress, TouchQuestFacts facts, int level)

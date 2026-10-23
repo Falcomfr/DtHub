@@ -11085,21 +11085,32 @@ Si une donnée manque, le gain et la marque sont masqués, jamais devinés.
 elle n'est pas répétable (journalière, hebdomadaire, saisonnière : leur
 disponibilité dépend d'un délai ou d'un événement que DT Hub ne voit pas) ; le
 niveau optimal de sa première étape ne dépasse pas le niveau du personnage ; et
-elle est démarrable : en cours, ou toutes ses quêtes précédentes terminées et,
-quand `available_quests` de Papycha n'est pas vide pour lui, dans cette liste.
-Papycha ne remplit `available_quests` que pour le personnage actif du site : pour
-les autres la liste est vide, et sans la troisième voie « Recommandées » et
-« Accessibles » restaient vides. Pour le personnage actif, la liste du site fait
-foi : une quête qu'elle ne donne pas n'est pas démarrable, même si ses
-précédentes sont faites (revue finale du 23/10/2026). Une quête qu'elle donne doit
-avoir aussi ses précédentes terminées (revue du 23/10/2026) : sinon le cadenas
-(voir plus bas) la dirait verrouillée dans « Recommandées ». Les quêtes précédentes sont résolues par `QuestChainIndex` (titre,
-« ... atteint », succès = dernière quête du succès) ; un prérequis qui ne
-désigne aucune quête (alignement, texte libre) est ignoré. Même règle pour
-« Accessibles » et pour les « Suivantes » calculées : répétables, bloquées et
+elle est démarrable. Démarrable veut dire en cours, ou bien, selon
+`available_quests` de Papycha, qui n'est rempli que pour le personnage actif du
+site :
+- le site la donne : au moins une de ses quêtes précédentes est terminée, ou
+  aucun prérequis ne désigne une autre quête. Le site répond du reste ; on ne
+  refuse une quête qu'il donne que si rien de ce qu'elle nomme n'est fait.
+  « La fatalité » demande « Cliquetis fou. (brâkmarien 1) » et « Entraînement
+  avec Tarche (bontarien 1) », une quête par alignement : exiger les deux la
+  rendait impossible (revue du 23/10/2026). « Tour de l'île », dont la seule
+  précédente (« Accès à l'île de Pandala atteint ») n'est pas faite, reste
+  refusée même si le site la donne ;
+- le site ne donne rien (les autres personnages) : toutes ses quêtes
+  précédentes terminées. Sans cette voie « Recommandées » et « Accessibles »
+  restaient vides pour eux ;
+- le site en donne d'autres mais pas elle : pas démarrable, même si ses
+  précédentes sont faites (revue finale du 23/10/2026).
+
+Les quêtes précédentes sont résolues par `QuestChainIndex`
+(titre, « ... atteint », succès = dernière quête du succès), la quête elle-même exclue (« L'Ascension »
+se nomme elle-même) ; un prérequis qui ne désigne aucune quête (alignement, texte
+libre) n'est pas vérifié. La règle est une seule fonction (`QuestProfit.Startable`),
+lue aussi par le cadenas (voir plus bas), par « Accessibles » (une quête que le
+site donne n'y reste que si elle est démarrable) et par les « Suivantes », celles
+du site comprises. Pour les « Suivantes » calculées, en plus : répétables, bloquées et
 quêtes au-dessus du niveau du personnage exclues (une quête dont les objectifs ne
-sont pas encore lus reste), ce qui ne vaut que pour la liste calculée : celle du
-site est gardée telle quelle.
+sont pas encore lus reste) ; la liste du site garde son ordre.
 
 **Série.** Une entrée de série commence à sa première quête faisable et continue
 avec les quêtes suivantes, dans l'ordre de jeu, pas encore faites, qui passent
@@ -11212,25 +11223,33 @@ n'affichait aucune pierre.
 **Cadenas.** Revue du 23/10/2026 : « Terre à terre », recommandée, portait le
 cadenas avec « Tour de l'île » au survol, et l'utilisateur l'a crue non faisable ;
 elle était en cours. Le cadenas disait seulement « a des prérequis ». Avec le suivi
-relié, il dit maintenant leur état pour le personnage choisi : rempli quand chaque
-prérequis qui désigne une quête (résolu comme pour la règle de démarrage) est
-terminé, ou quand la quête elle-même est en cours ou terminée ; il est alors ouvert
-et gris, et son survol met une coche devant chaque prérequis terminé. Sinon il reste
-fermé, en jaune d'avertissement, et son survol coche ceux qui sont faits et met une
-croix devant ceux qui manquent. Un prérequis qui ne désigne pas de quête (objet,
-alignement, texte libre) garde sa puce, sans marque. Non relié, le cadenas reste le
-cadenas neutre d'avant. Le clic ouvre toujours la liste dont les quêtes se suivent.
-Une ligne de « Recommandées » n'a jamais un cadenas fermé : un test le vérifie.
+relié, il dit maintenant leur état pour le personnage choisi : rempli quand la
+quête est démarrable (la règle ci-dessus, même fonction), en cours ou terminée ; il
+est alors ouvert et gris, et son survol met une coche devant chaque prérequis
+terminé. Sinon il reste fermé, en jaune d'avertissement, et son survol coche ceux
+qui sont faits et met une croix devant ceux qui manquent. Un prérequis qui ne
+désigne pas d'autre quête (objet, alignement, texte libre, la quête elle-même)
+garde sa puce, sans marque ; une quête dont aucun prérequis ne désigne une autre
+quête, ni commencée ni terminée, garde le cadenas neutre (revue du 23/10/2026 : il
+s'ouvrait en gris sans rien vérifier). Non relié, le cadenas reste le cadenas
+neutre d'avant. Dans la vue d'équipe, une ligne que le personnage choisi ne partage
+pas garde aussi le cadenas neutre : il n'y dirait que l'état de ce personnage. Le
+clic ouvre toujours la liste dont les quêtes se suivent. Une ligne de
+« Recommandées », vue d'équipe comprise, n'a jamais un cadenas fermé : un test le
+vérifie.
 
 **Filtres de « Recommandées ».** Deux paires de boutons, du même style que « À
 faire » et « Accessibles », sous le fil d'Ariane de cette vue seulement, suivi
 relié : « En cours » et « À commencer », puis « Avec donjon » et « Sans donjon ».
 Tous actifs par défaut ; dans chaque paire le dernier actif le reste (le décocher le
 rallume), une paire vide viderait les listes. Une quête est « avec donjon » quand un
-objectif est une course de donjon selon la règle de la carte de sortie de D221 ; une
-ligne de donjon l'est toujours, et elle est en cours si une des quêtes qu'elle fait
-avancer l'est. Le statut est celui du personnage choisi, aussi dans la vue
-d'équipe. Les filtres agissent avant les listes courtes : chaque liste garde ses 20
+objectif est une course de donjon selon la règle de la carte de sortie de D221, ou
+quand un objectif nomme un donjon du jeu comme pour les lignes de donjon (D220) :
+la même source que ces lignes, sinon une quête qui fait avancer un donjon passait
+« sans donjon » (revue du 23/10/2026). Une ligne de donjon l'est toujours, et elle
+est en cours si une des quêtes qu'elle fait avancer l'est. Le statut est celui du
+personnage choisi ; dans la vue d'équipe, une ligne est en cours quand un des
+personnages qu'elle nomme l'a en cours. Les filtres agissent avant les listes courtes : chaque liste garde ses 20
 lignes. Les quatre choix sont retenus dans les réglages.
 
 ## D220 - Les outils des guides : valeur des donjons, équipe, où trouver
