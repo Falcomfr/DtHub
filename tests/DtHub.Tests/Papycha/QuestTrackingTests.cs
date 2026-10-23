@@ -298,4 +298,53 @@ public class QuestTrackingTests
         Assert.True(tally?.IsComplete);
         Assert.Null(tally?.PassingTip);
     }
+    private static QuestNode Row(QuestSummary quest, QuestChainIndex chain) =>
+        new(QuestNodeKind.Quest, quest.Title, Quest: quest, Needs: [.. quest.Prerequisites.Select(n => new QuestNeed(n, chain.Find(n)))]);
+
+    private static TrackerProgress Done(IEnumerable<int> completed, Dictionary<int, QuestStatus>? statuses = null) =>
+        new(statuses ?? [], completed.ToHashSet(), new HashSet<int>(), []);
+
+    private static readonly QuestSummary Needy = Named(12, 0, "Q10", "Q11", "Un objet");
+
+    private static readonly QuestChainIndex NeedyChain = new([Named(10), Named(11), Needy]);
+
+    [Fact]
+    public void The_lock_is_met_when_every_quest_prerequisite_is_done_and_checks_each()
+    {
+        var row = QuestTracking.Locked(Row(Needy, NeedyChain), Done([10, 11]), NeedyChain);
+
+        Assert.True(row.NeedsMet);
+        // Free text has no mark.
+        Assert.Equal([true, true, null], row.Needs!.Select(n => n.Met));
+    }
+
+    [Fact]
+    public void The_lock_is_unmet_while_a_quest_prerequisite_is_not_done_and_marks_it()
+    {
+        var row = QuestTracking.Locked(Row(Needy, NeedyChain), Done([10]), NeedyChain);
+
+        Assert.False(row.NeedsMet);
+        Assert.Equal([true, false, null], row.Needs!.Select(n => n.Met));
+    }
+
+    [Theory]
+    [InlineData(QuestStatus.InProgress)]
+    [InlineData(QuestStatus.Completed)]
+    public void The_lock_is_met_on_a_quest_in_progress_or_done_and_marks_no_missing_one(QuestStatus status)
+    {
+        // "Terre à terre" in progress, "Tour de l'île" not ticked: it was doable, the lock must not say otherwise.
+        var row = QuestTracking.Locked(Row(Needy, NeedyChain), Done([10], new() { [12] = status }), NeedyChain);
+
+        Assert.True(row.NeedsMet);
+        Assert.Equal([true, null, null], row.Needs!.Select(n => n.Met));
+    }
+
+    [Fact]
+    public void Without_a_tracker_the_lock_stays_neutral()
+    {
+        var row = QuestTracking.Locked(Row(Needy, NeedyChain), null, NeedyChain);
+
+        Assert.Null(row.NeedsMet);
+        Assert.All(row.Needs!, n => Assert.Null(n.Met));
+    }
 }

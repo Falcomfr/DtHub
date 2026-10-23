@@ -246,8 +246,9 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// Lays the tracker's status, the gain at the chosen level and the
-    /// priority mark over a quest row; other rows pass through.
+    /// Lays the tracker's status, the prerequisites' state, the gain at the
+    /// chosen level and the priority mark over a quest row; other rows pass
+    /// through.
     /// </summary>
     private QuestNode Marked(QuestNode node)
     {
@@ -272,7 +273,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             return node;
         }
 
-        node = node with
+        node = QuestTracking.Locked(node, Tracker.Progress, _tree.Chain) with
         {
             Status = QuestTracking.StatusOf(Tracker.Progress, quest.Id),
             Checked = IsSelecting ? _picked.Contains(quest.Id) : null,

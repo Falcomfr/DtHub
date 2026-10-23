@@ -30,6 +30,33 @@ public static class QuestTracking
     }
 
     /// <summary>
+    /// A quest row's lock for the chosen character: met when every prerequisite naming a quest
+    /// (<see cref="QuestChainIndex.Resolve"/>, as <see cref="QuestProfit.IsDoable"/> reads them) is done, or when the
+    /// quest itself is in progress or done. Each such prerequisite gets a check when done and, on an unmet lock only,
+    /// a missing mark; the others (items, free text) get none. Without a tracker the row is left neutral.
+    /// </summary>
+    public static QuestNode Locked(QuestNode node, TrackerProgress? progress, QuestChainIndex? chain)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+
+        if (progress is null || chain is null || node.Quest is not { } quest || node.Needs is not { Count: > 0 } needs)
+        {
+            return node;
+        }
+
+        var met = StatusOf(progress, quest.Id) is QuestStatus.InProgress or QuestStatus.Completed
+            || QuestProfit.PreviousDone(quest, progress, chain);
+
+        return node with
+        {
+            NeedsMet = met,
+            Needs = [.. needs.Select(n => chain.Resolve(n.Text) is { } p
+                ? n with { Met = p.Id == quest.Id || StatusOf(progress, p.Id) == QuestStatus.Completed ? true : met ? null : false }
+                : n)],
+        };
+    }
+
+    /// <summary>
     /// A zone's progress in the quest areas: the quests done once and for
     /// all that are done, and how many quests are started. A quest done again
     /// (daily, weekly, repeatable, seasonal) stays out of the count, or a zone

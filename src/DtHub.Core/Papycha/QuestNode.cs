@@ -131,6 +131,10 @@ public enum QuestNodeGlyph
 /// <param name="Duration">The estimated time, "≈ 25 min"; <c>null</c> hides it.</param>
 /// <param name="Checked">In selection mode, whether the quest is ticked; <c>null</c> shows no box.</param>
 /// <param name="MarksAll">In selection mode, an achievement or zone heading offering "mark all done".</param>
+/// <param name="NeedsMet">
+/// For the chosen character, whether the prerequisites are met (see <see cref="QuestTracking.Locked"/>); <c>null</c>
+/// without a tracker.
+/// </param>
 public sealed record QuestNode(
     QuestNodeKind Kind,
     string Label,
@@ -156,7 +160,8 @@ public sealed record QuestNode(
     string? OtherRewards = null,
     string? Duration = null,
     bool? Checked = null,
-    bool MarksAll = false)
+    bool MarksAll = false,
+    bool? NeedsMet = null)
 {
     /// <summary>
     /// Neither unmade branches nor subheadings are clickable.
@@ -205,7 +210,8 @@ public sealed record QuestNode(
 /// </summary>
 /// <param name="Text">The prerequisite as the site writes it.</param>
 /// <param name="Quest">The quest it designates, or <c>null</c>.</param>
-public sealed record QuestNeed(string Text, QuestSummary? Quest)
+/// <param name="Met">A check (done), a missing mark, or none: see <see cref="QuestTracking.Locked"/>.</param>
+public sealed record QuestNeed(string Text, QuestSummary? Quest, bool? Met = null)
 {
     /// <summary>True when the prerequisite leads somewhere.</summary>
     public bool IsQuest => Quest is not null;

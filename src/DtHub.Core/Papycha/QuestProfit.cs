@@ -105,7 +105,7 @@ public static class QuestProfit
     // The site fills Available for its active character only, and for it the list is the truth: for the others (an empty
     // list), every previous quest done makes it startable.
     // A prerequisite naming no quest (alignment, free text) is not checked.
-    private static bool PreviousDone(QuestSummary quest, TrackerProgress progress, QuestChainIndex chain) =>
+    public static bool PreviousDone(QuestSummary quest, TrackerProgress progress, QuestChainIndex chain) =>
         quest.Prerequisites.Select(chain.Resolve)
             .All(p => p is null || p.Id == quest.Id || QuestTracking.StatusOf(progress, p.Id) == QuestStatus.Completed);
 

@@ -11207,6 +11207,19 @@ mot de l'infobulle, et les pierres attendent les quatre mots tels que l'API les
 écrit (« Petite », « Moyenne », « Grande », « Gigantesque ») ; une autre casse
 n'affichait aucune pierre.
 
+**Cadenas.** Revue du 23/10/2026 : « Terre à terre », recommandée, portait le
+cadenas avec « Tour de l'île » au survol, et l'utilisateur l'a crue non faisable ;
+elle était en cours. Le cadenas disait seulement « a des prérequis ». Avec le suivi
+relié, il dit maintenant leur état pour le personnage choisi : rempli quand chaque
+prérequis qui désigne une quête (résolu comme pour la règle de démarrage) est
+terminé, ou quand la quête elle-même est en cours ou terminée ; il est alors ouvert
+et gris, et son survol met une coche devant chaque prérequis terminé. Sinon il reste
+fermé, en jaune d'avertissement, et son survol coche ceux qui sont faits et met une
+croix devant ceux qui manquent. Un prérequis qui ne désigne pas de quête (objet,
+alignement, texte libre) garde sa puce, sans marque. Non relié, le cadenas reste le
+cadenas neutre d'avant. Le clic ouvre toujours la liste dont les quêtes se suivent.
+Une ligne de « Recommandées » n'a jamais un cadenas fermé : un test le vérifie.
+
 ## D220 - Les outils des guides : valeur des donjons, équipe, où trouver
 
 **2026-10-23 - Acceptée, complète D219**
