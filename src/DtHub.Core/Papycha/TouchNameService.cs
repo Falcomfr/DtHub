@@ -21,6 +21,11 @@ public sealed class TouchNameService(
     /// <summary>One network read at a time, so a second refresh finds the first one's names instead of asking again.</summary>
     private readonly SemaphoreSlim _read = new(1, 1);
 
+    /// <summary>One bulk facts read at a time; its pauses must not hold <see cref="_read"/>.</summary>
+    private readonly SemaphoreSlim _facts = new(1, 1);
+
+    private DateTimeOffset? _factsFailedUtc;
+
     private readonly Lazy<TouchIdTable> _table = new(table.Load);
     private TouchNamesDocument? _document;
 
@@ -172,6 +177,9 @@ public sealed class TouchNameService(
         }
     }
 
+    /// <summary>After a failed bulk read, none is retried before this.</summary>
+    public TimeSpan FactsRetry { get; init; } = TimeSpan.FromHours(6);
+
     /// <summary>Spacing between the three bulk reads, so the game's server is never hammered.</summary>
     public TimeSpan FactsPause { get; init; } = TimeSpan.FromSeconds(60);
 
@@ -190,14 +198,19 @@ public sealed class TouchNameService(
             return new Dictionary<int, TouchQuestFacts>();
         }
 
-        await _read.WaitAsync(ct).ConfigureAwait(false);
+        if (FactsAreSettled(known))
+        {
+            return known.Facts;
+        }
+
+        // Only one bulk read at a time; it holds _read per request, never across the pauses.
+        await _facts.WaitAsync(ct).ConfigureAwait(false);
 
         try
         {
-            // A refresh may have swapped the record while this waited.
             known = await CachedAsync(language, ct).ConfigureAwait(false) ?? known;
 
-            if (DateTimeOffset.UtcNow - known.FactsReadUtc < Freshness)
+            if (FactsAreSettled(known))
             {
                 return known.Facts;
             }
@@ -205,9 +218,13 @@ public sealed class TouchNameService(
             try
             {
                 var facts = await ReadFactsAsync(known, language, ct).ConfigureAwait(false);
+
+                // The live record: a names refresh may have landed during a pause.
                 await SaveAsync(
-                    document => document.Languages[language] = known with { Facts = facts, FactsReadUtc = DateTimeOffset.UtcNow }, ct)
+                    document => document.Languages[language] =
+                        document.Languages.GetValueOrDefault(language, known) with { Facts = facts, FactsReadUtc = DateTimeOffset.UtcNow }, ct)
                     .ConfigureAwait(false);
+                _factsFailedUtc = null;
                 LastFailure = null;
 
                 return facts;
@@ -218,7 +235,8 @@ public sealed class TouchNameService(
             }
             catch (Exception exception) when (exception is not OutOfMemoryException)
             {
-                // The caller reads LastFailure; last week's facts beat none.
+                // The caller reads LastFailure; last week's facts beat none, and the cooldown spares a server that just refused.
+                _factsFailedUtc = DateTimeOffset.UtcNow;
                 LastFailure = exception;
 
                 return known.Facts;
@@ -226,9 +244,13 @@ public sealed class TouchNameService(
         }
         finally
         {
-            _read.Release();
+            _facts.Release();
         }
     }
+
+    private bool FactsAreSettled(TouchLanguageNames known) =>
+        DateTimeOffset.UtcNow - known.FactsReadUtc < Freshness
+        || (_factsFailedUtc is { } failed && DateTimeOffset.UtcNow - failed < FactsRetry);
 
     private async Task<Dictionary<int, TouchQuestFacts>> ReadFactsAsync(
         TouchLanguageNames known, string language, CancellationToken ct)
@@ -242,7 +264,21 @@ public sealed class TouchNameService(
                 .SelectMany(g => known.Quests[g.First()].StepIds)
                 .ToArray());
 
-        var steps = await GetAsync("QuestSteps", [.. stepIdsOf.Values.SelectMany(ids => ids)], language, ct).ConfigureAwait(false);
+        async Task<T> Locked<T>(Func<Task<T>> read)
+        {
+            await _read.WaitAsync(ct).ConfigureAwait(false);
+
+            try
+            {
+                return await read().ConfigureAwait(false);
+            }
+            finally
+            {
+                _read.Release();
+            }
+        }
+
+        var steps = await Locked(() => GetAsync("QuestSteps", [.. stepIdsOf.Values.SelectMany(ids => ids)], language, ct)).ConfigureAwait(false);
 
         if (steps.Count == 0)
         {
@@ -250,11 +286,11 @@ public sealed class TouchNameService(
         }
 
         await Task.Delay(FactsPause, ct).ConfigureAwait(false);
-        var objectives = await GetAsync(
-            "QuestObjectives", [.. steps.Values.SelectMany(step => Ints(step, "objectiveIds"))], language, ct).ConfigureAwait(false);
+        var objectives = await Locked(() => GetAsync(
+            "QuestObjectives", [.. steps.Values.SelectMany(step => Ints(step, "objectiveIds"))], language, ct)).ConfigureAwait(false);
 
         await Task.Delay(FactsPause, ct).ConfigureAwait(false);
-        var rewardRows = await ReadRewardRowsAsync(steps.Values, language, ct).ConfigureAwait(false);
+        var rewardRows = await Locked(() => ReadRewardRowsAsync(steps.Values, language, ct)).ConfigureAwait(false);
 
         return stepIdsOf
             .Where(q => q.Value.Any(steps.ContainsKey))
@@ -510,5 +546,6 @@ public sealed class TouchNameService(
     {
         _gate.Dispose();
         _read.Dispose();
+        _facts.Dispose();
     }
 }

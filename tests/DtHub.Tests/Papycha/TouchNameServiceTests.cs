@@ -436,4 +436,36 @@ public class TouchNameServiceTests
         Assert.Same(previous, facts);
         Assert.NotNull(service.LastFailure);
     }
+
+    [Fact]
+    public async Task Apres_un_refus_aucune_relecture_avant_le_delai()
+    {
+        SeedFacts();
+        _client.FailingClasses.Add("QuestObjectives");
+        using var service = new TouchNameService(_client, _store, new FakeTable()) { FactsPause = TimeSpan.Zero };
+        _ = await service.FactsAsync("en");
+        _client.Requested.Clear();
+
+        _ = await service.FactsAsync("en");
+
+        Assert.Empty(_client.Requested);
+    }
+
+    [Fact]
+    public async Task Les_faits_survivent_a_une_relecture_des_noms()
+    {
+        var facts = new Dictionary<int, TouchQuestFacts> { [1] = new([], []) };
+        await _store.SaveAsync(new TouchNamesDocument
+        {
+            Languages = { ["en"] = new TouchLanguageNames { ReadUtc = DateTimeOffset.UtcNow.AddDays(-8), Facts = facts, FactsReadUtc = DateTimeOffset.UtcNow } },
+        });
+        using var service = new TouchNameService(_client, _store, new FakeTable()) { FactsPause = TimeSpan.Zero };
+        _ = await service.RefreshAsync("en");
+        _client.Requested.Clear();
+
+        var served = await service.FactsAsync("en");
+
+        Assert.Same(facts, served);
+        Assert.Empty(_client.Requested);
+    }
 }
