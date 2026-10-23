@@ -19,8 +19,11 @@ public sealed class InMemoryDocumentStore<T> : IDocumentStore<T>
     /// </summary>
     public int Writes { get; private set; }
 
+    /// <summary>As a file held by another program: reads hand out a fresh document, writes are dropped.</summary>
+    public bool IsUnread { get; set; }
+
     public Task<T> LoadAsync(CancellationToken cancellationToken = default) =>
-        Task.FromResult(_document ?? new T());
+        Task.FromResult(IsUnread ? new T() : _document ?? new T());
 
     public string Serialize(T document) => JsonSerializer.Serialize(document);
 
@@ -28,6 +31,12 @@ public sealed class InMemoryDocumentStore<T> : IDocumentStore<T>
 
     public Task SaveAsync(T document, CancellationToken cancellationToken = default)
     {
+        // The real store refuses to write the default document over a file it could not read.
+        if (IsUnread)
+        {
+            return Task.CompletedTask;
+        }
+
         _document = document;
         Writes++;
 

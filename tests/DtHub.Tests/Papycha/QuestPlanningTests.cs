@@ -92,23 +92,6 @@ public class QuestPlanningTests
         Assert.Equal([2, 3, 5, 10], [team.Count(t => t.Tier == 3), team.Count(t => t.Tier == 2), team.Count(t => t.Tier == 1), team.Count(t => t.Tier == 0)]);
     }
 
-    [Fact]
-    public void By_area_groups_on_the_first_quest_and_orders_groups_by_summed_score()
-    {
-        var series = new ProfitEntry("S", [Quest(4), Quest(1)], new QuestGain(1, 0), new QuestEffort(1, []), 0, false, false, 0);
-        var entries = new[] { Entry(1), Entry(2), Entry(3), series };
-        var score = new Dictionary<ProfitEntry, double> { [entries[0]] = 0.5, [entries[1]] = 0.9, [entries[2]] = 0.1, [series] = 0.3 };
-        string Area(QuestSummary q) => q.Id is 1 or 3 ? "X" : "Y";
-
-        var groups = QuestPlanning.ByArea(entries, e => score[e], Area);
-
-        Assert.Equal(["Y", "X"], groups.Select(g => g.Area));
-        Assert.Equal(["Q2", "S"], groups[0].Entries.Select(e => e.Title));
-        Assert.Equal(["Q1", "Q3"], groups[1].Entries.Select(e => e.Title));
-        Assert.Equal(1.2, groups[0].Score, 6);
-        Assert.Equal(0.6, groups[1].Score, 6);
-    }
-
     private static readonly Dictionary<int, long> Table = new() { [10] = 1000, [11] = 1150, [199] = 5000, [200] = 9000 };
 
     [Fact]

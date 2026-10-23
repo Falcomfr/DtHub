@@ -97,9 +97,10 @@ public static class QuestProfit
     public static bool IsDoable(QuestSummary quest, TrackerProgress? progress, TouchQuestFacts facts, int level, QuestChainIndex chain) =>
         progress is not null && Continuable(quest, progress, facts, level)
         && (progress.Available.Contains(quest.Id) || QuestTracking.StatusOf(progress, quest.Id) == QuestStatus.InProgress
-            || PreviousDone(quest, progress, chain));
+            || (progress.Available.Count == 0 && PreviousDone(quest, progress, chain)));
 
-    // The site fills Available for its active character only: for the others, every previous quest done makes it startable.
+    // The site fills Available for its active character only, and for it the list is the truth: for the others (an empty
+    // list), every previous quest done makes it startable.
     // A prerequisite naming no quest (alignment, free text) is not checked.
     private static bool PreviousDone(QuestSummary quest, TrackerProgress progress, QuestChainIndex chain) =>
         quest.Prerequisites.Select(chain.Resolve)
@@ -310,10 +311,21 @@ public static class QuestProfit
     public static IReadOnlyList<int> DungeonsOf(TouchQuestFacts facts, IReadOnlyDictionary<int, string> dungeonNames)
     {
         ArgumentNullException.ThrowIfNull(facts);
+
+        return DungeonsOf(facts, NormalisedNames(dungeonNames));
+    }
+
+    /// <summary>The dungeon names as they are compared, longest first: built once per call, not once per quest.</summary>
+    private static List<(int Id, string Name)> NormalisedNames(IReadOnlyDictionary<int, string> dungeonNames)
+    {
         ArgumentNullException.ThrowIfNull(dungeonNames);
 
-        var names = dungeonNames.Select(d => (d.Key, Name: Normalised(d.Value)))
-            .Where(d => d.Name.Length > 0).OrderByDescending(d => d.Name.Length).ToList();
+        return [.. dungeonNames.Select(d => (d.Key, Name: Normalised(d.Value)))
+            .Where(d => d.Name.Length > 0).OrderByDescending(d => d.Name.Length)];
+    }
+
+    private static IReadOnlyList<int> DungeonsOf(TouchQuestFacts facts, List<(int Id, string Name)> names)
+    {
         var found = new SortedSet<int>();
         foreach (var o in facts.Objectives.Where(o => !string.IsNullOrEmpty(o.Text)))
         {
@@ -354,9 +366,10 @@ public static class QuestProfit
         ArgumentNullException.ThrowIfNull(dungeons);
 
         var best = Maxima(scores.Values.Select(s => (s.Gain, s.Effort.Minutes)));
+        var names = NormalisedNames(dungeonNames);
         // Doable now only: a run's later quests cannot be started yet, so a dungeon they name has nothing to do there.
         var named = entries.SelectMany(e => e.Quests).Where(q => scores.ContainsKey(q.Id)).DistinctBy(q => q.Id)
-            .Select(q => (Quest: q, Dungeons: DungeonsOf(facts[q.Id], dungeonNames)))
+            .Select(q => (Quest: q, Dungeons: DungeonsOf(facts[q.Id], names)))
             .Where(q => q.Dungeons.Count > 0).ToList();
         var result = new Dictionary<int, DungeonValue>();
         foreach (var (papychaId, ids) in dungeons)

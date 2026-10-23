@@ -82,7 +82,9 @@ public class QuestProfitTests
         Assert.True(QuestProfit.IsDoable(Quest(4), progress, facts, 10, chain));
         Assert.False(QuestProfit.IsDoable(Quest(5), progress, facts, 10, chain));
         Assert.True(QuestProfit.IsDoable(Quest(7), progress, facts, 10, chain));
-        Assert.True(QuestProfit.IsDoable(Quest(8), progress, facts, 10, chain));
+        // The site's list stands for its active character: quest 8 is out of it.
+        Assert.False(QuestProfit.IsDoable(Quest(8), progress, facts, 10, chain));
+        Assert.True(QuestProfit.IsDoable(Quest(8), Progress([]), facts, 10, chain));
         Assert.False(QuestProfit.IsDoable(Quest(1), progress, facts, 9, chain));
         Assert.False(QuestProfit.IsDoable(Quest(1, rec: QuestRecurrence.Daily), progress, facts, 10, chain));
         Assert.False(QuestProfit.IsDoable(Quest(1) with { SectionIds = [QuestRecurrenceLabel.RepeatableSection] }, progress, facts, 10, chain));
@@ -92,7 +94,6 @@ public class QuestProfitTests
     [Fact]
     public void Out_of_available_a_quest_is_doable_once_its_previous_quests_are_completed()
     {
-        // The site lists available quests for its active character only: here, quest 5 alone.
         var catalog = new List<QuestSummary>
         {
             Quest(1),
@@ -103,8 +104,20 @@ public class QuestProfitTests
             Quest(6),
         };
         var facts = catalog.ToDictionary(q => q.Id, _ => Facts());
+        // An empty list: not the site's active character, startable is read from the previous quests.
+        var scores = QuestProfit.Score(catalog, facts, Progress([], completed: [1]), 10, 0);
+        Assert.Equal([2, 4, 6], scores.Keys.Order());
+    }
+
+    [Fact]
+    public void For_the_site_s_active_character_its_available_list_alone_says_what_is_startable()
+    {
+        var catalog = new List<QuestSummary> { Quest(1), Quest(2) with { Prerequisites = ["Q1"] }, Quest(5) with { Prerequisites = ["Q6"] }, Quest(6) };
+        var facts = catalog.ToDictionary(q => q.Id, _ => Facts());
+
         var scores = QuestProfit.Score(catalog, facts, Progress([5], completed: [1]), 10, 0);
-        Assert.Equal([2, 4, 5, 6], scores.Keys.Order());
+
+        Assert.Equal([5], scores.Keys);
     }
 
     private static (List<QuestSummary> Catalog, Dictionary<int, TouchQuestFacts> Facts) Twenty()

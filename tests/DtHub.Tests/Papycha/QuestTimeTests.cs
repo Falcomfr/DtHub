@@ -34,6 +34,17 @@ public class QuestTimeTests
         Assert.Equal(expected, Seconds(Obj(3, parameters)));
 
     [Fact]
+    public void Objectives_without_a_known_step_never_make_a_dungeon_run()
+    {
+        // A cache read before steps were kept: null must not match null.
+        var boss = new TouchObjective(6, [1, 1], 10);
+        var exit = new TouchObjective(4, [], 10);
+
+        Assert.Equal(90, Seconds(boss, exit));
+        Assert.Equal(45, Seconds(exit, boss));
+    }
+
+    [Fact]
     public void Fights_cost_per_monster_up_to_ten()
     {
         Assert.Equal(450, Seconds(Obj(14, [1, 5])));

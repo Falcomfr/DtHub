@@ -6,13 +6,10 @@
 /// </summary>
 public sealed record TeamEntry(ProfitEntry Entry, IReadOnlyList<TrackerCharacter> Characters, QuestGain Gain, double Score, int Tier);
 
-/// <summary>Recommended entries whose first quest is in <c>Area</c>; <c>Score</c> is their summed score.</summary>
-public sealed record AreaGroup(string Area, IReadOnlyList<ProfitEntry> Entries, double Score);
-
 /// <summary>The first <c>Count</c> entries are worth the whole level <c>From</c> to <c>To</c>.</summary>
 public sealed record LevelLine(int Count, int From, int To);
 
-/// <summary>Team, area and level views over the profitable quests ranking. Pure.</summary>
+/// <summary>Team and level views over the profitable quests ranking. Pure.</summary>
 public static class QuestPlanning
 {
     /// <summary>
@@ -53,17 +50,6 @@ public static class QuestPlanning
     }
 
     private static int Share(int n, double part) => (int)Math.Round(n * part, MidpointRounding.AwayFromZero);
-
-    /// <summary>Entries grouped by their first quest's area, best summed score first; entries keep their order.</summary>
-    public static IReadOnlyList<AreaGroup> ByArea(
-        IReadOnlyList<ProfitEntry> entries, Func<ProfitEntry, double> scoreOf, Func<QuestSummary, string> areaOf)
-    {
-        ArgumentNullException.ThrowIfNull(entries);
-
-        return [.. entries.GroupBy(e => areaOf(e.Quests[0]))
-            .Select(g => new AreaGroup(g.Key, [.. g], g.Sum(scoreOf)))
-            .OrderByDescending(g => g.Score)];
-    }
 
     /// <summary>
     /// The smallest number of first entries whose summed XP covers the XP from <paramref name="level"/> to the next;

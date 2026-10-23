@@ -109,7 +109,8 @@ public static class QuestBatch
                 foreach (var id in todo)
                 {
                     await Pace().ConfigureAwait(false);
-                    var write = await tracker.SetStatusAsync(cookie, characterId, id, status, cancellationToken).ConfigureAwait(false);
+                    // Not cancelled midway: a write the site applied would be reported as not done. The cancel acts in the pause.
+                    var write = await tracker.SetStatusAsync(cookie, characterId, id, status, CancellationToken.None).ConfigureAwait(false);
 
                     if (write.Success)
                     {
@@ -136,7 +137,7 @@ public static class QuestBatch
                 }
 
                 await Pace().ConfigureAwait(false);
-                var read = await tracker.ReadAsync(cookie, cancellationToken).ConfigureAwait(false);
+                var read = await tracker.ReadAsync(cookie, CancellationToken.None).ConfigureAwait(false);
                 if (read.Outcome != TrackerReadOutcome.Linked)
                 {
                     return End(read.Outcome);

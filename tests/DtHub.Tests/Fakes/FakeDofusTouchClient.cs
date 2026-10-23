@@ -32,6 +32,8 @@ public sealed class FakeDofusTouchClient : IDofusTouchClient
     public async Task<IReadOnlyDictionary<int, JsonElement>> GetAsync(
         string dataClass, IReadOnlyCollection<int>? ids, string language, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         if (Pause is not null)
         {
             await Pause.Task.WaitAsync(cancellationToken);

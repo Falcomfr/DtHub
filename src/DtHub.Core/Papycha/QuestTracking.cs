@@ -74,8 +74,8 @@ public static class QuestTracking
     /// <summary>
     /// Whether a quest stays in the list under the two filters. Without a
     /// linked tracker nothing is filtered: the list must read as before.
-    /// <paramref name="startable"/> is DT Hub's own reading, since the site
-    /// lists available quests for its active character only.
+    /// <paramref name="startable"/> is DT Hub's own reading, used only when
+    /// the site lists no available quest: it does for its active character only.
     /// </summary>
     public static bool Passes(TrackerProgress? progress, int questId, bool toDo, bool available, bool startable)
     {
@@ -89,7 +89,8 @@ public static class QuestTracking
             return false;
         }
 
-        return !available || startable || progress.Available.Contains(questId);
+        // The site's list, when it gives one, is the truth for its active character.
+        return !available || progress.Available.Contains(questId) || (progress.Available.Count == 0 && startable);
     }
 
     /// <summary>
@@ -97,9 +98,13 @@ public static class QuestTracking
     /// it gives one; it does for its active character only, so otherwise
     /// the quests not done whose previous quests are all completed, in play
     /// order. A quest naming no previous quest is no one's follow-up and
-    /// stays out, as do ignored and repeatable ones.
+    /// stays out, as do ignored, blocked and repeatable ones, and, as under
+    /// "Accessibles", one whose first step is above <paramref name="level"/>
+    /// (zero: not known, nothing left out on it).
     /// </summary>
-    public static IReadOnlyList<QuestSummary> NextQuests(TrackerProgress? progress, IReadOnlyList<QuestSummary> catalog)
+    public static IReadOnlyList<QuestSummary> NextQuests(
+        TrackerProgress? progress, IReadOnlyList<QuestSummary> catalog,
+        IReadOnlyDictionary<int, TouchQuestFacts>? facts = null, int level = 0)
     {
         ArgumentNullException.ThrowIfNull(catalog);
 
@@ -120,7 +125,8 @@ public static class QuestTracking
         // Repeatable quests follow their previous quests forever: they made the list very long.
         return QuestPlayOrder.Sorted(catalog.Where(q =>
             !QuestRecurrenceLabel.IsRepeatable(q)
-            && StatusOf(progress, q.Id) is not (QuestStatus.Completed or QuestStatus.Ignored)
+            && StatusOf(progress, q.Id) is not (QuestStatus.Completed or QuestStatus.Ignored or QuestStatus.Blocked)
+            && !(level > 0 && facts?.GetValueOrDefault(q.Id)?.Steps.FirstOrDefault() is { } first && first.OptimalLevel > level)
             && q.Prerequisites.Select(chain.Resolve).OfType<QuestSummary>().Where(p => p.Id != q.Id).ToList() is { Count: > 0 } previous
             && previous.All(p => StatusOf(progress, p.Id) == QuestStatus.Completed)));
     }

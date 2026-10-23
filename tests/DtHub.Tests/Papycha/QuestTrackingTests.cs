@@ -84,6 +84,22 @@ public class QuestTrackingTests
     }
 
     [Fact]
+    public void NextQuests_read_from_what_is_done_leave_blocked_and_too_high_quests_out()
+    {
+        var progress = Progress with { Statuses = new Dictionary<int, QuestStatus>(Progress.Statuses) { [40] = QuestStatus.Blocked } };
+        var catalog = new[] { Named(4), Named(40, 0, "Q4"), Named(41, 0, "Q4"), Named(42, 0, "Q4"), Named(43, 0, "Q4") };
+        var facts = new Dictionary<int, TouchQuestFacts>
+        {
+            [41] = new([new TouchStepReward(50, 1f, 1f, 0f, false, [])], []),
+            [42] = new([new TouchStepReward(20, 1f, 1f, 0f, false, [])], []),
+        };
+
+        // Quest 43 has no facts read: its level is not known, it stays.
+        Assert.Equal([42, 43], QuestTracking.NextQuests(progress, catalog, facts, 20).Select(q => q.Id).Order());
+        Assert.Equal([41, 42, 43], QuestTracking.NextQuests(progress, catalog, facts, 0).Select(q => q.Id).Order());
+    }
+
+    [Fact]
     public void NextQuests_come_in_play_order()
     {
         var catalog = new[] { Named(4), Named(20, 3, "Q4"), Named(21, 1, "Q4"), Named(22, 2, "Q4") };
@@ -108,8 +124,12 @@ public class QuestTrackingTests
         Assert.Equal([1, 6], Enumerable.Range(1, 6).Where(i => QuestTracking.Passes(Progress, i, true, true, false)));
 
     [Fact]
-    public void Passes_available_also_keeps_what_is_startable() =>
-        Assert.Equal([1, 3, 6], Enumerable.Range(1, 6).Where(i => QuestTracking.Passes(Progress, i, false, true, i == 3)));
+    public void Passes_available_keeps_what_is_startable_when_the_site_lists_none() =>
+        Assert.Equal([3], Enumerable.Range(1, 6).Where(i => QuestTracking.Passes(Progress with { Available = new HashSet<int>() }, i, false, true, i == 3)));
+
+    [Fact]
+    public void Passes_available_trusts_the_site_s_list_for_its_active_character() =>
+        Assert.Equal([1, 6], Enumerable.Range(1, 6).Where(i => QuestTracking.Passes(Progress, i, false, true, i == 3)));
 
     [Fact]
     public void Passes_is_always_true_without_progress() =>

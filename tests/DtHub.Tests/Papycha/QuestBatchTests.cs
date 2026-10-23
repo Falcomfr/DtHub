@@ -92,6 +92,9 @@ public class QuestBatchTests
                 Statuses[questId] = status;
             }
 
+            // As the HTTP client on a cancel that lands while the answer comes back: the write is applied all the same.
+            cancellationToken.ThrowIfCancellationRequested();
+
             return Task.FromResult(new TrackerWriteResult(true, null));
         }
 
@@ -152,6 +155,7 @@ public class QuestBatchTests
     [Fact]
     public async Task Une_annulation_en_cours_arrete_proprement_et_dit_ce_qui_est_fait()
     {
+        // The cancel lands during the second write: it is applied and must count as done.
         using var cancel = new CancellationTokenSource();
         var tracker = new FakeTracker { OnWrite = n => { if (n == 2) { cancel.Cancel(); } } };
 

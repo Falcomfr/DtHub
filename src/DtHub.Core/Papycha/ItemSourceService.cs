@@ -19,6 +19,9 @@ public sealed class ItemSourceService(IDofusTouchClient client, IDocumentStore<I
 
     private ItemSourcesDocument? _document;
 
+    /// <summary>True when <see cref="_document"/> stands for a file the store could not read.</summary>
+    private bool _documentUnread;
+
     private DateTimeOffset? _failedUtc;
 
     public TimeSpan Freshness { get; init; } = TimeSpan.FromDays(30);
@@ -31,14 +34,43 @@ public sealed class ItemSourceService(IDofusTouchClient client, IDocumentStore<I
     /// <summary>The shared HTTP client waits ten minutes; a stalled read must not hold the gate that long.</summary>
     public TimeSpan ReadTimeout { get; init; } = TimeSpan.FromSeconds(30);
 
-    /// <summary>Never throws except on cancellation; on failure the cached source or null (see <see cref="LastFailure"/>).</summary>
+    /// <summary>Two requests to the game server are at least this far apart: a guide asks for several items at once.</summary>
+    public TimeSpan RequestSpacing { get; init; } = TimeSpan.FromSeconds(2);
+
+    /// <summary>The wait between two requests; tests record it instead of sleeping.</summary>
+    public Func<TimeSpan, CancellationToken, Task> Delay { get; init; } = Task.Delay;
+
+    /// <summary>When the last request to the game server ended; guarded by the gate.</summary>
+    private DateTimeOffset _lastRequestUtc = DateTimeOffset.MinValue;
+
+    /// <summary>A guide reads this many items at most: each one costs up to five requests.</summary>
+    public const int MaxItemsPerQuest = 5;
+
+    /// <summary>The items a quest asks to bring (3) or show (2), whose id is the second parameter, at most <see cref="MaxItemsPerQuest"/>.</summary>
+    public static int[] ItemsAsked(TouchQuestFacts facts)
+    {
+        ArgumentNullException.ThrowIfNull(facts);
+
+        return [.. facts.Objectives.Where(o => o.TypeId is 2 or 3 && o.Parameters.Length > 1)
+            .Select(o => o.Parameters[1]).Distinct().Take(MaxItemsPerQuest)];
+    }
+
+    /// <summary>
+    /// Never throws except on cancellation before the first request; once one is sent the read ends and is kept. On
+    /// failure the cached source or null (see <see cref="LastFailure"/>).
+    /// </summary>
     public async Task<ItemSource?> SourceAsync(int itemId, string language, CancellationToken ct = default)
     {
         await _gate.WaitAsync(ct).ConfigureAwait(false);
 
         try
         {
-            _document ??= await store.LoadAsync(ct).ConfigureAwait(false);
+            // A file not read (held by another program) gave a blank document: read it again rather than keep it.
+            if (_document is null || _documentUnread)
+            {
+                _document = await store.LoadAsync(ct).ConfigureAwait(false);
+                _documentUnread = store.IsUnread;
+            }
 
             if (!_document.Languages.TryGetValue(language, out var known))
             {
@@ -54,8 +86,10 @@ public sealed class ItemSourceService(IDofusTouchClient client, IDocumentStore<I
                 return cached?.Source;
             }
 
-            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
-            timeout.CancelAfter(ReadTimeout);
+            ct.ThrowIfCancellationRequested();
+
+            // Not linked to the caller: a hover that goes must not throw away requests already sent, the read ends and is kept.
+            using var timeout = new CancellationTokenSource(ReadTimeout);
 
             try
             {
@@ -67,7 +101,7 @@ public sealed class ItemSourceService(IDofusTouchClient client, IDocumentStore<I
                         Harvest = await ReadHarvestAsync(language, timeout.Token).ConfigureAwait(false),
                         HarvestReadUtc = DateTimeOffset.UtcNow,
                     };
-                    await SaveAsync(ct).ConfigureAwait(false);
+                    await SaveAsync().ConfigureAwait(false);
                 }
 
                 var source = await ReadAsync(itemId, known.Harvest, language, timeout.Token).ConfigureAwait(false);
@@ -83,13 +117,9 @@ public sealed class ItemSourceService(IDofusTouchClient client, IDocumentStore<I
                 }
 
                 known.Items[itemId] = new(DateTimeOffset.UtcNow, source);
-                await SaveAsync(ct).ConfigureAwait(false);
+                await SaveAsync().ConfigureAwait(false);
 
                 return source;
-            }
-            catch (OperationCanceledException) when (ct.IsCancellationRequested)
-            {
-                throw;
             }
             catch (Exception exception) when (exception is not OutOfMemoryException)
             {
@@ -107,13 +137,13 @@ public sealed class ItemSourceService(IDofusTouchClient client, IDocumentStore<I
     }
 
     /// <summary>A failed write keeps the source in memory: the hover still shows it.</summary>
-    private async Task SaveAsync(CancellationToken ct)
+    private async Task SaveAsync()
     {
         try
         {
-            await store.SaveAsync(_document!, ct).ConfigureAwait(false);
+            await store.SaveAsync(_document!).ConfigureAwait(false);
         }
-        catch (Exception exception) when (exception is not OperationCanceledException and not OutOfMemoryException)
+        catch (Exception exception) when (exception is not OutOfMemoryException)
         {
             // Disk full or locked: the caller reads LastFailure, the next hover reads the item again.
             LastFailure = exception;
@@ -186,7 +216,7 @@ public sealed class ItemSourceService(IDofusTouchClient client, IDocumentStore<I
     /// <summary>The whole Skills class (about 200 rows, 90 KB in 2026), the only way from an item to its harvest.</summary>
     private async Task<Dictionary<int, JobLevel[]>> ReadHarvestAsync(string language, CancellationToken ct)
     {
-        var skills = (await client.GetAsync("Skills", null, language, ct).ConfigureAwait(false)).Values
+        var skills = (await AskAsync("Skills", null, language, ct).ConfigureAwait(false)).Values
             .Where(s => Int(s, "gatheredRessourceItem") > 0)
             .ToArray();
         var jobs = await GetAsync("Jobs", [.. skills.Select(s => Int(s, "parentJobId"))], language, ct).ConfigureAwait(false);
@@ -204,7 +234,28 @@ public sealed class ItemSourceService(IDofusTouchClient client, IDocumentStore<I
         string dataClass, int[] ids, string language, CancellationToken ct) =>
         ids.Length == 0
             ? new Dictionary<int, JsonElement>()
-            : await client.GetAsync(dataClass, [.. ids.Distinct()], language, ct).ConfigureAwait(false);
+            : await AskAsync(dataClass, [.. ids.Distinct()], language, ct).ConfigureAwait(false);
+
+    /// <summary>Every request to the game server, spaced by <see cref="RequestSpacing"/>; called under the gate.</summary>
+    private async Task<IReadOnlyDictionary<int, JsonElement>> AskAsync(
+        string dataClass, int[]? ids, string language, CancellationToken ct)
+    {
+        var wait = _lastRequestUtc + RequestSpacing - DateTimeOffset.UtcNow;
+
+        if (wait > TimeSpan.Zero)
+        {
+            await Delay(wait, ct).ConfigureAwait(false);
+        }
+
+        try
+        {
+            return await client.GetAsync(dataClass, ids, language, ct).ConfigureAwait(false);
+        }
+        finally
+        {
+            _lastRequestUtc = DateTimeOffset.UtcNow;
+        }
+    }
 
     private static string? Name(JsonElement row) => Text(row, "nameId");
 

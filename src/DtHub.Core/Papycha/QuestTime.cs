@@ -44,16 +44,19 @@ public static partial class QuestTime
         {
             1 or 9 or 2 => Talk,
             // The dungeon's exit: the run is counted on its fight.
-            4 => facts.Objectives.Any(o => o.Step == objective.Step && IsSingleFight(o)) ? 0 : Map,
+            4 => facts.Objectives.Any(o => SameStep(o, objective) && IsSingleFight(o)) ? 0 : Map,
             3 => Math.Min(ItemsCap, ItemsBase + (ItemsEach * (p.Length > 2 ? p[2] : 0))),
             20 => Craft,
-            6 when IsSingleFight(objective) && facts.Objectives.Any(o => o.Step == objective.Step && o.TypeId == 4) => DungeonRun,
+            6 when IsSingleFight(objective) && facts.Objectives.Any(o => SameStep(o, objective) && o.TypeId == 4) => DungeonRun,
             6 or 14 => PerMonster * Math.Clamp(p.Length > 1 ? p[1] : 1, 1, MonstersCap),
             12 => PerSoul,
             // Types 0 and 10, and any type the game adds later.
             _ => Vague,
         };
     }
+
+    // An unknown step (a cache read before steps were kept) matches none: every fight would pass for a dungeon run.
+    private static bool SameStep(TouchObjective a, TouchObjective b) => a.Step is { } step && b.Step == step;
 
     // "Win 1 in one fight": a boss in practice.
     private static bool IsSingleFight(TouchObjective o) => o.TypeId == 6 && o.Parameters.Length > 1 && o.Parameters[1] == 1;

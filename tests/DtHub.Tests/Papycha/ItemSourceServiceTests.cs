@@ -21,7 +21,17 @@ public class ItemSourceServiceTests
         }
     }
 
-    private ItemSourceService Service() => new(_client, _store);
+    /// <summary>The waits the service asked for between two requests, none of them slept.</summary>
+    private readonly List<TimeSpan> _waits = [];
+
+    private Task Wait(TimeSpan wait, CancellationToken ct)
+    {
+        _waits.Add(wait);
+
+        return Task.CompletedTask;
+    }
+
+    private ItemSourceService Service() => new(_client, _store) { Delay = Wait };
 
     private void Item(int id, params int[] droppers) => Item(id, droppers, []);
 
@@ -39,6 +49,83 @@ public class ItemSourceServiceTests
 
     private void SubArea(int id, string name, params int[] monsters) =>
         _client.Rows["SubAreas"][id] = $$"""{"id":{{id}},"nameId":"{{name}}","monsters":[{{string.Join(',', monsters)}}]}""";
+
+    [Fact]
+    public async Task Deux_demandes_au_jeu_sont_espacees_de_deux_secondes_au_moins()
+    {
+        Item(1, 10);
+        Monster(10, "Bouftou", [100], levels: [5]);
+        SubArea(100, "Plaine");
+        using var service = Service();
+
+        _ = await service.SourceAsync(1, "fr");
+
+        // Skills, Items, Monsters, SubAreas, Recipes: the first goes at once, each next one waits.
+        Assert.Equal(_client.Requested.Values.Sum(c => c.Count) - 1, _waits.Count);
+        Assert.All(_waits, w => Assert.InRange(w, TimeSpan.FromSeconds(1.5), TimeSpan.FromSeconds(2)));
+    }
+
+    [Fact]
+    public async Task Une_lecture_commencee_va_au_bout_et_reste_gardee_quand_le_survol_part()
+    {
+        Item(1, 10);
+        Monster(10, "Bouftou", [], levels: [5]);
+        using var hover = new CancellationTokenSource();
+        using var service = new ItemSourceService(_client, _store)
+        {
+            // The hover closes while the read waits before its second request.
+            Delay = (_, _) =>
+            {
+                hover.Cancel();
+
+                return Task.CompletedTask;
+            },
+        };
+
+        Assert.NotNull(await service.SourceAsync(1, "fr", hover.Token));
+        _client.Requested.Clear();
+
+        Assert.NotNull(await service.SourceAsync(1, "fr"));
+        Assert.Empty(_client.Requested);
+    }
+
+    [Fact]
+    public async Task Un_cache_illisible_est_relu_des_qu_il_le_redevient()
+    {
+        await _store.SaveAsync(new ItemSourcesDocument
+        {
+            Languages =
+            {
+                ["fr"] = new ItemSourcesLanguage
+                {
+                    HarvestReadUtc = DateTimeOffset.UtcNow,
+                    Items = { [1] = new CachedItemSource(DateTimeOffset.UtcNow, new([], [], [], true, "gardé")) },
+                },
+            },
+        });
+        _store.IsUnread = true;
+        using var service = Service();
+        _ = await service.SourceAsync(2, "fr");
+        _store.IsUnread = false;
+        _client.Requested.Clear();
+
+        Assert.Equal("gardé", (await service.SourceAsync(1, "fr"))!.Name);
+        Assert.Empty(_client.Requested);
+    }
+
+    [Fact]
+    public void Une_quete_ne_fait_lire_que_cinq_objets_au_plus()
+    {
+        TouchObjective[] objectives =
+        [
+            .. Enumerable.Range(1, 7).Select(i => new TouchObjective(3, [0, i, 1], 0)),
+            new TouchObjective(2, [0, 1], 0),
+            new TouchObjective(0, [0, 99], 0),
+            new TouchObjective(3, [0], 0),
+        ];
+
+        Assert.Equal([1, 2, 3, 4, 5], ItemSourceService.ItemsAsked(new TouchQuestFacts([], objectives)));
+    }
 
     [Fact]
     public async Task Un_monstre_qui_lache_l_objet_vient_avec_son_niveau_et_ses_zones()
@@ -213,7 +300,7 @@ public class ItemSourceServiceTests
     public async Task Un_echec_apres_la_lecture_des_metiers_les_garde()
     {
         _client.FailingClasses.Add("Items");
-        using var service = new ItemSourceService(_client, _store) { FailureCooldown = TimeSpan.Zero };
+        using var service = new ItemSourceService(_client, _store) { FailureCooldown = TimeSpan.Zero, Delay = Wait };
         Assert.Null(await service.SourceAsync(1, "fr"));
         _client.FailingClasses.Clear();
         _client.Requested.Clear();
@@ -242,7 +329,7 @@ public class ItemSourceServiceTests
     {
         Item(1);
         _client.Pause = new TaskCompletionSource();
-        using var service = new ItemSourceService(_client, _store) { ReadTimeout = TimeSpan.FromMilliseconds(50) };
+        using var service = new ItemSourceService(_client, _store) { ReadTimeout = TimeSpan.FromMilliseconds(50), Delay = Wait };
 
         Assert.Null(await service.SourceAsync(1, "fr"));
         Assert.NotNull(service.LastFailure);
@@ -292,7 +379,7 @@ public class ItemSourceServiceTests
     public async Task Une_ecriture_ratee_rend_quand_meme_la_source()
     {
         Item(1);
-        using var service = new ItemSourceService(_client, new FailingStore());
+        using var service = new ItemSourceService(_client, new FailingStore()) { Delay = Wait };
 
         Assert.NotNull(await service.SourceAsync(1, "fr"));
     }
