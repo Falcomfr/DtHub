@@ -187,10 +187,10 @@ static double Fixe(double x, TouchStepReward s) => Math.Floor(x * Math.Pow(100 +
 **Interfaces:**
 - Consumes: Task 3 `SaveCharacterAsync`, Task 4 settings.
 - Produces on `QuestTrackerViewModel`:
-  - `int RewardLevel { get; }` — `SelectedCharacter.Level` when linked, else the setting; observable.
-  - `int RewardXpBonus { get; }` — the setting; observable.
-  - `Task<bool> SetRewardLevelAsync(string text)` — parses 1..200; linked: saves the selected character with the new level through `SaveCharacterAsync`, replaces it in `Characters` and `SelectedCharacter` on success, else keeps the old one and sets `Notice` as other write failures do; not linked: stores the setting. Returns whether it changed.
-  - `Task<bool> SetRewardXpBonusAsync(string text)` — parses 0..1000, stores the setting.
+  - `int RewardLevel { get; }` - `SelectedCharacter.Level` when linked, else the setting; observable.
+  - `int RewardXpBonus { get; }` - the setting; observable.
+  - `Task<bool> SetRewardLevelAsync(string text)` - parses 1..200; linked: saves the selected character with the new level through `SaveCharacterAsync`, replaces it in `Characters` and `SelectedCharacter` on success, else keeps the old one and sets `Notice` as other write failures do; not linked: stores the setting. Returns whether it changed.
+  - `Task<bool> SetRewardXpBonusAsync(string text)` - parses 0..1000, stores the setting.
 
 - [ ] **Step 1: Failing tests** with the fake tracker: `0`, `abc`, `250`, `""` leave `RewardLevel` unchanged and send nothing; `191` while linked sends one save with level 191 and every other field unchanged, then `RewardLevel` is 191; a refused save leaves 190 and a non-empty `Notice`; not linked, `191` stores the setting; bonus `150` stores 150, `-5` and `abc` are refused.
 - [ ] **Step 2: Run**; Expected: fail.
