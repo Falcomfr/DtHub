@@ -32,13 +32,13 @@ shared by at least two characters. No new data.
 For objectives "Ramener / Montrer x N <item>", the tooltip and the guide's reward area say how to get the item, from the game's
 data, read on demand (hover or guide open) and cached: monsters that drop it (`Items.dropMonsterIds` -> `Monsters` names and
 level, at most 5 shown), harvest (`Skills` whose gathered item is it: job and level), craft (`Recipes` producing it: job and
-level), or "Source inconnue" when none applies (D220: DT Hub cannot tell an event or a shop from a gap in the data). Also read: `Items`, `Monsters`, `SubAreas`, `Skills`, `Recipes` and `Jobs` by ids, cached 30 days, 10 minutes of cooldown after a failure, 30 s read timeout, 400 ms hover delay; a drop that only exists in `conditionnalDropMonsterIds` reads "pendant la quête". Requests: a handful of ids per item, never a whole heavy class.
+level), or "Source inconnue" when none applies (D220: DT Hub cannot tell an event or a shop from a gap in the data). Also read: `Items`, `Monsters`, `SubAreas`, `Skills`, `Recipes` and `Jobs` by ids, cached 30 days, 10 minutes of cooldown after a failure, 30 s read timeout, 400 ms hover delay, at least 2 s between two requests, 5 items at most per guide, a read once started finishes and is cached even if its hover closes; a drop that only exists in `conditionnalDropMonsterIds` reads "pendant la quête". Requests: a handful of ids per item, never a whole heavy class.
 
 ## 4. Itinerary by zone
 
 Built as a grouping, then dropped: grouping by area would break the two per-side orders of "Recommandées" (D219). Each row
-carries a muted zone suffix after its title instead (the first quest's section name). `QuestPlanning.ByArea` exists but is
-unused. No new data.
+carries a muted zone suffix after its title instead (the first quest's section name). `QuestPlanning.ByArea`, written but never
+used, was deleted. No new data.
 
 ## 5. Archimonsters
 

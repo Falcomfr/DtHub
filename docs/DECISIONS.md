@@ -11085,16 +11085,19 @@ Si une donnée manque, le gain et la marque sont masqués, jamais devinés.
 elle n'est pas répétable (journalière, hebdomadaire, saisonnière : leur
 disponibilité dépend d'un délai ou d'un événement que DT Hub ne voit pas) ; le
 niveau optimal de sa première étape ne dépasse pas le niveau du personnage ; et
-elle est démarrable : dans `available_quests` de Papycha pour lui, en cours, ou
-dont toutes les quêtes précédentes sont terminées. Papycha ne remplit
-`available_quests` que pour le personnage actif du site : pour les autres la
-liste est vide, et sans la troisième voie « Recommandées » et « Accessibles »
-restaient vides. Les quêtes précédentes sont résolues par `QuestChainIndex` (titre,
+elle est démarrable : dans `available_quests` de Papycha pour lui, en cours, ou,
+quand cette liste est vide, dont toutes les quêtes précédentes sont terminées.
+Papycha ne remplit `available_quests` que pour le personnage actif du site : pour
+les autres la liste est vide, et sans la troisième voie « Recommandées » et
+« Accessibles » restaient vides. Pour le personnage actif, la liste du site fait
+foi : une quête qu'elle ne donne pas n'est pas démarrable, même si ses
+précédentes sont faites (revue finale du 23/10/2026). Les quêtes précédentes sont résolues par `QuestChainIndex` (titre,
 « ... atteint », succès = dernière quête du succès) ; un prérequis qui ne
 désigne aucune quête (alignement, texte libre) est ignoré. Même règle pour
-« Accessibles » et pour les « Suivantes » calculées, répétables exclues (le
-dernier cas ne vaut que pour la liste calculée : celle du site est gardée telle
-quelle).
+« Accessibles » et pour les « Suivantes » calculées : répétables, bloquées et
+quêtes au-dessus du niveau du personnage exclues (une quête dont les objectifs ne
+sont pas encore lus reste), ce qui ne vaut que pour la liste calculée : celle du
+site est gardée telle quelle.
 
 **Série.** Une entrée de série commence à sa première quête faisable et continue
 avec les quêtes suivantes, dans l'ordre de jeu, pas encore faites, qui passent
@@ -11229,11 +11232,17 @@ compte. Pas de donjons dans la vue d'équipe.
 l'infobulle du gain et le guide ouvert disent où les obtenir. Les classes
 `Items`, `Monsters`, `SubAreas`, `Skills`, `Recipes` et `Jobs` sont lues par
 identifiants, à la demande, jamais en entier : 4 à 6 requêtes pour un objet, une
-fois par mois pour l'index des récoltes (`Skills`, `Jobs`). Gardé 30 jours par
-objet. Après un échec, aucune requête pendant 10 minutes (la valeur périmée du
+fois par mois pour l'index des récoltes (`Skills`, `Jobs`). Deux requêtes au
+serveur du jeu sont espacées d'au moins 2 s, et un guide ne lit que les 5
+premiers objets demandés : un guide de 27 objets envoyait une centaine de
+requêtes d'un coup. Gardé 30 jours par objet. Après un échec, aucune requête pendant 10 minutes (la valeur périmée du
 cache, sinon rien, est rendue) ; un identifiant inconnu est retenu pour la
 session et jamais écrit sur disque ; une lecture qui s'arrête dépasse 30 s et
-compte comme un échec. La lecture ne part qu'après 400 ms de survol (D221).
+compte comme un échec. Une lecture commencée va au bout et est gardée, même si
+l'infobulle qui l'a demandée se ferme : sinon les requêtes déjà envoyées, dont
+les 88 Ko de `Skills`, étaient perdues et redemandées au survol suivant. Un
+cache que le disque n'a pas laissé lire est relu au survol suivant au lieu
+d'être gardé vide. La lecture ne part qu'après 400 ms de survol (D221).
 Résultat : « Lâché par M (niv. L) · zones » (5 monstres au plus, dans l'ordre du
 jeu, sans tri sur le niveau, qui coûterait la lecture de tous), « pendant la
 quête » pour un butin conditionnel (`conditionnalDropMonsterIds`, jamais vu non
@@ -11258,8 +11267,8 @@ client n'en contient aucune (le client reçoit l'XP du niveau par les messages d
 jeu). La ligne est donc câblée (`QuestPlanning.WholeLevel`) mais reçoit une table
 vide et ne s'affiche jamais. L'utilisateur n'a pas décidé d'embarquer une table :
 rien n'est embarqué, et la ligne reste vide tant qu'il n'en décide pas autrement.
-`QuestPlanning.ByArea` (regroupement par zone) est écrit mais inutilisé : le
-suffixe de zone de D219 le remplace.
+`QuestPlanning.ByArea` (regroupement par zone), écrit puis jamais utilisé, a
+été supprimé : le suffixe de zone de D219 le remplace.
 
 ## D221 - Le temps estimé d'une quête remplace l'effort : gain par minute
 
@@ -11277,7 +11286,8 @@ secondes : 90 pour rejoindre le personnage de départ ; par objectif, parler,
 montrer ou aller voir 15, découvrir une carte 45, rapporter des objets
 10 + 5 par objet au plus 300, fabriquer 60, combattre 90 par monstre (au plus
 10), rapporter une âme 300, texte libre ou type inconnu 300 ; un combat unique
-dans une étape qui a aussi une carte à découvrir est un donjon : 900 pour le
+dans une étape qui a aussi une carte à découvrir est un donjon (étape connue :
+un cache d'avant, sans rang d'étape, n'en voit aucun) : 900 pour le
 combat, 0 pour la carte (la sortie du donjon). S'y ajoute le trajet : la
 distance en cartes (|dx| + |dy|) entre les objectifs qui ont une carte, depuis
 la position de départ de la quête quand Papycha la donne, 8 s par carte et au
@@ -11304,7 +11314,11 @@ l'infobulle du gain dit « Demande ≈ 25 min : » puis les raisons.
 survol : un balayage de la liste, dont les infobulles s'ouvrent l'une après
 l'autre, ne demande rien au serveur du jeu.
 Chaque infobulle annule à sa fermeture sa propre lecture, et seulement
-elle ; la lecture du guide ouvert s'arrête dès qu'une autre quête est montrée.
+elle, tant qu'aucune requête n'est partie ; une fois partie, la lecture d'un
+objet va au bout et est gardée. L'infobulle du gain reste ouverte 30 s au lieu
+des 5 s de WPF, le temps que la lecture arrive. La lecture du guide ouvert
+s'arrête, entre deux objets, dès qu'une autre quête est montrée ou que la
+fenêtre se cache.
 
 **Listes courtes, revue du 23/10/2026.** Les lignes de « Recommandées » ne
 portent pas de marque de priorité : l'ordre et le titre de la liste la disent
@@ -11334,16 +11348,24 @@ sans attendre, et la liste montre ce que le site a vraiment gardé.
 
 **Interface.** Un bouton « Sélection » (une case cochée, le mot au survol) dans
 la barre de la liste, une fois relié : chaque ligne de quête porte une case,
-Maj+clic coche toute la plage depuis la dernière case touchée, et les cases
-restent cochées d'une liste à l'autre jusqu'à la sortie du mode. « Marquer
+Maj+clic coche toute la plage depuis la dernière case touchée, sauf les quêtes
+ignorées, bloquées et répétables (que « Tout marquer terminé » laisserait de
+côté : un clic sur leur propre case les coche), et les cases restent cochées
+d'une liste à l'autre jusqu'à la sortie du mode. Changer de personnage fait
+sortir du mode : des cases cochées pour un personnage ne s'écrivent pas pour un
+autre, et le choix du personnage est coupé pendant un lot. « Marquer
 terminées (n) » écrit les quêtes cochées sauf celles déjà terminées : cochée à
 la main, une quête ignorée ou répétable est voulue. En mode sélection, les
 titres de succès et les zones proposent « Tout marquer terminé » : les quêtes
-listées sous le succès, ou toute la zone, sans les terminées, ignorées,
-bloquées et répétables (`QuestBatch.ToMarkDone`). Au-delà de 20 quêtes, DT Hub
+listées sous le succès, ou celles de la zone que les filtres « À faire » et
+« Accessibles » laissent (le nombre que sa ligne affiche), sans les terminées,
+ignorées, bloquées et répétables (`QuestBatch.ToMarkDone`). Dans les deux cas
+le joueur marque ce que la liste lui montre. Au-delà de 20 quêtes, DT Hub
 demande confirmation. Pendant le lot, une ligne « 42 / 140 » (puis « · passe
 2 ») et « Annuler » ; le compte peut redescendre quand une relecture trouve des
 pertes. À la fin, un résumé : terminées, non enregistrées, et chaque refus avec
 les mots du site. Après une annulation ou un arrêt du site, le résumé parle
 d'écritures acceptées par le site, que le lot n'a pas pu vérifier, et dit que
-le suivi est relu.
+le suivi est relu. « Annuler » agit dans la pause entre deux appels : l'écriture
+en cours va au bout, sinon une écriture appliquée par le site serait comptée
+comme non faite. Délier le suivi ou fermer DT Hub annule aussi le lot.

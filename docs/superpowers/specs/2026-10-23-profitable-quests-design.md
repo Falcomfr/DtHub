@@ -43,8 +43,9 @@ usable from the lists too, not only in a quest's guide.
 ## Anti-goals
 
 - Proposing a quest the character cannot start: not done, not blocked or ignored on the
-  tracker, in Papycha's `available_quests` for that character, in progress, or with every previous quest done
-  (`available_quests` is empty for a character that is not the site's active one), and its
+  tracker, in Papycha's `available_quests` for that character, in progress, or, when that list is empty, with every previous quest done
+  (`available_quests` is empty for a character that is not the site's active one; for the active one the list is the
+  truth), and its
   first step's optimal level at most the character's level (Claude's choice).
 - A wrong gain: same rule as D218, unknown data hides the gain and the mark.
 - Hammering the game's server: the steps, objectives and rewards of every paired quest are
