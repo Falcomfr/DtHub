@@ -199,6 +199,71 @@ public class TouchNameServiceTests
         Assert.Empty(_client.Requested);
     }
 
+    private const string RewardStep = """{"id":11,"nameId":"e","descriptionId":"d","objectiveIds":[],"optimalLevel":60,"duration":1,"xpRatio":0.8,"kamasRatio":1,"kamasScaleWithPlayerLevel":false,"rewardsIds":[500]}""";
+
+    private void GiveRewardStep(string step)
+    {
+        GiveSteps();
+        _client.Rows["QuestSteps"] = new() { [11] = step };
+        _client.Rows["QuestStepRewards"] = new()
+        {
+            [500] = """{"id":500,"stepId":11,"levelMin":-1,"levelMax":-1,"itemsReward":[[361,2]],"emotesReward":[1],"jobsReward":[],"spellsReward":[],"titlesReward":[],"ornamentsReward":[],"companionsReward":[]}""",
+        };
+    }
+
+    [Fact]
+    public async Task Les_etapes_gardent_leur_recompense_et_le_nom_des_objets()
+    {
+        GiveRewardStep(RewardStep);
+        using var service = Service();
+        _ = await service.RefreshAsync("fr");
+
+        var reward = (await service.StepsAsync(2, "fr")).Single().Reward!;
+
+        Assert.Equal((60, 1f, 0.8f, 1f, false), (reward.OptimalLevel, reward.Duration, reward.XpRatio, reward.KamasRatio, reward.KamasScaleWithPlayerLevel));
+        var row = reward.Rows.Single();
+        Assert.Equal((-1, -1, 1, 0, 0, 0, 0, 0), (row.LevelMin, row.LevelMax, row.Emotes, row.Spells, row.Titles, row.Ornaments, row.Companions, row.Jobs));
+        Assert.Equal([new TouchItemReward(361, 2)], row.Items);
+        Assert.Equal([500], _client.Requested["QuestStepRewards"].Single());
+        Assert.Contains(361, _client.Requested["Items"].Last());
+        Assert.Equal("nom 361 fr", (await service.CachedAsync("fr"))!.Items[361]);
+    }
+
+    [Fact]
+    public async Task Une_etape_sans_champ_de_recompense_reste_sans_recompense()
+    {
+        GiveRewardStep("""{"id":11,"nameId":"e","descriptionId":"d","objectiveIds":[],"duration":1,"xpRatio":0.8,"kamasRatio":1,"rewardsIds":[500]}""");
+        using var service = Service();
+
+        Assert.Null((await service.StepsAsync(2, "fr")).Single().Reward);
+        Assert.False(_client.Requested.ContainsKey("QuestStepRewards"));
+    }
+
+    [Fact]
+    public async Task Un_cache_d_avant_les_recompenses_relit_les_etapes_une_fois()
+    {
+        GiveRewardStep(RewardStep);
+        await _store.SaveAsync(new TouchNamesDocument
+        {
+            Languages =
+            {
+                ["fr"] = new TouchLanguageNames
+                {
+                    ReadUtc = DateTimeOffset.UtcNow,
+                    Quests = { [11] = new TouchQuest("q", 1, 2, [11]) },
+                    Steps = { [2] = [new TouchStep("old", "", [])] },
+                },
+            },
+        });
+        using var service = Service();
+
+        Assert.NotNull((await service.StepsAsync(2, "fr")).Single().Reward);
+        _client.Requested.Clear();
+        _ = await service.StepsAsync(2, "fr");
+
+        Assert.Empty(_client.Requested);
+    }
+
     [Fact]
     public async Task Une_quete_non_appariee_n_a_pas_d_etapes()
     {
