@@ -11219,9 +11219,13 @@ el, los, las, del), mots entiers, le nom le plus long d'abord et son texte
 retiré une fois trouvé, donc « Donjon des Bouftous Royaux » ne compte pas aussi
 « Donjon des Bouftous ». Seuls les objectifs de texte sont lus : une quête qui ne
 nomme son donjon que par un monstre n'est pas reliée. La valeur additionne les
-gains et les minutes des quêtes faisables maintenant ; la suite d'une série pas
-encore démarrable n'y entre pas. Son score se compare à celui des quêtes
-seules. La ligne du donjon montre ses gains et sa marque dans ses listes, et
+gains des quêtes faisables maintenant ; la suite d'une série pas encore
+démarrable n'y entre pas. Son temps est celui du donjon lui-même (D221), pas la
+somme des temps de ces quêtes : la première version les additionnait et donnait
+des durées énormes (revue du 23/10/2026). Son score se compare à celui des quêtes
+seules. Chaque ligne de donjon que la table du jeu connaît montre ce temps, même
+sans quête faisable ; ses gains et sa marque, seulement avec des quêtes
+faisables, dans ses listes, et
 l'infobulle dit « Fait avancer n quêtes : titres ». Dans les deux listes courtes
 de D219, un donjon n'entre que s'il fait avancer au moins deux quêtes faisables :
 avec une seule, il doublait la ligne de cette quête.
@@ -11307,7 +11311,11 @@ combat, 0 pour la carte (la sortie du donjon). S'y ajoute le trajet : la
 distance en cartes (|dx| + |dy|) entre les objectifs qui ont une carte, depuis
 la position de départ de la quête quand Papycha la donne, 8 s par carte et au
 plus 300 s par saut (un zaap). Le total est arrondi à la minute supérieure.
-Une série additionne les temps de ses quêtes. Ce sont les premiers réglages de
+Une série additionne les temps de ses quêtes. Un donjon prend 3 minutes par
+salle et 2 de plus, les salles étant le nombre de `mapIds` de la classe
+`Dungeons` du jeu, lue avec les noms sans requête de plus (le plus grand des
+donjons du jeu d'un même donjon Papycha) ; un cache de noms d'avant, sans ce
+nombre, compte 15 minutes jusqu'à sa relecture. Ce sont les premiers réglages de
 Claude, vérifiés le 23/10/2026 sur 18 pages publiques (rapport médian de 1,1 à
 1,3, rien de recopié), à ajuster selon l'avis de l'utilisateur.
 

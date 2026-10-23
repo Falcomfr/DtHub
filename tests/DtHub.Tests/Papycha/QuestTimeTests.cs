@@ -101,6 +101,18 @@ public class QuestTimeTests
         Assert.Equal(2, QuestTime.EstimateMinutes(Facts(), null));
     }
 
+    [Fact]
+    public void A_dungeon_run_is_three_minutes_a_room_and_two_more_or_fifteen_unknown()
+    {
+        var rooms = new Dictionary<int, int> { [50] = 5, [51] = 2 };
+
+        // A Papycha dungeon of several game dungeons: the biggest.
+        Assert.Equal(17, QuestTime.DungeonMinutes([50, 51], rooms));
+        // A names cache read before rooms were.
+        Assert.Equal(15, QuestTime.DungeonMinutes([60], rooms));
+        Assert.Equal(15, QuestTime.DungeonMinutes([], rooms));
+    }
+
     [Theory]
     [InlineData("[15,28]", 15, 28)]
     [InlineData("[-54,34] ou [-49,47]", -54, 34)]

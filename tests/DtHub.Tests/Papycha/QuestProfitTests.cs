@@ -353,7 +353,7 @@ public class QuestProfitTests
     }
 
     [Fact]
-    public void Entries_carry_their_score_in_order_and_a_single_quest_scores_as_its_dungeon()
+    public void Entries_carry_their_score_in_order_and_a_dungeon_scores_its_quest_s_gain_for_its_run()
     {
         var catalog = new[] { Quest(1, "A", 1), Quest(2, "A", 2), Quest(3), Quest(4) };
         var facts = new Dictionary<int, TouchQuestFacts>
@@ -367,21 +367,25 @@ public class QuestProfitTests
         var scores = QuestProfit.Score(catalog, facts, progress, 10, 0);
         var entries = QuestProfit.Entries(catalog, scores, progress, facts, 10, 0);
         var values = QuestProfit.DungeonValues(
-            entries, scores, progress, facts, 10, 0, new Dictionary<int, TouchDungeonIds> { [7] = new([70]) }, new Dictionary<int, string> { [70] = "Donjon Fungus" });
+            entries, scores, progress, facts, 10, 0, new Dictionary<int, TouchDungeonIds> { [7] = new([70]) },
+            new Dictionary<int, string> { [70] = "Donjon Fungus" }, new Dictionary<int, int> { [70] = 1 });
 
         Assert.Equal(entries.Select(e => e.Score).OrderByDescending(x => x), entries.Select(e => e.Score));
         Assert.True(entries[0].Score > 0);
-        Assert.Equal(values[7].Score, entries.Single(e => e.Title == "Q3").Score);
+        // Q3 takes 3 min, the one-room run 5: same gain, three fifths of the score.
+        Assert.Equal(5, values[7].Minutes);
+        Assert.Equal(entries.Single(e => e.Title == "Q3").Score * 3 / 5, values[7].Score, 6);
     }
 
     // Papycha dungeon n pairs with game dungeon 10n.
     private static IReadOnlyDictionary<int, DungeonValue> DungeonValues(
-        QuestSummary[] catalog, TrackerProgress progress, Dictionary<int, TouchQuestFacts> facts, Dictionary<int, string> names)
+        QuestSummary[] catalog, TrackerProgress progress, Dictionary<int, TouchQuestFacts> facts, Dictionary<int, string> names,
+        Dictionary<int, int>? rooms = null)
     {
         var scores = QuestProfit.Score(catalog, facts, progress, 10, 0);
         var entries = QuestProfit.Entries(catalog, scores, progress, facts, 10, 0);
         var table = names.Keys.ToDictionary(id => id / 10, id => new TouchDungeonIds([id]));
-        return QuestProfit.DungeonValues(entries, scores, progress, facts, 10, 0, table, names);
+        return QuestProfit.DungeonValues(entries, scores, progress, facts, 10, 0, table, names, rooms ?? []);
     }
 
     [Fact]
@@ -436,17 +440,20 @@ public class QuestProfitTests
     public void A_dungeon_gets_the_tier_its_score_would_have_among_quests()
     {
         var catalog = Enumerable.Range(1, 20).Select(i => Quest(i)).ToList();
-        // Same effort everywhere; quest i gives i times the XP of quest 1.
+        // Five minutes everywhere (a map, 7 items), as a one-room run; quest i gives i times the XP of quest 1.
         var facts = catalog.ToDictionary(q => q.Id, q => new TouchQuestFacts(
-            [Step(10, q.Id)], [Said(q.Id switch { 20 => "Donjon A", 1 => "Donjon B", 18 or 19 => "Donjon C", _ => "Ailleurs" })]));
+            [Step(10, q.Id)], [Said(q.Id switch { 20 => "Donjon A", 1 => "Donjon B", 18 or 19 => "Donjon C", _ => "Ailleurs" }), Obj(3, [1, 2, 7])]));
         var names = new Dictionary<int, string> { [10] = "Donjon A", [20] = "Donjon B", [30] = "Donjon C" };
+        var rooms = new Dictionary<int, int> { [10] = 1, [20] = 1, [30] = 3 };
 
-        var values = DungeonValues([.. catalog], Progress(catalog.Select(q => q.Id)), facts, names);
+        var values = DungeonValues([.. catalog], Progress(catalog.Select(q => q.Id)), facts, names, rooms);
 
+        Assert.Equal(5, values[1].Minutes);
         Assert.Equal(1.0, values[1].Score);
         Assert.Equal(3, values[1].Tier);
         Assert.Equal(0, values[2].Tier);
-        // 18 and 19 together score between quest 19 (tier 3) and quest 18 (tier 2).
+        // 18 and 19 together for an 11-minute run: 37 / 11 against 20 / 5, 0.84, between quests 17 and 16 (tier 2).
+        Assert.Equal(11, values[3].Minutes);
         Assert.Equal(2, values[3].Tier);
         Assert.Equal(2, values[3].Advances.Count);
     }

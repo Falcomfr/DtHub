@@ -50,7 +50,8 @@ public sealed record TouchObjective(
 
 public sealed record TouchQuest(string Name, int LevelMin, int LevelMax, int[] StepIds);
 
-public sealed record TouchDungeon(string Name, int KeyId);
+/// <summary><c>Rooms</c>: the game's <c>mapIds</c> count, 0 in a cache read before rooms were.</summary>
+public sealed record TouchDungeon(string Name, int KeyId, int Rooms = 0);
 
 public sealed record TouchStep(
     string Name, string Description, TouchObjectiveLine[] Objectives, TouchStepReward? Reward = null);

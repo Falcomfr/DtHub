@@ -66,7 +66,7 @@ public sealed class FakeDofusTouchClient : IDofusTouchClient
         return ids!.ToDictionary(
             id => id,
             id => JsonDocument.Parse(
-                $$"""{"nameId":{{(Nameless ? "null" : $"\"nom {id} {language}\"")}},"levelMin":10,"levelMax":20,"stepIds":[{{id}}],"dungeonKey":{{id + 1000}}}""").RootElement);
+                $$"""{"nameId":{{(Nameless ? "null" : $"\"nom {id} {language}\"")}},"levelMin":10,"levelMax":20,"stepIds":[{{id}}],"dungeonKey":{{id + 1000}},"mapIds":[1,2,3]}""").RootElement);
     }
 
     public Task<IReadOnlyDictionary<int, string>> GetTextsAsync(

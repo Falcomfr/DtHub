@@ -108,6 +108,9 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
     /// <summary>The game's dungeon names by game dungeon id, read with the facts.</summary>
     private IReadOnlyDictionary<int, string> _dungeonNames = new Dictionary<int, string>();
 
+    /// <summary>The game dungeons' room counts by game dungeon id, read with the names.</summary>
+    private IReadOnlyDictionary<int, int> _dungeonRooms = new Dictionary<int, int>();
+
     /// <summary>The item names the names cache holds, by game item id: the gift's hover names those.</summary>
     private IReadOnlyDictionary<int, string> _itemNames = new Dictionary<int, string>();
 
@@ -118,7 +121,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         _facts is null
             ? new Dictionary<int, DungeonValue>()
             : QuestProfit.DungeonValues(Recommendable, Scores, Tracker.Progress, _facts, Tracker.RewardLevel,
-                Tracker.RewardXpBonus, _touchNames.Table.Dungeons, _dungeonNames);
+                Tracker.RewardXpBonus, _touchNames.Table.Dungeons, _dungeonNames, _dungeonRooms);
 
     private IReadOnlyList<TeamEntry>? _team;
 
@@ -179,6 +182,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         _facts = await _touchNames.FactsAsync(TouchNameService.CurrentLanguage).ConfigureAwait(true);
         var names = await _touchNames.CachedAsync(TouchNameService.CurrentLanguage).ConfigureAwait(true);
         _dungeonNames = names?.Dungeons.ToDictionary(d => d.Key, d => d.Value.Name) ?? [];
+        _dungeonRooms = names?.Dungeons.ToDictionary(d => d.Key, d => d.Value.Rooms) ?? [];
         _itemNames = names?.Items ?? [];
 
         if (UnloggedTouchFailure() is { } failure)
@@ -254,6 +258,12 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
 
         if (node.Dungeon is { } dungeon)
         {
+            // Its run's time shows on every dungeon the game's table knows; the gains only with quests it advances.
+            if (_touchNames.Table.Dungeons.TryGetValue(dungeon.Id, out var ids))
+            {
+                node = node with { Duration = QuestTime.Text(QuestTime.DungeonMinutes(ids.Dungeons, _dungeonRooms)) };
+            }
+
             return DungeonValues.TryGetValue(dungeon.Id, out var value) ? Valued(node, value) : node;
         }
 
@@ -360,7 +370,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             GainXp = xp,
             GainKamas = kamas,
             Tier = value.Tier,
-            ProfitTip = QuestGainText.Tip(value.Gain, effort: new QuestEffort(value.Advances.Sum(a => a.Effort.Minutes), [])) + "\n"
+            ProfitTip = QuestGainText.Tip(value.Gain, effort: new QuestEffort(value.Minutes, [])) + "\n"
                 + Strings.Format(value.Advances.Count == 1 ? "DungeonAdvancesOne" : "DungeonAdvances", value.Advances.Count, titles),
         };
     }
@@ -1655,8 +1665,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             if (_catalog.Catalog.Dungeons.FirstOrDefault(d => d.Id == value.PapychaDungeonId) is { } dungeon)
             {
                 var node = QuestTree.NodeOf(dungeon) with { Glyph = QuestTree.GlyphOf(dungeon.Kind) };
-                var minutes = value.Advances.Sum(a => a.Effort.Minutes);
-                rows.Add(new ProfitRow(value.Gain, minutes, value.Advances[0].Quests[0], Valued(node, value) with { Duration = QuestTime.Text(minutes) }));
+                rows.Add(new ProfitRow(value.Gain, value.Minutes, value.Advances[0].Quests[0], Valued(node, value) with { Duration = QuestTime.Text(value.Minutes) }));
             }
         }
 

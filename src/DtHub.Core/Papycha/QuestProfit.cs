@@ -21,8 +21,11 @@ public sealed record ProfitEntry(
     string Title, IReadOnlyList<QuestSummary> Quests, QuestGain Gain, QuestEffort Effort, int Tier, bool Started, bool ByKamas,
     double Score);
 
-/// <summary>A dungeon is worth the listable quests it advances, one entry per quest; <c>Tier</c> is the one its score would have among quests.</summary>
-public sealed record DungeonValue(int PapychaDungeonId, IReadOnlyList<ProfitEntry> Advances, QuestGain Gain, double Score, int Tier);
+/// <summary>
+/// A dungeon is worth the listable quests it advances, one entry per quest, for the time of its run (<c>Minutes</c>);
+/// <c>Tier</c> is the one its score would have among quests.
+/// </summary>
+public sealed record DungeonValue(int PapychaDungeonId, IReadOnlyList<ProfitEntry> Advances, QuestGain Gain, double Score, int Tier, int Minutes);
 
 /// <summary>What a quest gives per minute it takes, from the game's own objectives. Pure.</summary>
 public static class QuestProfit
@@ -347,13 +350,15 @@ public static class QuestProfit
 
     /// <summary>
     /// By Papycha dungeon: the doable quests of <paramref name="entries"/> (what "Recommandées" lists) whose objectives
-    /// name one of its game dungeons, summed and scored like a series against the quest maxima. A dungeon with none is
-    /// left out.
+    /// name one of its game dungeons, summed and scored for the run's own time (<see cref="QuestTime.DungeonMinutes"/>)
+    /// against the quest maxima. A dungeon with none is left out.
     /// </summary>
+    /// <param name="rooms">Game dungeon id to its room count.</param>
     public static IReadOnlyDictionary<int, DungeonValue> DungeonValues(
         IReadOnlyList<ProfitEntry> entries, IReadOnlyDictionary<int, QuestScore> scores, TrackerProgress? progress,
         IReadOnlyDictionary<int, TouchQuestFacts> facts, int level, int bonusPercent,
-        IReadOnlyDictionary<int, TouchDungeonIds> dungeons, IReadOnlyDictionary<int, string> dungeonNames)
+        IReadOnlyDictionary<int, TouchDungeonIds> dungeons, IReadOnlyDictionary<int, string> dungeonNames,
+        IReadOnlyDictionary<int, int> rooms)
     {
         ArgumentNullException.ThrowIfNull(entries);
         ArgumentNullException.ThrowIfNull(scores);
@@ -374,10 +379,12 @@ public static class QuestProfit
                 .ToList();
             if (advances.Count == 0) continue;
             var gain = new QuestGain(advances.Sum(a => a.Item1.Gain.Xp), advances.Sum(a => a.Item1.Gain.Kamas));
-            var score = Combined(gain, advances.Sum(a => a.Item1.Effort.Minutes), best).Score;
+            // The run, not the quests' whole time: they take the player there anyway.
+            var minutes = QuestTime.DungeonMinutes(ids.Dungeons, rooms);
+            var score = Combined(gain, minutes, best).Score;
             // The tier of the best quest it equals or beats: below every quest, none.
             var tier = scores.Values.Where(s => s.Score <= score).Select(s => s.Tier).DefaultIfEmpty(0).Max();
-            result[papychaId] = new DungeonValue(papychaId, [.. advances.OrderByDescending(a => a.Item2).Select(a => a.Item1)], gain, score, tier);
+            result[papychaId] = new DungeonValue(papychaId, [.. advances.OrderByDescending(a => a.Item2).Select(a => a.Item1)], gain, score, tier, minutes);
         }
 
         return result;

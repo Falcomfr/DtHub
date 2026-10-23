@@ -536,7 +536,7 @@ public sealed class TouchNameService(
                         Name(r.Value)!, Int(r.Value, "levelMin"), Int(r.Value, "levelMax"), Ints(r.Value, "stepIds"))),
             Dungeons = dungeons
                 .Where(r => Name(r.Value) is not null)
-                .ToDictionary(r => r.Key, r => new TouchDungeon(Name(r.Value)!, Int(r.Value, "dungeonKey"))),
+                .ToDictionary(r => r.Key, r => new TouchDungeon(Name(r.Value)!, Int(r.Value, "dungeonKey"), Ints(r.Value, "mapIds").Length)),
             Monsters = Names(monsters),
             Items = Names(items),
             Achievements = Names(achievements),

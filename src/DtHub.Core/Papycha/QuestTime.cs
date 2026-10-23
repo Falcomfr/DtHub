@@ -79,6 +79,20 @@ public static partial class QuestTime
         return seconds;
     }
 
+    /// <summary>
+    /// A dungeon run in minutes: 3 a room and 2 more, from the biggest of its game dungeons; 15 when no room count is
+    /// known (a names cache read before rooms were).
+    /// </summary>
+    /// <param name="rooms">Game dungeon id to its room count.</param>
+    public static int DungeonMinutes(IEnumerable<int> gameDungeons, IReadOnlyDictionary<int, int> rooms)
+    {
+        ArgumentNullException.ThrowIfNull(gameDungeons);
+        ArgumentNullException.ThrowIfNull(rooms);
+
+        var most = gameDungeons.Select(id => rooms.GetValueOrDefault(id)).DefaultIfEmpty(0).Max();
+        return most > 0 ? (3 * most) + 2 : 15;
+    }
+
     /// <summary>The first "[x,y]" of the quest's start position; null when it has none.</summary>
     public static (int X, int Y)? StartOf(QuestSummary quest)
     {

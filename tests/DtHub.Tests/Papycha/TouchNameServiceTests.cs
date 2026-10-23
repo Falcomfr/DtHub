@@ -45,7 +45,7 @@ public class TouchNameServiceTests
         Assert.Equal("nom 10 en", names!.Quests[10].Name);
         Assert.Equal(20, names.Quests[10].LevelMax);
         Assert.Equal([10], names.Quests[10].StepIds);
-        Assert.Equal(new TouchDungeon("nom 50 en", 1050), names.Dungeons[50]);
+        Assert.Equal(new TouchDungeon("nom 50 en", 1050, 3), names.Dungeons[50]);
         Assert.Equal("nom 1050 en", names.Items[1050]);
 
         _client.Requested.Clear();
