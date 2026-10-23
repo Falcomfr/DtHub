@@ -721,7 +721,10 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
     private string _sourcesText = string.Empty;
 
     /// <summary>The same on one line, the whole text on hover.</summary>
-    public string SourcesLine => SourcesText.Replace("\n\n", " · ", StringComparison.Ordinal).Replace("\n", " · ", StringComparison.Ordinal);
+    public string SourcesLine => SourcesText
+        .Replace(":\n", ": ", StringComparison.Ordinal)
+        .Replace("\n\n", " · ", StringComparison.Ordinal)
+        .Replace("\n", " · ", StringComparison.Ordinal);
 
     private void ResetOfficialSteps()
     {
@@ -1307,19 +1310,25 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             return;
         }
 
-        var rows = ProfitTeam ? TeamRows() : MyRows();
+        // The toggle hides with a single character left: the team view must not stay on, empty.
+        var team = ProfitTeam && Tracker.HasSeveralCharacters;
+        var rows = team ? TeamRows() : MyRows();
         foreach (var (title, kamas) in new[] { ("ProfitForXp", false), ("ProfitForKamas", true) })
         {
             var shown = QuestProfit.Shortlist(rows, r => r.Gain, r => r.Effort, r => r.First, _catalog.Catalog.Quests, kamas);
             Nodes.Add(new QuestNode(QuestNodeKind.Header, Strings.Get(title)));
-            Nodes.Add(shown.Count == 0 ? new QuestNode(QuestNodeKind.Pending, Strings.Get("NoResult")) : shown[0].Node);
 
-            foreach (var row in shown.Skip(1))
+            foreach (var row in shown)
             {
                 Nodes.Add(row.Node);
             }
 
-            if (!kamas && !ProfitTeam
+            if (shown.Count == 0)
+            {
+                Nodes.Add(new QuestNode(QuestNodeKind.Pending, Strings.Get("NoResult")));
+            }
+
+            if (!kamas && !team
                 && QuestPlanning.WholeLevel([.. shown.Select(r => r.Entry).OfType<ProfitEntry>()], Tracker.RewardLevel, XpTable) is { } line)
             {
                 Nodes.Insert(1, new QuestNode(QuestNodeKind.Pending, Strings.Format("ProfitWholeLevel", line.Count, line.From, line.To)));
@@ -1386,8 +1395,9 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             Started = entry.Started && node.Status != QuestStatus.InProgress,
             Label = entry.Title,
             Detail = QuestTree.Nombre(entry.Quests.Count),
-            // The first quest's prerequisites are not the series'.
+            // The first quest's prerequisites and other rewards are not the series'.
             Needs = null,
+            OtherRewards = null,
             GainXp = xp,
             GainKamas = kamas,
             Tier = entry.Tier,
