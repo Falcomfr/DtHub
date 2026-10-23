@@ -2950,4 +2950,34 @@ Pour l'éviter : {1}  ›  « Verrouillage auto. Dossier sécurisé » › l'opt
   <data name="ProfitEffort" xml:space="preserve">
     <value>Demande : {0}</value>
   </data>
+  <data name="ProfitForXp" xml:space="preserve">
+    <value>Pour l'XP</value>
+  </data>
+  <data name="ProfitForKamas" xml:space="preserve">
+    <value>Pour les kamas</value>
+  </data>
+  <data name="ProfitMe" xml:space="preserve">
+    <value>Moi</value>
+  </data>
+  <data name="ProfitMeTip" xml:space="preserve">
+    <value>Ce que le personnage choisi peut faire</value>
+  </data>
+  <data name="ProfitTeam" xml:space="preserve">
+    <value>Équipe</value>
+  </data>
+  <data name="ProfitTeamTip" xml:space="preserve">
+    <value>Ce que plusieurs de vos personnages peuvent faire, leurs gains additionnés</value>
+  </data>
+  <data name="ProfitCharacters" xml:space="preserve">
+    <value>{0} persos</value>
+  </data>
+  <data name="ProfitWholeLevel" xml:space="preserve">
+    <value>Ces {0} quêtes valent un niveau entier ({1} → {2})</value>
+  </data>
+  <data name="DungeonAdvancesOne" xml:space="preserve">
+    <value>Fait avancer {0} quête : {1}</value>
+  </data>
+  <data name="DungeonAdvances" xml:space="preserve">
+    <value>Fait avancer {0} quêtes : {1}</value>
+  </data>
 </root>

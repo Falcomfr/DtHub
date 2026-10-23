@@ -70,10 +70,40 @@ public sealed partial class QuestViewModel : ObservableObject
             : QuestProfit.Score(_catalog.Catalog.Quests, _facts, Tracker.Progress,
                 Tracker.RewardLevel, Tracker.RewardXpBonus);
 
+    /// <summary>What "Recommandées" can list: the ranking's runs, cut short.</summary>
+    private IReadOnlyList<ProfitEntry>? _recommendable;
+
+    private IReadOnlyList<ProfitEntry> Recommendable => _recommendable ??=
+        _facts is null
+            ? []
+            : QuestProfit.Recommendable(
+                QuestProfit.Entries(_catalog.Catalog.Quests, Scores, Tracker.Progress, _facts, Tracker.RewardLevel, Tracker.RewardXpBonus),
+                Scores, _facts, Tracker.RewardLevel, Tracker.RewardXpBonus);
+
+    /// <summary>The game's dungeon names by game dungeon id, read with the facts.</summary>
+    private IReadOnlyDictionary<int, string> _dungeonNames = new Dictionary<int, string>();
+
+    private IReadOnlyDictionary<int, DungeonValue>? _dungeonValues;
+
+    /// <summary>By Papycha dungeon, the recommendable quests it advances.</summary>
+    private IReadOnlyDictionary<int, DungeonValue> DungeonValues => _dungeonValues ??=
+        _facts is null
+            ? new Dictionary<int, DungeonValue>()
+            : QuestProfit.DungeonValues(Recommendable, Scores, Tracker.Progress, _facts, Tracker.RewardLevel,
+                Tracker.RewardXpBonus, _touchNames.Table.Dungeons, _dungeonNames);
+
+    /// <summary>Drops the ranking and what is built on it, so the next read computes them again.</summary>
+    private void ForgetRanking()
+    {
+        _scores = null;
+        _recommendable = null;
+        _dungeonValues = null;
+    }
+
     /// <summary>Ranks again, once, and redraws the shown list.</summary>
     private void Rescore()
     {
-        _scores = null;
+        ForgetRanking();
         RedrawAfterRead();
     }
 
@@ -112,6 +142,8 @@ public sealed partial class QuestViewModel : ObservableObject
 
         // Never throws but on cancellation, and none is asked for.
         _facts = await _touchNames.FactsAsync(TouchNameService.CurrentLanguage).ConfigureAwait(true);
+        var names = await _touchNames.CachedAsync(TouchNameService.CurrentLanguage).ConfigureAwait(true);
+        _dungeonNames = names?.Dungeons.ToDictionary(d => d.Key, d => d.Value.Name) ?? [];
 
         if (UnloggedTouchFailure() is { } failure)
         {
@@ -171,6 +203,11 @@ public sealed partial class QuestViewModel : ObservableObject
     /// </summary>
     private QuestNode Marked(QuestNode node)
     {
+        if (node.Dungeon is { } dungeon)
+        {
+            return DungeonValues.TryGetValue(dungeon.Id, out var value) ? Valued(node, value) : node;
+        }
+
         if (node.Quest is not { } quest)
         {
             return node;
@@ -197,6 +234,22 @@ public sealed partial class QuestViewModel : ObservableObject
             GainKamas = kamas,
             Tier = tier,
             ProfitTip = QuestGainText.Tip(gain, tier, score?.ByKamas ?? false, score?.Effort.Reasons),
+        };
+    }
+
+    /// <summary>A dungeon row with what it is worth: the quests it advances, their gains and its mark.</summary>
+    private static QuestNode Valued(QuestNode node, DungeonValue value)
+    {
+        var (xp, kamas) = QuestGainText.Columns(value.Gain);
+        var titles = string.Join(", ", value.Advances.Select(a => a.Title));
+
+        return node with
+        {
+            GainXp = xp,
+            GainKamas = kamas,
+            Tier = value.Tier,
+            ProfitTip = QuestGainText.Tip(value.Gain) + "\n"
+                + Strings.Format(value.Advances.Count == 1 ? "DungeonAdvancesOne" : "DungeonAdvances", value.Advances.Count, titles),
         };
     }
 
@@ -714,7 +767,7 @@ public sealed partial class QuestViewModel : ObservableObject
     {
         await _catalog.RefreshNamesAsync(CancellationToken.None).ConfigureAwait(true);
         _tree.Chain = new QuestChainIndex(_catalog.Catalog.Quests);
-        _scores = null;
+        ForgetRanking();
 
         // The rows drawn before hold the French records: clicking one would open it outside the localized chain.
         RedrawAfterRead();
@@ -739,7 +792,7 @@ public sealed partial class QuestViewModel : ObservableObject
     private void Settle(QuestCatalogDocument catalog, QuestTally before)
     {
         _tree.Chain = new QuestChainIndex(catalog.Quests);
-        _scores = null;
+        ForgetRanking();
 
         IsBusy = false;
 
@@ -942,7 +995,7 @@ public sealed partial class QuestViewModel : ObservableObject
 
             foreach (var node in _tree.DungeonNodes())
             {
-                Nodes.Add(node);
+                Nodes.Add(Marked(node));
             }
 
             return;
@@ -961,7 +1014,7 @@ public sealed partial class QuestViewModel : ObservableObject
                          .ThenBy(d => d.Title, StringComparer.CurrentCulture)
                          .Select(QuestTree.NodeOf)))
             {
-                Nodes.Add(node);
+                Nodes.Add(Marked(node));
             }
 
             return;
@@ -1116,10 +1169,31 @@ public sealed partial class QuestViewModel : ObservableObject
         IsListOpen = true;
     }
 
+    /// <summary>"Recommandées" for the account: what two characters or more can do, gains summed over them.</summary>
+    [ObservableProperty]
+    private bool _profitTeam;
+
+    partial void OnProfitTeamChanged(bool value) => Redraw();
+
+    /// <summary>Sets the "Moi / Équipe" choice; told again so a toggle clicked while already on comes back on.</summary>
+    public void ShowTeam(bool team)
+    {
+        ProfitTeam = team;
+        OnPropertyChanged(nameof(ProfitTeam));
+    }
+
+    /// <summary>A row of the short lists: what it gains, for which effort, and where ties put it.</summary>
+    private sealed record ProfitRow(QuestGain Gain, double Effort, QuestSummary First, QuestNode Node, ProfitEntry? Entry = null);
+
     /// <summary>
-    /// The doable quests and series, most worth doing first. A series row
-    /// opens its first quest, and shows the series' summed gains and its
-    /// best tier; a started entry carries an hourglass.
+    /// The game publishes no XP table (checked 2026-10-23), so the whole-level line never shows.
+    /// shortcut: empty on purpose, fill it if the game or the user gives one.
+    /// </summary>
+    private static readonly IReadOnlyDictionary<int, long> XpTable = new Dictionary<int, long>();
+
+    /// <summary>
+    /// Two short lists, for XP then for kamas: the doable quests, series runs and dungeons, best on that side
+    /// for the effort. A series row opens its first quest; a started entry carries an hourglass.
     /// </summary>
     private void ShowProfit()
     {
@@ -1140,38 +1214,93 @@ public sealed partial class QuestViewModel : ObservableObject
             return;
         }
 
-        foreach (var entry in ProfitEntries())
+        var rows = ProfitTeam ? TeamRows() : MyRows();
+        foreach (var (title, kamas) in new[] { ("ProfitForXp", false), ("ProfitForKamas", true) })
         {
-            var node = Marked(_tree.NodeOf(entry.Quests[0]));
-            var (xp, kamas) = QuestGainText.Columns(entry.Gain);
+            var shown = QuestProfit.Shortlist(rows, r => r.Gain, r => r.Effort, r => r.First, _catalog.Catalog.Quests, kamas);
+            Nodes.Add(new QuestNode(QuestNodeKind.Header, Strings.Get(title)));
+            Nodes.Add(shown.Count == 0 ? new QuestNode(QuestNodeKind.Pending, Strings.Get("NoResult")) : shown[0].Node);
 
-            // A quest under way, alone or first of its series, already carries the status hourglass on its right.
-            Nodes.Add(entry.Quests.Count == 1 ? node : node with
+            foreach (var row in shown.Skip(1))
             {
-                Started = entry.Started && node.Status != QuestStatus.InProgress,
-                Label = entry.Title,
-                Detail = QuestTree.Nombre(entry.Quests.Count),
-                // The first quest's prerequisites are not the series'.
-                Needs = null,
-                GainXp = xp,
-                GainKamas = kamas,
-                Tier = entry.Tier,
-                ProfitTip = QuestGainText.Tip(entry.Gain, entry.Tier, entry.ByKamas, entry.Effort.Reasons),
-            });
-        }
+                Nodes.Add(row.Node);
+            }
 
-        if (Nodes.Count == 0)
-        {
-            Nodes.Add(new QuestNode(QuestNodeKind.Pending, Strings.Get("NoResult")));
+            if (!kamas && !ProfitTeam
+                && QuestPlanning.WholeLevel([.. shown.Select(r => r.Entry).OfType<ProfitEntry>()], Tracker.RewardLevel, XpTable) is { } line)
+            {
+                Nodes.Insert(1, new QuestNode(QuestNodeKind.Pending, Strings.Format("ProfitWholeLevel", line.Count, line.From, line.To)));
+            }
         }
     }
 
-    /// <summary>The rows of "Recommandées"; empty until the facts are read.</summary>
-    private IReadOnlyList<ProfitEntry> ProfitEntries() =>
-        _facts is null
-            ? []
-            : QuestProfit.Entries(_catalog.Catalog.Quests, Scores, Tracker.Progress, _facts, Tracker.RewardLevel,
-                Tracker.RewardXpBonus);
+    /// <summary>The chosen character's entries and the dungeons that advance them.</summary>
+    private List<ProfitRow> MyRows()
+    {
+        var rows = Recommendable.Select(e => new ProfitRow(e.Gain, e.Effort.Value, e.Quests[0], EntryNode(e), e)).ToList();
+
+        foreach (var value in DungeonValues.Values)
+        {
+            if (_catalog.Catalog.Dungeons.FirstOrDefault(d => d.Id == value.PapychaDungeonId) is { } dungeon)
+            {
+                var node = QuestTree.NodeOf(dungeon) with { Glyph = QuestTree.GlyphOf(dungeon.Kind) };
+                rows.Add(new ProfitRow(value.Gain, value.Advances.Sum(a => a.Effort.Value), value.Advances[0].Quests[0], Valued(node, value)));
+            }
+        }
+
+        return rows;
+    }
+
+    /// <summary>The account's shared entries, gains summed, the characters named on hover.</summary>
+    private List<ProfitRow> TeamRows() =>
+    [
+        .. QuestPlanning.Team(_catalog.Catalog.Quests, _facts!, Tracker.TeamProgress(), Tracker.RewardXpBonus).Select(t =>
+        {
+            var node = EntryNode(t.Entry);
+            var (xp, kamas) = QuestGainText.Columns(t.Gain);
+            var count = Strings.Format("ProfitCharacters", t.Characters.Count);
+
+            return new ProfitRow(t.Gain, t.Entry.Effort.Value, t.Entry.Quests[0], node with
+            {
+                GainXp = xp,
+                GainKamas = kamas,
+                Tier = t.Tier,
+                Detail = node.Detail is { Length: > 0 } detail ? $"{detail} · {count}" : count,
+                ProfitTip = QuestGainText.Tip(t.Gain, t.Tier, t.Entry.ByKamas, t.Entry.Effort.Reasons)
+                    + "\n" + string.Join(", ", t.Characters.Select(c => c.Name)),
+            });
+        }),
+    ];
+
+    /// <summary>A quest or series run as a row: its first quest's, with the run's gains and its first quest's zone.</summary>
+    private QuestNode EntryNode(ProfitEntry entry)
+    {
+        var first = entry.Quests[0];
+        var node = Marked(_tree.NodeOf(first));
+        var zone = first.SectionId == 0 ? string.Empty : _tree.NameOf(first.SectionId);
+        node = node with { Suffix = zone.Length > 0 ? " · " + zone : null };
+
+        if (entry.Quests.Count == 1)
+        {
+            return node;
+        }
+
+        var (xp, kamas) = QuestGainText.Columns(entry.Gain);
+
+        // A quest under way, alone or first of its series, already carries the status hourglass on its right.
+        return node with
+        {
+            Started = entry.Started && node.Status != QuestStatus.InProgress,
+            Label = entry.Title,
+            Detail = QuestTree.Nombre(entry.Quests.Count),
+            // The first quest's prerequisites are not the series'.
+            Needs = null,
+            GainXp = xp,
+            GainKamas = kamas,
+            Tier = entry.Tier,
+            ProfitTip = QuestGainText.Tip(entry.Gain, entry.Tier, entry.ByKamas, entry.Effort.Reasons),
+        };
+    }
 
     /// <summary>The catalogue quests to suggest next: the site's, or read from the previous quests done.</summary>
     private IReadOnlyList<QuestSummary> NextQuests() => QuestTracking.NextQuests(Tracker.Progress, _catalog.Catalog.Quests);
@@ -1319,7 +1448,7 @@ public sealed partial class QuestViewModel : ObservableObject
 
             foreach (var place in places)
             {
-                Nodes.Add(QuestTree.NodeOf(place) with { Glyph = QuestTree.GlyphOf(kind) });
+                Nodes.Add(Marked(QuestTree.NodeOf(place) with { Glyph = QuestTree.GlyphOf(kind) }));
             }
         }
 

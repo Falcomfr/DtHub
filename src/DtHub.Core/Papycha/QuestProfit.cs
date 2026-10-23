@@ -63,7 +63,7 @@ public static class QuestProfit
             case 4:
                 return (Kind.Travel, 1.5);
             case 3:
-                return (Kind.Items, Math.Min(7, 2 + (p.Length > 2 ? p[2] : 0) / 10.0));
+                return (Kind.Items, Math.Min(40, 2 + (p.Length > 2 ? p[2] : 0) / 10.0));
             case 20:
                 return (Kind.Crafting, 3);
             case 6 or 14:
@@ -233,6 +233,71 @@ public static class QuestProfit
         var side = Combined(gain, effort.Value, best);
         var tier = quests.Where(q => scores.ContainsKey(q.Id)).Select(q => scores[q.Id].Tier).DefaultIfEmpty(0).Max();
         return (new ProfitEntry(title, quests, gain, effort, tier, started, side.ByKamas, side.Score), side.Score);
+    }
+
+    /// <summary>The short lists cut a run here: past four quests a series is an evening, not a next step.</summary>
+    public const int ShortRun = 4;
+
+    /// <summary>Past this effort a row stays out of the short lists, however much it pays.</summary>
+    public const double ShortEffort = 25;
+
+    private static readonly string[] Keyring = ["trousseau", "keyring", "llavero"];
+
+    // The whole dungeon list ("empty the keyring") or a soul hunt: worth it on paper, days of play in fact.
+    private static bool IsVeryLong(TouchQuestFacts facts) =>
+        facts.Objectives.Count(o => o.TypeId == 12) > 5
+        || facts.Objectives.Any(o => o.TypeId is 0 or 10 && o.Text is { } text
+            && Keyring.Any(word => text.Contains(word, StringComparison.OrdinalIgnoreCase)));
+
+    /// <summary>
+    /// The entries fit for the short lists: each run cut before its first very long quest and to its first
+    /// <see cref="ShortRun"/> quests, gain and effort summed again; a run left empty is dropped.
+    /// </summary>
+    public static IReadOnlyList<ProfitEntry> Recommendable(
+        IReadOnlyList<ProfitEntry> entries, IReadOnlyDictionary<int, QuestScore> scores,
+        IReadOnlyDictionary<int, TouchQuestFacts> facts, int level, int bonusPercent)
+    {
+        ArgumentNullException.ThrowIfNull(entries);
+        ArgumentNullException.ThrowIfNull(scores);
+
+        var best = Maxima(scores.Values.Select(s => (s.Gain, s.Effort.Value)));
+        var kept = new List<ProfitEntry>();
+        foreach (var entry in entries)
+        {
+            var quests = entry.Quests.TakeWhile(q => !IsVeryLong(facts[q.Id])).Take(ShortRun).ToList();
+            if (quests.Count == entry.Quests.Count) kept.Add(entry);
+            else if (quests.Count > 0)
+            {
+                var title = quests.Count == 1 ? quests[0].Title : entry.Title;
+                kept.Add(Build(title, quests, scores, facts, level, bonusPercent, best, entry.Started).Item1);
+            }
+        }
+
+        return kept;
+    }
+
+    /// <summary>
+    /// At most <paramref name="count"/> rows, best first on one side alone: its gain for the effort, so a row never moves
+    /// because another came or went. Rows above <see cref="ShortEffort"/> or gaining nothing on that side stay out; ties
+    /// follow the catalog, then the quest id.
+    /// </summary>
+    public static IReadOnlyList<T> Shortlist<T>(
+        IEnumerable<T> rows, Func<T, QuestGain> gainOf, Func<T, double> effortOf, Func<T, QuestSummary> firstOf,
+        IReadOnlyList<QuestSummary> catalog, bool kamas, int count = 8)
+    {
+        ArgumentNullException.ThrowIfNull(catalog);
+
+        var rank = new Dictionary<int, int>();
+        for (var i = 0; i < catalog.Count; i++) rank.TryAdd(catalog[i].Id, i);
+
+        return [.. rows
+            .Select(r => (Row: r, Side: kamas ? gainOf(r).Kamas : gainOf(r).Xp, Effort: effortOf(r), First: firstOf(r)))
+            .Where(r => r.Side > 0 && r.Effort <= ShortEffort)
+            .OrderByDescending(r => r.Side / r.Effort)
+            .ThenBy(r => rank.GetValueOrDefault(r.First.Id, int.MaxValue))
+            .ThenBy(r => r.First.Id)
+            .Take(count)
+            .Select(r => r.Row)];
     }
 
     private static readonly HashSet<string> Articles = ["le", "la", "les", "l", "du", "des", "de", "the", "el", "los", "las", "del"];

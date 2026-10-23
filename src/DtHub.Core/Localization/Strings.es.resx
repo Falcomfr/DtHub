@@ -2950,4 +2950,34 @@ Para evitarlo: {1}  ›  «Bloqueo automático de Carpeta segura» › la opció
   <data name="ProfitEffort" xml:space="preserve">
     <value>Requiere: {0}</value>
   </data>
+  <data name="ProfitForXp" xml:space="preserve">
+    <value>Para la XP</value>
+  </data>
+  <data name="ProfitForKamas" xml:space="preserve">
+    <value>Para los kamas</value>
+  </data>
+  <data name="ProfitMe" xml:space="preserve">
+    <value>Yo</value>
+  </data>
+  <data name="ProfitMeTip" xml:space="preserve">
+    <value>Lo que puede hacer el personaje elegido</value>
+  </data>
+  <data name="ProfitTeam" xml:space="preserve">
+    <value>Equipo</value>
+  </data>
+  <data name="ProfitTeamTip" xml:space="preserve">
+    <value>Lo que varios de tus personajes pueden hacer, con sus ganancias sumadas</value>
+  </data>
+  <data name="ProfitCharacters" xml:space="preserve">
+    <value>{0} personajes</value>
+  </data>
+  <data name="ProfitWholeLevel" xml:space="preserve">
+    <value>Estas {0} misiones valen un nivel entero ({1} → {2})</value>
+  </data>
+  <data name="DungeonAdvancesOne" xml:space="preserve">
+    <value>Hace avanzar {0} misión: {1}</value>
+  </data>
+  <data name="DungeonAdvances" xml:space="preserve">
+    <value>Hace avanzar {0} misiones: {1}</value>
+  </data>
 </root>

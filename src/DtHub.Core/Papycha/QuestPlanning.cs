@@ -16,7 +16,7 @@ public sealed record LevelLine(int Count, int From, int To);
 public static class QuestPlanning
 {
     /// <summary>
-    /// Each character's own ranking at its own level, a series matched by its name (each character's best run), a lone
+    /// Each character's recommendable entries at its own level, a series matched by its name (each character's best run), a lone
     /// quest by its id, kept when two characters or more can do them; one Bonus Pack setting for the account.
     /// </summary>
     public static IReadOnlyList<TeamEntry> Team(
@@ -29,7 +29,8 @@ public static class QuestPlanning
         {
             var scores = QuestProfit.Score(all, facts, progress, character.Level, bonusPercent);
             var seen = new HashSet<string>();
-            foreach (var entry in QuestProfit.Entries(all, scores, progress, facts, character.Level, bonusPercent))
+            var entries = QuestProfit.Entries(all, scores, progress, facts, character.Level, bonusPercent);
+            foreach (var entry in QuestProfit.Recommendable(entries, scores, facts, character.Level, bonusPercent))
             {
                 // A run depends on the character's level and on what it did: a series matches by name, its best run only.
                 var name = entry.Quests[0].SuccessName;

@@ -29,4 +29,12 @@ public class QuestListColumnsTests
         Assert.False(QuestListColumns.HasQuestGains(rien));
         Assert.True(QuestListColumns.HasQuestGains([Quete(), Quete() with { GainXp = "86 k" }]));
     }
+
+    [Fact]
+    public void Un_donjon_qui_fait_avancer_des_quetes_reserve_aussi_les_colonnes_de_gain()
+    {
+        var donjon = new QuestNode(QuestNodeKind.Quest, "Donjon", Dungeon: new DungeonSummary(), GainXp: "1,2 M");
+
+        Assert.True(QuestListColumns.HasQuestGains([donjon]));
+    }
 }

@@ -219,6 +219,12 @@ public sealed partial class QuestTrackerViewModel(
             ? Task.CompletedTask
             : RefreshAsync();
 
+    /// <summary>Every character with its progress, at the level the selector shows (a level just saved included).</summary>
+    public IReadOnlyList<(TrackerCharacter Character, TrackerProgress Progress)> TeamProgress() =>
+        _state is not { } state
+            ? []
+            : [.. Characters.Where(c => state.Progress.ContainsKey(c.Id)).Select(c => (c, state.Progress[c.Id]))];
+
     /// <summary>The quest the guides window shows, or null for none.</summary>
     public void ShowQuest(int? questId)
     {

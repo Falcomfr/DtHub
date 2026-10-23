@@ -2950,4 +2950,34 @@ To avoid it: {1}  ›  "Auto lock Secure Folder" › the longest option.</value>
   <data name="ProfitEffort" xml:space="preserve">
     <value>Takes: {0}</value>
   </data>
+  <data name="ProfitForXp" xml:space="preserve">
+    <value>For XP</value>
+  </data>
+  <data name="ProfitForKamas" xml:space="preserve">
+    <value>For kamas</value>
+  </data>
+  <data name="ProfitMe" xml:space="preserve">
+    <value>Me</value>
+  </data>
+  <data name="ProfitMeTip" xml:space="preserve">
+    <value>What the chosen character can do</value>
+  </data>
+  <data name="ProfitTeam" xml:space="preserve">
+    <value>Team</value>
+  </data>
+  <data name="ProfitTeamTip" xml:space="preserve">
+    <value>What several of your characters can do, their gains added up</value>
+  </data>
+  <data name="ProfitCharacters" xml:space="preserve">
+    <value>{0} characters</value>
+  </data>
+  <data name="ProfitWholeLevel" xml:space="preserve">
+    <value>These {0} quests are worth a whole level ({1} → {2})</value>
+  </data>
+  <data name="DungeonAdvancesOne" xml:space="preserve">
+    <value>Advances {0} quest: {1}</value>
+  </data>
+  <data name="DungeonAdvances" xml:space="preserve">
+    <value>Advances {0} quests: {1}</value>
+  </data>
 </root>

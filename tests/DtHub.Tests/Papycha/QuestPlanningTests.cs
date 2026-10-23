@@ -130,4 +130,18 @@ public class QuestPlanningTests
         Assert.Null(QuestPlanning.WholeLevel([Entry(1, 1_000_000)], 10, new Dictionary<int, long> { [10] = 5, [11] = 5 }));
         Assert.Null(QuestPlanning.WholeLevel([], 10, Table));
     }
+
+    [Fact]
+    public void Team_leaves_out_what_the_short_lists_leave_out()
+    {
+        var catalog = new[] { Quest(1), Quest(2) };
+        var facts = new Dictionary<int, TouchQuestFacts>
+        {
+            [1] = new([Step(10, 1f)], [new TouchObjective(0, [1], 10, "Vider le trousseau")]),
+            [2] = Xp(1f),
+        };
+        var team = QuestPlanning.Team(catalog, facts, [Character("A", 10, Progress([1, 2])), Character("B", 10, Progress([1, 2]))], 0);
+
+        Assert.Equal([2], team.Select(t => t.Entry.Quests.Single().Id));
+    }
 }

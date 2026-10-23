@@ -834,6 +834,7 @@
             <Grid.ColumnDefinitions>
               <ColumnDefinition Width="*" />
               <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
             <TextBlock Grid.Column="0" VerticalAlignment="Center"
@@ -841,7 +842,30 @@
                        TextTrimming="CharacterEllipsis"
                        Text="{Binding Breadcrumb}" />
 
-            <Button Grid.Column="1" Style="{StaticResource IconButton}"
+            <!-- "Moi / Équipe" in "Recommandées", once there are characters to
+                 add up. OneWay, the click asks the view model, which tells the
+                 value again so a toggle clicked while on comes back on. -->
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="6,0,0,0"
+                        Visibility="{Binding ShowsRecommended, Converter={StaticResource BoolToVisibility}}">
+              <StackPanel Orientation="Horizontal"
+                          Visibility="{Binding Tracker.HasSeveralCharacters,
+                                               Converter={StaticResource BoolToVisibility}}">
+                <ToggleButton Style="{StaticResource OutlineToggle}" Padding="8,1"
+                              Background="Transparent"
+                              BorderBrush="{DynamicResource BorderBrush}"
+                              Content="{loc:T ProfitMe}" ToolTip="{loc:T ProfitMeTip}"
+                              IsChecked="{Binding ProfitTeam, Mode=OneWay, Converter={StaticResource InverseBool}}"
+                              Click="OnProfitMe" />
+                <ToggleButton Style="{StaticResource OutlineToggle}" Padding="8,1" Margin="4,0,0,0"
+                              Background="Transparent"
+                              BorderBrush="{DynamicResource BorderBrush}"
+                              Content="{loc:T ProfitTeam}" ToolTip="{loc:T ProfitTeamTip}"
+                              IsChecked="{Binding ProfitTeam, Mode=OneWay}"
+                              Click="OnProfitTeam" />
+              </StackPanel>
+            </StackPanel>
+
+            <Button Grid.Column="2" Style="{StaticResource IconButton}"
                     Click="OnCloseList" ToolTip="{loc:T CloseListTip}"
                     Visibility="{Binding CanCloseList, Converter={StaticResource BoolToVisibility}}">
               <Path Style="{StaticResource RowGlyph}" Data="M 4,4 L 11,11 M 11,4 L 4,11" />
@@ -1078,8 +1102,15 @@
                                   M 3.5,1.5 L 6,6 L 3.5,10.5 M 8.5,1.5 L 6,6 L 8.5,10.5" />
                     </Border>
 
-                    <TextBlock x:Name="Libelle" Text="{Binding Label}"
-                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                    <!-- The label, then muted words that only situate it: the
+                         zone of a recommended row. -->
+                    <TextBlock x:Name="Libelle"
+                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center">
+                      <Run Text="{Binding Label, Mode=OneWay}" /><Run
+                           Text="{Binding Suffix, Mode=OneWay}"
+                           Foreground="{DynamicResource TextMutedBrush}"
+                           FontSize="{StaticResource FontSmall}" />
+                    </TextBlock>
                   </DockPanel>
 
                   <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="6,0,0,0"
@@ -1776,13 +1807,24 @@
                        lair and path rows are of the quest kind too, and kept
                        the two empty columns on their right. -->
                   <DataTrigger Binding="{Binding Quest}" Value="{x:Null}">
-                    <Setter TargetName="Priorite" Property="Visibility" Value="Collapsed" />
                     <Setter TargetName="Marque" Property="Visibility" Value="Collapsed" />
                     <Setter TargetName="Rythme" Property="Visibility" Value="Collapsed" />
                     <Setter TargetName="Cadenas" Property="Visibility" Value="Collapsed" />
+                  </DataTrigger>
+
+                  <!-- A dungeon row keeps the gain columns: it is worth the
+                       quests it advances, and its mark and gains say so. A
+                       dungeon worth nothing keeps them hidden, so the facts
+                       on its left stay in their column. -->
+                  <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                      <Condition Binding="{Binding Quest}" Value="{x:Null}" />
+                      <Condition Binding="{Binding Dungeon}" Value="{x:Null}" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter TargetName="Priorite" Property="Visibility" Value="Collapsed" />
                     <Setter TargetName="GainXp" Property="Visibility" Value="Collapsed" />
                     <Setter TargetName="GainKamas" Property="Visibility" Value="Collapsed" />
-                  </DataTrigger>
+                  </MultiDataTrigger>
 
                   <DataTrigger Binding="{Binding DataContext.ListHasQuestGains,
                                                  RelativeSource={RelativeSource AncestorType=Window}}"

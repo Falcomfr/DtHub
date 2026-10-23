@@ -1010,6 +1010,10 @@ public partial class QuestWindow : Window
 
     private void OnRecommendedClick(object sender, RoutedEventArgs e) => _viewModel.ToggleRecommended();
 
+    private void OnProfitMe(object sender, RoutedEventArgs e) => _viewModel.ShowTeam(false);
+
+    private void OnProfitTeam(object sender, RoutedEventArgs e) => _viewModel.ShowTeam(true);
+
     /// <summary>Goes back to the quest we came from.</summary>
     private void OnGoBackPage(object sender, RoutedEventArgs e)
     {

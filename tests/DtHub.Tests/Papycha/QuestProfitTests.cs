@@ -32,8 +32,10 @@ public class QuestProfitTests
 
     [Theory]
     [InlineData(5, 3.5)]
-    [InlineData(100, 8.0)]
-    public void Effort_of_bringing_items_grows_with_quantity_up_to_seven(int quantity, double expected) =>
+    [InlineData(100, 13.0)]
+    [InlineData(365, 39.5)]
+    [InlineData(1000, 41.0)]
+    public void Effort_of_bringing_items_grows_with_quantity_up_to_forty(int quantity, double expected) =>
         Assert.Equal(expected, QuestProfit.EffortOf(Facts(Obj(3, [1, 2, quantity])), 50).Value);
 
     [Fact]
@@ -427,5 +429,118 @@ public class QuestProfitTests
         // 18 and 19 together score between quest 19 (tier 3) and quest 18 (tier 2).
         Assert.Equal(2, values[3].Tier);
         Assert.Equal(2, values[3].Advances.Count);
+    }
+
+    private static IReadOnlyList<ProfitEntry> Recommendable(QuestSummary[] catalog, TrackerProgress progress, Dictionary<int, TouchQuestFacts> facts)
+    {
+        var scores = QuestProfit.Score(catalog, facts, progress, 10, 0);
+        return QuestProfit.Recommendable(QuestProfit.Entries(catalog, scores, progress, facts, 10, 0), scores, facts, 10, 0);
+    }
+
+    [Fact]
+    public void A_recommended_series_run_keeps_its_first_four_quests()
+    {
+        var catalog = Enumerable.Range(1, 6).Select(i => Quest(i, "S", i)).ToArray();
+        var facts = catalog.ToDictionary(q => q.Id, q => Xp(q.Id));
+
+        var entry = Assert.Single(Recommendable(catalog, Progress([1]), facts));
+
+        Assert.Equal("S", entry.Title);
+        Assert.Equal([1, 2, 3, 4], entry.Quests.Select(q => q.Id));
+        Assert.Equal(Enumerable.Range(1, 4).Sum(i => XpOf(facts[i])), entry.Gain.Xp);
+        Assert.Equal(8, entry.Effort.Value);
+    }
+
+    [Theory]
+    [InlineData(0, "Vider le Trousseau de clefs")]
+    [InlineData(10, "Empty the keyring")]
+    [InlineData(0, "Vaciar el LLAVERO")]
+    public void A_quest_emptying_the_keyring_is_never_recommended_and_ends_a_run(int type, string text)
+    {
+        var catalog = new[] { Quest(1), Quest(2, "S", 1), Quest(3, "S", 2), Quest(4, "S", 3) };
+        var facts = catalog.ToDictionary(q => q.Id, _ => Xp(1f));
+        facts[1] = facts[3] = new([Step(10, 1f)], [new TouchObjective(type, [1], 10, text)]);
+
+        var entry = Assert.Single(Recommendable(catalog, Progress([1, 2]), facts));
+
+        Assert.Equal("Q2", entry.Title);
+        Assert.Equal([2], entry.Quests.Select(q => q.Id));
+        Assert.Equal(XpOf(facts[2]), entry.Gain.Xp);
+    }
+
+    [Fact]
+    public void A_quest_asking_more_than_five_souls_is_never_recommended()
+    {
+        var catalog = new[] { Quest(1), Quest(2) };
+        var facts = new Dictionary<int, TouchQuestFacts>
+        {
+            [1] = new([Step(10, 1f)], [.. Enumerable.Repeat(Obj(12), 6)]),
+            [2] = new([Step(10, 1f)], [.. Enumerable.Repeat(Obj(12), 5)]),
+        };
+
+        Assert.Equal(["Q2"], Recommendable(catalog, Progress([1, 2]), facts).Select(e => e.Title));
+    }
+
+    private static IReadOnlyList<ProfitEntry> Short(IEnumerable<ProfitEntry> rows, IReadOnlyList<QuestSummary> catalog, bool kamas) =>
+        QuestProfit.Shortlist(rows, e => e.Gain, e => e.Effort.Value, e => e.Quests[0], catalog, kamas);
+
+    private static ProfitEntry Row(QuestSummary quest, long xp, long kamas, double effort) =>
+        new(quest.Title, [quest], new QuestGain(xp, kamas), new QuestEffort(effort, []), 0, false, false, 0);
+
+    [Fact]
+    public void Each_short_list_ranks_on_its_own_side_for_the_effort_and_keeps_eight()
+    {
+        var catalog = Enumerable.Range(1, 12).Select(i => Quest(i)).ToArray();
+        // XP grows with the id, kamas shrink with it, and quest 12 gives none.
+        var rows = catalog.Select(q => Row(q, q.Id * 10, q.Id == 12 ? 0 : (13 - q.Id) * 10, 2)).ToList();
+
+        Assert.Equal([12, 11, 10, 9, 8, 7, 6, 5], Short(rows, catalog, kamas: false).Select(e => e.Quests[0].Id));
+        Assert.Equal([1, 2, 3, 4, 5, 6, 7, 8], Short(rows, catalog, kamas: true).Select(e => e.Quests[0].Id));
+        Assert.Equal([5, 6, 7, 8, 9, 10, 11], Short(rows.Skip(4), catalog, kamas: true).Select(e => e.Quests[0].Id));
+    }
+
+    [Fact]
+    public void A_row_above_25_of_effort_or_with_nothing_on_its_side_stays_out()
+    {
+        var catalog = new[] { Quest(1), Quest(2), Quest(3) };
+        List<ProfitEntry> rows = [Row(catalog[0], 1000, 1000, 25.5), Row(catalog[1], 10, 0, 25), Row(catalog[2], 0, 10, 1)];
+
+        Assert.Equal([2], Short(rows, catalog, kamas: false).Select(e => e.Quests[0].Id));
+        Assert.Equal([3], Short(rows, catalog, kamas: true).Select(e => e.Quests[0].Id));
+    }
+
+    [Fact]
+    public void Short_list_ties_follow_the_catalog_then_the_quest_id_whatever_the_input_order()
+    {
+        var catalog = new[] { Quest(5), Quest(3), Quest(9) };
+        // 2 and 1 are not in the catalog: after it, by id.
+        var rows = new[] { Quest(2), Quest(9), Quest(1), Quest(3), Quest(5) }.Select(q => Row(q, 10, 10, 2)).ToList();
+
+        Assert.Equal([5, 3, 9, 1, 2], Short(rows, catalog, kamas: false).Select(e => e.Quests[0].Id));
+        Assert.Equal(Short(rows, catalog, kamas: true), Short(rows.AsEnumerable().Reverse(), catalog, kamas: true));
+    }
+
+    [Fact]
+    public void Doing_the_best_kamas_quest_does_not_reorder_the_others()
+    {
+        // The combined score swapped Q2 and Q3 here: Q3's kamas were measured against Q4's, then against its own.
+        var catalog = new[] { Quest(1), Quest(2), Quest(3), Quest(4) };
+        var facts = new Dictionary<int, TouchQuestFacts>
+        {
+            [1] = new([Step(10, 4f)], [Obj(1)]),
+            [2] = new([Step(10, 3f)], [Obj(1)]),
+            [3] = new([Step(10, 1f, 3f)], [Obj(1)]),
+            [4] = new([Step(10, 0.5f, 6f)], [Obj(1)]),
+        };
+
+        IEnumerable<int> Lists(TrackerProgress progress)
+        {
+            var entries = Recommendable(catalog, progress, facts);
+            return Short(entries, catalog, kamas: false).Concat(Short(entries, catalog, kamas: true)).Select(e => e.Quests[0].Id);
+        }
+
+        Assert.Equal([1, 2, 3, 4, 4, 3], Lists(Progress([1, 2, 3, 4])));
+        Assert.Equal([1, 2, 3, 3], Lists(Progress([1, 2, 3], completed: [4])));
+        Assert.Equal(Lists(Progress([1, 2, 3, 4])), Lists(Progress([1, 2, 3, 4])));
     }
 }

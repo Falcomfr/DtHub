@@ -11,7 +11,7 @@ public static class QuestListColumns
     public static bool HasQuestLevels(IEnumerable<QuestNode> nodes) =>
         nodes.Any(n => n.Quest is not null && n.Level.Length > 0);
 
-    /// <summary>True when a quest row of the list shows a gain.</summary>
+    /// <summary>True when a quest or dungeon row of the list shows a gain.</summary>
     public static bool HasQuestGains(IEnumerable<QuestNode> nodes) =>
-        nodes.Any(n => n.Quest is not null && n.GainXp is not null);
+        nodes.Any(n => (n.Quest is not null || n.Dungeon is not null) && n.GainXp is not null);
 }
