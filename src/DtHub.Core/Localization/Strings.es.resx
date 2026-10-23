@@ -2884,4 +2884,31 @@ Para evitarlo: {1}  ›  «Bloqueo automático de Carpeta segura» › la opció
   <data name="RewardXp" xml:space="preserve">
     <value>{0} XP</value>
   </data>
+  <data name="ProfitReasonBoss" xml:space="preserve">
+    <value>{0} jefes</value>
+  </data>
+  <data name="ProfitReasonBossOne" xml:space="preserve">
+    <value>{0} jefe</value>
+  </data>
+  <data name="ProfitReasonItems" xml:space="preserve">
+    <value>{0} objetos</value>
+  </data>
+  <data name="ProfitReasonItemsOne" xml:space="preserve">
+    <value>{0} objeto</value>
+  </data>
+  <data name="ProfitReasonFights" xml:space="preserve">
+    <value>{0} combates</value>
+  </data>
+  <data name="ProfitReasonFightsOne" xml:space="preserve">
+    <value>{0} combate</value>
+  </data>
+  <data name="ProfitReasonSouls" xml:space="preserve">
+    <value>almas</value>
+  </data>
+  <data name="ProfitReasonDialogues" xml:space="preserve">
+    <value>diálogos</value>
+  </data>
+  <data name="ProfitReasonVague" xml:space="preserve">
+    <value>objetivo vago</value>
+  </data>
 </root>

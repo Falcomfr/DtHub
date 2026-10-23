@@ -46,7 +46,7 @@ public static class QuestTracking
         }
 
         var once = quests
-            .Where(q => QuestRecurrenceLabel.KindOf(q) is QuestRecurrence.Once or QuestRecurrence.Unknown)
+            .Where(q => !QuestRecurrenceLabel.IsRepeatable(q))
             .ToList();
         return new ZoneTally(
             once.Count(q => StatusOf(progress, q.Id) == QuestStatus.Completed),

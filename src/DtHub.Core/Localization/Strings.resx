@@ -2884,4 +2884,31 @@ To avoid it: {1}  ›  "Auto lock Secure Folder" › the longest option.</value>
   <data name="RewardXp" xml:space="preserve">
     <value>{0} XP</value>
   </data>
+  <data name="ProfitReasonBoss" xml:space="preserve">
+    <value>{0} bosses</value>
+  </data>
+  <data name="ProfitReasonBossOne" xml:space="preserve">
+    <value>{0} boss</value>
+  </data>
+  <data name="ProfitReasonItems" xml:space="preserve">
+    <value>{0} items</value>
+  </data>
+  <data name="ProfitReasonItemsOne" xml:space="preserve">
+    <value>{0} item</value>
+  </data>
+  <data name="ProfitReasonFights" xml:space="preserve">
+    <value>{0} fights</value>
+  </data>
+  <data name="ProfitReasonFightsOne" xml:space="preserve">
+    <value>{0} fight</value>
+  </data>
+  <data name="ProfitReasonSouls" xml:space="preserve">
+    <value>souls</value>
+  </data>
+  <data name="ProfitReasonDialogues" xml:space="preserve">
+    <value>dialogues</value>
+  </data>
+  <data name="ProfitReasonVague" xml:space="preserve">
+    <value>vague objective</value>
+  </data>
 </root>

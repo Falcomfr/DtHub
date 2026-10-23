@@ -26,6 +26,10 @@ public static class QuestRecurrenceLabel
         _ => null,
     };
 
+    /// <summary>Whether the quest can be done again, the site's repeatable section included.</summary>
+    public static bool IsRepeatable(QuestSummary quest) =>
+        KindOf(quest) is not (QuestRecurrence.Once or QuestRecurrence.Unknown);
+
     /// <summary>
     /// The rhythm the row shows: the API's, except that the site's
     /// repeatable section wins over "once" or nothing.

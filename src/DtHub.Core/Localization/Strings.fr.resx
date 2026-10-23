@@ -2884,4 +2884,31 @@ Pour l'éviter : {1}  ›  « Verrouillage auto. Dossier sécurisé » › l'opt
   <data name="RewardXp" xml:space="preserve">
     <value>{0} XP</value>
   </data>
+  <data name="ProfitReasonBoss" xml:space="preserve">
+    <value>{0} boss</value>
+  </data>
+  <data name="ProfitReasonBossOne" xml:space="preserve">
+    <value>{0} boss</value>
+  </data>
+  <data name="ProfitReasonItems" xml:space="preserve">
+    <value>{0} objets</value>
+  </data>
+  <data name="ProfitReasonItemsOne" xml:space="preserve">
+    <value>{0} objet</value>
+  </data>
+  <data name="ProfitReasonFights" xml:space="preserve">
+    <value>{0} combats</value>
+  </data>
+  <data name="ProfitReasonFightsOne" xml:space="preserve">
+    <value>{0} combat</value>
+  </data>
+  <data name="ProfitReasonSouls" xml:space="preserve">
+    <value>âmes</value>
+  </data>
+  <data name="ProfitReasonDialogues" xml:space="preserve">
+    <value>dialogues</value>
+  </data>
+  <data name="ProfitReasonVague" xml:space="preserve">
+    <value>objectif vague</value>
+  </data>
 </root>
