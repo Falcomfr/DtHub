@@ -2484,6 +2484,12 @@ Pour l'éviter : {1}  ›  « Verrouillage auto. Dossier sécurisé » › l'opt
   <data name="TrackerUnlink" xml:space="preserve">
     <value>Délier</value>
   </data>
+  <data name="RewardLevelLabel" xml:space="preserve">
+    <value>Niv.</value>
+  </data>
+  <data name="RewardXpBonusLabel" xml:space="preserve">
+    <value>Bonus XP %</value>
+  </data>
   <data name="TrackerMyQuests" xml:space="preserve">
     <value>Mes quêtes</value>
   </data>

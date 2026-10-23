@@ -2484,6 +2484,12 @@ Para evitarlo: {1}  ›  «Bloqueo automático de Carpeta segura» › la opció
   <data name="TrackerUnlink" xml:space="preserve">
     <value>Desvincular</value>
   </data>
+  <data name="RewardLevelLabel" xml:space="preserve">
+    <value>Niv.</value>
+  </data>
+  <data name="RewardXpBonusLabel" xml:space="preserve">
+    <value>Bono XP %</value>
+  </data>
   <data name="TrackerMyQuests" xml:space="preserve">
     <value>Mis misiones</value>
   </data>

@@ -89,12 +89,14 @@ public sealed partial class QuestTrackerViewModel(
     [NotifyPropertyChangedFor(nameof(ShowsLinkButton))]
     [NotifyPropertyChangedFor(nameof(ShowsPitch))]
     [NotifyPropertyChangedFor(nameof(ShowsQuestStatus))]
+    [NotifyPropertyChangedFor(nameof(RewardLevel))]
     private TrackerLink _link = TrackerLink.Unknown;
 
     [ObservableProperty]
     private string _notice = string.Empty;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(RewardLevel))]
     private TrackerCharacter? _selectedCharacter;
 
     [ObservableProperty]
@@ -116,6 +118,16 @@ public sealed partial class QuestTrackerViewModel(
     private bool _isBusy;
 
     public bool IsLinked => Link == TrackerLink.Linked;
+
+    /// <summary>The level kept in the settings, used when no character is linked (0 = unknown).</summary>
+    private int _settingLevel;
+
+    private int _settingBonus;
+
+    /// <summary>The selected character's level when linked, else the remembered one.</summary>
+    public int RewardLevel => IsLinked && SelectedCharacter is { } character ? character.Level : _settingLevel;
+
+    public int RewardXpBonus => _settingBonus;
 
     public bool ShowsLinkButton => Link is TrackerLink.NotLinked or TrackerLink.Lost;
 
@@ -146,7 +158,12 @@ public sealed partial class QuestTrackerViewModel(
     public async Task<bool> RefreshAsync()
     {
         var version = _writeVersion;
-        _rememberedId = (await settings.GetAsync()).PapychaCharacterId;
+        var held = await settings.GetAsync();
+        _rememberedId = held.PapychaCharacterId;
+        _settingLevel = held.RewardLevel;
+        _settingBonus = held.RewardXpBonus;
+        OnPropertyChanged(nameof(RewardLevel));
+        OnPropertyChanged(nameof(RewardXpBonus));
         var (cookie, cookieFailed) = await ReadCookieAsync();
 
         if (cookieFailed)
@@ -428,6 +445,117 @@ public sealed partial class QuestTrackerViewModel(
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Applies the level box. Linked, the level is saved on the player's
+    /// Papycha character and only shown once the site took it; a refusal keeps
+    /// the old level and says why. Not linked, it is kept in the settings.
+    /// True when the level changed.
+    /// </summary>
+    public async Task<bool> SetRewardLevelAsync(string text)
+    {
+        if (!RewardInput.TryLevel(text, out var level) || level == RewardLevel)
+        {
+            OnPropertyChanged(nameof(RewardLevel));
+
+            return false;
+        }
+
+        if (!IsLinked || SelectedCharacter is not { } character)
+        {
+            _settingLevel = level;
+            OnPropertyChanged(nameof(RewardLevel));
+            await settings.SetRewardLevelAsync(level);
+
+            return true;
+        }
+
+        if (IsBusy)
+        {
+            OnPropertyChanged(nameof(RewardLevel));
+
+            return false;
+        }
+
+        IsBusy = true;
+
+        try
+        {
+            Notice = string.Empty;
+            var (cookie, cookieFailed) = await ReadCookieAsync();
+
+            if (cookie is null)
+            {
+                SetState(cookieFailed ? TrackerLink.Unreadable : TrackerLink.Lost);
+
+                return false;
+            }
+
+            var updated = character with { Level = level };
+            TrackerWriteResult result;
+
+            try
+            {
+                result = await tracker.SaveCharacterAsync(cookie, updated);
+            }
+            catch (Exception exception) when (exception is not OutOfMemoryException)
+            {
+                LogWriteFailed(0, exception);
+                result = new TrackerWriteResult(false, null, TrackerReadOutcome.Unreadable);
+            }
+
+            if (result.Success)
+            {
+                var index = Characters.IndexOf(character);
+
+                if (index >= 0)
+                {
+                    Characters[index] = updated;
+                }
+
+                SelectedCharacter = updated;
+
+                return true;
+            }
+
+            if (result.After == TrackerReadOutcome.NotLinked)
+            {
+                SetState(TrackerLink.Lost);
+            }
+            else
+            {
+                Notice = string.IsNullOrWhiteSpace(result.Message)
+                    ? Strings.Get("TrackerUnreadable")
+                    : result.Message;
+                LogWriteRefused(0, Notice);
+            }
+
+            OnPropertyChanged(nameof(RewardLevel));
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+
+        return false;
+    }
+
+    /// <summary>Applies the bonus box (0 to 1000 percent); a refused text puts the old value back.</summary>
+    public async Task<bool> SetRewardXpBonusAsync(string text)
+    {
+        if (!RewardInput.TryBonus(text, out var percent) || percent == _settingBonus)
+        {
+            OnPropertyChanged(nameof(RewardXpBonus));
+
+            return false;
+        }
+
+        _settingBonus = percent;
+        OnPropertyChanged(nameof(RewardXpBonus));
+        await settings.SetRewardXpBonusAsync(percent);
+
+        return true;
     }
 
     /// <summary>Forgets the cookie and drops everything the tracker gave.</summary>

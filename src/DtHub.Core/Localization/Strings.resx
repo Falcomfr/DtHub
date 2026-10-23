@@ -2484,6 +2484,12 @@ To avoid it: {1}  ›  "Auto lock Secure Folder" › the longest option.</value>
   <data name="TrackerUnlink" xml:space="preserve">
     <value>Unlink</value>
   </data>
+  <data name="RewardLevelLabel" xml:space="preserve">
+    <value>Lvl</value>
+  </data>
+  <data name="RewardXpBonusLabel" xml:space="preserve">
+    <value>XP bonus %</value>
+  </data>
   <data name="TrackerMyQuests" xml:space="preserve">
     <value>My quests</value>
   </data>
