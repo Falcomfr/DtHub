@@ -172,6 +172,107 @@ public sealed class TouchNameService(
         }
     }
 
+    /// <summary>Spacing between the three bulk reads, so the game's server is never hammered.</summary>
+    public TimeSpan FactsPause { get; init; } = TimeSpan.FromSeconds(60);
+
+    /// <summary>
+    /// Every paired quest's reward formula and objectives, by Papycha quest id,
+    /// read in three spaced requests and kept for a week. Never throws except on
+    /// cancellation; on failure returns what the cache had (see <see cref="LastFailure"/>).
+    /// </summary>
+    public async Task<IReadOnlyDictionary<int, TouchQuestFacts>> FactsAsync(string language, CancellationToken ct = default)
+    {
+        var known = await CachedAsync(language, ct).ConfigureAwait(false)
+            ?? await RefreshAsync(language, ct).ConfigureAwait(false);
+
+        if (known is null)
+        {
+            return new Dictionary<int, TouchQuestFacts>();
+        }
+
+        await _read.WaitAsync(ct).ConfigureAwait(false);
+
+        try
+        {
+            // A refresh may have swapped the record while this waited.
+            known = await CachedAsync(language, ct).ConfigureAwait(false) ?? known;
+
+            if (DateTimeOffset.UtcNow - known.FactsReadUtc < Freshness)
+            {
+                return known.Facts;
+            }
+
+            try
+            {
+                var facts = await ReadFactsAsync(known, language, ct).ConfigureAwait(false);
+                await SaveAsync(
+                    document => document.Languages[language] = known with { Facts = facts, FactsReadUtc = DateTimeOffset.UtcNow }, ct)
+                    .ConfigureAwait(false);
+                LastFailure = null;
+
+                return facts;
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception exception) when (exception is not OutOfMemoryException)
+            {
+                // The caller reads LastFailure; last week's facts beat none.
+                LastFailure = exception;
+
+                return known.Facts;
+            }
+        }
+        finally
+        {
+            _read.Release();
+        }
+    }
+
+    private async Task<Dictionary<int, TouchQuestFacts>> ReadFactsAsync(
+        TouchLanguageNames known, string language, CancellationToken ct)
+    {
+        // The first game quest of each distinct name, as StepsAsync does.
+        var stepIdsOf = Table.Quests.ToDictionary(
+            q => q.Key,
+            q => q.Value
+                .Where(known.Quests.ContainsKey)
+                .GroupBy(id => known.Quests[id].Name)
+                .SelectMany(g => known.Quests[g.First()].StepIds)
+                .ToArray());
+
+        var steps = await GetAsync("QuestSteps", [.. stepIdsOf.Values.SelectMany(ids => ids)], language, ct).ConfigureAwait(false);
+
+        if (steps.Count == 0)
+        {
+            throw new InvalidOperationException("The game's server returned no quest step.");
+        }
+
+        await Task.Delay(FactsPause, ct).ConfigureAwait(false);
+        var objectives = await GetAsync(
+            "QuestObjectives", [.. steps.Values.SelectMany(step => Ints(step, "objectiveIds"))], language, ct).ConfigureAwait(false);
+
+        await Task.Delay(FactsPause, ct).ConfigureAwait(false);
+        var rewardRows = await ReadRewardRowsAsync(steps.Values, language, ct).ConfigureAwait(false);
+
+        return stepIdsOf
+            .Where(q => q.Value.Any(steps.ContainsKey))
+            .ToDictionary(
+                q => q.Key,
+                q =>
+                {
+                    var own = q.Value.Where(steps.ContainsKey).Select(id => steps[id]).ToArray();
+
+                    return new TouchQuestFacts(
+                        [.. own.Select(step => BuildReward(step, rewardRows))],
+                        [.. own.SelectMany(step => Ints(step, "objectiveIds")
+                            .Where(objectives.ContainsKey)
+                            .Select(id => new TouchObjective(
+                                Int(objectives[id], "typeId"), Ints(objectives[id], "parameters"), (int)(Single(step, "optimalLevel") ?? 0))))]);
+                });
+    }
+
     private bool IsFresh(TouchLanguageNames? names) =>
         names is not null && DateTimeOffset.UtcNow - names.ReadUtc < Freshness;
 
@@ -265,37 +366,11 @@ public sealed class TouchNameService(
                     : "");
         }
 
-        static bool HasFormula(JsonElement step) =>
-            Single(step, "optimalLevel") is not null && Single(step, "duration") is not null
-            && Single(step, "xpRatio") is not null && Single(step, "kamasRatio") is not null;
-
         Dictionary<int, TouchRewardRow>? rewardRows;
 
         try
         {
-            var rewards = await GetAsync(
-                "QuestStepRewards", [.. steps.Where(HasFormula).SelectMany(step => Ints(step, "rewardsIds"))], language, ct).ConfigureAwait(false);
-
-            TouchItemReward[] ItemRewards(JsonElement row) =>
-                row.TryGetProperty("itemsReward", out var list) && list.ValueKind == JsonValueKind.Array
-                    ? [.. list.EnumerateArray()
-                        .Where(pair => pair.ValueKind == JsonValueKind.Array && pair.GetArrayLength() >= 2)
-                        .Select(pair => new TouchItemReward(
-                            pair[0].TryGetInt32(out var id) ? id : 0,
-                            pair[1].TryGetInt32(out var quantity) ? quantity : 0))
-                        .Where(item => item.ItemId != 0)]
-                    : [];
-
-            rewardRows = rewards.ToDictionary(r => r.Key, r => new TouchRewardRow(
-                Int(r.Value, "levelMin"),
-                Int(r.Value, "levelMax"),
-                ItemRewards(r.Value),
-                Ints(r.Value, "emotesReward").Length,
-                Ints(r.Value, "spellsReward").Length,
-                Ints(r.Value, "titlesReward").Length,
-                Ints(r.Value, "ornamentsReward").Length,
-                Ints(r.Value, "companionsReward").Length,
-                Ints(r.Value, "jobsReward").Length));
+            rewardRows = await ReadRewardRowsAsync(steps, language, ct).ConfigureAwait(false);
 
             // Reward item names share the dungeon keys' map.
             var rewardItems = await GetAsync(
@@ -313,18 +388,51 @@ public sealed class TouchNameService(
             rewardRows = null;
         }
 
-        TouchStepReward? Reward(JsonElement step) =>
-            rewardRows is not null && HasFormula(step)
-                ? new((int)Single(step, "optimalLevel")!, Single(step, "duration")!.Value, Single(step, "xpRatio")!.Value, Single(step, "kamasRatio")!.Value,
-                    step.TryGetProperty("kamasScaleWithPlayerLevel", out var scale) && scale.ValueKind == JsonValueKind.True,
-                    [.. Ints(step, "rewardsIds").Where(rewardRows.ContainsKey).Select(id => rewardRows[id])])
-                : null;
-
         return [.. steps.Select(step => new TouchStep(
             Name(step) ?? "",
             Text(step, "descriptionId"),
             [.. Ints(step, "objectiveIds").Where(objectives.ContainsKey).Select(id => Line(objectives[id]))],
-            Reward(step)))];
+            BuildReward(step, rewardRows)))];
+    }
+
+    private static bool HasFormula(JsonElement step) =>
+        Single(step, "optimalLevel") is not null && Single(step, "duration") is not null
+        && Single(step, "xpRatio") is not null && Single(step, "kamasRatio") is not null;
+
+    /// <summary>Null when the step lacks a formula field or the rewards could not be read.</summary>
+    private static TouchStepReward? BuildReward(JsonElement step, Dictionary<int, TouchRewardRow>? rewardRows) =>
+        rewardRows is not null && HasFormula(step)
+            ? new((int)Single(step, "optimalLevel")!, Single(step, "duration")!.Value, Single(step, "xpRatio")!.Value, Single(step, "kamasRatio")!.Value,
+                step.TryGetProperty("kamasScaleWithPlayerLevel", out var scale) && scale.ValueKind == JsonValueKind.True,
+                [.. Ints(step, "rewardsIds").Where(rewardRows.ContainsKey).Select(id => rewardRows[id])])
+            : null;
+
+    private async Task<Dictionary<int, TouchRewardRow>> ReadRewardRowsAsync(
+        IEnumerable<JsonElement> steps, string language, CancellationToken ct)
+    {
+        var rewards = await GetAsync(
+            "QuestStepRewards", [.. steps.Where(HasFormula).SelectMany(step => Ints(step, "rewardsIds"))], language, ct).ConfigureAwait(false);
+
+        static TouchItemReward[] ItemRewards(JsonElement row) =>
+            row.TryGetProperty("itemsReward", out var list) && list.ValueKind == JsonValueKind.Array
+                ? [.. list.EnumerateArray()
+                    .Where(pair => pair.ValueKind == JsonValueKind.Array && pair.GetArrayLength() >= 2)
+                    .Select(pair => new TouchItemReward(
+                        pair[0].TryGetInt32(out var id) ? id : 0,
+                        pair[1].TryGetInt32(out var quantity) ? quantity : 0))
+                    .Where(item => item.ItemId != 0)]
+                : [];
+
+        return rewards.ToDictionary(r => r.Key, r => new TouchRewardRow(
+            Int(r.Value, "levelMin"),
+            Int(r.Value, "levelMax"),
+            ItemRewards(r.Value),
+            Ints(r.Value, "emotesReward").Length,
+            Ints(r.Value, "spellsReward").Length,
+            Ints(r.Value, "titlesReward").Length,
+            Ints(r.Value, "ornamentsReward").Length,
+            Ints(r.Value, "companionsReward").Length,
+            Ints(r.Value, "jobsReward").Length));
     }
 
     private static float? Single(JsonElement row, string name) =>

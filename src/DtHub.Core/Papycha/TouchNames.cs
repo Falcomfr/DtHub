@@ -30,7 +30,17 @@ public sealed record TouchLanguageNames
 
     /// <summary>By Papycha quest id.</summary>
     public Dictionary<int, TouchStep[]> Steps { get; init; } = [];
+
+    /// <summary>By Papycha quest id; read in bulk with its own freshness, so a names refresh keeps it.</summary>
+    public Dictionary<int, TouchQuestFacts> Facts { get; init; } = [];
+
+    public DateTimeOffset FactsReadUtc { get; init; }
 }
+
+/// <summary>Steps in game order; a null step lacks a formula field.</summary>
+public sealed record TouchQuestFacts(TouchStepReward?[] Steps, TouchObjective[] Objectives);
+
+public sealed record TouchObjective(int TypeId, int[] Parameters, int StepOptimalLevel);
 
 public sealed record TouchQuest(string Name, int LevelMin, int LevelMax, int[] StepIds);
 

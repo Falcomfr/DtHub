@@ -363,4 +363,77 @@ public class TouchNameServiceTests
             DtHub.Core.Localization.Strings.Speak(null);
         }
     }
+
+    private const string FactsStepA = """{"id":10,"objectiveIds":[70,71],"optimalLevel":40,"duration":1,"xpRatio":0.5,"kamasRatio":1,"rewardsIds":[500]}""";
+
+    private void SeedFacts()
+    {
+        _client.Rows["QuestSteps"] = new()
+        {
+            [10] = FactsStepA,
+            [11] = """{"id":11,"objectiveIds":[72],"duration":1}""",
+        };
+        _client.Rows["QuestObjectives"] = new()
+        {
+            [70] = """{"typeId":3,"parameters":[5,12]}""",
+            [71] = """{"typeId":1,"parameters":[8]}""",
+            [72] = """{"typeId":6,"parameters":[9,1]}""",
+        };
+        _client.Rows["QuestStepRewards"] = new() { [500] = """{"levelMin":1,"levelMax":-1,"itemsReward":[[600,2]]}""" };
+    }
+
+    [Fact]
+    public async Task Une_lecture_en_masse_demande_les_trois_classes_dans_l_ordre_puis_sert_le_cache()
+    {
+        SeedFacts();
+        using var service = new TouchNameService(_client, _store, new FakeTable()) { FactsPause = TimeSpan.Zero };
+
+        var facts = await service.FactsAsync("en");
+
+        Assert.Equal(["QuestSteps", "QuestObjectives", "QuestStepRewards"], _client.Requested.Keys.Skip(5));
+        Assert.Equal([10, 11], _client.Requested["QuestSteps"].Single());
+        Assert.Equal([70, 71, 72], _client.Requested["QuestObjectives"].Single());
+        Assert.Equal([500], _client.Requested["QuestStepRewards"].Single());
+        Assert.Equal(40, facts[1].Steps[0]!.OptimalLevel);
+        Assert.Equal(new TouchItemReward(600, 2), facts[1].Steps[0]!.Rows.Single().Items.Single());
+        Assert.Equal([3, 1, 6], facts[1].Objectives.Select(o => o.TypeId));
+        Assert.Equal([5, 12], facts[1].Objectives[0].Parameters);
+        Assert.Equal(40, facts[1].Objectives[0].StepOptimalLevel);
+
+        _client.Requested.Clear();
+        _ = await service.FactsAsync("en");
+
+        Assert.Empty(_client.Requested);
+    }
+
+    [Fact]
+    public async Task Une_etape_sans_niveau_optimal_donne_une_entree_nulle()
+    {
+        SeedFacts();
+        using var service = new TouchNameService(_client, _store, new FakeTable()) { FactsPause = TimeSpan.Zero };
+
+        var facts = await service.FactsAsync("en");
+
+        Assert.Equal(2, facts[1].Steps.Length);
+        Assert.NotNull(facts[1].Steps[0]);
+        Assert.Null(facts[1].Steps[1]);
+    }
+
+    [Fact]
+    public async Task Un_refus_des_objectifs_garde_le_cache_precedent()
+    {
+        SeedFacts();
+        var previous = new Dictionary<int, TouchQuestFacts> { [1] = new([], []) };
+        await _store.SaveAsync(new TouchNamesDocument
+        {
+            Languages = { ["en"] = new TouchLanguageNames { ReadUtc = DateTimeOffset.UtcNow, Facts = previous, FactsReadUtc = DateTimeOffset.UtcNow.AddDays(-8) } },
+        });
+        _client.FailingClasses.Add("QuestObjectives");
+        using var service = new TouchNameService(_client, _store, new FakeTable()) { FactsPause = TimeSpan.Zero };
+
+        var facts = await service.FactsAsync("en");
+
+        Assert.Same(previous, facts);
+        Assert.NotNull(service.LastFailure);
+    }
 }
