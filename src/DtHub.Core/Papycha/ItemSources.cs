@@ -1,7 +1,11 @@
 ﻿namespace DtHub.Core.Papycha;
 
-/// <summary>A monster that drops an item; <see cref="NormalName"/> only for an archimonster whose normal version was found.</summary>
-public sealed record MonsterSource(int Id, string Name, int Level, bool IsArchimonster, string? NormalName, IReadOnlyList<string> SubAreas);
+/// <summary>
+/// A monster that drops an item; <see cref="NormalName"/> only for an archimonster whose normal version was found.
+/// <see cref="Conditional"/>: drops it only under a condition, usually while the quest is active.
+/// </summary>
+public sealed record MonsterSource(
+    int Id, string Name, int Level, bool IsArchimonster, string? NormalName, IReadOnlyList<string> SubAreas, bool Conditional = false);
 
 /// <summary>A job and the level it needs. A record, not a tuple: the JSON cache drops tuple fields.</summary>
 public sealed record JobLevel(string Job, int Level);

@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 
 using DtHub.Core.Papycha;
+using DtHub.Core.Storage;
 using DtHub.Infrastructure.Storage;
 using DtHub.Tests.Fakes;
 
@@ -22,8 +23,13 @@ public class ItemSourceServiceTests
 
     private ItemSourceService Service() => new(_client, _store);
 
-    private void Item(int id, params int[] droppers) =>
-        _client.Rows["Items"][id] = $$"""{"id":{{id}},"nameId":"objet {{id}}","dropMonsterIds":[{{string.Join(',', droppers)}}]}""";
+    private void Item(int id, params int[] droppers) => Item(id, droppers, []);
+
+    private void Item(int id, int[] droppers, int[] conditional) =>
+        _client.Rows["Items"][id] = $$"""
+            {"id":{{id}},"nameId":"objet {{id}}","dropMonsterIds":[{{string.Join(',', droppers)}}],
+             "conditionnalDropMonsterIds":[{{string.Join(',', conditional)}}]}
+            """;
 
     private void Monster(int id, string name, int[] subAreas, bool archi = false, int miniBoss = 0, params int[] levels) =>
         _client.Rows["Monsters"][id] = $$"""
@@ -191,12 +197,116 @@ public class ItemSourceServiceTests
     }
 
     [Fact]
-    public async Task Un_objet_inconnu_du_jeu_rend_null()
+    public async Task Un_objet_inconnu_du_jeu_rend_null_et_n_est_demande_qu_une_fois()
     {
         using var service = Service();
 
         Assert.Null(await service.SourceAsync(1, "fr"));
-        Assert.Equal(0, _store.Writes);
+        Assert.Null(await service.SourceAsync(1, "fr"));
+
+        Assert.Single(_client.Requested["Items"]);
+        Assert.Empty((await _store.LoadAsync()).Languages["fr"].Items);
+    }
+
+    [Fact]
+    public async Task Un_echec_apres_la_lecture_des_metiers_les_garde()
+    {
+        _client.FailingClasses.Add("Items");
+        using var service = new ItemSourceService(_client, _store) { FailureCooldown = TimeSpan.Zero };
+        Assert.Null(await service.SourceAsync(1, "fr"));
+        _client.FailingClasses.Clear();
+        _client.Requested.Clear();
+        Item(1);
+
+        Assert.NotNull(await service.SourceAsync(1, "fr"));
+        Assert.False(_client.Requested.ContainsKey("Skills"));
+    }
+
+    [Fact]
+    public async Task Apres_un_echec_rien_n_est_redemande_pendant_la_pause()
+    {
+        Item(1);
+        _client.Failure = new HttpRequestException("refus");
+        using var service = Service();
+        _ = await service.SourceAsync(1, "fr");
+        _client.Failure = null;
+        _client.Requested.Clear();
+
+        Assert.Null(await service.SourceAsync(1, "fr"));
+        Assert.Empty(_client.Requested);
+    }
+
+    [Fact]
+    public async Task Une_lecture_bloquee_abandonne_sans_lever()
+    {
+        Item(1);
+        _client.Pause = new TaskCompletionSource();
+        using var service = new ItemSourceService(_client, _store) { ReadTimeout = TimeSpan.FromMilliseconds(50) };
+
+        Assert.Null(await service.SourceAsync(1, "fr"));
+        Assert.NotNull(service.LastFailure);
+    }
+
+    [Fact]
+    public async Task Les_monstres_conditionnels_suivent_les_autres_et_sont_marques()
+    {
+        Item(1, [11, 12], [12, 13, 14, 15, 16]);
+        Monster(11, "Toujours", [], levels: [5]);
+        Monster(12, "Double", [], levels: [5]);
+        Monster(13, "Quete", [], levels: [5]);
+        using var service = Service();
+
+        var source = await service.SourceAsync(1, "fr");
+
+        Assert.Equal([11, 12, 13, 14, 15], _client.Requested["Monsters"].Single());
+        Assert.Equal([("Toujours", false), ("Double", false), ("Quete", true)], source!.Droppers.Select(d => (d.Name, d.Conditional)));
+    }
+
+    [Fact]
+    public async Task La_version_normale_qui_lache_aussi_l_objet_est_trouvee_sans_relire()
+    {
+        Item(1, 20, 30);
+        Monster(20, "Archi", [100], archi: true, levels: [40]);
+        Monster(30, "Normal", [100], miniBoss: 20, levels: [30]);
+        SubArea(100, "Village", 20, 30);
+        using var service = Service();
+
+        var source = await service.SourceAsync(1, "fr");
+
+        Assert.Equal("Normal", source!.Droppers[0].NormalName);
+        Assert.Single(_client.Requested["Monsters"]);
+    }
+
+    [Fact]
+    public async Task L_identifiant_du_monstre_vient_de_la_cle()
+    {
+        Item(1, 10);
+        _client.Rows["Monsters"][10] = """{"nameId":"Sans id","grades":[{"level":3}]}""";
+        using var service = Service();
+
+        Assert.Equal(10, (await service.SourceAsync(1, "fr"))!.Droppers.Single().Id);
+    }
+
+    [Fact]
+    public async Task Une_ecriture_ratee_rend_quand_meme_la_source()
+    {
+        Item(1);
+        using var service = new ItemSourceService(_client, new FailingStore());
+
+        Assert.NotNull(await service.SourceAsync(1, "fr"));
+    }
+
+    private sealed class FailingStore : IDocumentStore<ItemSourcesDocument>
+    {
+        public string FilePath => "(refus)";
+
+        public Task<ItemSourcesDocument> LoadAsync(CancellationToken cancellationToken = default) => Task.FromResult(new ItemSourcesDocument());
+
+        public Task SaveAsync(ItemSourcesDocument document, CancellationToken cancellationToken = default) => throw new IOException("disque plein");
+
+        public string Serialize(ItemSourcesDocument document) => "";
+
+        public ItemSourcesDocument? Deserialize(string json) => null;
     }
 
     [Fact]
