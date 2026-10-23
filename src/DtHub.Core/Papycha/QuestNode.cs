@@ -81,7 +81,8 @@ public enum QuestNodeGlyph
 /// <param name="Kind">What the click will trigger.</param>
 /// <param name="Label">Displayed text.</param>
 /// <param name="Detail">
-/// Detail on the right: a number of quests, a quest's rhythm.
+/// Detail on the right: a number of quests, a zone's levels. A quest's
+/// rhythm is a glyph instead, see <see cref="Recurrence"/>.
 /// </param>
 /// <param name="Id">Identifier of the section, when it is one.</param>
 /// <param name="Glyph">The icon that announces the row's nature.</param>
@@ -163,6 +164,12 @@ public sealed record QuestNode(
     /// labels of every quest start at the same place.
     /// </summary>
     public bool HasLevelColumn => Facts is not null || Quest is not null;
+
+    /// <summary>The quest's rhythm, which picks the glyph of its column.</summary>
+    public QuestRecurrence Recurrence => Quest is null ? QuestRecurrence.Unknown : QuestRecurrenceLabel.KindOf(Quest);
+
+    /// <summary>The rhythm in words, on the glyph's hover.</summary>
+    public string? RecurrenceLabel => Quest is null ? null : QuestRecurrenceLabel.Of(Quest);
 
     /// <summary>True when the row has something to say on hover.</summary>
     public bool HasNeeds => Needs is { Count: > 0 };

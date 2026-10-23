@@ -424,7 +424,6 @@ public sealed class QuestTree
     public QuestNode NodeOf(QuestSummary quest) => new(
         QuestNodeKind.Quest,
         quest.Title,
-        Detail: QuestRecurrenceLabel.Of(quest),
         Quest: quest,
         Needs: NeedsOf(quest));
 

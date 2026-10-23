@@ -11,7 +11,7 @@ public static class QuestListColumns
     public static bool HasQuestLevels(IEnumerable<QuestNode> nodes) =>
         nodes.Any(n => n.Quest is not null && n.Level.Length > 0);
 
-    /// <summary>True when a quest row of the list is finished or in progress.</summary>
+    /// <summary>True when a quest row of the list carries a status, which every status but not started marks.</summary>
     public static bool HasQuestMarks(IEnumerable<QuestNode> nodes) =>
-        nodes.Any(n => n.Quest is not null && n.Status is QuestStatus.Completed or QuestStatus.InProgress);
+        nodes.Any(n => n.Quest is not null && n.Status != QuestStatus.NotStarted);
 }

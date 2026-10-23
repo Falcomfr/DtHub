@@ -30,25 +30,28 @@ public static class QuestTracking
     }
 
     /// <summary>
-    /// A zone's progress in the quest areas, in the place of its levels:
-    /// "12/57" done, and "3 in progress" only when something is started. Two
-    /// parts, so the list lays them in two aligned columns. Null without a
-    /// linked tracker, the columns then stay empty.
+    /// A zone's progress in the quest areas: the quests done once and for
+    /// all that are done, and how many quests are started. A quest done again
+    /// (daily, weekly, repeatable, seasonal) stays out of the count, or a zone
+    /// would never read as finished. Null without a linked tracker, the
+    /// columns then stay empty.
     /// </summary>
-    public static ZoneTally? ZoneProgress(TrackerProgress? progress, IReadOnlyCollection<int> questIds)
+    public static ZoneTally? ZoneProgress(TrackerProgress? progress, IReadOnlyCollection<QuestSummary> quests)
     {
-        ArgumentNullException.ThrowIfNull(questIds);
+        ArgumentNullException.ThrowIfNull(quests);
 
         if (progress is null)
         {
             return null;
         }
 
-        var done = questIds.Count(id => StatusOf(progress, id) == QuestStatus.Completed);
-        var started = questIds.Count(id => StatusOf(progress, id) == QuestStatus.InProgress);
+        var once = quests
+            .Where(q => QuestRecurrenceLabel.KindOf(q) is QuestRecurrence.Once or QuestRecurrence.Unknown)
+            .ToList();
         return new ZoneTally(
-            string.Create(CultureInfo.CurrentCulture, $"{done}/{questIds.Count}"),
-            started > 0 ? Strings.Format("ZoneInProgress", started) : null);
+            once.Count(q => StatusOf(progress, q.Id) == QuestStatus.Completed),
+            once.Count,
+            quests.Count(q => StatusOf(progress, q.Id) == QuestStatus.InProgress));
     }
 
     /// <summary>
@@ -108,5 +111,13 @@ public static class QuestTracking
         ?? (characters.Count > 0 ? characters[0] : null);
 }
 
-/// <summary>A zone's progress: done over total, and what is started.</summary>
-public sealed record ZoneTally(string Done, string? Started);
+/// <summary>A zone's progress: done over total among the quests done once, and what is started.</summary>
+public sealed record ZoneTally(int Done, int Total, int Started)
+{
+    public string Count => string.Create(CultureInfo.CurrentCulture, $"{Done}/{Total}");
+
+    /// <summary>False for a zone of repeatables only: nothing there is ever finished.</summary>
+    public bool IsComplete => Total > 0 && Done == Total;
+
+    public string StartedTip => Strings.Format("ZoneInProgress", Started);
+}

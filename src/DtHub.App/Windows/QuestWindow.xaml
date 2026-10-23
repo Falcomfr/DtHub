@@ -1054,26 +1054,26 @@
                                Visibility="{Binding HasLevelColumn,
                                                     Converter={StaticResource BoolToVisibility}}" />
 
-                    <!-- The tracker's mark: a check for a finished
-                         quest, a dot for one in progress. Hidden, not
+                    <!-- The tracker's mark, the row's only status sign: a
+                         check, an hourglass, a barred circle, a dash; the
+                         word comes on hover. A status word on the right
+                         was tried and crowded the row. Hidden, not
                          collapsed, on an unmarked quest row so every
                          quest label starts at the same place; collapsed
                          on rows that are not quests, and while no tracker
                          is linked: the room it kept read as a gap between
-                         the level and the name. -->
-                    <Path x:Name="Marque" DockPanel.Dock="Left" Width="12" Height="12"
-                          Margin="0,0,4,0" VerticalAlignment="Center" Stretch="None"
-                          Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.5"
-                          StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                          StrokeLineJoin="Round" Visibility="Hidden" />
-
-                    <!-- The tracker's status in words, in a column of its
-                         own at the right of the name so the statuses of a
-                         section line up. Collapsed while nothing is
-                         tracked for the quest. -->
-                    <TextBlock x:Name="Statut" DockPanel.Dock="Right" Margin="10,0,0,0"
-                               VerticalAlignment="Center" Style="{StaticResource Muted}"
-                               FontSize="{StaticResource FontSmall}" Visibility="Collapsed" />
+                         the level and the name. The transparent border
+                         carries the tooltip, an open stroke catches no
+                         hover. -->
+                    <Border x:Name="Marque" DockPanel.Dock="Left" Width="12" Height="12"
+                            Margin="0,0,4,0" VerticalAlignment="Center"
+                            Background="Transparent" Visibility="Hidden"
+                            ToolTipService.InitialShowDelay="200">
+                      <Path x:Name="MarqueTrait" Stretch="None"
+                            Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.5"
+                            StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                            StrokeLineJoin="Round" />
+                    </Border>
 
                     <TextBlock x:Name="Libelle" Text="{Binding Label}"
                                TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
@@ -1224,36 +1224,78 @@
                     <!-- Still the right-hand text of every other kind of
                          row: the root's counts, a zone's level range, an
                          achievement's tally. Hidden when empty, since an
-                         empty block still claims its margin. -->
-                    <TextBlock Text="{Binding Detail}"
+                         empty block still claims its margin. On a zone
+                         with a tally it becomes a fixed, right-aligned
+                         column (trigger below), so the ranges stand in a
+                         column and never touch the tally. -->
+                    <TextBlock x:Name="Detail" Text="{Binding Detail}"
                                VerticalAlignment="Center" Margin="8,0,0,0"
                                Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
                                Visibility="{Binding Detail,
                                                     Converter={StaticResource EmptyToVisibility},
                                                     ConverterParameter=inverse}" />
 
-                    <!-- A zone's progress, in two columns shared by the
-                         zones alone: "1 in progress" and "1/12" stand under
-                         the next zone's, and the paths' "16 chemins" does
-                         not widen them. -->
-                    <Grid VerticalAlignment="Center"
+                    <!-- A zone's progress, in two columns of fixed width
+                         (fixed and not shared, for the virtualization
+                         reason given above): an hourglass and the quests
+                         in progress, then the quests done once over all of
+                         them, or a check once they are all done. Each part
+                         is hidden, not collapsed, when it has nothing to
+                         say, so the other stays in its column. -->
+                    <Grid VerticalAlignment="Center" Margin="12,0,0,0"
                           Visibility="{Binding Tally,
                                                Converter={StaticResource EmptyToVisibility},
                                                ConverterParameter=inverse}">
                       <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" SharedSizeGroup="ZoneStarted" />
-                        <ColumnDefinition Width="Auto" SharedSizeGroup="ZoneDone" />
+                        <ColumnDefinition Width="34" />
+                        <ColumnDefinition Width="46" />
                       </Grid.ColumnDefinitions>
 
-                      <TextBlock Grid.Column="0" Text="{Binding Tally.Started}" Margin="0,0,10,0"
-                                 HorizontalAlignment="Right" VerticalAlignment="Center"
-                                 Foreground="{DynamicResource AccentBrush}"
-                                 FontSize="{StaticResource FontSmall}" />
+                      <StackPanel x:Name="ZoneEnCours" Grid.Column="0" Orientation="Horizontal"
+                                  HorizontalAlignment="Right" VerticalAlignment="Center"
+                                  Background="Transparent"
+                                  ToolTip="{Binding Tally.StartedTip}"
+                                  ToolTipService.InitialShowDelay="200">
+                        <Path Width="12" Height="12" Margin="0,0,3,0" VerticalAlignment="Center"
+                              Stretch="None" Stroke="{DynamicResource AccentBrush}"
+                              StrokeThickness="1.5" StrokeStartLineCap="Round"
+                              StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                              Data="M 2.5,1.5 H 9.5 M 2.5,10.5 H 9.5
+                                    M 3.5,1.5 L 6,6 L 3.5,10.5 M 8.5,1.5 L 6,6 L 8.5,10.5" />
+                        <TextBlock Text="{Binding Tally.Started}" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource AccentBrush}"
+                                   FontSize="{StaticResource FontSmall}" />
+                      </StackPanel>
 
-                      <TextBlock Grid.Column="1" Text="{Binding Tally.Done}"
+                      <TextBlock x:Name="ZoneFait" Grid.Column="1" Text="{Binding Tally.Count}"
                                  HorizontalAlignment="Right" VerticalAlignment="Center"
                                  Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}" />
+
+                      <Border x:Name="ZoneFinie" Grid.Column="1" Width="12" Height="12"
+                              HorizontalAlignment="Right" VerticalAlignment="Center"
+                              Background="Transparent" Visibility="Collapsed"
+                              ToolTip="{Binding Tally.Count}"
+                              ToolTipService.InitialShowDelay="200">
+                        <Path Stretch="None" Stroke="{DynamicResource AccentBrush}"
+                              StrokeThickness="1.5" StrokeStartLineCap="Round"
+                              StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                              Data="M 2,6.5 L 5,9.5 L 10.5,3" />
+                      </Border>
                     </Grid>
+
+                    <!-- A quest's rhythm, drawn in a column of fixed width
+                         before the lock, so that rhythms and locks stand
+                         in two straight columns down the list. Hidden, not
+                         collapsed, on a quest done once, collapsed on rows
+                         that are not quests. The word comes on hover. -->
+                    <Border x:Name="Rythme" Width="18" Margin="8,0,0,0"
+                            Background="Transparent" VerticalAlignment="Center"
+                            ToolTip="{Binding RecurrenceLabel}"
+                            ToolTipService.InitialShowDelay="200"
+                            Visibility="Collapsed">
+                      <Path x:Name="RythmeTrait" Style="{StaticResource ListGlyph}"
+                            HorizontalAlignment="Center" />
+                    </Border>
 
                     <!-- A lock: what keeps the quest closed. A key had
                          been tried first; its ring and its diagonal
@@ -1281,13 +1323,16 @@
                          It stays displayed for a long time, because a
                          list of prerequisites reads more slowly than a
                          button's single word. -->
+                    <!-- Collapsed, then hidden on any quest row and shown
+                         when the quest has prerequisites (triggers below):
+                         a quest row without a lock keeps its room, and the
+                         rhythm column does not shift. -->
                     <Button x:Name="Cadenas" Style="{StaticResource IconButton}"
                             VerticalAlignment="Center" Margin="6,0,2,0"
                             Click="OnShowNeeds"
                             ToolTipService.InitialShowDelay="200"
                             ToolTipService.ShowDuration="30000"
-                            Visibility="{Binding HasNeeds,
-                                                 Converter={StaticResource BoolToVisibility}}">
+                            Visibility="Collapsed">
                       <Button.ToolTip>
                         <ToolTip Style="{StaticResource RichToolTip}">
                           <StackPanel MaxWidth="330">
@@ -1629,36 +1674,111 @@
                     <Setter TargetName="Niveau" Property="Visibility" Value="Collapsed" />
                   </MultiDataTrigger>
 
+                  <!-- The mark's four drawings, on a twelve unit square. -->
                   <DataTrigger Binding="{Binding Status}" Value="Completed">
                     <Setter TargetName="Marque" Property="Visibility" Value="Visible" />
-                    <Setter TargetName="Marque" Property="Data" Value="M 2,6.5 L 5,9.5 L 10.5,3" />
-                    <Setter TargetName="Statut" Property="Visibility" Value="Visible" />
-                    <Setter TargetName="Statut" Property="Text" Value="{loc:T QuestStatusCompleted}" />
+                    <Setter TargetName="Marque" Property="ToolTip" Value="{loc:T QuestStatusCompleted}" />
+                    <Setter TargetName="MarqueTrait" Property="Data" Value="M 2,6.5 L 5,9.5 L 10.5,3" />
                   </DataTrigger>
 
+                  <!-- An hourglass, as the game's journal marks a quest
+                       under way: two caps and the glass pinched between. -->
                   <DataTrigger Binding="{Binding Status}" Value="InProgress">
                     <Setter TargetName="Marque" Property="Visibility" Value="Visible" />
-                    <Setter TargetName="Marque" Property="Fill"
-                            Value="{DynamicResource AccentBrush}" />
-                    <Setter TargetName="Marque" Property="Data"
-                            Value="M 3.5,6 A 2.5,2.5 0 1 0 8.5,6 A 2.5,2.5 0 1 0 3.5,6 Z" />
-                    <Setter TargetName="Statut" Property="Visibility" Value="Visible" />
-                    <Setter TargetName="Statut" Property="Text" Value="{loc:T QuestStatusInProgress}" />
-                    <Setter TargetName="Statut" Property="Foreground"
-                            Value="{DynamicResource AccentBrush}" />
+                    <Setter TargetName="Marque" Property="ToolTip" Value="{loc:T QuestStatusInProgress}" />
+                    <Setter TargetName="MarqueTrait" Property="Data"
+                            Value="M 2.5,1.5 H 9.5 M 2.5,10.5 H 9.5
+                                   M 3.5,1.5 L 6,6 L 3.5,10.5 M 8.5,1.5 L 6,6 L 8.5,10.5" />
                   </DataTrigger>
 
-                  <!-- Blocked or ignored: still there, but out of the way. -->
+                  <!-- Blocked or ignored: still there, but out of the way,
+                       and their marks in the muted ink. -->
                   <DataTrigger Binding="{Binding Status}" Value="Blocked">
                     <Setter TargetName="Ligne" Property="Opacity" Value="0.5" />
-                    <Setter TargetName="Statut" Property="Visibility" Value="Visible" />
-                    <Setter TargetName="Statut" Property="Text" Value="{loc:T QuestStatusBlocked}" />
+                    <Setter TargetName="Marque" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="Marque" Property="ToolTip" Value="{loc:T QuestStatusBlocked}" />
+                    <Setter TargetName="MarqueTrait" Property="Stroke" Value="{DynamicResource TextMutedBrush}" />
+                    <Setter TargetName="MarqueTrait" Property="Data"
+                            Value="M 1.5,6 A 4.5,4.5 0 1 0 10.5,6 A 4.5,4.5 0 1 0 1.5,6
+                                   M 2.8,2.8 L 9.2,9.2" />
                   </DataTrigger>
 
                   <DataTrigger Binding="{Binding Status}" Value="Ignored">
                     <Setter TargetName="Ligne" Property="Opacity" Value="0.5" />
-                    <Setter TargetName="Statut" Property="Visibility" Value="Visible" />
-                    <Setter TargetName="Statut" Property="Text" Value="{loc:T QuestStatusIgnored}" />
+                    <Setter TargetName="Marque" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="Marque" Property="ToolTip" Value="{loc:T QuestStatusIgnored}" />
+                    <Setter TargetName="MarqueTrait" Property="Stroke" Value="{DynamicResource TextMutedBrush}" />
+                    <Setter TargetName="MarqueTrait" Property="Data" Value="M 3,6 H 9" />
+                  </DataTrigger>
+
+                  <!-- Quest rows keep the rhythm and lock columns, empty or
+                       not; the lock shows when there are prerequisites. -->
+                  <DataTrigger Binding="{Binding Kind}" Value="Quest">
+                    <Setter TargetName="Rythme" Property="Visibility" Value="Hidden" />
+                    <Setter TargetName="Cadenas" Property="Visibility" Value="Hidden" />
+                  </DataTrigger>
+
+                  <DataTrigger Binding="{Binding HasNeeds}" Value="True">
+                    <Setter TargetName="Cadenas" Property="Visibility" Value="Visible" />
+                  </DataTrigger>
+
+                  <!-- The rhythms, on the list's fifteen unit square. A
+                       calendar page with its day count for the daily and
+                       weekly ones; two arrows chasing each other round for
+                       the repeatable ones; a leaf for the seasonal ones. -->
+                  <DataTrigger Binding="{Binding Recurrence}" Value="Daily">
+                    <Setter TargetName="Rythme" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="RythmeTrait" Property="Data"
+                            Value="M 2.5,2.5 H 12.5 V 13.5 H 2.5 Z M 2.5,5 H 12.5
+                                   M 6.5,7.8 L 8,6.8 V 11.8" />
+                  </DataTrigger>
+
+                  <DataTrigger Binding="{Binding Recurrence}" Value="Weekly">
+                    <Setter TargetName="Rythme" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="RythmeTrait" Property="Data"
+                            Value="M 2.5,2.5 H 12.5 V 13.5 H 2.5 Z M 2.5,5 H 12.5
+                                   M 5.8,6.8 H 9.2 L 7,11.8" />
+                  </DataTrigger>
+
+                  <DataTrigger Binding="{Binding Recurrence}" Value="Repeatable">
+                    <Setter TargetName="Rythme" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="RythmeTrait" Property="Data"
+                            Value="M 3.27,6 A 4.5,4.5 0 0 1 11.73,6
+                                   M 12.52,3.94 L 11.73,6 L 9.84,4.87
+                                   M 11.73,9 A 4.5,4.5 0 0 1 3.27,9
+                                   M 2.48,11.06 L 3.27,9 L 5.16,10.13" />
+                  </DataTrigger>
+
+                  <DataTrigger Binding="{Binding Recurrence}" Value="Seasonal">
+                    <Setter TargetName="Rythme" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="RythmeTrait" Property="Data"
+                            Value="M 3,12.5 C 3,6.5 6,3 12.5,2.5 C 12,9 8.5,12.5 3,12.5 Z
+                                   M 3,12.5 L 8.5,7" />
+                  </DataTrigger>
+
+                  <!-- A zone with a tally: its level range becomes a fixed,
+                       right-aligned column, kept even when empty. -->
+                  <DataTrigger Binding="{Binding Tally,
+                                                 Converter={StaticResource EmptyToVisibility},
+                                                 ConverterParameter=inverse}"
+                               Value="Visible">
+                    <Setter TargetName="Detail" Property="Width" Value="52" />
+                    <Setter TargetName="Detail" Property="TextAlignment" Value="Right" />
+                    <Setter TargetName="Detail" Property="Visibility" Value="Visible" />
+                  </DataTrigger>
+
+                  <DataTrigger Binding="{Binding Tally.Started}" Value="0">
+                    <Setter TargetName="ZoneEnCours" Property="Visibility" Value="Hidden" />
+                  </DataTrigger>
+
+                  <!-- A zone of repeatables only has nothing to count. -->
+                  <DataTrigger Binding="{Binding Tally.Total}" Value="0">
+                    <Setter TargetName="ZoneFait" Property="Visibility" Value="Hidden" />
+                  </DataTrigger>
+
+                  <DataTrigger Binding="{Binding Tally.IsComplete}" Value="True">
+                    <Setter TargetName="ZoneFait" Property="Visibility" Value="Collapsed" />
+                    <Setter TargetName="ZoneFinie" Property="Visibility" Value="Visible" />
                   </DataTrigger>
                 </DataTemplate.Triggers>
               </DataTemplate>

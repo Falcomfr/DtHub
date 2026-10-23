@@ -25,6 +25,8 @@ public class QuestListColumnsTests
     [Theory]
     [InlineData(QuestStatus.Completed)]
     [InlineData(QuestStatus.InProgress)]
+    [InlineData(QuestStatus.Blocked)]
+    [InlineData(QuestStatus.Ignored)]
     public void Une_seule_quete_suivie_reserve_la_marque(QuestStatus statut)
     {
         Assert.True(QuestListColumns.HasQuestMarks([Quete(), Quete(statut: statut)]));

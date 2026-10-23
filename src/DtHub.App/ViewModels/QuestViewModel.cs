@@ -925,7 +925,7 @@ public sealed partial class QuestViewModel : ObservableObject
                     {
                         Label = filtering ? $"{_tree.NameOf(branch.Id)} ({QuestTree.Text(shown)})" : branch.Label,
                         Detail = filtering ? QuestLevelRange.Of(quests.Where(Passes)) : branch.Detail,
-                        Tally = QuestTracking.ZoneProgress(Tracker.Progress, [.. quests.Select(q => q.Id).Distinct()]),
+                        Tally = QuestTracking.ZoneProgress(Tracker.Progress, [.. quests.DistinctBy(q => q.Id)]),
                     });
                 }
             }

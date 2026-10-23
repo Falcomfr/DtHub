@@ -124,25 +124,53 @@ public class QuestTrackingTests
         new HashSet<int>(),
         []);
 
-    [Fact]
-    public void ZoneProgress_says_done_over_total_and_what_is_started()
-    {
-        var tally = QuestTracking.ZoneProgress(Zone, [1, 2, 3, 4, 5, 6]);
+    private static QuestSummary Q(int id, QuestRecurrence recurrence = QuestRecurrence.Once, params int[] sections) =>
+        new() { Id = id, Title = "Q", Recurrence = recurrence, SectionIds = sections };
 
-        Assert.Equal("2/6", tally?.Done);
-        Assert.StartsWith("2 ", tally?.Started, StringComparison.Ordinal);
+    [Fact]
+    public void ZoneProgress_counts_done_over_total_and_what_is_started()
+    {
+        var tally = QuestTracking.ZoneProgress(Zone, [Q(1), Q(2), Q(3), Q(4), Q(5), Q(6)]);
+
+        Assert.Equal(new ZoneTally(2, 6, 2), tally);
+        Assert.Equal("2/6", tally?.Count);
+        Assert.False(tally?.IsComplete);
+        Assert.StartsWith("2 ", tally?.StartedTip, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(QuestRecurrence.Daily)]
+    [InlineData(QuestRecurrence.Weekly)]
+    [InlineData(QuestRecurrence.Repeatable)]
+    [InlineData(QuestRecurrence.Seasonal)]
+    public void ZoneProgress_leaves_quests_done_again_out_of_the_count(QuestRecurrence recurrence)
+    {
+        var tally = QuestTracking.ZoneProgress(Zone, [Q(4), Q(5, QuestRecurrence.Unknown), Q(6, recurrence)]);
+
+        Assert.Equal(new ZoneTally(2, 2, 0), tally);
+        Assert.True(tally?.IsComplete);
     }
 
     [Fact]
-    public void ZoneProgress_leaves_out_in_progress_when_none_is()
+    public void ZoneProgress_leaves_out_the_site_s_repeatable_section_too()
     {
-        var tally = QuestTracking.ZoneProgress(Zone, [4, 5]);
+        // Same rule as the row's glyph: the site files it among repeatables
+        // without a rhythm.
+        var tally = QuestTracking.ZoneProgress(
+            Zone, [Q(4), Q(6, QuestRecurrence.Unknown, QuestRecurrenceLabel.RepeatableSection)]);
 
-        Assert.Equal("2/2", tally?.Done);
-        Assert.Null(tally?.Started);
+        Assert.Equal(new ZoneTally(1, 1, 0), tally);
     }
+
+    [Fact]
+    public void ZoneProgress_still_counts_a_repeatable_in_progress() =>
+        Assert.Equal(1, QuestTracking.ZoneProgress(Zone, [Q(1, QuestRecurrence.Daily), Q(4)])?.Started);
+
+    [Fact]
+    public void ZoneProgress_of_repeatables_only_is_never_complete() =>
+        Assert.False(QuestTracking.ZoneProgress(Zone, [Q(4, QuestRecurrence.Daily)])?.IsComplete);
 
     [Fact]
     public void ZoneProgress_is_null_without_a_tracker() =>
-        Assert.Null(QuestTracking.ZoneProgress(null, [1, 2]));
+        Assert.Null(QuestTracking.ZoneProgress(null, [Q(1), Q(2)]));
 }

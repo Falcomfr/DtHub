@@ -38,4 +38,17 @@ public class QuestRecurrenceLabelTests
 
         Assert.Null(QuestRecurrenceLabel.Of(quest));
     }
+
+    [Theory]
+    [InlineData(QuestRecurrence.Daily, new int[0], QuestRecurrence.Daily)]
+    [InlineData(QuestRecurrence.Once, new[] { 18 }, QuestRecurrence.Once)]
+    [InlineData(QuestRecurrence.Unknown, new[] { 18 }, QuestRecurrence.Unknown)]
+    [InlineData(QuestRecurrence.Unknown, new[] { QuestRecurrenceLabel.RepeatableSection }, QuestRecurrence.Repeatable)]
+    [InlineData(QuestRecurrence.Once, new[] { QuestRecurrenceLabel.RepeatableSection }, QuestRecurrence.Repeatable)]
+    public void KindOf_suit_le_rythme_puis_la_rubrique(QuestRecurrence rythme, int[] rubriques, QuestRecurrence attendu)
+    {
+        var quest = new QuestSummary { Title = "Q", Recurrence = rythme, SectionIds = rubriques };
+
+        Assert.Equal(attendu, QuestRecurrenceLabel.KindOf(quest));
+    }
 }
