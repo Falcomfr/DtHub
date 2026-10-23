@@ -468,4 +468,48 @@ public class TouchNameServiceTests
         Assert.Same(facts, served);
         Assert.Empty(_client.Requested);
     }
+
+    [Fact]
+    public async Task La_lecture_en_masse_lit_les_textes_des_objectifs_en_quatrieme()
+    {
+        SeedFacts();
+        _client.Rows["QuestSteps"][10] = """{"id":10,"objectiveIds":[70,73,74],"optimalLevel":40,"duration":1,"xpRatio":0.5,"kamasRatio":1,"rewardsIds":[500]}""";
+        _client.Rows["QuestObjectives"][73] = """{"typeId":4,"parameters":[900]}""";
+        _client.Rows["QuestObjectives"][74] = """{"typeId":0,"parameters":[901]}""";
+        _client.Texts[900] = "Sortie du Donjon";
+        using var service = new TouchNameService(_client, _store, new FakeTable()) { FactsPause = TimeSpan.Zero };
+
+        var facts = await service.FactsAsync("en");
+
+        Assert.Equal(["QuestSteps", "QuestObjectives", "QuestStepRewards", "text"], _client.Requested.Keys.Skip(5));
+        Assert.Equal([900, 901], _client.Requested["text"].Single());
+        Assert.Equal(["", "Sortie du Donjon", "", ""], facts[1].Objectives.Select(o => o.Text));
+    }
+
+    [Fact]
+    public async Task Des_faits_d_avant_les_textes_sont_relus_une_fois()
+    {
+        SeedFacts();
+        // As a cache written before the texts existed reads back.
+        var objective = System.Text.Json.JsonSerializer.Deserialize<TouchObjective>("""{"TypeId":4,"Parameters":[900],"StepOptimalLevel":40}""")!;
+        Assert.Null(objective.Text);
+        using var service = new TouchNameService(_client, _store, new FakeTable()) { FactsPause = TimeSpan.Zero };
+        var names = (await service.RefreshAsync("en"))!;
+        (await _store.LoadAsync()).Languages["en"] = names with
+        {
+            Facts = new() { [1] = new([], [objective]) },
+            FactsReadUtc = DateTimeOffset.UtcNow,
+        };
+        _client.Requested.Clear();
+
+        var facts = await service.FactsAsync("en");
+
+        Assert.Equal([10, 11], _client.Requested["QuestSteps"].Single());
+        Assert.All(facts.Values.SelectMany(f => f.Objectives), o => Assert.NotNull(o.Text));
+
+        _client.Requested.Clear();
+        _ = await service.FactsAsync("en");
+
+        Assert.Empty(_client.Requested);
+    }
 }

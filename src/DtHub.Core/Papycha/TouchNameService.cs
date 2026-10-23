@@ -180,12 +180,13 @@ public sealed class TouchNameService(
     /// <summary>After a failed bulk read, none is retried before this.</summary>
     public TimeSpan FactsRetry { get; init; } = TimeSpan.FromHours(6);
 
-    /// <summary>Spacing between the three bulk reads, so the game's server is never hammered.</summary>
+    /// <summary>Spacing between the bulk reads, so the game's server is never hammered.</summary>
     public TimeSpan FactsPause { get; init; } = TimeSpan.FromSeconds(60);
 
     /// <summary>
     /// Every paired quest's reward formula and objectives, by Papycha quest id,
-    /// read in three spaced requests and kept for a week. Never throws except on
+    /// read in four spaced requests (the fourth, objective texts, only when some
+    /// objective has one) and kept for a week. Never throws except on
     /// cancellation; on failure returns what the cache had (see <see cref="LastFailure"/>).
     /// </summary>
     public async Task<IReadOnlyDictionary<int, TouchQuestFacts>> FactsAsync(string language, CancellationToken ct = default)
@@ -248,8 +249,9 @@ public sealed class TouchNameService(
         }
     }
 
+    // A cache from before the objective texts has null ones: read again, once.
     private bool FactsAreSettled(TouchLanguageNames known) =>
-        DateTimeOffset.UtcNow - known.FactsReadUtc < Freshness
+        (DateTimeOffset.UtcNow - known.FactsReadUtc < Freshness && !known.Facts.Values.Any(f => f.Objectives.Any(o => o.Text is null)))
         || (_factsFailedUtc is { } failed && DateTimeOffset.UtcNow - failed < FactsRetry);
 
     private async Task<Dictionary<int, TouchQuestFacts>> ReadFactsAsync(
@@ -292,6 +294,20 @@ public sealed class TouchNameService(
         await Task.Delay(FactsPause, ct).ConfigureAwait(false);
         var rewardRows = await Locked(() => ReadRewardRowsAsync(steps.Values, language, ct)).ConfigureAwait(false);
 
+        // Objectives worded by a data/text (types 0, 4, 10): where the dungeons are named.
+        int? TextId(JsonElement objective) =>
+            Ints(objective, "parameters") is [var first, ..] && TouchObjectiveText.KindOf(Int(objective, "typeId"), 1) == TouchHole.Text
+                ? first
+                : null;
+        int[] textIds = [.. objectives.Values.Select(TextId).OfType<int>().Distinct()];
+        IReadOnlyDictionary<int, string> texts = new Dictionary<int, string>();
+
+        if (textIds.Length > 0)
+        {
+            await Task.Delay(FactsPause, ct).ConfigureAwait(false);
+            texts = await Locked(() => client.GetTextsAsync(textIds, language, ct)).ConfigureAwait(false);
+        }
+
         return stepIdsOf
             .Where(q => q.Value.Any(steps.ContainsKey))
             .ToDictionary(
@@ -305,7 +321,8 @@ public sealed class TouchNameService(
                         [.. own.SelectMany(step => Ints(step, "objectiveIds")
                             .Where(objectives.ContainsKey)
                             .Select(id => new TouchObjective(
-                                Int(objectives[id], "typeId"), Ints(objectives[id], "parameters"), (int)(Single(step, "optimalLevel") ?? 0))))]);
+                                Int(objectives[id], "typeId"), Ints(objectives[id], "parameters"), (int)(Single(step, "optimalLevel") ?? 0),
+                                TextId(objectives[id]) is { } text ? texts.GetValueOrDefault(text, "") : "")))]);
                 });
     }
 

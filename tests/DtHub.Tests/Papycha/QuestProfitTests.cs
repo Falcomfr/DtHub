@@ -312,4 +312,90 @@ public class QuestProfitTests
         Assert.Equal(["Q4", "K", "Q3"], entries.Select(e => e.Title));
         Assert.Equal([false, true, false], entries.Select(e => e.ByKamas));
     }
+
+    private static TouchObjective Said(string text) => new(4, [1], 10, text);
+
+    [Fact]
+    public void Dungeons_of_a_quest_match_names_without_case_accents_punctuation_or_leading_articles()
+    {
+        var names = new Dictionary<int, string>
+        {
+            [1] = "Donjon Fungus",
+            [2] = "La Serre du Royalmouth",
+            [3] = "Donjon des Écailles",
+            [4] = "Grotte",
+        };
+        Assert.Equal([1], QuestProfit.DungeonsOf(Facts(Said("Découvrir la carte Sortie du Donjon Fungus")), names));
+        Assert.Equal([2], QuestProfit.DungeonsOf(Facts(Said("Braver les dangers de la Serre du Royalmouth.")), names));
+        Assert.Equal([3], QuestProfit.DungeonsOf(Facts(Said("Vaincre le DONJON des ecailles !")), names));
+        Assert.Equal([1, 3], QuestProfit.DungeonsOf(Facts(Said("Donjon Fungus"), Obj(1), Said("donjon des écailles")), names));
+        Assert.Empty(QuestProfit.DungeonsOf(Facts(Said("Les Grottes Hesques"), Obj(1)), names));
+    }
+
+    [Fact]
+    public void A_dungeon_name_inside_a_longer_one_loses_to_it()
+    {
+        var names = new Dictionary<int, string> { [1] = "Donjon des Bouftous", [2] = "Donjon des Bouftous Royaux" };
+        Assert.Equal([2], QuestProfit.DungeonsOf(Facts(Said("Sortie du Donjon des Bouftous Royaux")), names));
+        Assert.Equal([1], QuestProfit.DungeonsOf(Facts(Said("Sortie du Donjon des Bouftous")), names));
+    }
+
+    // Papycha dungeon n pairs with game dungeon 10n.
+    private static IReadOnlyDictionary<int, DungeonValue> DungeonValues(
+        QuestSummary[] catalog, TrackerProgress progress, Dictionary<int, TouchQuestFacts> facts, Dictionary<int, string> names)
+    {
+        var scores = QuestProfit.Score(catalog, facts, progress, 10, 0);
+        var entries = QuestProfit.Entries(catalog, scores, progress, facts, 10, 0);
+        var table = names.Keys.ToDictionary(id => id / 10, id => new TouchDungeonIds([id]));
+        return QuestProfit.DungeonValues(entries, scores, progress, facts, 10, 0, table, names);
+    }
+
+    [Fact]
+    public void A_dungeon_is_worth_the_listable_quests_it_advances()
+    {
+        var catalog = new[] { Quest(1), Quest(2), Quest(3), Quest(4), Quest(5, "S", 1), Quest(6, "S", 2) with { Prerequisites = ["Q5"] } };
+        var facts = new Dictionary<int, TouchQuestFacts>
+        {
+            [1] = new([Step(10, 2f, 1f)], [Said("Sortie du Donjon Fungus"), Obj(1)]),
+            [2] = new([Step(10, 1f)], [Said("Serre du Royalmouth")]),
+            [3] = Xp(1f),
+            // Done: not listable, so it adds nothing.
+            [4] = new([Step(10, 5f)], [Said("Sortie du Donjon Fungus")]),
+            [5] = Xp(1f),
+            // Not startable yet, but listed as the series' next quest.
+            [6] = new([Step(10, 3f)], [Said("Donjon Fungus")]),
+        };
+        var names = new Dictionary<int, string> { [70] = "Donjon Fungus", [80] = "Serre du Royalmouth", [90] = "Donjon des Craqueleurs" };
+
+        var values = DungeonValues(catalog, Progress([1, 2, 3, 5], new() { [1] = QuestStatus.InProgress }, completed: [4]), facts, names);
+
+        Assert.Equal([7, 8], values.Keys.Order());
+        var fungus = values[7];
+        Assert.Equal(7, fungus.PapychaDungeonId);
+        Assert.Equal([1, 6], fungus.Advances.SelectMany(e => e.Quests).Select(q => q.Id).Order());
+        Assert.Equal(["Q1", "Q6"], fungus.Advances.Select(e => e.Title).Order());
+        Assert.True(fungus.Advances.Single(e => e.Title == "Q1").Started);
+        Assert.Equal(QuestProfit.GainOf(facts[1], 10, 0)!.Xp + QuestProfit.GainOf(facts[6], 10, 0)!.Xp, fungus.Gain.Xp);
+        Assert.Equal(QuestProfit.GainOf(facts[1], 10, 0)!.Kamas, fungus.Gain.Kamas);
+        Assert.Equal(2, Assert.Single(values[8].Advances).Quests.Single().Id);
+    }
+
+    [Fact]
+    public void A_dungeon_gets_the_tier_its_score_would_have_among_quests()
+    {
+        var catalog = Enumerable.Range(1, 20).Select(i => Quest(i)).ToList();
+        // Same effort everywhere; quest i gives i times the XP of quest 1.
+        var facts = catalog.ToDictionary(q => q.Id, q => new TouchQuestFacts(
+            [Step(10, q.Id)], [Said(q.Id switch { 20 => "Donjon A", 1 => "Donjon B", 18 or 19 => "Donjon C", _ => "Ailleurs" })]));
+        var names = new Dictionary<int, string> { [10] = "Donjon A", [20] = "Donjon B", [30] = "Donjon C" };
+
+        var values = DungeonValues([.. catalog], Progress(catalog.Select(q => q.Id)), facts, names);
+
+        Assert.Equal(1.0, values[1].Score);
+        Assert.Equal(3, values[1].Tier);
+        Assert.Equal(0, values[2].Tier);
+        // 18 and 19 together score between quest 19 (tier 3) and quest 18 (tier 2).
+        Assert.Equal(2, values[3].Tier);
+        Assert.Equal(2, values[3].Advances.Count);
+    }
 }
