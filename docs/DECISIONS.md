@@ -11149,4 +11149,9 @@ les présentes se serrent à droite, 4 px d'écart. L'utilisateur préfère une 
 sans trous à des colonnes d'icônes droites. Le cadenas vient en dernier : il est
 sur la plupart des quêtes, la marque de statut à côté de lui s'aligne donc en
 pratique. Seuls les gains gardent des colonnes fixes, des nombres doivent
-s'aligner.
+s'aligner. Même règle sur les donjons, raids et antres : la pierre d'âme seule dit
+la taille (le mot passe dans l'infobulle), et les colonnes fixes, gardées à cause
+de la virtualisation, sont réduites à leur contenu (18, 60 et 19 px au lieu de
+90, 66 et 26). La taille arrive en majuscule de l'API (« Gigantesque ») alors que
+les pierres attendaient « gigantesque » : elle est mise en minuscules, sans quoi
+aucune pierre ne s'affichait.

@@ -1080,11 +1080,12 @@
                                TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
                   </DockPanel>
 
-                  <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="10,0,0,0"
+                  <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="6,0,0,0"
                               VerticalAlignment="Center">
-                    <!-- A dungeon's size, position and key, each in its
-                         own fixed column so that eighty-three rows line
-                         up.
+                    <!-- A dungeon's soul stone, position and key, each in
+                         its own fixed column so that eighty-three rows line
+                         up, each column only as wide as its content and
+                         four pixels apart: the user prefers tight rows.
 
                          **Fixed widths and not a shared size scope.**
                          Under virtualization, containers join and leave
@@ -1097,8 +1098,8 @@
 
                          The widths come from the catalogue rather than
                          from a guess: the longest position it holds is
-                         nine characters and the longest size is
-                         "gigantesque", with its stone after it.
+                         nine characters, about sixty pixels in the mono
+                         face; the stone is fourteen, the key fifteen.
 
                          Collapsed whole for every row that is not a
                          dungeon, which is six kinds out of seven. A
@@ -1108,25 +1109,25 @@
                                                Converter={StaticResource EmptyToVisibility},
                                                ConverterParameter=inverse}">
                       <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="90" />
-                        <ColumnDefinition Width="66" />
-                        <ColumnDefinition Width="26" />
+                        <ColumnDefinition Width="18" />
+                        <ColumnDefinition Width="60" />
+                        <ColumnDefinition Width="19" />
                       </Grid.ColumnDefinitions>
 
+                      <!-- The stone alone, coloured by its size as in the
+                           game: it says the size, so the word only comes on
+                           hover. Drawn rather than taken from the game's
+                           artwork, which the project does not embed.
+                           Collapsed for a size the site has not used,
+                           rather than drawn in a wrong colour.
+                           shortcut: a new size word would show nothing,
+                           give it a stone colour when the site adds one. -->
                       <StackPanel Grid.Column="0" Orientation="Horizontal"
-                                  HorizontalAlignment="Right" Margin="0,0,8,0">
-                        <TextBlock Text="{Binding Facts.Size}"
-                                   TextWrapping="NoWrap" VerticalAlignment="Center"
-                                   Style="{StaticResource Muted}"
-                                   FontSize="{StaticResource FontSmall}" />
-
-                        <!-- The stone itself, coloured by its size as in
-                             the game. Drawn rather than taken from the
-                             game's artwork, which the project does not
-                             embed. Collapsed for a size the site has not
-                             used, rather than drawn in a wrong colour. -->
-                        <Viewbox Width="14" Height="14" Margin="4,0,0,0"
-                                 VerticalAlignment="Center">
+                                  HorizontalAlignment="Left" Margin="0,0,4,0">
+                        <Viewbox Width="14" Height="14"
+                                 VerticalAlignment="Center"
+                                 ToolTip="{Binding Facts.Size}"
+                                 ToolTipService.InitialShowDelay="200">
                           <Viewbox.Style>
                             <Style TargetType="Viewbox">
                               <Setter Property="Visibility" Value="Collapsed" />
@@ -1205,8 +1206,9 @@
                            on the right. Nine out of eighty-three don't
                            require one, and therefore have no icon: the
                            absence is information in itself, and the
-                           column stays so nothing shifts. Its name is too
-                           long for the column and comes on hover. -->
+                           column stays so the positions do not shift. Its
+                           name is too long for the column and comes on
+                           hover. -->
                       <Border Grid.Column="2" Background="Transparent"
                               HorizontalAlignment="Right" VerticalAlignment="Center"
                               ToolTip="{Binding Dungeon.Key}"

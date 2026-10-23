@@ -38,8 +38,11 @@ public sealed record DungeonFacts(string Level, string Size, string Position)
 
             // "gigantesque pierre d'âme" ("gigantic soul stone") says
             // "pierre d'âme" ("soul stone") twice in a column where
-            // every line already carries one: the size is enough.
-            dungeon.SoulStone.Replace(" pierre d’âme", string.Empty, StringComparison.Ordinal),
+            // every line already carries one: the size is enough. Lower
+            // case: the API sends "Gigantesque", the list's stones match
+            // "gigantesque".
+            dungeon.SoulStone.Replace(" pierre d’âme", string.Empty, StringComparison.Ordinal)
+                .ToLower(CultureInfo.GetCultureInfo("fr")),
 
             // The site writes a few as "[9;-13]", which reads as a typo
             // among "[9,-57]".

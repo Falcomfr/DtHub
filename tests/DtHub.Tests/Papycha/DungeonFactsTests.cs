@@ -37,6 +37,14 @@ public class DungeonFactsTests
     }
 
     /// <summary>
+    /// The API sends "Gigantesque"; the list draws a stone per size word
+    /// and would match none of them.
+    /// </summary>
+    [Fact]
+    public void La_taille_s_ecrit_en_minuscules() =>
+        Assert.Equal("gigantesque", DungeonFacts.Of(Donjon(size: "Gigantesque")).Size);
+
+    /// <summary>
     /// The site writes a few positions with a semicolon, "[9;-13]": in a
     /// column of "[9,-57]" they read as a typo.
     /// </summary>
