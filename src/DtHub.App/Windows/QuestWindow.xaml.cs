@@ -1010,6 +1010,28 @@ public partial class QuestWindow : Window
 
     private void OnRecommendedClick(object sender, RoutedEventArgs e) => _viewModel.ToggleRecommended();
 
+    private void OnPickClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: QuestNode node })
+        {
+            _viewModel.Pick(node, (Keyboard.Modifiers & ModifierKeys.Shift) != 0);
+        }
+    }
+
+    // The batch methods never throw: the tracker turns every failure into a result.
+    private async void OnMarkAllClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: QuestNode node })
+        {
+            await _viewModel.MarkAllAsync(node).ConfigureAwait(true);
+        }
+    }
+
+    private async void OnMarkPickedClick(object sender, RoutedEventArgs e) =>
+        await _viewModel.MarkPickedAsync().ConfigureAwait(true);
+
+    private void OnCancelBatchClick(object sender, RoutedEventArgs e) => _viewModel.CancelBatch();
+
     /// <summary>Fills the gain's hover with where the quest's items come from, once read; the hover stays open meanwhile.</summary>
     private async void OnGainTipOpening(object sender, ToolTipEventArgs e)
     {

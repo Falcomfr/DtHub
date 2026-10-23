@@ -129,6 +129,9 @@ public enum QuestNodeGlyph
 /// <param name="Started">A recommended series the character already started: an hourglass before its title.</param>
 /// <param name="Suffix">Muted words right after the label, " · Frigost" on a recommended row.</param>
 /// <param name="OtherRewards">What the quest gives besides XP and kamas, one per line; <c>null</c> hides the gift.</param>
+/// <param name="Duration">The estimated time, "≈ 25 min"; <c>null</c> hides it.</param>
+/// <param name="Checked">In selection mode, whether the quest is ticked; <c>null</c> shows no box.</param>
+/// <param name="MarksAll">In selection mode, an achievement or zone heading offering "mark all done".</param>
 public sealed record QuestNode(
     QuestNodeKind Kind,
     string Label,
@@ -153,12 +156,17 @@ public sealed record QuestNode(
     bool Started = false,
     string? Suffix = null,
     string? OtherRewards = null,
-    string? Duration = null)
+    string? Duration = null,
+    bool? Checked = null,
+    bool MarksAll = false)
 {
     /// <summary>
     /// Neither unmade branches nor subheadings are clickable.
     /// </summary>
     public bool IsEnabled => Kind is QuestNodeKind.Branch or QuestNodeKind.Quest;
+
+    /// <summary>The row takes the pointer: a clickable row, or a heading carrying "mark all done".</summary>
+    public bool IsReachable => IsEnabled || MarksAll;
 
     /// <summary>
     /// The address the row opens, whether it leads to a quest or a

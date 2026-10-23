@@ -3019,4 +3019,61 @@ Pour l'éviter : {1}  ›  « Verrouillage auto. Dossier sécurisé » › l'opt
   <data name="SourceUnknown" xml:space="preserve">
     <value>Source inconnue</value>
   </data>
+  <data name="BatchProgress" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
+  <data name="BatchProgressRound" xml:space="preserve">
+    <value>{0} / {1} · passe {2}</value>
+  </data>
+  <data name="BatchDone" xml:space="preserve">
+    <value>Marquées terminées : {0}</value>
+  </data>
+  <data name="BatchMissing" xml:space="preserve">
+    <value>non enregistrées : {0}</value>
+  </data>
+  <data name="BatchRefused" xml:space="preserve">
+    <value>Refusées par le site : {0}</value>
+  </data>
+  <data name="BatchRefusalLine" xml:space="preserve">
+    <value>{0} : {1}</value>
+  </data>
+  <data name="BatchCancelled" xml:space="preserve">
+    <value>Arrêté.</value>
+  </data>
+  <data name="BatchSiteDown" xml:space="preserve">
+    <value>Le site ne répond plus.</value>
+  </data>
+  <data name="BatchLinkLost" xml:space="preserve">
+    <value>Le site n'accepte plus la liaison.</value>
+  </data>
+  <data name="BatchAcknowledged" xml:space="preserve">
+    <value>Écritures acceptées par le site : {0} · non faites : {1}</value>
+  </data>
+  <data name="BatchRereading" xml:space="preserve">
+    <value>Le suivi est relu pour montrer l'état réel.</value>
+  </data>
+  <data name="BatchNothing" xml:space="preserve">
+    <value>Rien à marquer : ces quêtes sont déjà terminées, ignorées, bloquées ou répétables.</value>
+  </data>
+  <data name="BatchNotStarted" xml:space="preserve">
+    <value>Impossible de commencer : le suivi Papycha est occupé ou indisponible.</value>
+  </data>
+  <data name="BatchConfirm" xml:space="preserve">
+    <value>Marquer {0} quêtes terminées sur Papycha pour {1} ?</value>
+  </data>
+  <data name="BatchSelection" xml:space="preserve">
+    <value>Sélection : cocher des quêtes pour les marquer terminées d'un coup. Maj+clic coche une plage.</value>
+  </data>
+  <data name="BatchMarkPicked" xml:space="preserve">
+    <value>Marquer terminées ({0})</value>
+  </data>
+  <data name="BatchMarkAll" xml:space="preserve">
+    <value>Tout marquer terminé</value>
+  </data>
+  <data name="BatchMarkAllTip" xml:space="preserve">
+    <value>Marque terminées les quêtes de ce groupe qui ne sont ni terminées, ni ignorées, ni bloquées, ni répétables.</value>
+  </data>
+  <data name="BatchRangeHint" xml:space="preserve">
+    <value>Maj+clic : une plage</value>
+  </data>
 </root>

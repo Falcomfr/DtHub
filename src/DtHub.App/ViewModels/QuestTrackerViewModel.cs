@@ -462,6 +462,62 @@ public sealed partial class QuestTrackerViewModel(
     }
 
     /// <summary>
+    /// Marks many quests done for the selected character, through <see cref="QuestBatch"/>. The busy flag stays up for
+    /// the whole run: the tracker has no lock, and a single-row write slipped between the batch's writes brings back
+    /// the lost writes. Reads are not put on screen meanwhile. The tracker is read again at the end, without waiting,
+    /// so the list shows what the site really kept. Null when nothing was started.
+    /// </summary>
+    public async Task<QuestBatchResult?> MarkDoneAsync(
+        IReadOnlyList<int> questIds, IProgress<QuestBatchProgress> progress, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(questIds);
+
+        if (SelectedCharacter is not { } character || IsBusy || questIds.Count == 0)
+        {
+            return null;
+        }
+
+        _writeVersion++;
+        IsBusy = true;
+        QuestBatchResult? result = null;
+
+        try
+        {
+            Notice = string.Empty;
+            var (cookie, cookieFailed) = await ReadCookieAsync();
+
+            if (cookie is null)
+            {
+                SetState(cookieFailed ? TrackerLink.Unreadable : TrackerLink.Lost);
+
+                return null;
+            }
+
+            try
+            {
+                result = await QuestBatch.RunAsync(
+                    tracker, cookie, character.Id, questIds, QuestStatus.Completed, progress, cancellationToken: cancellationToken);
+            }
+            catch (Exception exception) when (exception is not OutOfMemoryException)
+            {
+                // The batch reports its failures as a result; anything else is a bug that must not break the window.
+                LogWriteFailed(0, exception);
+                result = new QuestBatchResult(
+                    [], [], questIds, exception is OperationCanceledException ? null : TrackerReadOutcome.Unreadable,
+                    exception is OperationCanceledException);
+            }
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+
+        _ = RefreshAsync();
+
+        return result;
+    }
+
+    /// <summary>
     /// Applies the level box. Linked, the level is saved on the player's
     /// Papycha character and only shown once the site took it; a refusal keeps
     /// the old level and says why. Not linked, it is kept in the settings.

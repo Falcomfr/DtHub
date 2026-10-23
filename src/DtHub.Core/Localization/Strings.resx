@@ -3019,4 +3019,61 @@ To avoid it: {1}  ›  "Auto lock Secure Folder" › the longest option.</value>
   <data name="SourceUnknown" xml:space="preserve">
     <value>Unknown source</value>
   </data>
+  <data name="BatchProgress" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
+  <data name="BatchProgressRound" xml:space="preserve">
+    <value>{0} / {1} · pass {2}</value>
+  </data>
+  <data name="BatchDone" xml:space="preserve">
+    <value>Marked done: {0}</value>
+  </data>
+  <data name="BatchMissing" xml:space="preserve">
+    <value>not saved: {0}</value>
+  </data>
+  <data name="BatchRefused" xml:space="preserve">
+    <value>Refused by the site: {0}</value>
+  </data>
+  <data name="BatchRefusalLine" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="BatchCancelled" xml:space="preserve">
+    <value>Stopped.</value>
+  </data>
+  <data name="BatchSiteDown" xml:space="preserve">
+    <value>The site stopped answering.</value>
+  </data>
+  <data name="BatchLinkLost" xml:space="preserve">
+    <value>The site no longer accepts the link.</value>
+  </data>
+  <data name="BatchAcknowledged" xml:space="preserve">
+    <value>Writes the site acknowledged: {0} · not done: {1}</value>
+  </data>
+  <data name="BatchRereading" xml:space="preserve">
+    <value>The tracker is read again to show the real state.</value>
+  </data>
+  <data name="BatchNothing" xml:space="preserve">
+    <value>Nothing to mark: these quests are already done, ignored, blocked or repeatable.</value>
+  </data>
+  <data name="BatchNotStarted" xml:space="preserve">
+    <value>Could not start: the Papycha tracker is busy or unavailable.</value>
+  </data>
+  <data name="BatchConfirm" xml:space="preserve">
+    <value>Mark {0} quests done on Papycha for {1}?</value>
+  </data>
+  <data name="BatchSelection" xml:space="preserve">
+    <value>Selection: tick quests to mark them done at once. Shift+click ticks a range.</value>
+  </data>
+  <data name="BatchMarkPicked" xml:space="preserve">
+    <value>Mark done ({0})</value>
+  </data>
+  <data name="BatchMarkAll" xml:space="preserve">
+    <value>Mark all done</value>
+  </data>
+  <data name="BatchMarkAllTip" xml:space="preserve">
+    <value>Marks done this group's quests that are not done, ignored, blocked or repeatable.</value>
+  </data>
+  <data name="BatchRangeHint" xml:space="preserve">
+    <value>Shift+click: a range</value>
+  </data>
 </root>

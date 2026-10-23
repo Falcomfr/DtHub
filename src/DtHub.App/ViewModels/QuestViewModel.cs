@@ -38,6 +38,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             if (e.PropertyName == nameof(QuestTrackerViewModel.IsLinked))
             {
                 OnPropertyChanged(nameof(ShowsFilters));
+                OnPropertyChanged(nameof(ShowsSelection));
             }
 
             if (e.PropertyName is nameof(QuestTrackerViewModel.RewardLevel) or nameof(QuestTrackerViewModel.RewardXpBonus))
@@ -215,6 +216,11 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
     /// </summary>
     private QuestNode Marked(QuestNode node)
     {
+        if (node.Kind == QuestNodeKind.Success)
+        {
+            return node with { MarksAll = IsSelecting };
+        }
+
         if (node.Dungeon is { } dungeon)
         {
             return DungeonValues.TryGetValue(dungeon.Id, out var value) ? Valued(node, value) : node;
@@ -225,7 +231,11 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             return node;
         }
 
-        node = node with { Status = QuestTracking.StatusOf(Tracker.Progress, quest.Id) };
+        node = node with
+        {
+            Status = QuestTracking.StatusOf(Tracker.Progress, quest.Id),
+            Checked = IsSelecting ? _picked.Contains(quest.Id) : null,
+        };
         var level = Tracker.RewardLevel;
 
         if (_facts is null || !_facts.TryGetValue(quest.Id, out var facts))
@@ -329,6 +339,217 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
                 + Strings.Format(value.Advances.Count == 1 ? "DungeonAdvancesOne" : "DungeonAdvances", value.Advances.Count, titles),
         };
     }
+
+    /// <summary>Past this many quests, a batch asks first: it takes minutes and writes on the player's account.</summary>
+    private const int ConfirmAbove = 20;
+
+    /// <summary>The quests ticked in selection mode, kept across lists until the mode is left.</summary>
+    private readonly HashSet<int> _picked = [];
+
+    /// <summary>The quest last ticked or unticked: Shift+click ticks from it.</summary>
+    private int? _pickAnchor;
+
+    private CancellationTokenSource? _batch;
+
+    /// <summary>"Sélection": quest rows carry a box, headings "Tout marquer terminé".</summary>
+    [ObservableProperty]
+    private bool _selecting;
+
+    /// <summary>Selection mode while it can act: linked, list open.</summary>
+    private bool IsSelecting => Selecting && Tracker.IsLinked;
+
+    partial void OnSelectingChanged(bool value)
+    {
+        if (!value)
+        {
+            _picked.Clear();
+            _pickAnchor = null;
+            PickedCount = 0;
+            BatchSummary = string.Empty;
+        }
+
+        Redraw();
+    }
+
+    /// <summary>The selection toggle: only once linked, on the list.</summary>
+    public bool ShowsSelection => Tracker.IsLinked && IsListOpen;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(MarkPickedLabel))]
+    [NotifyPropertyChangedFor(nameof(CanMarkPicked))]
+    private int _pickedCount;
+
+    public string MarkPickedLabel => Strings.Format("BatchMarkPicked", PickedCount);
+
+    public bool CanMarkPicked => PickedCount > 0 && !BatchRunning;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanMarkPicked))]
+    private bool _batchRunning;
+
+    /// <summary>"42 / 140", the pass after the first; the count goes down when a read finds lost writes.</summary>
+    [ObservableProperty]
+    private string _batchProgress = string.Empty;
+
+    [ObservableProperty]
+    private string _batchSummary = string.Empty;
+
+    /// <summary>
+    /// Ticks or unticks a quest row; with <paramref name="range"/>, every quest row from the last one ticked takes
+    /// the same state.
+    /// </summary>
+    public void Pick(QuestNode node, bool range)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+
+        var index = IndexOfNode(node);
+
+        if (BatchRunning || index < 0 || node is not { Checked: { } was, Quest: { } quest })
+        {
+            return;
+        }
+
+        var on = !was;
+        var (from, to) = (index, index);
+
+        if (range && _pickAnchor is { } anchorId
+            && Enumerable.Range(0, Nodes.Count).FirstOrDefault(i => Nodes[i].Quest?.Id == anchorId, -1) is >= 0 and var anchor)
+        {
+            (from, to) = (Math.Min(anchor, index), Math.Max(anchor, index));
+        }
+
+        for (var i = from; i <= to; i++)
+        {
+            if (Nodes[i] is not { Checked: { } state, Quest: { } q } row)
+            {
+                continue;
+            }
+
+            if (on)
+            {
+                _picked.Add(q.Id);
+            }
+            else
+            {
+                _picked.Remove(q.Id);
+            }
+
+            if (state != on)
+            {
+                Nodes[i] = row with { Checked = on };
+            }
+        }
+
+        _pickAnchor = quest.Id;
+        PickedCount = _picked.Count;
+
+        // A replaced row drops the highlight of the open guide.
+        SelectCurrent();
+    }
+
+    private int IndexOfNode(QuestNode node)
+    {
+        for (var i = 0; i < Nodes.Count; i++)
+        {
+            if (ReferenceEquals(Nodes[i], node))
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    /// <summary>The ticked quests, but those already done: ticked by hand, an ignored or repeatable one is meant.</summary>
+    public Task MarkPickedAsync() =>
+        RunBatchAsync([.. _catalog.Catalog.Quests
+            .Where(q => _picked.Contains(q.Id) && QuestTracking.StatusOf(Tracker.Progress, q.Id) != QuestStatus.Completed)
+            .Select(q => q.Id)
+            .Distinct()]);
+
+    /// <summary>
+    /// "Tout marquer terminé" on a heading: an achievement's quests listed under it, or a whole zone, through
+    /// <see cref="QuestBatch.ToMarkDone"/> (done, ignored, blocked and repeatable quests stay out).
+    /// </summary>
+    public Task MarkAllAsync(QuestNode heading)
+    {
+        ArgumentNullException.ThrowIfNull(heading);
+
+        var index = IndexOfNode(heading);
+
+        // A heading redrawn away since the click: nothing to read under it.
+        if (index < 0)
+        {
+            return Task.CompletedTask;
+        }
+
+        IEnumerable<QuestSummary> quests = heading.Kind == QuestNodeKind.Success
+            ? Nodes.Skip(index + 1).TakeWhile(n => n.InSuccess).Select(n => n.Quest).OfType<QuestSummary>().ToList()
+            : _catalog.InSection(heading.Id);
+
+        return RunBatchAsync(QuestBatch.ToMarkDone(quests, Tracker.Progress));
+    }
+
+    private async Task RunBatchAsync(IReadOnlyList<int> ids)
+    {
+        if (BatchRunning)
+        {
+            return;
+        }
+
+        if (ids.Count == 0)
+        {
+            BatchSummary = Strings.Get("BatchNothing");
+
+            return;
+        }
+
+        if (ids.Count > ConfirmAbove
+            && !_dialogs.Confirm(Strings.Format("BatchConfirm", ids.Count, Tracker.SelectedCharacter?.Name ?? string.Empty)))
+        {
+            return;
+        }
+
+        using var cancel = new CancellationTokenSource();
+        _batch = cancel;
+        BatchRunning = true;
+        BatchSummary = string.Empty;
+        BatchProgress = QuestBatchText.Progress(new QuestBatchProgress(0, ids.Count, 1));
+
+        try
+        {
+            var progress = new Progress<QuestBatchProgress>(p =>
+            {
+                // A report posted after the end must not bring the line back.
+                if (BatchRunning)
+                {
+                    BatchProgress = QuestBatchText.Progress(p);
+                }
+            });
+            var result = await Tracker.MarkDoneAsync(ids, progress, cancel.Token).ConfigureAwait(true);
+
+            if (result is null)
+            {
+                BatchSummary = Strings.Get("BatchNotStarted");
+
+                return;
+            }
+
+            // What is left ticked is what the player may want to try again.
+            _picked.ExceptWith(result.Done);
+            PickedCount = _picked.Count;
+            BatchSummary = QuestBatchText.Summary(
+                result, id => _catalog.Catalog.Quests.FirstOrDefault(q => q.Id == id)?.Title ?? QuestTree.Text(id));
+        }
+        finally
+        {
+            _batch = null;
+            BatchRunning = false;
+        }
+    }
+
+    /// <summary>Stops the batch after the write under way; the summary says what the site acknowledged.</summary>
+    public void CancelBatch() => _batch?.Cancel();
 
     private bool Passes(QuestSummary quest) =>
         QuestTracking.Passes(Tracker.Progress, quest.Id, FilterToDo, FilterAvailable,
@@ -546,6 +767,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
     [NotifyPropertyChangedFor(nameof(ShowsSiteSearch))]
     [NotifyPropertyChangedFor(nameof(ShowsFilters))]
     [NotifyPropertyChangedFor(nameof(ShowsRecommended))]
+    [NotifyPropertyChangedFor(nameof(ShowsSelection))]
     private bool _isListOpen;
 
     /// <summary>
@@ -1204,6 +1426,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
                     // the character got in the whole zone.
                     Nodes.Add(branch with
                     {
+                        MarksAll = IsSelecting,
                         Label = filtering ? $"{_tree.NameOf(branch.Id)} ({QuestTree.Text(shown)})" : branch.Label,
                         Detail = filtering ? QuestLevelRange.Of(quests.Where(Passes)) : branch.Detail,
                         Tally = QuestTracking.ZoneProgress(Tracker.Progress, [.. quests.DistinctBy(q => q.Id)]),
@@ -1408,6 +1631,8 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             Started = entry.Started && node.Status != QuestStatus.InProgress,
             Label = entry.Title,
             Detail = QuestTree.Nombre(entry.Quests.Count),
+            // A box would tick the first quest alone.
+            Checked = null,
             // The first quest's prerequisites and other rewards are not the series'.
             Needs = null,
             OtherRewards = null,

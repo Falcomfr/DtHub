@@ -3019,4 +3019,61 @@ Para evitarlo: {1}  ›  «Bloqueo automático de Carpeta segura» › la opció
   <data name="SourceUnknown" xml:space="preserve">
     <value>Origen desconocido</value>
   </data>
+  <data name="BatchProgress" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
+  <data name="BatchProgressRound" xml:space="preserve">
+    <value>{0} / {1} · pasada {2}</value>
+  </data>
+  <data name="BatchDone" xml:space="preserve">
+    <value>Marcadas terminadas: {0}</value>
+  </data>
+  <data name="BatchMissing" xml:space="preserve">
+    <value>no guardadas: {0}</value>
+  </data>
+  <data name="BatchRefused" xml:space="preserve">
+    <value>Rechazadas por el sitio: {0}</value>
+  </data>
+  <data name="BatchRefusalLine" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="BatchCancelled" xml:space="preserve">
+    <value>Detenido.</value>
+  </data>
+  <data name="BatchSiteDown" xml:space="preserve">
+    <value>El sitio dejó de responder.</value>
+  </data>
+  <data name="BatchLinkLost" xml:space="preserve">
+    <value>El sitio ya no acepta el vínculo.</value>
+  </data>
+  <data name="BatchAcknowledged" xml:space="preserve">
+    <value>Escrituras aceptadas por el sitio: {0} · sin hacer: {1}</value>
+  </data>
+  <data name="BatchRereading" xml:space="preserve">
+    <value>El seguimiento se vuelve a leer para mostrar el estado real.</value>
+  </data>
+  <data name="BatchNothing" xml:space="preserve">
+    <value>Nada que marcar: estas misiones ya están terminadas, ignoradas, bloqueadas o son repetibles.</value>
+  </data>
+  <data name="BatchNotStarted" xml:space="preserve">
+    <value>No se pudo empezar: el seguimiento de Papycha está ocupado o no disponible.</value>
+  </data>
+  <data name="BatchConfirm" xml:space="preserve">
+    <value>¿Marcar {0} misiones como terminadas en Papycha para {1}?</value>
+  </data>
+  <data name="BatchSelection" xml:space="preserve">
+    <value>Selección: marca misiones para darlas por terminadas de una vez. Mayús+clic marca un rango.</value>
+  </data>
+  <data name="BatchMarkPicked" xml:space="preserve">
+    <value>Marcar terminadas ({0})</value>
+  </data>
+  <data name="BatchMarkAll" xml:space="preserve">
+    <value>Marcar todo terminado</value>
+  </data>
+  <data name="BatchMarkAllTip" xml:space="preserve">
+    <value>Marca como terminadas las misiones de este grupo que no están terminadas, ignoradas, bloqueadas ni son repetibles.</value>
+  </data>
+  <data name="BatchRangeHint" xml:space="preserve">
+    <value>Mayús+clic: un rango</value>
+  </data>
 </root>

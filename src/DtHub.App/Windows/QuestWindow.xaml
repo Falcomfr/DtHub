@@ -87,6 +87,22 @@
                           ToolTip="{loc:T RecommendedTip}"
                           IsChecked="{Binding ShowsRecommended, Mode=OneWay}"
                           Click="OnRecommendedClick" />
+
+            <!-- "Sélection": a glyph and not a word, the toolbar has no
+                 room left at the 440 px minimum; the word comes on hover. -->
+            <ToggleButton Style="{StaticResource OutlineToggle}" Padding="6,3" Margin="4,0,0,0"
+                          Background="Transparent"
+                          BorderBrush="{DynamicResource BorderBrush}"
+                          ToolTip="{loc:T BatchSelection}"
+                          IsChecked="{Binding Selecting, Mode=TwoWay}"
+                          IsEnabled="{Binding BatchRunning, Converter={StaticResource InverseBool}}"
+                          Visibility="{Binding ShowsSelection, Converter={StaticResource BoolToVisibility}}">
+              <Path Width="14" Height="14" Stretch="None"
+                    Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"
+                    StrokeThickness="1.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                    StrokeLineJoin="Round"
+                    Data="M 1.5,1.5 H 12.5 V 12.5 H 1.5 Z M 4,7 L 6.2,9.2 L 10.5,4.5" />
+            </ToggleButton>
           </StackPanel>
         </Grid>
 
@@ -102,6 +118,32 @@
                    Text="{Binding StatusText}"
                    Visibility="{Binding StatusText, Converter={StaticResource EmptyToVisibility},
                                         ConverterParameter=inverse}" />
+
+        <!-- Selection mode: the batch button, then while it runs the count
+             and Cancel, then the summary, refusals in the site's words. -->
+        <StackPanel Margin="0,6,0,0"
+                    Visibility="{Binding Selecting, Converter={StaticResource BoolToVisibility}}">
+          <WrapPanel>
+            <Button Style="{StaticResource OutlineButton}" Padding="8,3"
+                    Content="{Binding MarkPickedLabel}" Click="OnMarkPickedClick"
+                    IsEnabled="{Binding CanMarkPicked}"
+                    Visibility="{Binding BatchRunning, Converter={StaticResource InverseBoolToVisibility}}" />
+            <TextBlock Margin="8,0,0,0" VerticalAlignment="Center" Style="{StaticResource Muted}"
+                       FontSize="{StaticResource FontSmall}" Text="{loc:T BatchRangeHint}"
+                       Visibility="{Binding BatchRunning, Converter={StaticResource InverseBoolToVisibility}}" />
+            <TextBlock VerticalAlignment="Center" Text="{Binding BatchProgress}"
+                       Visibility="{Binding BatchRunning, Converter={StaticResource BoolToVisibility}}" />
+            <Button Style="{StaticResource QuietButton}" Padding="8,3" Margin="8,0,0,0"
+                    Content="{loc:T Cancel}" Click="OnCancelBatchClick"
+                    Visibility="{Binding BatchRunning, Converter={StaticResource BoolToVisibility}}" />
+          </WrapPanel>
+          <ScrollViewer MaxHeight="120" Margin="0,4,0,0" VerticalScrollBarVisibility="Auto"
+                        Visibility="{Binding BatchSummary, Converter={StaticResource EmptyToVisibility},
+                                             ConverterParameter=inverse}">
+            <TextBlock Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
+                       TextWrapping="Wrap" Text="{Binding BatchSummary}" />
+          </ScrollViewer>
+        </StackPanel>
       </StackPanel>
     </Border>
 
@@ -933,7 +975,10 @@
                    selection were Aero2's own pale blue washes, which are
                    nowhere in the palette. -->
               <Style TargetType="ListBoxItem">
-                <Setter Property="IsEnabled" Value="{Binding IsEnabled}" />
+                <!-- Reachable, not only enabled: in selection mode an
+                     achievement heading carries "Tout marquer terminé", and
+                     a disabled row would disable its button too. -->
+                <Setter Property="IsEnabled" Value="{Binding IsReachable}" />
                 <Setter Property="Focusable" Value="{Binding IsEnabled}" />
                 <Setter Property="Margin" Value="0" />
 
@@ -1019,7 +1064,7 @@
                      doesn't reserve its space, and the labels would
                      stop lining up from one row to the next. -->
                 <Grid x:Name="Ligne" Margin="0,3" Background="Transparent"
-                      IsEnabled="{Binding IsEnabled}">
+                      IsEnabled="{Binding IsReachable}">
                   <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="19" />
                     <ColumnDefinition Width="*" />
@@ -1095,6 +1140,12 @@
                        Empty for the three dungeons the site gives no
                        level for: they sit under a header that says so. -->
                   <DockPanel Grid.Column="1">
+                    <!-- Selection mode: a box on each quest row, first so the
+                         boxes line up; Shift+click ticks a range. -->
+                    <CheckBox DockPanel.Dock="Left" Margin="0,0,6,0" VerticalAlignment="Center"
+                              IsChecked="{Binding Checked, Mode=OneWay}" Click="OnPickClick"
+                              Visibility="{Binding Checked, Converter={StaticResource EmptyToVisibility},
+                                                   ConverterParameter=inverse}" />
                     <TextBlock x:Name="Niveau" DockPanel.Dock="Left" Width="22" Margin="0,0,4,0"
                                Text="{Binding Level}"
                                TextAlignment="Right" TextWrapping="NoWrap"
@@ -1131,6 +1182,12 @@
 
                   <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="6,0,0,0"
                               VerticalAlignment="Center">
+                    <!-- Selection mode, on an achievement or zone heading. -->
+                    <Button Style="{StaticResource LinkButton}" VerticalAlignment="Center" Margin="0,0,6,0"
+                            FontSize="{StaticResource FontSmall}"
+                            Content="{loc:T BatchMarkAll}" ToolTip="{loc:T BatchMarkAllTip}"
+                            Click="OnMarkAllClick"
+                            Visibility="{Binding MarksAll, Converter={StaticResource BoolToVisibility}}" />
                     <!-- A dungeon's soul stone, position and key, each in
                          its own fixed column so that eighty-three rows line
                          up, each column only as wide as its content and

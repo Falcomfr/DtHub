@@ -11199,3 +11199,37 @@ l'infobulle du gain dit « Demande ≈ 25 min : » puis les raisons.
 **Survol.** Où trouver les objets d'une quête n'est lu qu'après 400 ms de
 survol : un balayage de la liste, dont les infobulles s'ouvrent l'une après
 l'autre, ne demande rien au serveur du jeu.
+
+## D222 - Marquer des quêtes terminées par lots
+
+**2026-10-23 - Acceptée, complète D219**
+
+Demandé par l'utilisateur pour les joueurs qui ont beaucoup de quêtes à valider
+d'un coup. Leçon de l'import du 23/10/2026 : papycha.fr répond « succès » mais
+perd environ une écriture sur sept quand elles se suivent vite, et refuse les
+quêtes « Dévotion à … » avec « Statut invalide ».
+
+**Écriture.** `QuestBatch` écrit une quête à la fois, avec une pause de 1,8 à
+3 s, relit le suivi après chaque passe et réécrit ce qui n'a pas tenu, au plus
+trois passes de plus ; un refus avec un message est définitif, trois refus muets
+de suite arrêtent le lot. Pendant tout le lot, le suivi est occupé : les boutons
+de statut d'une quête et l'écriture d'une ligne seule sont coupés, et aucune
+lecture n'est affichée. Le suivi n'a pas de verrou, et une écriture seule
+glissée entre celles du lot ramenait les pertes. À la fin, le suivi est relu
+sans attendre, et la liste montre ce que le site a vraiment gardé.
+
+**Interface.** Un bouton « Sélection » (une case cochée, le mot au survol) dans
+la barre de la liste, une fois relié : chaque ligne de quête porte une case,
+Maj+clic coche toute la plage depuis la dernière case touchée, et les cases
+restent cochées d'une liste à l'autre jusqu'à la sortie du mode. « Marquer
+terminées (n) » écrit les quêtes cochées sauf celles déjà terminées : cochée à
+la main, une quête ignorée ou répétable est voulue. En mode sélection, les
+titres de succès et les zones proposent « Tout marquer terminé » : les quêtes
+listées sous le succès, ou toute la zone, sans les terminées, ignorées,
+bloquées et répétables (`QuestBatch.ToMarkDone`). Au-delà de 20 quêtes, DT Hub
+demande confirmation. Pendant le lot, une ligne « 42 / 140 » (puis « · passe
+2 ») et « Annuler » ; le compte peut redescendre quand une relecture trouve des
+pertes. À la fin, un résumé : terminées, non enregistrées, et chaque refus avec
+les mots du site. Après une annulation ou un arrêt du site, le résumé parle
+d'écritures acceptées par le site, que le lot n'a pas pu vérifier, et dit que
+le suivi est relu.

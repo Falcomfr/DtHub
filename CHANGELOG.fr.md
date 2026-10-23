@@ -22,6 +22,7 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 - Un bouton « Recommandées » à côté de « À faire » et « Accessibles » liste ce que vous pouvez faire maintenant avec le suivi Papycha relié, séries comprises, le plus intéressant d'abord, que ça rapporte en XP ou en kamas.
 - Les cases de niveau et de Bonus Pack sont maintenant dans toutes les vues de la fenêtre des guides.
 - Chaque quête affiche un temps estimé, par exemple ≈ 25 min, calculé par DT Hub à partir des objectifs et des cartes du jeu ; « Recommandées » classe sur l'XP et les kamas par minute et écarte ce qui prend plus d'une heure.
+- Marquer beaucoup de quêtes terminées d'un coup : le bouton de sélection de la liste des guides coche des quêtes (Maj+clic pour une plage), et les titres de succès et de zone proposent « Tout marquer terminé » ; DT Hub les écrit une à une, vérifie ce que Papycha a gardé et réécrit ce qui s'est perdu.
 
 ## [0.10.5] - 2026-10-22
 
