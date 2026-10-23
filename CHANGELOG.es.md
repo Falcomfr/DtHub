@@ -28,6 +28,7 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 - Pasa el cursor sobre una misión para ver dónde encontrar los objetos que pide: monstruos que los sueltan, recolección, fabricación, arquimonstruos y sus zonas.
 - «Accesibles» y las misiones siguientes funcionan ahora para los personajes distintos del activo en Papycha, a partir de las misiones que han terminado.
 - La barra del seguimiento de la ventana de guías pasa bajo el personaje cuando la ventana es estrecha, y cada misión recomendada muestra su zona y, en una serie, su lugar (3/11).
+- Con «Por hacer» o «Accesibles», cada zona muestra cuántas de sus misiones conservan los filtros en lugar de hechas sobre el total.
 
 ## [0.10.5] - 2026-10-22
 

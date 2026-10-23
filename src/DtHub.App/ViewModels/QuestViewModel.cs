@@ -588,10 +588,12 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
     public void CancelBatch() => _batch?.Cancel();
 
     private bool Passes(QuestSummary quest) =>
-        QuestTracking.Passes(Tracker.Progress, quest.Id, FilterToDo, FilterAvailable,
-            FilterAvailable && Tracker.Progress is { } progress && _tree.Chain is { } chain
-            && _facts is not null && _facts.TryGetValue(quest.Id, out var facts)
-            && QuestProfit.IsDoable(quest, progress, facts, Tracker.RewardLevel, chain));
+        QuestTracking.Passes(Tracker.Progress, quest.Id, FilterToDo, FilterAvailable, Startable(quest));
+
+    private bool Startable(QuestSummary quest) =>
+        FilterAvailable && Tracker.Progress is { } progress && _tree.Chain is { } chain
+        && _facts is not null && _facts.TryGetValue(quest.Id, out var facts)
+        && QuestProfit.IsDoable(quest, progress, facts, Tracker.RewardLevel, chain);
 
     /// <summary>The "to do" filter of the list, remembered.</summary>
     [ObservableProperty]
@@ -1485,14 +1487,15 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
                         header = null;
                     }
 
-                    // The count follows the filters, the columns say how far
-                    // the character got in the whole zone.
+                    // The count follows the filters; so do the columns, the
+                    // quests kept instead of how far the character got.
                     Nodes.Add(branch with
                     {
                         MarksAll = IsSelecting,
                         Label = filtering ? $"{_tree.NameOf(branch.Id)} ({QuestTree.Text(shown)})" : branch.Label,
                         Detail = filtering ? QuestLevelRange.Of(quests.Where(Passes)) : branch.Detail,
-                        Tally = QuestTracking.ZoneProgress(Tracker.Progress, [.. quests.DistinctBy(q => q.Id)]),
+                        Tally = QuestTracking.ZoneProgress(
+                            Tracker.Progress, [.. quests.DistinctBy(q => q.Id)], FilterToDo, FilterAvailable, Startable),
                     });
                 }
             }

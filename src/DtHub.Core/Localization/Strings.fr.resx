@@ -1900,6 +1900,24 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="ZoneInProgress" xml:space="preserve">
     <value>{0} en cours</value>
   </data>
+  <data name="ZonePassingToDo" xml:space="preserve">
+    <value>{0} quêtes à faire</value>
+  </data>
+  <data name="ZonePassingToDoOne" xml:space="preserve">
+    <value>{0} quête à faire</value>
+  </data>
+  <data name="ZonePassingAvailable" xml:space="preserve">
+    <value>{0} quêtes accessibles</value>
+  </data>
+  <data name="ZonePassingAvailableOne" xml:space="preserve">
+    <value>{0} quête accessible</value>
+  </data>
+  <data name="ZonePassingBoth" xml:space="preserve">
+    <value>{0} quêtes accessibles à faire</value>
+  </data>
+  <data name="ZonePassingBothOne" xml:space="preserve">
+    <value>{0} quête accessible à faire</value>
+  </data>
   <data name="AndroidTooOld" xml:space="preserve">
     <value>cet appareil est en {0}, or ouvrir une fenêtre de jeu demande {1} ou plus récent.</value>
   </data>

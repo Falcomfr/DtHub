@@ -1336,7 +1336,8 @@
                          (fixed and not shared, for the virtualization
                          reason given above): an hourglass and the quests
                          in progress, then the quests done once over all of
-                         them, or a check once they are all done. Each part
+                         them, or a check once they are all done; under the
+                         filters, the quests they keep. Each part
                          is hidden, not collapsed, when it has nothing to
                          say, so the other stays in its column. -->
                     <Grid VerticalAlignment="Center" Margin="12,0,0,0"
@@ -1365,6 +1366,7 @@
                       </StackPanel>
 
                       <TextBlock x:Name="ZoneFait" Grid.Column="1" Text="{Binding Tally.Count}"
+                                 ToolTip="{Binding Tally.PassingTip}" ToolTipService.InitialShowDelay="200"
                                  HorizontalAlignment="Right" VerticalAlignment="Center"
                                  Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}" />
 

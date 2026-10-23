@@ -34,9 +34,13 @@ public static class QuestTracking
     /// all that are done, and how many quests are started. A quest done again
     /// (daily, weekly, repeatable, seasonal) stays out of the count, or a zone
     /// would never read as finished. Null without a linked tracker, the
-    /// columns then stay empty.
+    /// columns then stay empty. Under the list's filters, the quests they
+    /// keep are counted instead (by the same <see cref="Passes"/>): none of
+    /// them is done, so "done over total" would say nothing.
     /// </summary>
-    public static ZoneTally? ZoneProgress(TrackerProgress? progress, IReadOnlyCollection<QuestSummary> quests)
+    public static ZoneTally? ZoneProgress(
+        TrackerProgress? progress, IReadOnlyCollection<QuestSummary> quests, bool toDo = false, bool available = false,
+        Func<QuestSummary, bool>? startable = null)
     {
         ArgumentNullException.ThrowIfNull(quests);
 
@@ -48,10 +52,18 @@ public static class QuestTracking
         var once = quests
             .Where(q => !QuestRecurrenceLabel.IsRepeatable(q))
             .ToList();
-        return new ZoneTally(
+        var tally = new ZoneTally(
             once.Count(q => StatusOf(progress, q.Id) == QuestStatus.Completed),
             once.Count,
             quests.Count(q => StatusOf(progress, q.Id) == QuestStatus.InProgress));
+        if (!toDo && !available)
+        {
+            return tally;
+        }
+
+        var passing = once.Count(q => Passes(progress, q.Id, toDo, available, startable?.Invoke(q) ?? false));
+        var key = "ZonePassing" + (toDo && available ? "Both" : toDo ? "ToDo" : "Available") + (passing == 1 ? "One" : "");
+        return tally with { Passing = passing, PassingTip = Strings.Format(key, passing) };
     }
 
     /// <summary>
@@ -152,13 +164,18 @@ public static class QuestTracking
         ?? (characters.Count > 0 ? characters[0] : null);
 }
 
-/// <summary>A zone's progress: done over total among the quests done once, and what is started.</summary>
-public sealed record ZoneTally(int Done, int Total, int Started)
+/// <summary>
+/// A zone's progress: done over total among the quests done once, and what is started; under the list's filters,
+/// <c>Passing</c> of those quests pass them, and <c>PassingTip</c> says so.
+/// </summary>
+public sealed record ZoneTally(int Done, int Total, int Started, int? Passing = null, string? PassingTip = null)
 {
-    public string Count => string.Create(CultureInfo.CurrentCulture, $"{Done}/{Total}");
+    public string Count => Passing is { } passing
+        ? passing.ToString(CultureInfo.CurrentCulture)
+        : string.Create(CultureInfo.CurrentCulture, $"{Done}/{Total}");
 
-    /// <summary>False for a zone of repeatables only: nothing there is ever finished.</summary>
-    public bool IsComplete => Total > 0 && Done == Total;
+    /// <summary>False for a zone of repeatables only, nothing there is ever finished, and under a filter.</summary>
+    public bool IsComplete => Passing is null && Total > 0 && Done == Total;
 
     public string StartedTip => Strings.Format("ZoneInProgress", Started);
 }

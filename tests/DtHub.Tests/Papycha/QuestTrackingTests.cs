@@ -261,4 +261,41 @@ public class QuestTrackingTests
     [Fact]
     public void ZoneProgress_is_null_without_a_tracker() =>
         Assert.Null(QuestTracking.ZoneProgress(null, [Q(1), Q(2)]));
+
+    private static readonly QuestSummary[] Six = [Q(1), Q(2), Q(3), Q(4), Q(5), Q(6), Q(7, QuestRecurrence.Daily)];
+
+    [Fact]
+    public void ZoneProgress_under_to_do_counts_what_the_filter_keeps_but_repeatables()
+    {
+        var tally = QuestTracking.ZoneProgress(Zone, Six, toDo: true);
+
+        // 1, 2 and 6 are not done nor ignored; the daily 7 passes too but stays out of the count.
+        Assert.Equal("3", tally?.Count);
+        Assert.Equal("3 quêtes à faire", tally?.PassingTip);
+        Assert.Equal(2, tally?.Started);
+        Assert.False(tally?.IsComplete);
+    }
+
+    [Fact]
+    public void ZoneProgress_under_available_counts_what_is_startable()
+    {
+        var available = QuestTracking.ZoneProgress(Zone, Six, available: true, startable: q => q.Id is 1 or 6);
+        var both = QuestTracking.ZoneProgress(Zone, Six, toDo: true, available: true, startable: q => q.Id is 3 or 6);
+
+        Assert.Equal("2", available?.Count);
+        Assert.Equal("2 quêtes accessibles", available?.PassingTip);
+        // 3 is ignored: "to do" leaves it out.
+        Assert.Equal("1", both?.Count);
+        Assert.Equal("1 quête accessible à faire", both?.PassingTip);
+    }
+
+    [Fact]
+    public void ZoneProgress_without_a_filter_keeps_done_over_total_and_no_tip()
+    {
+        var tally = QuestTracking.ZoneProgress(Zone, [Q(4), Q(5)]);
+
+        Assert.Equal("2/2", tally?.Count);
+        Assert.True(tally?.IsComplete);
+        Assert.Null(tally?.PassingTip);
+    }
 }
