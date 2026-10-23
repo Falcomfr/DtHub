@@ -1032,6 +1032,9 @@ public partial class QuestWindow : Window
 
     private void OnCancelBatchClick(object sender, RoutedEventArgs e) => _viewModel.CancelBatch();
 
+    /// <summary>Each open gain hover's read, by the element carrying it: its closing cancels that read only.</summary>
+    private readonly Dictionary<object, CancellationTokenSource> _tipReads = [];
+
     /// <summary>Fills the gain's hover with where the quest's items come from, once read; the hover stays open meanwhile.</summary>
     private async void OnGainTipOpening(object sender, ToolTipEventArgs e)
     {
@@ -1042,20 +1045,45 @@ public partial class QuestWindow : Window
             return;
         }
 
-        // Never throws: a cancelled read gives null.
-        var text = await _viewModel.WhereToFindAsync(quest).ConfigureAwait(true);
-
-        // The row may show another quest by now.
-        if (!ReferenceEquals(((FrameworkElement)sender).DataContext, node))
+        if (_tipReads.Remove(sender, out var stale))
         {
-            return;
+            stale.Cancel();
         }
 
-        sources.Text = text ?? string.Empty;
-        sources.Visibility = string.IsNullOrEmpty(text) ? Visibility.Collapsed : Visibility.Visible;
+        using var read = new CancellationTokenSource();
+        _tipReads[sender] = read;
+
+        try
+        {
+            // Never throws: a cancelled read gives null.
+            var text = await _viewModel.WhereToFindAsync(quest, read.Token).ConfigureAwait(true);
+
+            // The row may show another quest by now.
+            if (!ReferenceEquals(((FrameworkElement)sender).DataContext, node))
+            {
+                return;
+            }
+
+            sources.Text = text ?? string.Empty;
+            sources.Visibility = string.IsNullOrEmpty(text) ? Visibility.Collapsed : Visibility.Visible;
+        }
+        finally
+        {
+            // Dropped before the source is disposed, so a later closing cannot cancel a disposed source.
+            if (_tipReads.TryGetValue(sender, out var mine) && ReferenceEquals(mine, read))
+            {
+                _tipReads.Remove(sender);
+            }
+        }
     }
 
-    private void OnGainTipClosing(object sender, ToolTipEventArgs e) => _viewModel.StopFinding();
+    private void OnGainTipClosing(object sender, ToolTipEventArgs e)
+    {
+        if (_tipReads.Remove(sender, out var read))
+        {
+            read.Cancel();
+        }
+    }
 
     /// <summary>
     /// The tracker bar's right-hand group (link, or status buttons, "Mes quêtes" and the menu) goes under the

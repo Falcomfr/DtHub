@@ -270,37 +270,29 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         };
     }
 
-    /// <summary>The read behind the hover in flight, cancelled when the hover goes: a sweep of the list reads nothing more.</summary>
-    private CancellationTokenSource? _finding;
-
     /// <summary>A hover held this long reads; a sweep across the list, whose tooltips open one after the other, does not.</summary>
     private static readonly TimeSpan HoverDelay = TimeSpan.FromMilliseconds(400);
 
     /// <summary>
     /// Where the items a quest asks for come from, for the gain's hover; null when it asks none or nothing is known.
-    /// Read on demand after <see cref="HoverDelay"/>, cached by the service; the previous hover's read is cancelled.
+    /// Read on demand after <see cref="HoverDelay"/>, cached by the service. Each hover passes its own token, which its
+    /// closing cancels: a hover going never stops another's read.
     /// </summary>
-    public async Task<string?> WhereToFindAsync(QuestSummary quest)
+    public async Task<string?> WhereToFindAsync(QuestSummary quest, CancellationToken ct)
     {
-        StopFinding();
-        _finding = new CancellationTokenSource();
-
         try
         {
-            await Task.Delay(HoverDelay, _finding.Token).ConfigureAwait(true);
-            return await FindAsync(quest, _finding.Token).ConfigureAwait(true);
+            await Task.Delay(HoverDelay, ct).ConfigureAwait(true);
+            return await FindAsync(quest, ct).ConfigureAwait(true);
         }
         catch (OperationCanceledException)
         {
-            // The hover went or another opened: nobody reads this one any more.
+            // The hover went: nobody reads this one any more.
             return null;
         }
     }
 
-    /// <summary>The hover went: its read stops. The token source is not disposed, the service may still link to it.</summary>
-    public void StopFinding() => _finding?.Cancel();
-
-    public void Dispose() => _finding?.Dispose();
+    public void Dispose() => _guideSources?.Dispose();
 
     private async Task<string?> FindAsync(QuestSummary quest, CancellationToken ct)
     {
@@ -936,17 +928,42 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
     /// </summary>
     private async Task RefreshSourcesAsync()
     {
+        _guideSources?.Cancel();
+
         if (_current is not { } quest)
         {
             return;
         }
 
-        var sources = await FindAsync(quest, CancellationToken.None).ConfigureAwait(true);
+        // Not disposed when replaced: the service may still link to its token.
+        _guideSources = new CancellationTokenSource();
 
-        if (_current?.Id == quest.Id)
+        try
         {
-            SourcesText = sources ?? string.Empty;
+            var sources = await FindAsync(quest, _guideSources.Token).ConfigureAwait(true);
+
+            if (_current?.Id == quest.Id)
+            {
+                SourcesText = sources ?? string.Empty;
+            }
         }
+        catch (OperationCanceledException)
+        {
+            // Another quest is shown, or the facts landed and a fresh read took over: this one is read by nobody.
+        }
+    }
+
+    /// <summary>The guide's item-source read, cancelled as soon as another quest is shown.</summary>
+    private CancellationTokenSource? _guideSources;
+
+    private void SetShownQuest(QuestSummary? quest)
+    {
+        if (_current?.Id != quest?.Id)
+        {
+            _guideSources?.Cancel();
+        }
+
+        _current = quest;
     }
 
     /// <summary>Where the open quest's items come from, under the reward line; empty hides it.</summary>
@@ -1553,9 +1570,10 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             var shown = QuestProfit.Shortlist(rows, r => r.Gain, r => r.Minutes, r => r.First, _catalog.Catalog.Quests, kamas);
             Nodes.Add(new QuestNode(QuestNodeKind.Header, Strings.Get(title)));
 
+            // No priority mark here: the order and the header say it, and the combined-score tiers contradicted the order.
             foreach (var row in shown)
             {
-                Nodes.Add(row.Node);
+                Nodes.Add(row.Node with { Tier = 0 });
             }
 
             if (shown.Count == 0)
@@ -1571,12 +1589,13 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         }
     }
 
-    /// <summary>The chosen character's entries and the dungeons that advance them.</summary>
+    /// <summary>The chosen character's entries and the dungeons that advance two of them or more.</summary>
     private List<ProfitRow> MyRows()
     {
         var rows = Recommendable.Select(e => new ProfitRow(e.Gain, e.Effort.Minutes, e.Quests[0], EntryNode(e), e)).ToList();
 
-        foreach (var value in DungeonValues.Values)
+        // A dungeon advancing one quest only would repeat that quest's row.
+        foreach (var value in DungeonValues.Values.Where(v => v.Advances.Count >= 2))
         {
             if (_catalog.Catalog.Dungeons.FirstOrDefault(d => d.Id == value.PapychaDungeonId) is { } dungeon)
             {
@@ -1898,7 +1917,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
 
         Tracker.ShowQuest(quest.Id);
 
-        _current = quest;
+        SetShownQuest(quest);
 
         ResetOfficialSteps();
         _currentDungeon = null;
@@ -1941,7 +1960,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
 
         Tracker.ShowQuest(null);
 
-        _current = null;
+        SetShownQuest(null);
 
         ResetOfficialSteps();
         _currentDungeon = dungeon;
@@ -1979,7 +1998,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
 
         Tracker.ShowQuest(null);
 
-        _current = null;
+        SetShownQuest(null);
 
         ResetOfficialSteps();
         _currentDungeon = null;
@@ -2256,7 +2275,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         // page's own sequence was weighed against the rank of a quest we had
         // already left.
         Tracker.ShowQuest(null);
-        _current = null;
+        SetShownQuest(null);
         ResetOfficialSteps();
         _currentDungeon = null;
         _currentPath = null;

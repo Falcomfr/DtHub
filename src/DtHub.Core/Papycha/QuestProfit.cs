@@ -340,8 +340,9 @@ public static class QuestProfit
     }
 
     /// <summary>
-    /// By Papycha dungeon: the quests of <paramref name="entries"/> (what "Recommandées" lists) whose objectives name one
-    /// of its game dungeons, summed and scored like a series against the quest maxima. A dungeon with none is left out.
+    /// By Papycha dungeon: the doable quests of <paramref name="entries"/> (what "Recommandées" lists) whose objectives
+    /// name one of its game dungeons, summed and scored like a series against the quest maxima. A dungeon with none is
+    /// left out.
     /// </summary>
     public static IReadOnlyDictionary<int, DungeonValue> DungeonValues(
         IReadOnlyList<ProfitEntry> entries, IReadOnlyDictionary<int, QuestScore> scores, TrackerProgress? progress,
@@ -353,7 +354,8 @@ public static class QuestProfit
         ArgumentNullException.ThrowIfNull(dungeons);
 
         var best = Maxima(scores.Values.Select(s => (s.Gain, s.Effort.Minutes)));
-        var named = entries.SelectMany(e => e.Quests).DistinctBy(q => q.Id)
+        // Doable now only: a run's later quests cannot be started yet, so a dungeon they name has nothing to do there.
+        var named = entries.SelectMany(e => e.Quests).Where(q => scores.ContainsKey(q.Id)).DistinctBy(q => q.Id)
             .Select(q => (Quest: q, Dungeons: DungeonsOf(facts[q.Id], dungeonNames)))
             .Where(q => q.Dungeons.Count > 0).ToList();
         var result = new Dictionary<int, DungeonValue>();

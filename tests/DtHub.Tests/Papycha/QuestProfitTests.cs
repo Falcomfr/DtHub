@@ -383,7 +383,7 @@ public class QuestProfitTests
             // Done: not listable, so it adds nothing.
             [4] = new([Step(10, 5f)], [Said("Sortie du Donjon Fungus")]),
             [5] = Xp(1f),
-            // Not startable yet, but listed as the series' next quest.
+            // Listed as the series' next quest, but not startable yet: nothing to do there now.
             [6] = new([Step(10, 3f)], [Said("Donjon Fungus")]),
         };
         var names = new Dictionary<int, string> { [70] = "Donjon Fungus", [80] = "Serre du Royalmouth", [90] = "Donjon des Craqueleurs" };
@@ -393,12 +393,30 @@ public class QuestProfitTests
         Assert.Equal([7, 8], values.Keys.Order());
         var fungus = values[7];
         Assert.Equal(7, fungus.PapychaDungeonId);
-        Assert.Equal([1, 6], fungus.Advances.SelectMany(e => e.Quests).Select(q => q.Id).Order());
-        Assert.Equal(["Q1", "Q6"], fungus.Advances.Select(e => e.Title).Order());
-        Assert.True(fungus.Advances.Single(e => e.Title == "Q1").Started);
-        Assert.Equal(QuestProfit.GainOf(facts[1], 10, 0)!.Xp + QuestProfit.GainOf(facts[6], 10, 0)!.Xp, fungus.Gain.Xp);
+        Assert.Equal([1], fungus.Advances.SelectMany(e => e.Quests).Select(q => q.Id));
+        Assert.True(fungus.Advances.Single().Started);
+        Assert.Equal(QuestProfit.GainOf(facts[1], 10, 0)!.Xp, fungus.Gain.Xp);
         Assert.Equal(QuestProfit.GainOf(facts[1], 10, 0)!.Kamas, fungus.Gain.Kamas);
         Assert.Equal(2, Assert.Single(values[8].Advances).Quests.Single().Id);
+    }
+
+    [Fact]
+    public void A_dungeon_advancing_only_a_later_quest_of_a_run_is_worth_nothing()
+    {
+        var catalog = new[]
+        {
+            Quest(1, "S", 1), Quest(2, "S", 2) with { Prerequisites = ["Q1"] }, Quest(3, "S", 3) with { Prerequisites = ["Q2"] },
+        };
+        var facts = new Dictionary<int, TouchQuestFacts>
+        {
+            [1] = Xp(1f),
+            [2] = Xp(1f),
+            [3] = new([Step(10, 5f)], [Said("Sortie du Donjon Fungus")]),
+        };
+
+        var values = DungeonValues(catalog, Progress([1]), facts, new Dictionary<int, string> { [70] = "Donjon Fungus" });
+
+        Assert.Empty(values);
     }
 
     [Fact]

@@ -1404,9 +1404,6 @@
                          Everything is collapsed on rows that are not quests.
                          A transparent border carries each tooltip, an open
                          stroke catches no hover. -->
-                    <!-- The priority mark of a quest doable now, among the
-                         character's doable quests: a flame, a hollow flame,
-                         a dot. -->
                     <!-- The estimated time, muted words first among the right-hand
                          signs: its width varies, so it sits left of the icons and
                          the fixed gain columns, which keep their alignment. Collapsed
@@ -1437,9 +1434,14 @@
                                   M 6,4.5 C 5,1.8 2.6,2.2 3.8,4.5 M 6,4.5 C 7,1.8 9.4,2.2 8.2,4.5" />
                     </Border>
 
+                    <!-- The priority mark of a quest doable now, among the
+                         character's doable quests: a flame, a hollow flame,
+                         a dot. Hidden by default and collapsed on rows
+                         without a dungeon: a dungeon row without a mark keeps
+                         its square, so its facts stay in their column. -->
                     <Border x:Name="Priorite" Width="12" Height="12"
                             Margin="4,0,0,0" VerticalAlignment="Center"
-                            Background="Transparent" Visibility="Collapsed"
+                            Background="Transparent" Visibility="Hidden"
                             ToolTip="{Binding ProfitTip}"
                             ToolTipService.InitialShowDelay="200">
                       <Path x:Name="PrioriteTrait" Stretch="None"
@@ -1898,6 +1900,11 @@
                     <Setter TargetName="GainKamas" Property="Visibility" Value="Hidden" />
                   </DataTrigger>
 
+                  <!-- Before the marks below, which must win on quest rows. -->
+                  <DataTrigger Binding="{Binding Dungeon}" Value="{x:Null}">
+                    <Setter TargetName="Priorite" Property="Visibility" Value="Collapsed" />
+                  </DataTrigger>
+
                   <!-- The priority marks, on a twelve unit square: a flame
                        for the best tenth, the same flame hollow for the
                        next, a dot for the quarter after. -->
@@ -1936,8 +1943,9 @@
 
                   <!-- A dungeon row keeps the gain columns: it is worth the
                        quests it advances, and its mark and gains say so. A
-                       dungeon worth nothing keeps them hidden, so the facts
-                       on its left stay in their column. -->
+                       dungeon worth nothing keeps the gains and the mark's
+                       square hidden, not collapsed, so the facts on its left
+                       stay in their column. -->
                   <MultiDataTrigger>
                     <MultiDataTrigger.Conditions>
                       <Condition Binding="{Binding Quest}" Value="{x:Null}" />

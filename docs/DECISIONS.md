@@ -11199,6 +11199,16 @@ l'infobulle du gain dit « Demande ≈ 25 min : » puis les raisons.
 **Survol.** Où trouver les objets d'une quête n'est lu qu'après 400 ms de
 survol : un balayage de la liste, dont les infobulles s'ouvrent l'une après
 l'autre, ne demande rien au serveur du jeu.
+Chaque infobulle annule à sa fermeture sa propre lecture, et seulement
+elle ; la lecture du guide ouvert s'arrête dès qu'une autre quête est montrée.
+
+**Listes courtes, revue du 23/10/2026.** Les lignes de « Recommandées » ne
+portent pas de marque de priorité : l'ordre et le titre de la liste la disent
+déjà, et les paliers du score combiné contredisaient l'ordre ; les marques
+restent dans les autres listes. Un donjon n'entre dans les listes courtes que
+s'il fait avancer au moins deux quêtes recommandées (avec une seule, il
+doublait la ligne de cette quête). Sa valeur ne compte que les quêtes faisables
+maintenant : la suite d'une série, pas encore démarrable, n'y entre plus.
 
 ## D222 - Marquer des quêtes terminées par lots
 

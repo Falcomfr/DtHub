@@ -11,7 +11,7 @@ public sealed record MonsterSource(
 public sealed record JobLevel(string Job, int Level);
 
 /// <summary>
-/// Where an item comes from; <see cref="NoKnownSource"/> when the game names no monster, harvest or recipe (event or shop).
+/// Where an item comes from; <see cref="NoKnownSource"/> when the game names no monster, harvest or recipe (unknown source).
 /// <see cref="Name"/> is the item's own, null in a cache written before it was kept.
 /// </summary>
 public sealed record ItemSource(
