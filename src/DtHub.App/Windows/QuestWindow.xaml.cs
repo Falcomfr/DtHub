@@ -1008,6 +1008,8 @@ public partial class QuestWindow : Window
 
     private void OnGoBack(object sender, RoutedEventArgs e) => _viewModel.GoBack();
 
+    private void OnRecommendedClick(object sender, RoutedEventArgs e) => _viewModel.ToggleRecommended();
+
     /// <summary>Goes back to the quest we came from.</summary>
     private void OnGoBackPage(object sender, RoutedEventArgs e)
     {

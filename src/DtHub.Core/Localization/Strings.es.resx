@@ -2918,7 +2918,7 @@ Para evitarlo: {1}  ›  «Bloqueo automático de Carpeta segura» › la opció
     <value>desplazamientos</value>
   </data>
   <data name="ProfitQuests" xml:space="preserve">
-    <value>Misiones rentables</value>
+    <value>Misiones recomendadas</value>
   </data>
   <data name="ProfitComputing" xml:space="preserve">
     <value>Calculando…</value>
@@ -2937,6 +2937,15 @@ Para evitarlo: {1}  ›  «Bloqueo automático de Carpeta segura» › la opció
   </data>
   <data name="ProfitByKamas" xml:space="preserve">
     <value>sobre todo por los kamas</value>
+  </data>
+  <data name="Recommended" xml:space="preserve">
+    <value>Recomendadas</value>
+  </data>
+  <data name="RecommendedTip" xml:space="preserve">
+    <value>Las misiones que más valen la pena ahora, por la XP o por los kamas, las mejores primero</value>
+  </data>
+  <data name="ProfitNeedsLink" xml:space="preserve">
+    <value>Vincula el seguimiento de Papycha para ver las misiones recomendadas.</value>
   </data>
   <data name="ProfitEffort" xml:space="preserve">
     <value>Requiere: {0}</value>

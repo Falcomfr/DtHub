@@ -25,8 +25,10 @@ usable from the lists too, not only in a quest's guide.
 3. **Priority marks.** On every quest row of every list, a small mark in three tiers for
    quests doable now, ranked among the character's doable quests; tooltip explains the
    tier, whether the quest is worth it mostly for XP or for kamas, and the effort reasons.
-4. **"Quêtes rentables" entry** at the top of the quest areas, next to "Quêtes suivantes":
-   the doable quests and series ranked by the combined score below, series in progress first.
+4. **"Recommandées" view**, opened by a button in the window's top bar next to "À faire"
+   and "Accessibles" (its only entry point): the doable quests and series ranked by the
+   combined score below, most worth doing first; a started series keeps its rank and shows
+   an hourglass. Pressed again, or Back, returns to where the reader was.
 
 ## Non-goals
 
@@ -85,9 +87,10 @@ quests and takes the same two ratios against the same quest maxima.
 
 Among the character's doable quests, ranked by the combined score: top 10 % tier 3, next 15 % tier 2,
 next 25 % tier 1, the rest no mark (Claude's choice). Marks: a filled flame, a half flame, a
-small dot (glyphs in the list's style, priority brush). The entry lists series first (those
-with a quest done or in progress), then single quests, each with both gains, effort reasons in
-a few words and its tier mark; clicking opens the guide as any row does.
+small dot (glyphs in the list's style, priority brush). The view lists series and single
+quests together on the combined score, each with both gains, effort reasons in a few words
+and its tier mark; clicking opens the guide as any row does. Not linked, it shows a muted
+line asking to link the Papycha tracker.
 
 ## Left to the builder
 

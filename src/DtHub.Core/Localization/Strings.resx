@@ -2918,7 +2918,7 @@ To avoid it: {1}  ›  "Auto lock Secure Folder" › the longest option.</value>
     <value>travel</value>
   </data>
   <data name="ProfitQuests" xml:space="preserve">
-    <value>Profitable quests</value>
+    <value>Recommended quests</value>
   </data>
   <data name="ProfitComputing" xml:space="preserve">
     <value>Working it out…</value>
@@ -2937,6 +2937,15 @@ To avoid it: {1}  ›  "Auto lock Secure Folder" › the longest option.</value>
   </data>
   <data name="ProfitByKamas" xml:space="preserve">
     <value>mostly for kamas</value>
+  </data>
+  <data name="Recommended" xml:space="preserve">
+    <value>Recommended</value>
+  </data>
+  <data name="RecommendedTip" xml:space="preserve">
+    <value>The quests most worth doing now, for XP or for kamas, best first</value>
+  </data>
+  <data name="ProfitNeedsLink" xml:space="preserve">
+    <value>Link the Papycha tracker to see the recommended quests.</value>
   </data>
   <data name="ProfitEffort" xml:space="preserve">
     <value>Takes: {0}</value>

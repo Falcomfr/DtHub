@@ -57,23 +57,36 @@
             <Path Style="{StaticResource RowGlyph}" Data="M 4,4 L 11,11 M 11,4 L 4,11" />
           </Button>
 
-          <!-- Only where they act: a list of quests, once linked, and no
-               search under way, since a search is never filtered. -->
-          <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="6,0,0,0"
-                      Visibility="{Binding ShowsFilters,
-                                           Converter={StaticResource BoolToVisibility}}">
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="6,0,0,0">
+            <!-- Only where they act: a list of quests, once linked, and no
+                 search under way, since a search is never filtered. -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,4,0"
+                        Visibility="{Binding ShowsFilters,
+                                             Converter={StaticResource BoolToVisibility}}">
+              <ToggleButton Style="{StaticResource OutlineToggle}" Padding="8,3"
+                            Background="Transparent"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            Content="{loc:T FilterToDo}"
+                            ToolTip="{loc:T FilterToDoTip}"
+                            IsChecked="{Binding FilterToDo, Mode=TwoWay}" />
+              <ToggleButton Style="{StaticResource OutlineToggle}" Padding="8,3" Margin="4,0,0,0"
+                            Background="Transparent"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            Content="{loc:T FilterAvailable}"
+                            ToolTip="{loc:T FilterAvailableTip}"
+                            IsChecked="{Binding FilterAvailable, Mode=TwoWay}" />
+            </StackPanel>
+
+            <!-- The one way into the recommended quests, from anywhere:
+                 pressed again it puts back what the reader left. OneWay, the
+                 click asks the view model, which knows where to go back. -->
             <ToggleButton Style="{StaticResource OutlineToggle}" Padding="8,3"
                           Background="Transparent"
                           BorderBrush="{DynamicResource BorderBrush}"
-                          Content="{loc:T FilterToDo}"
-                          ToolTip="{loc:T FilterToDoTip}"
-                          IsChecked="{Binding FilterToDo, Mode=TwoWay}" />
-            <ToggleButton Style="{StaticResource OutlineToggle}" Padding="8,3" Margin="4,0,0,0"
-                          Background="Transparent"
-                          BorderBrush="{DynamicResource BorderBrush}"
-                          Content="{loc:T FilterAvailable}"
-                          ToolTip="{loc:T FilterAvailableTip}"
-                          IsChecked="{Binding FilterAvailable, Mode=TwoWay}" />
+                          Content="{loc:T Recommended}"
+                          ToolTip="{loc:T RecommendedTip}"
+                          IsChecked="{Binding ShowsRecommended, Mode=OneWay}"
+                          Click="OnRecommendedClick" />
           </StackPanel>
         </Grid>
 
@@ -1048,6 +1061,20 @@
                                FontSize="{StaticResource FontSmall}"
                                Visibility="{Binding HasLevelColumn,
                                                     Converter={StaticResource BoolToVisibility}}" />
+
+                    <!-- A recommended series already started: the hourglass of
+                         a quest under way, before its title. -->
+                    <Border DockPanel.Dock="Left" Width="12" Height="12" Margin="0,0,4,0"
+                            VerticalAlignment="Center" Background="Transparent"
+                            ToolTip="{loc:T QuestStatusInProgress}"
+                            ToolTipService.InitialShowDelay="200"
+                            Visibility="{Binding Started, Converter={StaticResource BoolToVisibility}}">
+                      <Path Stretch="None" Stroke="{DynamicResource AccentBrush}"
+                            StrokeThickness="1.5" StrokeStartLineCap="Round"
+                            StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                            Data="M 2.5,1.5 H 9.5 M 2.5,10.5 H 9.5
+                                  M 3.5,1.5 L 6,6 L 3.5,10.5 M 8.5,1.5 L 6,6 L 8.5,10.5" />
+                    </Border>
 
                     <TextBlock x:Name="Libelle" Text="{Binding Label}"
                                TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />

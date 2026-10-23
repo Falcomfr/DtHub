@@ -266,8 +266,7 @@ public sealed partial class QuestViewModel : ObservableObject
         {
             // "Suivantes" comes from the tracker: once it is gone (unlinked,
             // lost, unreadable) the level has nothing left to hold.
-            ShowSection((_section == QuestTree.NextSection && !NextQuests().Any())
-                || (_section == QuestTree.ProfitSection && !Tracker.IsLinked)
+            ShowSection(_section == QuestTree.NextSection && !NextQuests().Any()
                 ? QuestTree.RootSection
                 : _section);
         }
@@ -322,6 +321,7 @@ public sealed partial class QuestViewModel : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowsFilters))]
+    [NotifyPropertyChangedFor(nameof(ShowsRecommended))]
     private string _query = string.Empty;
 
     /// <summary>
@@ -416,6 +416,7 @@ public sealed partial class QuestViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(CanCloseList))]
     [NotifyPropertyChangedFor(nameof(ShowsSiteSearch))]
     [NotifyPropertyChangedFor(nameof(ShowsFilters))]
+    [NotifyPropertyChangedFor(nameof(ShowsRecommended))]
     private bool _isListOpen;
 
     /// <summary>
@@ -877,6 +878,7 @@ public sealed partial class QuestViewModel : ObservableObject
     public void ShowRoot()
     {
         _section = 0;
+        OnPropertyChanged(nameof(ShowsRecommended));
         Breadcrumb = string.Empty;
         ClearBack();
 
@@ -915,6 +917,7 @@ public sealed partial class QuestViewModel : ObservableObject
     public void ShowSection(int section)
     {
         _section = section;
+        OnPropertyChanged(nameof(ShowsRecommended));
 
         if (section == 0)
         {
@@ -995,19 +998,6 @@ public sealed partial class QuestViewModel : ObservableObject
                     Strings.Get("NextQuests"),
                     QuestTree.Nombre(next.Count),
                     Id: QuestTree.NextSection,
-                    Glyph: QuestNodeGlyph.Family));
-            }
-
-            // While the facts load, the branch leads to "Calcul en cours" and comes back counted once they land.
-            var profit = ProfitEntries();
-
-            if (Tracker.IsLinked && (_facts is null || profit.Count > 0))
-            {
-                Nodes.Add(new QuestNode(
-                    QuestNodeKind.Branch,
-                    Strings.Get("ProfitQuests"),
-                    _facts is null ? null : QuestTree.Nombre(profit.Count),
-                    Id: QuestTree.ProfitSection,
                     Glyph: QuestNodeGlyph.Family));
             }
 
@@ -1096,14 +1086,50 @@ public sealed partial class QuestViewModel : ObservableObject
         AddBySuccess(_catalog.InSection(section));
     }
 
+    /// <summary>The "Recommandées" view is on screen: its button shows pressed.</summary>
+    public bool ShowsRecommended => IsListOpen && _section == QuestTree.ProfitSection && Query.Length == 0;
+
+    /// <summary>Where "Recommandées" was opened from: its section, and whether the list was open.</summary>
+    private (int Section, bool ListOpen) _beforeRecommended = (QuestTree.RootSection, true);
+
     /// <summary>
-    /// The doable quests and series, best first. A series row opens its first
-    /// quest, and shows the series' summed gain and its best tier.
+    /// Opens the recommended quests from wherever the reader is; pressed
+    /// again, puts back the section and the guide or list they left.
+    /// </summary>
+    public void ToggleRecommended()
+    {
+        if (ShowsRecommended)
+        {
+            var (section, listOpen) = _beforeRecommended;
+            ShowSection(section);
+            IsListOpen = listOpen || !HasQuest;
+
+            return;
+        }
+
+        // Read before clearing the query, which redraws the section left.
+        _beforeRecommended = (_section == QuestTree.ProfitSection ? QuestTree.RootSection : _section, IsListOpen);
+        Query = string.Empty;
+        ShowSection(QuestTree.ProfitSection);
+        IsListOpen = true;
+    }
+
+    /// <summary>
+    /// The doable quests and series, most worth doing first. A series row
+    /// opens its first quest, and shows the series' summed gains and its
+    /// best tier; a started entry carries an hourglass.
     /// </summary>
     private void ShowProfit()
     {
-        Breadcrumb = Strings.Get("QuestAreaCrumb") + Separator + Strings.Get("ProfitQuests");
-        SetBack(target: QuestTree.RootSection);
+        Breadcrumb = Strings.Get("ProfitQuests");
+        SetBack(target: _beforeRecommended.Section);
+
+        if (!Tracker.IsLinked)
+        {
+            Nodes.Add(new QuestNode(QuestNodeKind.Pending, Strings.Get("ProfitNeedsLink")));
+
+            return;
+        }
 
         if (_facts is null)
         {
@@ -1117,8 +1143,10 @@ public sealed partial class QuestViewModel : ObservableObject
             var node = Marked(_tree.NodeOf(entry.Quests[0]));
             var (xp, kamas) = QuestGainText.Columns(entry.Gain);
 
+            // A single quest under way already carries the status hourglass on its right.
             Nodes.Add(entry.Quests.Count == 1 ? node : node with
             {
+                Started = entry.Started,
                 Label = entry.Title,
                 Detail = QuestTree.Nombre(entry.Quests.Count),
                 // The first quest's prerequisites are not the series'.
@@ -1136,7 +1164,7 @@ public sealed partial class QuestViewModel : ObservableObject
         }
     }
 
-    /// <summary>The rows of "Quêtes rentables"; empty until the facts are read.</summary>
+    /// <summary>The rows of "Recommandées"; empty until the facts are read.</summary>
     private IReadOnlyList<ProfitEntry> ProfitEntries() =>
         _facts is null
             ? []

@@ -200,7 +200,8 @@ public static class QuestProfit
             entries.Add(Build(q.Title, [q], scores, facts, level, bonusPercent, best, QuestTracking.StatusOf(progress, q.Id) == QuestStatus.InProgress));
         }
 
-        return [.. entries.OrderByDescending(e => e.Entry.Started).ThenByDescending(e => e.Score).Select(e => e.Entry)];
+        // Most worth doing first; a started entry keeps its rank, the list marks it.
+        return [.. entries.OrderByDescending(e => e.Score).Select(e => e.Entry)];
     }
 
     // Summed gain / summed effort against the quest maxima, so a single quest and a series compare on the same ratios.

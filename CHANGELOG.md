@@ -25,7 +25,7 @@ belongs in the commits and in `docs/DECISIONS.md`.
 - A level box in the guides window: changing it updates your character's level on Papycha too.
 - Every quest list shows what each quest gives your character, XP and kamas side by side.
 - With the Papycha tracker linked, a small priority mark on the quests you can do now, from a dot to a flame, for the ones most worth doing, for XP or for kamas.
-- With the Papycha tracker linked, a "Profitable quests" entry next to "Next" ranks what you can do now, series included, whether they pay in XP or in kamas.
+- A "Recommended" button next to "To do" and "Available" lists what you can do now with the Papycha tracker linked, series included, most worth doing first, whether it pays in XP or in kamas.
 - The level and Bonus Pack boxes are now in every view of the guides window.
 
 ## [0.10.5] - 2026-10-22

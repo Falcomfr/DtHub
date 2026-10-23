@@ -264,7 +264,7 @@ public class QuestProfitTests
     }
 
     [Fact]
-    public void Started_series_come_first_then_by_summed_gain_for_summed_effort()
+    public void Entries_rank_on_summed_gain_for_summed_effort_started_or_not()
     {
         var catalog = new[]
         {
@@ -273,8 +273,8 @@ public class QuestProfitTests
         // A gains 6 for 4 of effort, below Q3's 4 for 2, though its two scores add up above Q3's.
         var facts = new Dictionary<int, TouchQuestFacts> { [1] = Xp(3f), [2] = Xp(3f), [3] = Xp(4f), [4] = Xp(1f), [5] = Xp(1f) };
         var entries = Entries(catalog, Progress([1, 2, 3, 4, 5], new() { [4] = QuestStatus.InProgress }), facts);
-        Assert.Equal(["B", "Q3", "A"], entries.Select(e => e.Title));
-        Assert.Equal([true, false, false], entries.Select(e => e.Started));
+        Assert.Equal(["Q3", "A", "B"], entries.Select(e => e.Title));
+        Assert.Equal([false, false, true], entries.Select(e => e.Started));
     }
 
     [Fact]

@@ -11094,8 +11094,9 @@ ne contient que ce qui est démarrable maintenant, pas la suite de la chaîne). 
 s'arrête à la première qui en échoue une, et la quête faisable suivante de la même
 série ouvre une nouvelle entrée : une quête faisable classée ne disparaît jamais du
 classement. Une entrée d'une seule quête s'affiche comme une quête seule. Un membre
-sans gain calculable reste dans la série et n'y ajoute rien. Les séries déjà
-commencées passent avant les autres.
+sans gain calculable reste dans la série et n'y ajoute rien. Le classement suit
+le seul score, le plus intéressant d'abord : une série déjà commencée (un membre
+fait ou en cours) garde son rang et porte un sablier avant son titre.
 
 **Effort.** Somme des objectifs lus dans le jeu, plus 1 par quête. Aller, revenir
 ou montrer : 1 ; découvrir une carte : 1,5 ; rapporter des objets : 2 + quantité /
@@ -11133,8 +11134,11 @@ monstres (environ 30 Ko chacun, trop lourd pour toutes les quêtes).
 
 **Affichage.** Deux colonnes de gain à droite de chaque ligne de quête, l'XP en
 bleu puis les kamas en or (vide sans kamas), une marque à
-trois paliers (flamme pleine, flamme creuse, point), l'entrée « Quêtes rentables »
-à côté de « Suivantes », et les cases de niveau et de Bonus Pack dans toutes
+trois paliers (flamme pleine, flamme creuse, point), une vue « Quêtes
+recommandées » ouverte par un bouton « Recommandées » de la barre du haut, à côté
+de « À faire » et « Accessibles » (seule entrée : la branche des zones est
+retirée ; pressé de nouveau, ou par Retour, il rend la section ou le guide
+quitté ; non relié, une ligne dit de relier le suivi Papycha), et les cases de niveau et de Bonus Pack dans toutes
 les vues de la fenêtre des guides, sur la même ligne que le personnage, juste
 après lui : son niveau se change là où on le lit, et relié, il est enregistré sur
 Papycha puis affiché dans la liste des personnages.

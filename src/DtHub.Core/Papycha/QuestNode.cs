@@ -126,6 +126,7 @@ public enum QuestNodeGlyph
 /// <param name="GainKamas">The kamas it gives, compact; <c>null</c> when unknown or none.</param>
 /// <param name="Tier">The priority mark among the character's doable quests, 0 for none, 3 for the best.</param>
 /// <param name="ProfitTip">The gain's hover: XP and kamas, then the tier and the effort when doable.</param>
+/// <param name="Started">A recommended series the character already started: an hourglass before its title.</param>
 public sealed record QuestNode(
     QuestNodeKind Kind,
     string Label,
@@ -146,7 +147,8 @@ public sealed record QuestNode(
     string? GainXp = null,
     string? GainKamas = null,
     int Tier = 0,
-    string? ProfitTip = null)
+    string? ProfitTip = null,
+    bool Started = false)
 {
     /// <summary>
     /// Neither unmade branches nor subheadings are clickable.
