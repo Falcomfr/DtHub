@@ -35,11 +35,11 @@ public class QuestListColumnsTests
     [Fact]
     public void Un_seul_gain_ou_un_seul_rang_reserve_sa_colonne()
     {
-        List<QuestNode> rien = [new(QuestNodeKind.Header, "Titre", Gain: "1 k", Tier: 3), Quete()];
+        List<QuestNode> rien = [new(QuestNodeKind.Header, "Titre", GainXp: "1 k", Tier: 3), Quete()];
 
         Assert.False(QuestListColumns.HasQuestGains(rien));
         Assert.False(QuestListColumns.HasQuestTiers(rien));
-        Assert.True(QuestListColumns.HasQuestGains([Quete(), Quete() with { Gain = "86 k" }]));
+        Assert.True(QuestListColumns.HasQuestGains([Quete(), Quete() with { GainXp = "86 k" }]));
         Assert.True(QuestListColumns.HasQuestTiers([Quete(), Quete() with { Tier = 1 }]));
     }
 }

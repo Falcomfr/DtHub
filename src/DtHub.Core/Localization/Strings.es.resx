@@ -2932,16 +2932,13 @@ Para evitarlo: {1}  ›  «Bloqueo automático de Carpeta segura» › la opció
   <data name="ProfitTier3" xml:space="preserve">
     <value>Entre las más rentables</value>
   </data>
+  <data name="ProfitByXp" xml:space="preserve">
+    <value>sobre todo por la XP</value>
+  </data>
+  <data name="ProfitByKamas" xml:space="preserve">
+    <value>sobre todo por los kamas</value>
+  </data>
   <data name="ProfitEffort" xml:space="preserve">
     <value>Requiere: {0}</value>
-  </data>
-  <data name="RankingXp" xml:space="preserve">
-    <value>XP</value>
-  </data>
-  <data name="RankingKamas" xml:space="preserve">
-    <value>Kamas</value>
-  </data>
-  <data name="RankingTip" xml:space="preserve">
-    <value>Ordenar las ganancias y las misiones rentables por XP o por kamas</value>
   </data>
 </root>

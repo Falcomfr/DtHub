@@ -1660,21 +1660,6 @@ public sealed class SettingsService : IDisposable
             },
             cancellationToken);
 
-    /// <summary>Remembers whether quest gains are ranked by XP or by kamas.</summary>
-    public Task SetRewardRankingAsync(RewardRanking ranking, CancellationToken cancellationToken = default) =>
-        UpdateIfChangedAsync(
-            settings =>
-            {
-                if (settings.RewardRanking == ranking)
-                {
-                    return false;
-                }
-
-                settings.RewardRanking = ranking;
-                return true;
-            },
-            cancellationToken);
-
     /// <summary>Remembers the "to do" and "available" quest list filters.</summary>
     public Task SetQuestFiltersAsync(bool toDo, bool available, CancellationToken cancellationToken = default) =>
         UpdateIfChangedAsync(

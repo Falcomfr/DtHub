@@ -120,6 +120,11 @@
        than the places' amber and the achievements' gold beside it. -->
   <SolidColorBrush x:Key="GlyphPriorityBrush" Color="#FFE5814F" />
 
+  <!-- A quest's two gains side by side: XP in a sky blue, kamas in a coin
+       gold, so the two numbers tell apart without a word after them. -->
+  <SolidColorBrush x:Key="GainXpBrush" Color="#FF7FB2E0" />
+  <SolidColorBrush x:Key="GainKamasBrush" Color="#FFD9B24E" />
+
   <!-- The soul stones beside a dungeon's size, one hue per size as in the
        game: green, grey, lavender, pink, under the same mauve tip. Drawn
        here rather than taken from the game, whose artwork the project

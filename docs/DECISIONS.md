@@ -11101,17 +11101,25 @@ commencées passent avant les autres.
 ou montrer : 1 ; découvrir une carte : 1,5 ; rapporter des objets : 2 + quantité /
 10, au plus 7 ; fabriquer : 3 ; combattre : 3, ou 8 pour un combat unique (un boss
 en pratique), plus 4 si le niveau optimal de l'étape dépasse celui du personnage ;
-rapporter des âmes : 5 ; texte libre ou type inconnu : 6. Le score est le gain
-(XP ou kamas, Bonus Pack compris) divisé par l'effort ; celui d'une série est la
-somme des gains de ses quêtes restantes divisée par la somme de leurs efforts, et
-séries et quêtes seules sont classées ensemble sur ce même rapport. Les raisons affichées sont les
+rapporter des âmes : 5 ; texte libre ou type inconnu : 6.
+
+**Score : XP et kamas ensemble.** Pas de choix entre XP et kamas : le joueur veut
+savoir ce qui vaut la peine en priorité, pour l'un ou pour l'autre. Pour chaque
+quête faisable au gain connu, l'XP pour l'effort et les kamas pour l'effort (Bonus
+Pack compris) sont chacun rapportés au meilleur rapport parmi les quêtes faisables
+(un côté où personne ne gagne rien vaut 0) ; le score est le plus grand des deux,
+et l'infobulle dit lequel l'emporte (« surtout pour l'XP » ou « surtout pour les
+kamas », l'XP en cas d'égalité). Une quête qui ne donne ni XP ni kamas n'est pas
+classée. Une série fait de même avec la somme des gains de ses quêtes restantes
+divisée par la somme de leurs efforts, rapportée aux mêmes maxima des quêtes, et
+séries et quêtes seules sont classées ensemble sur ce même score. Les raisons affichées sont les
 trois plus coûteuses, par genre (boss, combats, objets, âmes, fabrication, trajet,
 dialogues, tâche vague). Ces valeurs sont des choix de Claude, réglables.
 
 **Paliers.** Parmi les quêtes faisables classées par score : les 10 % de tête
 (au moins une) au palier 3, les 15 % suivants au 2, les 25 % suivants au 1, le
-reste sans marque. En XP comme en kamas ; une quête sans kamas n'est pas classée
-en kamas. Le choix XP ou kamas est mémorisé.
+reste sans marque, sur le score combiné : la meilleure quête en XP et la meilleure
+en kamas valent toutes deux 1.
 
 **Lecture en masse et pauses.** Les étapes, objectifs et récompenses d'étapes de
 toutes les quêtes appariées sont lus en trois requêtes (`QuestSteps`,
@@ -11123,7 +11131,8 @@ la semaine précédente plutôt que rien. Ce qui n'est pas lu : la progression d
 une quête (étape en cours, objectifs faits), que seul le jeu montre, et les
 monstres (environ 30 Ko chacun, trop lourd pour toutes les quêtes).
 
-**Affichage.** Une colonne de gain à droite de chaque ligne de quête, une marque à
+**Affichage.** Deux colonnes de gain à droite de chaque ligne de quête, l'XP en
+bleu puis les kamas en or (vide sans kamas), une marque à
 trois paliers (flamme pleine, flamme creuse, point), l'entrée « Quêtes rentables »
 à côté de « Suivantes », et les cases de niveau et de Bonus Pack dans toutes
 les vues de la fenêtre des guides.

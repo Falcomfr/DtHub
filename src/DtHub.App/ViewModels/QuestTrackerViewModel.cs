@@ -136,11 +136,6 @@ public sealed partial class QuestTrackerViewModel(
     /// <summary>Any saved bonus reads as the pack: older versions took a free percentage.</summary>
     public bool HasBonusPack => _settingBonus > 0;
 
-    /// <summary>Whether gains, marks and the profitable quests follow XP or kamas; remembered.</summary>
-    public RewardRanking RewardRanking { get; private set; }
-
-    public bool RanksByKamas => RewardRanking == RewardRanking.Kamas;
-
     public bool ShowsLinkButton => Link is TrackerLink.NotLinked or TrackerLink.Lost;
 
     /// <summary>
@@ -177,7 +172,6 @@ public sealed partial class QuestTrackerViewModel(
         OnPropertyChanged(nameof(RewardLevel));
         OnPropertyChanged(nameof(RewardXpBonus));
         OnPropertyChanged(nameof(HasBonusPack));
-        SetRanking(held.RewardRanking);
         var (cookie, cookieFailed) = await ReadCookieAsync();
 
         if (cookieFailed)
@@ -575,38 +569,6 @@ public sealed partial class QuestTrackerViewModel(
         await SaveSettingAsync(() => settings.SetRewardXpBonusAsync(percent));
 
         return true;
-    }
-
-    /// <summary>Applies the XP / kamas switch; clicking the side already on only puts it back.</summary>
-    public async Task SetRewardRankingAsync(RewardRanking ranking)
-    {
-        if (ranking == RewardRanking)
-        {
-            OnPropertyChanged(nameof(RanksByKamas));
-
-            return;
-        }
-
-        SetRanking(ranking);
-        await SaveSettingAsync(() => settings.SetRewardRankingAsync(ranking));
-    }
-
-    private void SetRanking(RewardRanking ranking)
-    {
-        if (ranking is not (RewardRanking.Xp or RewardRanking.Kamas))
-        {
-            // A hand-edited file: XP, the default.
-            ranking = RewardRanking.Xp;
-        }
-
-        if (ranking == RewardRanking)
-        {
-            return;
-        }
-
-        RewardRanking = ranking;
-        OnPropertyChanged(nameof(RewardRanking));
-        OnPropertyChanged(nameof(RanksByKamas));
     }
 
     /// <summary>Forgets the cookie and drops everything the tracker gave.</summary>

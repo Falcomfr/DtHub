@@ -122,7 +122,8 @@ public enum QuestNodeGlyph
 /// True for a dungeon whose path heads it: the row closes the bracket the
 /// path's row opens, so that the two read as one.
 /// </param>
-/// <param name="Gain">What the quest gives the chosen character, compact; <c>null</c> when unknown.</param>
+/// <param name="GainXp">The XP the quest gives the chosen character, compact; <c>null</c> when unknown.</param>
+/// <param name="GainKamas">The kamas it gives, compact; <c>null</c> when unknown or none.</param>
 /// <param name="Tier">The priority mark among the character's doable quests, 0 for none, 3 for the best.</param>
 /// <param name="ProfitTip">The gain's hover: XP and kamas, then the tier and the effort when doable.</param>
 public sealed record QuestNode(
@@ -142,7 +143,8 @@ public sealed record QuestNode(
     ZoneTally? Tally = null,
     bool Nested = false,
     bool AfterPath = false,
-    string? Gain = null,
+    string? GainXp = null,
+    string? GainKamas = null,
     int Tier = 0,
     string? ProfitTip = null)
 {

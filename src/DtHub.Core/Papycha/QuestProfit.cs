@@ -2,21 +2,19 @@
 
 namespace DtHub.Core.Papycha;
 
-public enum RewardRanking
-{
-    Xp,
-    Kamas,
-}
-
 public sealed record QuestEffort(double Value, IReadOnlyList<string> Reasons);
 
 public sealed record QuestGain(long Xp, long Kamas);
 
-public sealed record QuestScore(int QuestId, QuestGain Gain, QuestEffort Effort, double Score, int Tier);
+/// <summary>
+/// <c>Score</c> is the better of XP and kamas for the effort, each against the best doable quest's,
+/// so 1 is the best on one side; <c>ByKamas</c> tells which side gave it.
+/// </summary>
+public sealed record QuestScore(int QuestId, QuestGain Gain, QuestEffort Effort, double Score, int Tier, bool ByKamas);
 
 /// <summary>A quest or a series in the "profitable quests" ranking; <c>Quests.Count &gt; 1</c> is a series.</summary>
 public sealed record ProfitEntry(
-    string Title, IReadOnlyList<QuestSummary> Quests, QuestGain Gain, QuestEffort Effort, int Tier, bool Started);
+    string Title, IReadOnlyList<QuestSummary> Quests, QuestGain Gain, QuestEffort Effort, int Tier, bool Started, bool ByKamas);
 
 /// <summary>What a quest gives for the effort it asks, from the game's own objectives. Pure.</summary>
 public static class QuestProfit
@@ -105,21 +103,21 @@ public static class QuestProfit
 
     public static IReadOnlyDictionary<int, QuestScore> Score(
         IEnumerable<QuestSummary> catalog, IReadOnlyDictionary<int, TouchQuestFacts> facts, TrackerProgress? progress,
-        int level, int bonusPercent, RewardRanking ranking)
+        int level, int bonusPercent)
     {
-        var scored = new List<(int Id, QuestGain Gain, QuestEffort Effort, double Score)>();
+        var raw = new List<(int Id, QuestGain Gain, QuestEffort Effort)>();
         foreach (var quest in catalog)
         {
             if (!facts.TryGetValue(quest.Id, out var f) || !IsDoable(quest, progress, f, level)) continue;
-            if (GainOf(f, level, bonusPercent) is not { } gain) continue;
-            var value = ranking == RewardRanking.Xp ? gain.Xp : gain.Kamas;
-            if (ranking == RewardRanking.Kamas && value == 0) continue;
-            var effort = EffortOf(f, level);
-            scored.Add((quest.Id, gain, effort, value / effort.Value));
+            if (GainOf(f, level, bonusPercent) is not { } gain || (gain.Xp == 0 && gain.Kamas == 0)) continue;
+            raw.Add((quest.Id, gain, EffortOf(f, level)));
         }
 
+        var best = Maxima(raw.Select(r => (r.Gain, r.Effort.Value)));
+
         // OrderBy is stable: ties keep catalog order.
-        var ordered = scored.OrderByDescending(s => s.Score).ToList();
+        var ordered = raw.Select(r => (r.Id, r.Gain, r.Effort, Side: Combined(r.Gain, r.Effort.Value, best)))
+            .OrderByDescending(s => s.Side.Score).ToList();
         var n = ordered.Count;
         var t3 = Math.Max(1, Share(n, 0.10));
         var t2 = t3 + Share(n, 0.15);
@@ -129,10 +127,21 @@ public static class QuestProfit
         {
             var s = ordered[i];
             var tier = i < t3 ? 3 : i < t2 ? 2 : i < t1 ? 1 : 0;
-            result[s.Id] = new QuestScore(s.Id, s.Gain, s.Effort, s.Score, tier);
+            result[s.Id] = new QuestScore(s.Id, s.Gain, s.Effort, s.Side.Score, tier, s.Side.ByKamas);
         }
 
         return result;
+    }
+
+    private static (double Xp, double Kamas) Maxima(IEnumerable<(QuestGain Gain, double Effort)> quests) =>
+        quests.Aggregate((0.0, 0.0), (m, q) => (Math.Max(m.Item1, q.Gain.Xp / q.Effort), Math.Max(m.Item2, q.Gain.Kamas / q.Effort)));
+
+    // Each side against its best doable quest; a side nobody gains on counts 0. XP wins a tie.
+    private static (double Score, bool ByKamas) Combined(QuestGain gain, double effort, (double Xp, double Kamas) best)
+    {
+        var xp = best.Xp > 0 ? gain.Xp / effort / best.Xp : 0;
+        var kamas = best.Kamas > 0 ? gain.Kamas / effort / best.Kamas : 0;
+        return (Math.Max(xp, kamas), kamas > xp);
     }
 
     private static int Share(int n, double part) => (int)Math.Round(n * part, MidpointRounding.AwayFromZero);
@@ -144,8 +153,9 @@ public static class QuestProfit
     /// </summary>
     public static IReadOnlyList<ProfitEntry> Entries(
         IEnumerable<QuestSummary> catalog, IReadOnlyDictionary<int, QuestScore> scores, TrackerProgress? progress,
-        IReadOnlyDictionary<int, TouchQuestFacts> facts, int level, int bonusPercent, RewardRanking ranking)
+        IReadOnlyDictionary<int, TouchQuestFacts> facts, int level, int bonusPercent)
     {
+        var best = Maxima(scores.Values.Select(s => (s.Gain, s.Effort.Value)));
         var entries = new List<(ProfitEntry Entry, double Score)>();
         var all = catalog.ToList();
         var series = all.Where(q => q.SuccessName.Length > 0).GroupBy(q => q.SuccessName).Where(g => g.Count() > 1).ToList();
@@ -162,7 +172,7 @@ public static class QuestProfit
                 {
                     if (members.Any(q => scores.ContainsKey(q.Id)))
                     {
-                        entries.Add(Build(members.Count == 1 ? members[0].Title : group.Key, members, scores, facts, level, bonusPercent, ranking, started));
+                        entries.Add(Build(members.Count == 1 ? members[0].Title : group.Key, members, scores, facts, level, bonusPercent, best, started));
                     }
 
                     members = [];
@@ -187,23 +197,23 @@ public static class QuestProfit
 
         foreach (var q in all.Where(q => scores.ContainsKey(q.Id) && !inSeries.Contains(q.Id)))
         {
-            entries.Add(Build(q.Title, [q], scores, facts, level, bonusPercent, ranking, QuestTracking.StatusOf(progress, q.Id) == QuestStatus.InProgress));
+            entries.Add(Build(q.Title, [q], scores, facts, level, bonusPercent, best, QuestTracking.StatusOf(progress, q.Id) == QuestStatus.InProgress));
         }
 
         return [.. entries.OrderByDescending(e => e.Entry.Started).ThenByDescending(e => e.Score).Select(e => e.Entry)];
     }
 
-    // Score = summed gain / summed effort, so a single quest and a series compare on the same ratio.
+    // Summed gain / summed effort against the quest maxima, so a single quest and a series compare on the same ratios.
     private static (ProfitEntry, double) Build(
         string title, List<QuestSummary> quests, IReadOnlyDictionary<int, QuestScore> scores,
-        IReadOnlyDictionary<int, TouchQuestFacts> facts, int level, int bonusPercent, RewardRanking ranking, bool started)
+        IReadOnlyDictionary<int, TouchQuestFacts> facts, int level, int bonusPercent, (double Xp, double Kamas) best, bool started)
     {
         var f = quests.Select(q => facts[q.Id]).ToList();
         var gains = f.Select(x => GainOf(x, level, bonusPercent)).OfType<QuestGain>().ToList();
         var effort = new QuestEffort(f.Sum(x => EffortOf(x, level).Value), Reasons(f.SelectMany(x => x.Objectives), level));
         var gain = new QuestGain(gains.Sum(x => x.Xp), gains.Sum(x => x.Kamas));
-        var value = ranking == RewardRanking.Xp ? gain.Xp : gain.Kamas;
+        var side = Combined(gain, effort.Value, best);
         var tier = quests.Where(q => scores.ContainsKey(q.Id)).Max(q => scores[q.Id].Tier);
-        return (new ProfitEntry(title, quests, gain, effort, tier, started), value / effort.Value);
+        return (new ProfitEntry(title, quests, gain, effort, tier, started, side.ByKamas), side.Score);
     }
 }

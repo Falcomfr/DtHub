@@ -2932,16 +2932,13 @@ To avoid it: {1}  ›  "Auto lock Secure Folder" › the longest option.</value>
   <data name="ProfitTier3" xml:space="preserve">
     <value>Among the most worth doing</value>
   </data>
+  <data name="ProfitByXp" xml:space="preserve">
+    <value>mostly for XP</value>
+  </data>
+  <data name="ProfitByKamas" xml:space="preserve">
+    <value>mostly for kamas</value>
+  </data>
   <data name="ProfitEffort" xml:space="preserve">
     <value>Takes: {0}</value>
-  </data>
-  <data name="RankingXp" xml:space="preserve">
-    <value>XP</value>
-  </data>
-  <data name="RankingKamas" xml:space="preserve">
-    <value>Kamas</value>
-  </data>
-  <data name="RankingTip" xml:space="preserve">
-    <value>Rank gains and profitable quests by XP or by kamas</value>
   </data>
 </root>

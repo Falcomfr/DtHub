@@ -2932,16 +2932,13 @@ Pour l'éviter : {1}  ›  « Verrouillage auto. Dossier sécurisé » › l'opt
   <data name="ProfitTier3" xml:space="preserve">
     <value>Parmi les plus rentables</value>
   </data>
+  <data name="ProfitByXp" xml:space="preserve">
+    <value>surtout pour l'XP</value>
+  </data>
+  <data name="ProfitByKamas" xml:space="preserve">
+    <value>surtout pour les kamas</value>
+  </data>
   <data name="ProfitEffort" xml:space="preserve">
     <value>Demande : {0}</value>
-  </data>
-  <data name="RankingXp" xml:space="preserve">
-    <value>XP</value>
-  </data>
-  <data name="RankingKamas" xml:space="preserve">
-    <value>Kamas</value>
-  </data>
-  <data name="RankingTip" xml:space="preserve">
-    <value>Classer les gains et les quêtes rentables par XP ou par kamas</value>
   </data>
 </root>

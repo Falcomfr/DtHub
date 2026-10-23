@@ -1826,23 +1826,6 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task Le_classement_XP_ou_kamas_se_relit_et_une_valeur_inchangee_nenregistre_pas()
-    {
-        Assert.Equal(RewardRanking.Xp, (await _service.GetAsync()).RewardRanking);
-
-        await _service.SetRewardRankingAsync(RewardRanking.Kamas);
-
-        Assert.Equal(RewardRanking.Kamas, (await _service.GetAsync()).RewardRanking);
-
-        var writes = 0;
-        _service.Changed += (_, _) => writes++;
-
-        await _service.SetRewardRankingAsync(RewardRanking.Kamas);
-
-        Assert.Equal(0, writes);
-    }
-
-    [Fact]
     public async Task Les_filtres_de_quetes_se_relisent()
     {
         await _service.SetQuestFiltersAsync(toDo: true, available: true);

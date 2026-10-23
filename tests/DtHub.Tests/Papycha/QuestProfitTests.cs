@@ -110,7 +110,7 @@ public class QuestProfitTests
     public void Score_and_tiers_on_twenty_quests()
     {
         var (catalog, facts) = Twenty();
-        var scores = QuestProfit.Score(catalog, facts, Progress(catalog.Select(q => q.Id)), 10, 0, RewardRanking.Xp);
+        var scores = QuestProfit.Score(catalog, facts, Progress(catalog.Select(q => q.Id)), 10, 0);
         Assert.Equal(20, scores.Count);
         Assert.Equal(2, scores.Values.Count(s => s.Tier == 3));
         Assert.Equal(3, scores.Values.Count(s => s.Tier == 2));
@@ -120,7 +120,9 @@ public class QuestProfitTests
         Assert.Equal(1, scores[14].Tier);
         Assert.Equal(1, scores[11].Tier);
         Assert.Equal(0, scores[10].Tier);
-        Assert.Equal(scores[20].Gain.Xp / 1.0, scores[20].Score);
+        Assert.Equal(1.0, scores[20].Score);
+        Assert.Equal(19.0 / 20, scores[19].Score, 2);
+        Assert.False(scores[20].ByKamas);
     }
 
     [Fact]
@@ -128,24 +130,40 @@ public class QuestProfitTests
     {
         var catalog = new List<QuestSummary> { Quest(1), Quest(2), Quest(3) };
         var facts = catalog.ToDictionary(q => q.Id, _ => new TouchQuestFacts([Step(10, 1f)], []));
-        var scores = QuestProfit.Score(catalog, facts, Progress([1, 2, 3]), 10, 0, RewardRanking.Xp);
+        var scores = QuestProfit.Score(catalog, facts, Progress([1, 2, 3]), 10, 0);
         Assert.Equal(3, scores[1].Tier);
         Assert.Equal(1, scores[2].Tier);
         Assert.Equal(0, scores[3].Tier);
     }
 
     [Fact]
-    public void Kamas_ranking_skips_quests_without_kamas()
+    public void A_quest_best_in_kamas_but_poor_in_xp_is_tier_three()
     {
-        var catalog = new List<QuestSummary> { Quest(1), Quest(2) };
+        var catalog = Enumerable.Range(1, 20).Select(i => Quest(i)).ToList();
+        // Quests 1 to 19 give i XP and no kamas; quest 20 gives the least XP but the only kamas.
+        var facts = catalog.ToDictionary(q => q.Id, q => new TouchQuestFacts([Step(10, q.Id == 20 ? 1f : q.Id, q.Id == 20 ? 1f : 0f)], []));
+        var scores = QuestProfit.Score(catalog, facts, Progress(catalog.Select(q => q.Id)), 10, 0);
+        Assert.Equal(3, scores[20].Tier);
+        Assert.True(scores[20].ByKamas);
+        Assert.Equal(3, scores[19].Tier);
+        Assert.False(scores[19].ByKamas);
+        Assert.Equal(2, scores[18].Tier);
+    }
+
+    [Fact]
+    public void A_quest_with_neither_xp_nor_kamas_is_not_scored()
+    {
+        var catalog = new List<QuestSummary> { Quest(1), Quest(2), Quest(3) };
         var facts = new Dictionary<int, TouchQuestFacts>
         {
-            [1] = new([Step(10, 1f, 0f)], []),
-            [2] = new([Step(10, 1f, 1f)], []),
+            [1] = new([Step(10, 0f, 0f)], []),
+            [2] = new([Step(10, 1f, 0f)], []),
+            [3] = new([Step(10, 0f, 1f)], []),
         };
-        var scores = QuestProfit.Score(catalog, facts, Progress([1, 2]), 10, 0, RewardRanking.Kamas);
-        Assert.Equal([2], scores.Keys);
-        Assert.Equal(2, QuestProfit.Score(catalog, facts, Progress([1, 2]), 10, 0, RewardRanking.Xp).Count);
+        var scores = QuestProfit.Score(catalog, facts, Progress([1, 2, 3]), 10, 0);
+        Assert.Equal([2, 3], scores.Keys.Order());
+        Assert.Equal(1.0, scores[2].Score);
+        Assert.Equal(1.0, scores[3].Score);
     }
 
     private static TouchQuestFacts Xp(float xp) => new([Step(10, xp)], [Obj(1)]);
@@ -156,8 +174,8 @@ public class QuestProfitTests
         QuestSummary[] catalog, TrackerProgress progress, Dictionary<int, TouchQuestFacts>? facts = null)
     {
         facts ??= catalog.ToDictionary(q => q.Id, _ => Facts(Obj(1)));
-        var scores = QuestProfit.Score(catalog, facts, progress, 10, 0, RewardRanking.Xp);
-        return QuestProfit.Entries(catalog, scores, progress, facts, 10, 0, RewardRanking.Xp);
+        var scores = QuestProfit.Score(catalog, facts, progress, 10, 0);
+        return QuestProfit.Entries(catalog, scores, progress, facts, 10, 0);
     }
 
     [Fact]
@@ -211,15 +229,16 @@ public class QuestProfitTests
         var facts = new Dictionary<int, TouchQuestFacts>
         {
             [1] = new([Step(10, 1f, 1f)], []),
-            [2] = new([Step(10, 1f, 0f)], []),
+            [2] = new([Step(10, 1f, 1f), null], []),
             [3] = new([Step(10, 1f, 1f)], []),
         };
         var progress = Progress([1, 2, 3]);
-        var scores = QuestProfit.Score(catalog, facts, progress, 10, 0, RewardRanking.Kamas);
+        var scores = QuestProfit.Score(catalog, facts, progress, 10, 0);
         Assert.Equal(2, scores.Count);
-        var entry = Assert.Single(QuestProfit.Entries(catalog, scores, progress, facts, 10, 0, RewardRanking.Kamas));
+        var entry = Assert.Single(QuestProfit.Entries(catalog, scores, progress, facts, 10, 0));
         Assert.Equal([1, 2, 3], entry.Quests.Select(q => q.Id));
         Assert.Equal(scores[1].Gain.Kamas + scores[3].Gain.Kamas, entry.Gain.Kamas);
+        Assert.Equal(scores[1].Gain.Xp + scores[3].Gain.Xp, entry.Gain.Xp);
     }
 
     [Fact]
@@ -232,8 +251,8 @@ public class QuestProfitTests
             [2] = Facts(Obj(6, [1, 5]), Obj(1)),
         };
         var progress = Progress([1, 2]);
-        var scores = QuestProfit.Score(catalog, facts, progress, 10, 0, RewardRanking.Xp);
-        var entry = Assert.Single(QuestProfit.Entries(catalog, scores, progress, facts, 10, 0, RewardRanking.Xp));
+        var scores = QuestProfit.Score(catalog, facts, progress, 10, 0);
+        var entry = Assert.Single(QuestProfit.Entries(catalog, scores, progress, facts, 10, 0));
         Assert.Equal(["2 combats", "dialogues"], entry.Effort.Reasons);
     }
 
@@ -256,5 +275,22 @@ public class QuestProfitTests
         var entries = Entries(catalog, Progress([1, 2, 3, 4, 5], new() { [4] = QuestStatus.InProgress }), facts);
         Assert.Equal(["B", "Q3", "A"], entries.Select(e => e.Title));
         Assert.Equal([true, false, false], entries.Select(e => e.Started));
+    }
+
+    [Fact]
+    public void Series_rank_on_their_best_side_against_the_quest_maxima()
+    {
+        var catalog = new[] { Quest(1, "K", 1), Quest(2, "K", 2), Quest(3), Quest(4) };
+        // K: little XP, kamas 4 for 4 of effort against the best quest's 3 for 2; Q3: a quarter of Q4's XP.
+        var facts = new Dictionary<int, TouchQuestFacts>
+        {
+            [1] = new([Step(10, 0.1f, 1f)], [Obj(1)]),
+            [2] = new([Step(10, 0.1f, 3f)], [Obj(1)]),
+            [3] = Xp(1f),
+            [4] = Xp(4f),
+        };
+        var entries = Entries(catalog, Progress([1, 2, 3, 4]), facts);
+        Assert.Equal(["Q4", "K", "Q3"], entries.Select(e => e.Title));
+        Assert.Equal([false, true, false], entries.Select(e => e.ByKamas));
     }
 }

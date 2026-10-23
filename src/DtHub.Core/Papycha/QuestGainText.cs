@@ -16,15 +16,16 @@ public static class QuestGainText
             : value.ToString(culture);
     }
 
-    public static string Column(QuestGain gain, RewardRanking ranking)
+    /// <summary>The XP and kamas columns; no kamas text when the quest gives none.</summary>
+    public static (string Xp, string? Kamas) Columns(QuestGain gain)
     {
         ArgumentNullException.ThrowIfNull(gain);
 
-        return Compact(ranking == RewardRanking.Xp ? gain.Xp : gain.Kamas);
+        return (Compact(gain.Xp), gain.Kamas > 0 ? Compact(gain.Kamas) : null);
     }
 
-    /// <summary>XP and kamas; then, for a doable quest, its tier and what it asks for.</summary>
-    public static string Tip(QuestGain gain, int tier = 0, IReadOnlyList<string>? reasons = null)
+    /// <summary>XP and kamas; then, for a doable quest, its tier with the side it is worth it for, and what it asks for.</summary>
+    public static string Tip(QuestGain gain, int tier = 0, bool byKamas = false, IReadOnlyList<string>? reasons = null)
     {
         ArgumentNullException.ThrowIfNull(gain);
 
@@ -36,7 +37,8 @@ public static class QuestGainText
 
         if (tier > 0)
         {
-            lines.Add(Strings.Get(tier switch { 3 => "ProfitTier3", 2 => "ProfitTier2", _ => "ProfitTier1" }));
+            lines.Add(Strings.Get(tier switch { 3 => "ProfitTier3", 2 => "ProfitTier2", _ => "ProfitTier1" })
+                + ", " + Strings.Get(byKamas ? "ProfitByKamas" : "ProfitByXp"));
         }
 
         if (reasons is { Count: > 0 })

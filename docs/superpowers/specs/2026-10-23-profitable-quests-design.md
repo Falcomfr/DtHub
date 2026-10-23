@@ -9,23 +9,24 @@ The user wants to know, for the chosen character, which quests are worth doing n
 quest's reward in every list (not only in the open guide), spot the best ones at a glance
 with a small priority mark, and get a ranked list. In their words: take quest chains into
 account ("c'est rentable de faire cette suite"), never propose a quest whose earlier quests
-are not done, and propose the next quests of chains. Ranking by XP and by kamas, both
-("tu peux faire xp et kamas, les 2 propositions"). The level and Bonus Pack boxes must be
+are not done, and propose the next quests of chains. XP and kamas together, no switch
+("donne les 2 direct xp kamas, ça sert à rien de différencier, moi ce que je veux c'est que
+l'utilisateur sache ce qui est recommandé et rentable à faire en prio, que ce soit pour xp ou
+kamas"). The level and Bonus Pack boxes must be
 usable from the lists too, not only in a quest's guide.
 
 ## Goals
 
-1. **Rewards in lists.** Every quest row shows the quest's gain for the chosen character
-   in a fixed right-hand column, compact ("12,7 M"), XP or kamas following the chosen
-   ranking; the tooltip gives XP, kamas and items. Same formula and data as D218.
+1. **Rewards in lists.** Every quest row shows the quest's gains for the chosen character
+   in two fixed right-hand columns, compact ("12,7 M"): XP in blue, then kamas in gold
+   (empty when none); the tooltip gives XP and kamas. Same formula and data as D218.
 2. **Level and Bonus Pack boxes everywhere** in the guides window, list views included;
    changing them refreshes every gain and mark at once.
 3. **Priority marks.** On every quest row of every list, a small mark in three tiers for
    quests doable now, ranked among the character's doable quests; tooltip explains the
-   tier (gain, effort reasons, series length).
+   tier, whether the quest is worth it mostly for XP or for kamas, and the effort reasons.
 4. **"Quêtes rentables" entry** at the top of the quest areas, next to "Quêtes suivantes":
-   the doable quests and series ranked by gain for effort, series in progress first.
-5. **XP / kamas switch** in that entry and for the marks and the list column; remembered.
+   the doable quests and series ranked by the combined score below, series in progress first.
 
 ## Non-goals
 
@@ -69,19 +70,26 @@ Per objective, by `typeId` (templates from `QuestObjectiveTypes`, read 2026-10-2
 | Bring souls | 12 | 5 |
 | Free text (dungeon runs, help a village, empty the keyring) | 0, 10 | 6 |
 
-A quest's effort is 1 + the sum of its objectives. Its score is its gain (XP or kamas at the
-character's level, Bonus Pack included) divided by its effort. A series' score sums the gains
-and efforts of its remaining doable-in-order quests.
+A quest's effort is 1 + the sum of its objectives.
+
+## Combined score
+
+For each doable quest with a known gain (XP and kamas at the character's level, Bonus Pack
+included), `xpRatio = XP / effort` and `kamasRatio = kamas / effort`. Each is divided by its
+maximum among those quests (a maximum of 0 makes that side 0); the score is the larger of the
+two, and the side that gave it is kept for the tooltip (XP on a tie). A quest giving neither XP
+nor kamas is not scored. A series sums the gains and efforts of its remaining doable-in-order
+quests and takes the same two ratios against the same quest maxima.
 
 ## Tiers and the entry
 
-Among the character's doable quests, ranked by score: top 10 % tier 3, next 15 % tier 2,
+Among the character's doable quests, ranked by the combined score: top 10 % tier 3, next 15 % tier 2,
 next 25 % tier 1, the rest no mark (Claude's choice). Marks: a filled flame, a half flame, a
 small dot (glyphs in the list's style, priority brush). The entry lists series first (those
-with a quest done or in progress), then single quests, each with gain, effort reasons in a
-few words and its tier mark; clicking opens the guide as any row does.
+with a quest done or in progress), then single quests, each with both gains, effort reasons in
+a few words and its tier mark; clicking opens the guide as any row does.
 
 ## Left to the builder
 
 Class names, the bulk cache format, the exact glyphs and brush, the entry's row layout,
-where the switch sits, decision number, changelog wording in three languages, order of work.
+decision number, changelog wording in three languages, order of work.

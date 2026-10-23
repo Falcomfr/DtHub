@@ -40,8 +40,7 @@ public sealed partial class QuestViewModel : ObservableObject
                 _ = RefreshRewardsAsync();
             }
 
-            if (e.PropertyName is nameof(QuestTrackerViewModel.RewardLevel) or nameof(QuestTrackerViewModel.RewardXpBonus)
-                or nameof(QuestTrackerViewModel.RewardRanking))
+            if (e.PropertyName is nameof(QuestTrackerViewModel.RewardLevel) or nameof(QuestTrackerViewModel.RewardXpBonus))
             {
                 Rescore();
             }
@@ -79,7 +78,7 @@ public sealed partial class QuestViewModel : ObservableObject
         _facts is null || Tracker.RewardLevel <= 0
             ? new Dictionary<int, QuestScore>()
             : QuestProfit.Score(_catalog.Catalog.Quests, _facts, Tracker.Progress,
-                Tracker.RewardLevel, Tracker.RewardXpBonus, Tracker.RewardRanking);
+                Tracker.RewardLevel, Tracker.RewardXpBonus);
 
     /// <summary>Ranks again, once, and redraws the shown list.</summary>
     private void Rescore()
@@ -204,11 +203,14 @@ public sealed partial class QuestViewModel : ObservableObject
         var score = Scores.GetValueOrDefault(quest.Id);
         var tier = score?.Tier ?? 0;
 
+        var (xp, kamas) = QuestGainText.Columns(gain);
+
         return node with
         {
-            Gain = QuestGainText.Column(gain, Tracker.RewardRanking),
+            GainXp = xp,
+            GainKamas = kamas,
             Tier = tier,
-            ProfitTip = QuestGainText.Tip(gain, tier, score?.Effort.Reasons),
+            ProfitTip = QuestGainText.Tip(gain, tier, score?.ByKamas ?? false, score?.Effort.Reasons),
         };
     }
 
@@ -1123,6 +1125,7 @@ public sealed partial class QuestViewModel : ObservableObject
         foreach (var entry in ProfitEntries())
         {
             var node = Marked(_tree.NodeOf(entry.Quests[0]));
+            var (xp, kamas) = QuestGainText.Columns(entry.Gain);
 
             Nodes.Add(entry.Quests.Count == 1 ? node : node with
             {
@@ -1130,9 +1133,10 @@ public sealed partial class QuestViewModel : ObservableObject
                 Detail = QuestTree.Nombre(entry.Quests.Count),
                 // The first quest's prerequisites are not the series'.
                 Needs = null,
-                Gain = QuestGainText.Column(entry.Gain, Tracker.RewardRanking),
+                GainXp = xp,
+                GainKamas = kamas,
                 Tier = entry.Tier,
-                ProfitTip = QuestGainText.Tip(entry.Gain, entry.Tier, entry.Effort.Reasons),
+                ProfitTip = QuestGainText.Tip(entry.Gain, entry.Tier, entry.ByKamas, entry.Effort.Reasons),
             });
         }
 
@@ -1147,7 +1151,7 @@ public sealed partial class QuestViewModel : ObservableObject
         _facts is null
             ? []
             : QuestProfit.Entries(_catalog.Catalog.Quests, Scores, Tracker.Progress, _facts, Tracker.RewardLevel,
-                Tracker.RewardXpBonus, Tracker.RewardRanking);
+                Tracker.RewardXpBonus);
 
     /// <summary>The catalogue quests the site suggests next, in its order.</summary>
     private IEnumerable<QuestSummary> NextQuests()

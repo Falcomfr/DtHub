@@ -94,8 +94,8 @@
 
     <!-- The player's Papycha tracker: the link when there is none, the
          character and the menu once linked. Always there: its second row
-         holds the level, Bonus Pack and ranking boxes, which every view
-         of the window uses. -->
+         holds the level and Bonus Pack boxes, which every view of the
+         window uses. -->
     <Border DockPanel.Dock="Top" Padding="10,6" DataContext="{Binding Tracker}"
             BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,0,0,1">
       <Grid>
@@ -108,7 +108,7 @@
           <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Level, XP bonus and ranking feed the reward line, the gains and
+        <!-- Level and XP bonus feed the reward line, the gains and
              the marks of every list: shown in every view, linked or not.
              The bonus is a switch: the Bonus Pack is the one bonus a player
              knows, a free percentage box left them guessing what to type. -->
@@ -139,21 +139,6 @@
                     Content="{loc:T RewardXpBonusLabel}" ToolTip="{loc:T RewardXpBonusTip}"
                     IsChecked="{Binding HasBonusPack, Mode=OneWay}"
                     Click="OnBonusPackClick" />
-
-          <!-- XP or kamas for the gains, the marks and the profitable quests:
-               two halves of one switch, OneWay for the reason given above. -->
-          <ToggleButton Style="{StaticResource OutlineToggle}" Margin="14,0,0,0" Padding="7,1"
-                        VerticalAlignment="Center" FontSize="{StaticResource FontSmall}"
-                        Content="{loc:T RankingXp}" ToolTip="{loc:T RankingTip}"
-                        Tag="{x:Static papycha:RewardRanking.Xp}"
-                        IsChecked="{Binding RanksByKamas, Mode=OneWay, Converter={StaticResource InverseBool}}"
-                        Click="OnRankingClick" />
-          <ToggleButton Style="{StaticResource OutlineToggle}" Margin="2,0,0,0" Padding="7,1"
-                        VerticalAlignment="Center" FontSize="{StaticResource FontSmall}"
-                        Content="{loc:T RankingKamas}" ToolTip="{loc:T RankingTip}"
-                        Tag="{x:Static papycha:RewardRanking.Kamas}"
-                        IsChecked="{Binding RanksByKamas, Mode=OneWay}"
-                        Click="OnRankingClick" />
         </StackPanel>
 
         <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
@@ -1405,16 +1390,25 @@
                                   M 7.5,9.3 L 7.5,10.8" />
                     </Button>
 
-                    <!-- What the quest gives the chosen character, XP or
-                         kamas as the switch says, last on the right and wide
-                         enough for "999,9 M". Hidden on a quest row without
-                         data, collapsed on other rows and in a list with no
-                         gain at all. -->
-                    <TextBlock x:Name="Gain" Width="48" Margin="4,0,0,0"
-                               Text="{Binding Gain}" Background="Transparent"
+                    <!-- What the quest gives the chosen character: XP then
+                         kamas, last on the right in two fixed columns, wide
+                         enough for "999,9 M" and "999 k", so the numbers line
+                         up. The kamas column stays empty when there are none.
+                         Hidden on a quest row without data, collapsed on
+                         other rows and in a list with no gain at all. -->
+                    <TextBlock x:Name="GainXp" Width="42" Margin="4,0,0,0"
+                               Text="{Binding GainXp}" Background="Transparent"
                                TextAlignment="Right" TextWrapping="NoWrap"
-                               VerticalAlignment="Center"
-                               Style="{StaticResource Muted}"
+                               VerticalAlignment="Center" Style="{StaticResource Muted}"
+                               Foreground="{DynamicResource GainXpBrush}"
+                               FontSize="{StaticResource FontSmall}"
+                               ToolTip="{Binding ProfitTip}"
+                               ToolTipService.InitialShowDelay="200" />
+                    <TextBlock x:Name="GainKamas" Width="32" Margin="4,0,0,0"
+                               Text="{Binding GainKamas}" Background="Transparent"
+                               TextAlignment="Right" TextWrapping="NoWrap"
+                               VerticalAlignment="Center" Style="{StaticResource Muted}"
+                               Foreground="{DynamicResource GainKamasBrush}"
                                FontSize="{StaticResource FontSmall}"
                                ToolTip="{Binding ProfitTip}"
                                ToolTipService.InitialShowDelay="200" />
@@ -1694,8 +1688,9 @@
 
                   <!-- Before the quest trigger below, which must win on
                        rows that are not quests. -->
-                  <DataTrigger Binding="{Binding Gain}" Value="{x:Null}">
-                    <Setter TargetName="Gain" Property="Visibility" Value="Hidden" />
+                  <DataTrigger Binding="{Binding GainXp}" Value="{x:Null}">
+                    <Setter TargetName="GainXp" Property="Visibility" Value="Hidden" />
+                    <Setter TargetName="GainKamas" Property="Visibility" Value="Hidden" />
                   </DataTrigger>
 
                   <!-- The priority marks, on a twelve unit square: a flame
@@ -1733,13 +1728,15 @@
                     <Setter TargetName="Marque" Property="Visibility" Value="Collapsed" />
                     <Setter TargetName="Rythme" Property="Visibility" Value="Collapsed" />
                     <Setter TargetName="Cadenas" Property="Visibility" Value="Collapsed" />
-                    <Setter TargetName="Gain" Property="Visibility" Value="Collapsed" />
+                    <Setter TargetName="GainXp" Property="Visibility" Value="Collapsed" />
+                    <Setter TargetName="GainKamas" Property="Visibility" Value="Collapsed" />
                   </DataTrigger>
 
                   <DataTrigger Binding="{Binding DataContext.ListHasQuestGains,
                                                  RelativeSource={RelativeSource AncestorType=Window}}"
                                Value="False">
-                    <Setter TargetName="Gain" Property="Visibility" Value="Collapsed" />
+                    <Setter TargetName="GainXp" Property="Visibility" Value="Collapsed" />
+                    <Setter TargetName="GainKamas" Property="Visibility" Value="Collapsed" />
                   </DataTrigger>
 
                   <DataTrigger Binding="{Binding DataContext.ListHasQuestTiers,
