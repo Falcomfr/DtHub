@@ -40,7 +40,8 @@ public sealed record TouchLanguageNames
 /// <summary>Steps in game order; a null step lacks a formula field.</summary>
 public sealed record TouchQuestFacts(TouchStepReward?[] Steps, TouchObjective[] Objectives);
 
-public sealed record TouchObjective(int TypeId, int[] Parameters, int StepOptimalLevel);
+/// <summary><c>Text</c> is the data/text of types 0, 4 and 10, empty otherwise; null in a cache read before texts were.</summary>
+public sealed record TouchObjective(int TypeId, int[] Parameters, int StepOptimalLevel, string? Text = null);
 
 public sealed record TouchQuest(string Name, int LevelMin, int LevelMax, int[] StepIds);
 

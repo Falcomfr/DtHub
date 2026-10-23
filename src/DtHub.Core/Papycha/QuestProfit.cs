@@ -12,9 +12,16 @@ public sealed record QuestGain(long Xp, long Kamas);
 /// </summary>
 public sealed record QuestScore(int QuestId, QuestGain Gain, QuestEffort Effort, double Score, int Tier, bool ByKamas);
 
-/// <summary>A quest or a series in the "profitable quests" ranking; <c>Quests.Count &gt; 1</c> is a series.</summary>
+/// <summary>
+/// A quest or a series in the "profitable quests" ranking; <c>Quests.Count &gt; 1</c> is a series. <c>Score</c> is its
+/// combined score against the quest maxima, comparable with <see cref="DungeonValue.Score"/>.
+/// </summary>
 public sealed record ProfitEntry(
-    string Title, IReadOnlyList<QuestSummary> Quests, QuestGain Gain, QuestEffort Effort, int Tier, bool Started, bool ByKamas);
+    string Title, IReadOnlyList<QuestSummary> Quests, QuestGain Gain, QuestEffort Effort, int Tier, bool Started, bool ByKamas,
+    double Score);
+
+/// <summary>A dungeon is worth the listable quests it advances, one entry per quest; <c>Tier</c> is the one its score would have among quests.</summary>
+public sealed record DungeonValue(int PapychaDungeonId, IReadOnlyList<ProfitEntry> Advances, QuestGain Gain, double Score, int Tier);
 
 /// <summary>What a quest gives for the effort it asks, from the game's own objectives. Pure.</summary>
 public static class QuestProfit
@@ -224,7 +231,80 @@ public static class QuestProfit
         var effort = new QuestEffort(f.Sum(x => EffortOf(x, level).Value), Reasons(f.SelectMany(x => x.Objectives), level));
         var gain = new QuestGain(gains.Sum(x => x.Xp), gains.Sum(x => x.Kamas));
         var side = Combined(gain, effort.Value, best);
-        var tier = quests.Where(q => scores.ContainsKey(q.Id)).Max(q => scores[q.Id].Tier);
-        return (new ProfitEntry(title, quests, gain, effort, tier, started, side.ByKamas), side.Score);
+        var tier = quests.Where(q => scores.ContainsKey(q.Id)).Select(q => scores[q.Id].Tier).DefaultIfEmpty(0).Max();
+        return (new ProfitEntry(title, quests, gain, effort, tier, started, side.ByKamas, side.Score), side.Score);
+    }
+
+    private static readonly HashSet<string> Articles = ["le", "la", "les", "l", "du", "des", "de", "the", "el", "los", "las", "del"];
+
+    /// <summary>
+    /// The game dungeons named in the quest's objective texts, compared without case, accents, punctuation or leading
+    /// articles; a name inside a longer matched one ("Bouftous" in "Bouftous Royaux") does not count.
+    /// </summary>
+    public static IReadOnlyList<int> DungeonsOf(TouchQuestFacts facts, IReadOnlyDictionary<int, string> dungeonNames)
+    {
+        ArgumentNullException.ThrowIfNull(facts);
+        ArgumentNullException.ThrowIfNull(dungeonNames);
+
+        var names = dungeonNames.Select(d => (d.Key, Name: Normalised(d.Value)))
+            .Where(d => d.Name.Length > 0).OrderByDescending(d => d.Name.Length).ToList();
+        var found = new SortedSet<int>();
+        foreach (var o in facts.Objectives.Where(o => !string.IsNullOrEmpty(o.Text)))
+        {
+            var text = $" {Normalised(o.Text!)} ";
+            foreach (var (id, name) in names)
+            {
+                if (!text.Contains($" {name} ", StringComparison.Ordinal)) continue;
+                found.Add(id);
+                // The bar keeps the words around a match from forming a shorter name.
+                text = text.Replace($" {name} ", " | ", StringComparison.Ordinal);
+            }
+        }
+
+        return [.. found];
+    }
+
+    private static string Normalised(string text)
+    {
+        var letters = text.Normalize(System.Text.NormalizationForm.FormD)
+            .Where(c => System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c) != System.Globalization.UnicodeCategory.NonSpacingMark)
+            .Select(c => char.IsLetterOrDigit(c) ? char.ToLowerInvariant(c) : ' ')
+            .ToArray();
+        return string.Join(' ', new string(letters).Split(' ', StringSplitOptions.RemoveEmptyEntries).SkipWhile(Articles.Contains));
+    }
+
+    /// <summary>
+    /// By Papycha dungeon: the quests of <paramref name="entries"/> (what "Recommandées" lists) whose objectives name one
+    /// of its game dungeons, summed and scored like a series against the quest maxima. A dungeon with none is left out.
+    /// </summary>
+    public static IReadOnlyDictionary<int, DungeonValue> DungeonValues(
+        IReadOnlyList<ProfitEntry> entries, IReadOnlyDictionary<int, QuestScore> scores, TrackerProgress? progress,
+        IReadOnlyDictionary<int, TouchQuestFacts> facts, int level, int bonusPercent,
+        IReadOnlyDictionary<int, TouchDungeonIds> dungeons, IReadOnlyDictionary<int, string> dungeonNames)
+    {
+        ArgumentNullException.ThrowIfNull(entries);
+        ArgumentNullException.ThrowIfNull(scores);
+        ArgumentNullException.ThrowIfNull(dungeons);
+
+        var best = Maxima(scores.Values.Select(s => (s.Gain, s.Effort.Value)));
+        var named = entries.SelectMany(e => e.Quests).DistinctBy(q => q.Id)
+            .Select(q => (Quest: q, Dungeons: DungeonsOf(facts[q.Id], dungeonNames)))
+            .Where(q => q.Dungeons.Count > 0).ToList();
+        var result = new Dictionary<int, DungeonValue>();
+        foreach (var (papychaId, ids) in dungeons)
+        {
+            var advances = named.Where(q => q.Dungeons.Any(ids.Dungeons.Contains))
+                .Select(q => Build(q.Quest.Title, [q.Quest], scores, facts, level, bonusPercent, best,
+                    QuestTracking.StatusOf(progress, q.Quest.Id) == QuestStatus.InProgress))
+                .ToList();
+            if (advances.Count == 0) continue;
+            var gain = new QuestGain(advances.Sum(a => a.Item1.Gain.Xp), advances.Sum(a => a.Item1.Gain.Kamas));
+            var score = Combined(gain, advances.Sum(a => a.Item1.Effort.Value), best).Score;
+            // The tier of the best quest it equals or beats: below every quest, none.
+            var tier = scores.Values.Where(s => s.Score <= score).Select(s => s.Tier).DefaultIfEmpty(0).Max();
+            result[papychaId] = new DungeonValue(papychaId, [.. advances.OrderByDescending(a => a.Item2).Select(a => a.Item1)], gain, score, tier);
+        }
+
+        return result;
     }
 }

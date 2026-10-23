@@ -6,7 +6,7 @@ namespace DtHub.Tests.Fakes;
 
 /// <summary>
 /// Invented game data: every row of id n has the nameId "nom n lang", like the real server.
-/// A dungeon of id n has the key n + 1000. Counts the requests per class.
+/// A dungeon of id n has the key n + 1000. Counts the requests per class, texts under "text".
 /// </summary>
 public sealed class FakeDofusTouchClient : IDofusTouchClient
 {
@@ -74,6 +74,13 @@ public sealed class FakeDofusTouchClient : IDofusTouchClient
         {
             throw Failure;
         }
+
+        if (!Requested.TryGetValue("text", out var calls))
+        {
+            Requested["text"] = calls = [];
+        }
+
+        calls.Add([.. ids]);
 
         return Task.FromResult<IReadOnlyDictionary<int, string>>(
             ids.Where(Texts.ContainsKey).ToDictionary(id => id, id => Texts[id]));
