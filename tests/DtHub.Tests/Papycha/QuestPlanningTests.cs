@@ -49,13 +49,35 @@ public class QuestPlanningTests
     }
 
     [Fact]
-    public void Team_matches_series_on_the_same_quests_only()
+    public void Team_matches_a_series_by_its_name_whatever_the_run_and_sums_each_run()
     {
         var catalog = new[] { Quest(1, "S", 1), Quest(2, "S", 2), Quest(3, "S", 3), Quest(4) };
         var facts = catalog.ToDictionary(q => q.Id, _ => Xp(1f));
         var team = QuestPlanning.Team(
             catalog, facts, [Character("A", 10, Progress([1, 4])), Character("B", 10, Progress([2, 4], completed: [1]))], 0);
-        Assert.Equal([4], team.Select(t => t.Entry.Quests.Single().Id));
+
+        var series = Assert.Single(team, t => t.Entry.Title == "S");
+        Assert.Equal([1, 2, 3], series.Entry.Quests.Select(q => q.Id));
+        Assert.Equal(["A", "B"], series.Characters.Select(c => c.Name));
+        Assert.Equal(5 * QuestProfit.GainOf(facts[1], 10, 0)!.Xp, series.Gain.Xp);
+        Assert.Single(team, t => t.Entry.Title == "Q4");
+    }
+
+    [Fact]
+    public void Team_counts_only_the_best_run_of_a_series_for_each_character()
+    {
+        var catalog = new[] { Quest(1, "S", 1), Quest(2, "S", 2), Quest(3, "S", 3), Quest(4, "S", 4) };
+        var facts = new Dictionary<int, TouchQuestFacts> { [1] = Xp(1f), [2] = Xp(1f), [3] = Xp(5f), [4] = Xp(5f) };
+        // A's quest 2 is blocked: runs [1] and [3, 4], the second ranked first.
+        var blocked = new TrackerProgress(
+            new Dictionary<int, QuestStatus> { [2] = QuestStatus.Blocked }, new HashSet<int>(), new HashSet<int> { 1, 3 }, []);
+        var team = QuestPlanning.Team(catalog, facts, [Character("A", 10, blocked), Character("B", 10, Progress([1]))], 0);
+
+        var series = Assert.Single(team);
+        Assert.Equal(["A", "B"], series.Characters.Select(c => c.Name));
+        Assert.Equal([3, 4], series.Entry.Quests.Select(q => q.Id));
+        long Gain(int id) => QuestProfit.GainOf(facts[id], 10, 0)!.Xp;
+        Assert.Equal(Gain(3) + Gain(4) + Gain(1) + Gain(2) + Gain(3) + Gain(4), series.Gain.Xp);
     }
 
     [Fact]
@@ -124,6 +146,7 @@ public class QuestPlanningTests
         Assert.Null(QuestPlanning.WholeLevel([Entry(1, 1_000_000)], 11, Table));
         Assert.Null(QuestPlanning.WholeLevel([Entry(1, 1_000_000)], 50, Table));
         Assert.Null(QuestPlanning.WholeLevel([Entry(1, 1_000_000)], 10, new Dictionary<int, long>()));
+        Assert.Null(QuestPlanning.WholeLevel([Entry(1, 1_000_000)], 10, new Dictionary<int, long> { [10] = 5, [11] = 5 }));
         Assert.Null(QuestPlanning.WholeLevel([], 10, Table));
     }
 }

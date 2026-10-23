@@ -1,6 +1,9 @@
 ﻿namespace DtHub.Core.Papycha;
 
-/// <summary>A recommended entry doable by several characters; <c>Gain</c> and <c>Score</c> are summed over them.</summary>
+/// <summary>
+/// A recommended entry doable by several characters; <c>Gain</c> and <c>Score</c> are summed over their own runs,
+/// <c>Entry</c> is the first character's run.
+/// </summary>
 public sealed record TeamEntry(ProfitEntry Entry, IReadOnlyList<TrackerCharacter> Characters, QuestGain Gain, double Score, int Tier);
 
 /// <summary>Recommended entries whose first quest is in <c>Area</c>; <c>Score</c> is their summed score.</summary>
@@ -13,8 +16,8 @@ public sealed record LevelLine(int Count, int From, int To);
 public static class QuestPlanning
 {
     /// <summary>
-    /// Each character's own ranking at its own level, entries matched on the same quests, kept when two characters
-    /// or more can do them; one Bonus Pack setting for the account.
+    /// Each character's own ranking at its own level, a series matched by its name (each character's best run), a lone
+    /// quest by its id, kept when two characters or more can do them; one Bonus Pack setting for the account.
     /// </summary>
     public static IReadOnlyList<TeamEntry> Team(
         IEnumerable<QuestSummary> catalog, IReadOnlyDictionary<int, TouchQuestFacts> facts,
@@ -25,9 +28,13 @@ public static class QuestPlanning
         foreach (var (character, progress) in characters)
         {
             var scores = QuestProfit.Score(all, facts, progress, character.Level, bonusPercent);
+            var seen = new HashSet<string>();
             foreach (var entry in QuestProfit.Entries(all, scores, progress, facts, character.Level, bonusPercent))
             {
-                var key = string.Join(',', entry.Quests.Select(q => q.Id));
+                // A run depends on the character's level and on what it did: a series matches by name, its best run only.
+                var name = entry.Quests[0].SuccessName;
+                var key = name.Length > 0 ? "s:" + name : "q:" + entry.Quests[0].Id;
+                if (!seen.Add(key)) continue;
                 var s = shared.TryGetValue(key, out var found) ? found : (entry, [], 0, 0, 0);
                 s.Characters.Add(character);
                 shared[key] = (s.Entry, s.Characters, s.Xp + entry.Gain.Xp, s.Kamas + entry.Gain.Kamas, s.Score + ScoreOf(entry, scores));
