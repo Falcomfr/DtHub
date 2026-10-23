@@ -56,7 +56,7 @@ public static partial class QuestTime
             4 => IsExit(objective) && facts.Objectives.Any(o => SameStep(o, objective) && IsSingleFight(o)) ? 0 : Map,
             3 => Math.Min(ItemsCap, ItemsBase + (ItemsEach * (p.Length > 2 ? p[2] : 0))),
             20 => Craft,
-            6 when IsSingleFight(objective) && facts.Objectives.Any(o => SameStep(o, objective) && IsExit(o)) => DungeonRun,
+            6 when IsRun(objective, facts) => DungeonRun,
             6 or 14 => PerMonster * Math.Clamp(p.Length > 1 ? p[1] : 1, 1, MonstersCap),
             12 => PerSoul,
             // Types 0 and 10, and any type the game adds later.
@@ -65,6 +65,17 @@ public static partial class QuestTime
                 : Vague,
         };
     }
+
+    /// <summary>True when an objective is a dungeon run: a lone fight beside an exit map of its step.</summary>
+    public static bool HasDungeonRun(TouchQuestFacts facts)
+    {
+        ArgumentNullException.ThrowIfNull(facts);
+
+        return facts.Objectives.Any(o => IsRun(o, facts));
+    }
+
+    private static bool IsRun(TouchObjective o, TouchQuestFacts facts) =>
+        IsSingleFight(o) && facts.Objectives.Any(e => SameStep(e, o) && IsExit(e));
 
     // "Sortie du Donjon ...": any other map beside a lone fight ("Chantier du Barrage") made a dungeon run of it.
     private static bool IsExit(TouchObjective o) => o.TypeId == 4 && StartsWithAny(o.Text, ExitWords);

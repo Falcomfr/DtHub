@@ -1691,6 +1691,26 @@ public sealed class SettingsService : IDisposable
             },
             cancellationToken);
 
+    /// <summary>Remembers the four "Recommandées" filters.</summary>
+    public Task SetProfitFiltersAsync(
+        bool inProgress, bool notStarted, bool withDungeon, bool noDungeon, CancellationToken cancellationToken = default) =>
+        UpdateIfChangedAsync(
+            settings =>
+            {
+                if (settings.ProfitInProgress == inProgress && settings.ProfitNotStarted == notStarted
+                    && settings.ProfitWithDungeon == withDungeon && settings.ProfitNoDungeon == noDungeon)
+                {
+                    return false;
+                }
+
+                settings.ProfitInProgress = inProgress;
+                settings.ProfitNotStarted = notStarted;
+                settings.ProfitWithDungeon = withDungeon;
+                settings.ProfitNoDungeon = noDungeon;
+                return true;
+            },
+            cancellationToken);
+
     /// <summary>
     /// Remembers where a window was. A placement with no size is not
     /// saved: that is what a window that was never shown returns.

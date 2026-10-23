@@ -2998,6 +2998,18 @@ To avoid it: {1}  ›  "Auto lock Secure Folder" › the longest option.</value>
   <data name="ProfitTeamTip" xml:space="preserve">
     <value>What several of your characters can do, their gains added up</value>
   </data>
+  <data name="ProfitInProgress" xml:space="preserve">
+    <value>In progress</value>
+  </data>
+  <data name="ProfitNotStarted" xml:space="preserve">
+    <value>Not started</value>
+  </data>
+  <data name="ProfitWithDungeon" xml:space="preserve">
+    <value>With dungeon</value>
+  </data>
+  <data name="ProfitNoDungeon" xml:space="preserve">
+    <value>No dungeon</value>
+  </data>
   <data name="ProfitCharacters" xml:space="preserve">
     <value>{0} characters</value>
   </data>

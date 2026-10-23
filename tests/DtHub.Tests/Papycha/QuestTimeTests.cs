@@ -167,4 +167,12 @@ public class QuestTimeTests
     [InlineData(125, "≈ 2 h 05")]
     public void The_text_switches_to_hours_from_sixty_minutes(int minutes, string expected) =>
         Assert.Equal(expected, QuestTime.Text(minutes));
+    [Fact]
+    public void A_dungeon_run_is_a_lone_fight_beside_an_exit_map_of_its_step()
+    {
+        Assert.True(QuestTime.HasDungeonRun(Facts(Obj(6, [1, 1], step: 2), Obj(4, [1], step: 2, text: "Sortie du Donjon des Bouftous"))));
+        Assert.False(QuestTime.HasDungeonRun(Facts(Obj(6, [1, 1], step: 2), Obj(4, [1], step: 2, text: "Chantier du Barrage"))));
+        Assert.False(QuestTime.HasDungeonRun(Facts(Obj(6, [1, 1], step: 2), Obj(4, [1], step: 3, text: "Sortie du Donjon des Bouftous"))));
+        Assert.False(QuestTime.HasDungeonRun(Facts(Obj(1))));
+    }
 }

@@ -11222,6 +11222,17 @@ alignement, texte libre) garde sa puce, sans marque. Non relié, le cadenas rest
 cadenas neutre d'avant. Le clic ouvre toujours la liste dont les quêtes se suivent.
 Une ligne de « Recommandées » n'a jamais un cadenas fermé : un test le vérifie.
 
+**Filtres de « Recommandées ».** Deux paires de boutons, du même style que « À
+faire » et « Accessibles », sous le fil d'Ariane de cette vue seulement, suivi
+relié : « En cours » et « À commencer », puis « Avec donjon » et « Sans donjon ».
+Tous actifs par défaut ; dans chaque paire le dernier actif le reste (le décocher le
+rallume), une paire vide viderait les listes. Une quête est « avec donjon » quand un
+objectif est une course de donjon selon la règle de la carte de sortie de D221 ; une
+ligne de donjon l'est toujours, et elle est en cours si une des quêtes qu'elle fait
+avancer l'est. Le statut est celui du personnage choisi, aussi dans la vue
+d'équipe. Les filtres agissent avant les listes courtes : chaque liste garde ses 20
+lignes. Les quatre choix sont retenus dans les réglages.
+
 ## D220 - Les outils des guides : valeur des donjons, équipe, où trouver
 
 **2026-10-23 - Acceptée, complète D219**

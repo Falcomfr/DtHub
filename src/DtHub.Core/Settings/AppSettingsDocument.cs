@@ -150,6 +150,18 @@ public sealed class AppSettingsDocument
     /// </summary>
     public bool QuestFilterAvailable { get; set; }
 
+    /// <summary>"Recommandées" keeps the quests in progress ("En cours").</summary>
+    public bool ProfitInProgress { get; set; } = true;
+
+    /// <summary>"Recommandées" keeps the quests not started ("À commencer").</summary>
+    public bool ProfitNotStarted { get; set; } = true;
+
+    /// <summary>"Recommandées" keeps the rows with a dungeon run ("Avec donjon").</summary>
+    public bool ProfitWithDungeon { get; set; } = true;
+
+    /// <summary>"Recommandées" keeps the rows without one ("Sans donjon").</summary>
+    public bool ProfitNoDungeon { get; set; } = true;
+
     /// <summary>
     /// True when the application updates itself: it downloads the release
     /// in the background and installs it on exit, never in the middle of

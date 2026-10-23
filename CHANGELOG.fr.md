@@ -30,6 +30,7 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 - « Accessibles » et les quêtes suivantes marchent maintenant pour les personnages autres que l'actif sur Papycha, d'après les quêtes qu'ils ont terminées.
 - La barre du suivi de la fenêtre des guides passe sous le personnage quand la fenêtre est étroite, et chaque quête recommandée affiche sa zone et, dans une série, sa place (3/11).
 - Avec « À faire » ou « Accessibles », chaque zone affiche le nombre de ses quêtes que les filtres gardent au lieu de faites sur le total.
+- Avec le suivi Papycha relié, le cadenas des prérequis dit s'ils sont remplis pour votre personnage (ouvert et gris, ou fermé en jaune, avec une coche ou une croix devant chaque quête au survol), et « Recommandées » a les filtres « En cours », « À commencer », « Avec donjon » et « Sans donjon ».
 
 ## [0.10.5] - 2026-10-22
 

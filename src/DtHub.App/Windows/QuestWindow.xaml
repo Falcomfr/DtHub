@@ -955,6 +955,34 @@
                ones count in its lists. -->
           <StackPanel DockPanel.Dock="Top" Margin="10,0,4,4"
                       Visibility="{Binding ShowsRecommended, Converter={StaticResource BoolToVisibility}}">
+            <!-- Its filters, in the style of "À faire" and "Accessibles": a
+                 pair on the quest's progress, a pair on dungeon runs; the
+                 last one on of a pair stays on. A wrap panel, since the
+                 window goes down to 440 px. -->
+            <WrapPanel Margin="0,0,0,4"
+                       Visibility="{Binding Tracker.IsLinked, Converter={StaticResource BoolToVisibility}}">
+              <ToggleButton Style="{StaticResource OutlineToggle}" Padding="8,3"
+                            Background="Transparent"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            Content="{loc:T ProfitInProgress}"
+                            IsChecked="{Binding ProfitInProgress, Mode=TwoWay}" />
+              <ToggleButton Style="{StaticResource OutlineToggle}" Padding="8,3" Margin="4,0,0,0"
+                            Background="Transparent"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            Content="{loc:T ProfitNotStarted}"
+                            IsChecked="{Binding ProfitNotStarted, Mode=TwoWay}" />
+              <ToggleButton Style="{StaticResource OutlineToggle}" Padding="8,3" Margin="12,0,0,0"
+                            Background="Transparent"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            Content="{loc:T ProfitWithDungeon}"
+                            IsChecked="{Binding ProfitWithDungeon, Mode=TwoWay}" />
+              <ToggleButton Style="{StaticResource OutlineToggle}" Padding="8,3" Margin="4,0,0,0"
+                            Background="Transparent"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            Content="{loc:T ProfitNoDungeon}"
+                            IsChecked="{Binding ProfitNoDungeon, Mode=TwoWay}" />
+            </WrapPanel>
+
             <ItemsControl ItemsSource="{Binding Tracker.TeamMembers}">
               <ItemsControl.Style>
                 <Style TargetType="ItemsControl">

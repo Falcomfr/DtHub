@@ -36,6 +36,7 @@ belongs in the commits and in `docs/DECISIONS.md`.
 - "Available" and the next quests now work for characters other than the one active on Papycha, from the quests they have finished.
 - The tracker bar of the guides window wraps under the character on a narrow window, and each recommended quest shows its zone and, in a series, its place in it (3/11).
 - With "To do" or "Available" on, each zone shows how many of its quests the filters keep instead of done over total.
+- With the Papycha tracker linked, the prerequisites lock tells whether they are met for your character (open and grey, or closed in yellow, with a check or a cross before each quest in its hover), and Recommended has "In progress", "Not started", "With dungeon" and "No dungeon" filters.
 
 ## [0.10.5] - 2026-10-22
 

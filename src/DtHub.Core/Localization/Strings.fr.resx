@@ -2998,6 +2998,18 @@ Pour l'éviter : {1}  ›  « Verrouillage auto. Dossier sécurisé » › l'opt
   <data name="ProfitTeamTip" xml:space="preserve">
     <value>Ce que plusieurs de vos personnages peuvent faire, leurs gains additionnés</value>
   </data>
+  <data name="ProfitInProgress" xml:space="preserve">
+    <value>En cours</value>
+  </data>
+  <data name="ProfitNotStarted" xml:space="preserve">
+    <value>À commencer</value>
+  </data>
+  <data name="ProfitWithDungeon" xml:space="preserve">
+    <value>Avec donjon</value>
+  </data>
+  <data name="ProfitNoDungeon" xml:space="preserve">
+    <value>Sans donjon</value>
+  </data>
   <data name="ProfitCharacters" xml:space="preserve">
     <value>{0} persos</value>
   </data>

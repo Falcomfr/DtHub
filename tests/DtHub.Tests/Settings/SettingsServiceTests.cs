@@ -1855,4 +1855,27 @@ public sealed class SettingsServiceTests : IDisposable
         Assert.False(document.QuestFilterToDo);
         Assert.True(document.QuestFilterAvailable);
     }
+    [Fact]
+    public async Task Les_filtres_de_recommandees_sont_tous_actifs_puis_se_relisent()
+    {
+        var document = await _service.GetAsync();
+
+        Assert.True(document.ProfitInProgress && document.ProfitNotStarted && document.ProfitWithDungeon && document.ProfitNoDungeon);
+
+        await _service.SetProfitFiltersAsync(inProgress: false, notStarted: true, withDungeon: true, noDungeon: false);
+
+        document = await _service.GetAsync();
+
+        Assert.False(document.ProfitInProgress);
+        Assert.True(document.ProfitNotStarted);
+        Assert.True(document.ProfitWithDungeon);
+        Assert.False(document.ProfitNoDungeon);
+
+        var writes = 0;
+        _service.Changed += (_, _) => writes++;
+
+        await _service.SetProfitFiltersAsync(inProgress: false, notStarted: true, withDungeon: true, noDungeon: false);
+
+        Assert.Equal(0, writes);
+    }
 }

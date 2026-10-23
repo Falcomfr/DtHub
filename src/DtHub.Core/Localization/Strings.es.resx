@@ -2998,6 +2998,18 @@ Para evitarlo: {1}  ›  «Bloqueo automático de Carpeta segura» › la opció
   <data name="ProfitTeamTip" xml:space="preserve">
     <value>Lo que varios de tus personajes pueden hacer, con sus ganancias sumadas</value>
   </data>
+  <data name="ProfitInProgress" xml:space="preserve">
+    <value>En curso</value>
+  </data>
+  <data name="ProfitNotStarted" xml:space="preserve">
+    <value>Sin empezar</value>
+  </data>
+  <data name="ProfitWithDungeon" xml:space="preserve">
+    <value>Con mazmorra</value>
+  </data>
+  <data name="ProfitNoDungeon" xml:space="preserve">
+    <value>Sin mazmorra</value>
+  </data>
   <data name="ProfitCharacters" xml:space="preserve">
     <value>{0} personajes</value>
   </data>
