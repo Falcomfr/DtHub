@@ -36,7 +36,19 @@ public sealed record TouchQuest(string Name, int LevelMin, int LevelMax, int[] S
 
 public sealed record TouchDungeon(string Name, int KeyId);
 
-public sealed record TouchStep(string Name, string Description, TouchObjectiveLine[] Objectives);
+public sealed record TouchStep(
+    string Name, string Description, TouchObjectiveLine[] Objectives, TouchStepReward? Reward = null);
+
+public sealed record TouchStepReward(
+    int OptimalLevel, float Duration, float XpRatio, float KamasRatio, bool KamasScaleWithPlayerLevel,
+    TouchRewardRow[] Rows);
+
+/// <summary>-1 = no bound.</summary>
+public sealed record TouchRewardRow(
+    int LevelMin, int LevelMax, TouchItemReward[] Items,
+    int Emotes, int Spells, int Titles, int Ornaments, int Companions, int Jobs);
+
+public sealed record TouchItemReward(int ItemId, int Quantity);
 
 /// <summary>Position is "[-3,-44]", or empty when the objective has none.</summary>
 public sealed record TouchObjectiveLine(string Text, string Position);
