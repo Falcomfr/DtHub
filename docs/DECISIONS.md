@@ -11241,8 +11241,9 @@ session et jamais écrit sur disque ; une lecture qui s'arrête dépasse 30 s et
 compte comme un échec. Une lecture commencée va au bout et est gardée, même si
 l'infobulle qui l'a demandée se ferme : sinon les requêtes déjà envoyées, dont
 les 88 Ko de `Skills`, étaient perdues et redemandées au survol suivant. Un
-cache que le disque n'a pas laissé lire est relu au survol suivant au lieu
-d'être gardé vide. La lecture ne part qu'après 400 ms de survol (D221).
+cache que le disque n'a pas laissé lire est relu au plus toutes les 10 s, comme
+les réglages ; tant qu'il reste illisible, ce que la session a lu est gardé en
+mémoire au lieu d'être remplacé par un cache vide. La lecture ne part qu'après 400 ms de survol (D221).
 Résultat : « Lâché par M (niv. L) · zones » (5 monstres au plus, dans l'ordre du
 jeu, sans tri sur le niveau, qui coûterait la lecture de tous), « pendant la
 quête » pour un butin conditionnel (`conditionnalDropMonsterIds`, jamais vu non

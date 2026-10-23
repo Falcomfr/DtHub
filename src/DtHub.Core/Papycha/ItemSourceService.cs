@@ -22,6 +22,12 @@ public sealed class ItemSourceService(IDofusTouchClient client, IDocumentStore<I
     /// <summary>True when <see cref="_document"/> stands for a file the store could not read.</summary>
     private bool _documentUnread;
 
+    /// <summary>When the store was last read.</summary>
+    private DateTimeOffset _loadedUtc;
+
+    /// <summary>How often a cache file the store could not read is tried again, as in the settings: not on every hover.</summary>
+    public TimeSpan UnreadRetryDelay { get; init; } = TimeSpan.FromSeconds(10);
+
     private DateTimeOffset? _failedUtc;
 
     public TimeSpan Freshness { get; init; } = TimeSpan.FromDays(30);
@@ -65,11 +71,18 @@ public sealed class ItemSourceService(IDofusTouchClient client, IDocumentStore<I
 
         try
         {
-            // A file not read (held by another program) gave a blank document: read it again rather than keep it.
-            if (_document is null || _documentUnread)
+            // A file not read (held by another program) gave a blank document: tried again now and then, and while it
+            // stays unreadable the document in memory, with what this session read, is kept over the blank one.
+            if (_document is null || (_documentUnread && DateTimeOffset.UtcNow - _loadedUtc >= UnreadRetryDelay))
             {
-                _document = await store.LoadAsync(ct).ConfigureAwait(false);
+                var loaded = await store.LoadAsync(ct).ConfigureAwait(false);
                 _documentUnread = store.IsUnread;
+                _loadedUtc = DateTimeOffset.UtcNow;
+
+                if (_document is null || !_documentUnread)
+                {
+                    _document = loaded;
+                }
             }
 
             if (!_document.Languages.TryGetValue(language, out var known))
@@ -132,7 +145,14 @@ public sealed class ItemSourceService(IDofusTouchClient client, IDocumentStore<I
         }
         finally
         {
-            _gate.Release();
+            try
+            {
+                _gate.Release();
+            }
+            catch (ObjectDisposedException)
+            {
+                // The app is closing: the container disposed the service while a read was still running, nobody waits.
+            }
         }
     }
 

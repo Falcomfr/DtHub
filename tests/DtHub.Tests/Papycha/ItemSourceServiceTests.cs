@@ -104,13 +104,27 @@ public class ItemSourceServiceTests
             },
         });
         _store.IsUnread = true;
-        using var service = Service();
+        using var service = new ItemSourceService(_client, _store) { Delay = Wait, UnreadRetryDelay = TimeSpan.Zero };
         _ = await service.SourceAsync(2, "fr");
         _store.IsUnread = false;
         _client.Requested.Clear();
 
         Assert.Equal("gardé", (await service.SourceAsync(1, "fr"))!.Name);
         Assert.Empty(_client.Requested);
+    }
+
+    [Fact]
+    public async Task Un_cache_qui_reste_illisible_garde_ce_qui_a_ete_lu_en_memoire()
+    {
+        Item(1);
+        _store.IsUnread = true;
+        using var service = new ItemSourceService(_client, _store) { Delay = Wait, UnreadRetryDelay = TimeSpan.Zero };
+
+        Assert.NotNull(await service.SourceAsync(1, "fr"));
+        Assert.NotNull(await service.SourceAsync(1, "fr"));
+
+        Assert.Single(_client.Requested["Items"]);
+        Assert.Single(_client.Requested["Skills"]);
     }
 
     [Fact]
