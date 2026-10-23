@@ -153,6 +153,8 @@
           <!-- OneWay survives the click: a toggle sets its current value, not
                a local one, so a later refresh still moves it. -->
           <CheckBox Margin="14,0,0,0" VerticalAlignment="Center"
+                    FontSize="{StaticResource FontSmall}"
+                    Foreground="{DynamicResource TextMutedBrush}"
                     Content="{loc:T RewardXpBonusLabel}" ToolTip="{loc:T RewardXpBonusTip}"
                     IsChecked="{Binding HasBonusPack, Mode=OneWay}"
                     Click="OnBonusPackClick" />
@@ -870,7 +872,7 @@
                      Text="{loc:T OfficialNamesCredit}"
                      Visibility="{Binding ShowsOfficialNamesCredit, Converter={StaticResource BoolToVisibility}}" />
 
-          <ListBox x:Name="NodeList" ItemsSource="{Binding Nodes}" Grid.IsSharedSizeScope="True"
+          <ListBox x:Name="NodeList" ItemsSource="{Binding Nodes}"
                    SelectedItem="{Binding SelectedNode, Mode=TwoWay}"
                    Background="Transparent" BorderThickness="0"
                    HorizontalContentAlignment="Stretch"
@@ -1305,7 +1307,7 @@
                             Background="Transparent" VerticalAlignment="Center"
                             ToolTip="{Binding RecurrenceLabel}"
                             ToolTipService.InitialShowDelay="200"
-                            Visibility="Collapsed">
+                            Visibility="Hidden">
                       <Path x:Name="RythmeTrait" Style="{StaticResource ListGlyph}"
                             HorizontalAlignment="Center" />
                     </Border>
@@ -1336,16 +1338,16 @@
                          It stays displayed for a long time, because a
                          list of prerequisites reads more slowly than a
                          button's single word. -->
-                    <!-- Collapsed, then hidden on any quest row and shown
-                         when the quest has prerequisites (triggers below):
-                         a quest row without a lock keeps its room, and the
-                         rhythm column does not shift. -->
+                    <!-- Hidden on a quest row, shown when the quest has
+                         prerequisites, collapsed on every other row
+                         (triggers below): a quest row without a lock keeps
+                         its room, and the rhythm column does not shift. -->
                     <Button x:Name="Cadenas" Style="{StaticResource IconButton}"
                             VerticalAlignment="Center" Margin="6,0,2,0"
                             Click="OnShowNeeds"
                             ToolTipService.InitialShowDelay="200"
                             ToolTipService.ShowDuration="30000"
-                            Visibility="Collapsed">
+                            Visibility="Hidden">
                       <Button.ToolTip>
                         <ToolTip Style="{StaticResource RichToolTip}">
                           <StackPanel MaxWidth="330">
@@ -1658,8 +1660,13 @@
                                    a 1.15,1.55 0 1 0 -2.3,0 Z" />
                   </DataTrigger>
 
+                  <!-- Keyed on the quest and not on the kind: dungeon, raid,
+                       lair and path rows are of the quest kind too, and kept
+                       the two empty columns on their right. -->
                   <DataTrigger Binding="{Binding Quest}" Value="{x:Null}">
                     <Setter TargetName="Marque" Property="Visibility" Value="Collapsed" />
+                    <Setter TargetName="Rythme" Property="Visibility" Value="Collapsed" />
+                    <Setter TargetName="Cadenas" Property="Visibility" Value="Collapsed" />
                   </DataTrigger>
 
                   <DataTrigger Binding="{Binding DataContext.Tracker.IsLinked,
@@ -1724,13 +1731,6 @@
                     <Setter TargetName="MarqueTrait" Property="Data" Value="M 3,6 H 9" />
                   </DataTrigger>
 
-                  <!-- Quest rows keep the rhythm and lock columns, empty or
-                       not; the lock shows when there are prerequisites. -->
-                  <DataTrigger Binding="{Binding Kind}" Value="Quest">
-                    <Setter TargetName="Rythme" Property="Visibility" Value="Hidden" />
-                    <Setter TargetName="Cadenas" Property="Visibility" Value="Hidden" />
-                  </DataTrigger>
-
                   <DataTrigger Binding="{Binding HasNeeds}" Value="True">
                     <Setter TargetName="Cadenas" Property="Visibility" Value="Visible" />
                   </DataTrigger>
@@ -1742,15 +1742,15 @@
                   <DataTrigger Binding="{Binding Recurrence}" Value="Daily">
                     <Setter TargetName="Rythme" Property="Visibility" Value="Visible" />
                     <Setter TargetName="RythmeTrait" Property="Data"
-                            Value="M 2.5,2.5 H 12.5 V 13.5 H 2.5 Z M 2.5,5 H 12.5
-                                   M 6.5,7.8 L 8,6.8 V 11.8" />
+                            Value="M 2.5,2.5 H 12.5 V 13.5 H 2.5 Z M 2.5,4.5 H 12.5
+                                   M 6.6,7.8 L 7.8,7 V 11" />
                   </DataTrigger>
 
                   <DataTrigger Binding="{Binding Recurrence}" Value="Weekly">
                     <Setter TargetName="Rythme" Property="Visibility" Value="Visible" />
                     <Setter TargetName="RythmeTrait" Property="Data"
-                            Value="M 2.5,2.5 H 12.5 V 13.5 H 2.5 Z M 2.5,5 H 12.5
-                                   M 5.8,6.8 H 9.2 L 7,11.8" />
+                            Value="M 2.5,2.5 H 12.5 V 13.5 H 2.5 Z M 2.5,4.5 H 12.5
+                                   M 5.9,7 H 9.1 L 7.1,11" />
                   </DataTrigger>
 
                   <DataTrigger Binding="{Binding Recurrence}" Value="Repeatable">

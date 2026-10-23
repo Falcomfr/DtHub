@@ -127,7 +127,8 @@ public sealed partial class QuestTrackerViewModel(
     /// <summary>The selected character's level when linked, else the remembered one.</summary>
     public int RewardLevel => IsLinked && SelectedCharacter is { } character ? character.Level : _settingLevel;
 
-    public int RewardXpBonus => _settingBonus;
+    /// <summary>What the reward line uses: the pack or nothing, so it always agrees with the box.</summary>
+    public int RewardXpBonus => HasBonusPack ? BonusPackPercent : 0;
 
     /// <summary>The game's Bonus Pack: +150 % XP on quests, the one bonus a player has to tell.</summary>
     public const int BonusPackPercent = 150;

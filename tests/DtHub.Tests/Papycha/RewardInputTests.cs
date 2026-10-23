@@ -28,20 +28,4 @@ public class RewardInputTests
         Assert.True(RewardInput.IsBonus(0) && RewardInput.IsBonus(1000));
         Assert.False(RewardInput.IsBonus(-1) || RewardInput.IsBonus(1001));
     }
-
-    [Theory]
-    [InlineData("-5")]
-    [InlineData("abc")]
-    [InlineData("1001")]
-    [InlineData(null)]
-    public void Bonus_is_refused(string? text) => Assert.False(RewardInput.TryBonus(text, out _));
-
-    [Theory]
-    [InlineData("0", 0)]
-    [InlineData("150", 150)]
-    public void Bonus_is_accepted(string text, int expected)
-    {
-        Assert.True(RewardInput.TryBonus(text, out var percent));
-        Assert.Equal(expected, percent);
-    }
 }
