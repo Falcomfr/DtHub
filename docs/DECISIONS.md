@@ -11091,16 +11091,20 @@ elle est dans `available_quests` de Papycha pour lui, ou en cours.
 avec les quêtes suivantes, dans l'ordre de jeu, pas encore faites, qui passent
 toutes les règles ci-dessus sauf l'appartenance à `available_quests` (cette liste
 ne contient que ce qui est démarrable maintenant, pas la suite de la chaîne). Elle
-s'arrête à la première qui en échoue une. Un membre sans gain calculable reste dans
-la série et n'y ajoute rien. Les séries déjà commencées passent avant les autres.
+s'arrête à la première qui en échoue une, et la quête faisable suivante de la même
+série ouvre une nouvelle entrée : une quête faisable classée ne disparaît jamais du
+classement. Une entrée d'une seule quête s'affiche comme une quête seule. Un membre
+sans gain calculable reste dans la série et n'y ajoute rien. Les séries déjà
+commencées passent avant les autres.
 
 **Effort.** Somme des objectifs lus dans le jeu, plus 1 par quête. Aller, revenir
 ou montrer : 1 ; découvrir une carte : 1,5 ; rapporter des objets : 2 + quantité /
 10, au plus 7 ; fabriquer : 3 ; combattre : 3, ou 8 pour un combat unique (un boss
 en pratique), plus 4 si le niveau optimal de l'étape dépasse celui du personnage ;
 rapporter des âmes : 5 ; texte libre ou type inconnu : 6. Le score est le gain
-(XP ou kamas, Bonus Pack compris) divisé par l'effort ; celui d'une série somme
-les gains et les efforts de ses quêtes restantes. Les raisons affichées sont les
+(XP ou kamas, Bonus Pack compris) divisé par l'effort ; celui d'une série est la
+somme des gains de ses quêtes restantes divisée par la somme de leurs efforts, et
+séries et quêtes seules sont classées ensemble sur ce même rapport. Les raisons affichées sont les
 trois plus coûteuses, par genre (boss, combats, objets, âmes, fabrication, trajet,
 dialogues, tâche vague). Ces valeurs sont des choix de Claude, réglables.
 
@@ -11113,12 +11117,13 @@ en kamas. Le choix XP ou kamas est mémorisé.
 toutes les quêtes appariées sont lus en trois requêtes (`QuestSteps`,
 `QuestObjectives`, `QuestStepRewards`) espacées d'au moins 60 s, en arrière-plan,
 une seule lecture à la fois, et gardés 7 jours avec les noms, par langue. Après un
-refus du serveur, aucune nouvelle tentative pendant 6 h, et on garde les données de
+refus du serveur, aucune nouvelle tentative pendant 6 h dans la session (le délai
+est gardé en mémoire), et on garde les données de
 la semaine précédente plutôt que rien. Ce qui n'est pas lu : la progression dans
 une quête (étape en cours, objectifs faits), que seul le jeu montre, et les
 monstres (environ 30 Ko chacun, trop lourd pour toutes les quêtes).
 
 **Affichage.** Une colonne de gain à droite de chaque ligne de quête, une marque à
-trois paliers (flamme pleine, demi-flamme, point), l'entrée « Quêtes rentables »
-à côté de « Quêtes suivantes », et les cases de niveau et de Bonus Pack dans toutes
+trois paliers (flamme pleine, flamme creuse, point), l'entrée « Quêtes rentables »
+à côté de « Suivantes », et les cases de niveau et de Bonus Pack dans toutes
 les vues de la fenêtre des guides.

@@ -18,8 +18,8 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 - Un guide de quête affiche ses récompenses sous le titre (XP, kamas, objets), calculées pour le niveau de votre personnage et le bonus d'XP que vous réglez.
 - Une case de niveau dans la fenêtre des guides : la changer met aussi à jour le niveau de votre personnage sur Papycha.
 - Chaque liste de quêtes affiche ce que rapporte chaque quête à votre personnage, en XP ou en kamas.
-- Une petite marque de priorité sur les quêtes faisables maintenant, du point à la flamme, pour le meilleur gain par rapport à l'effort.
-- Une entrée « Quêtes rentables » à côté de « Suivantes » classe ce que vous pouvez faire maintenant, séries comprises, en XP ou en kamas.
+- Avec le suivi Papycha relié, une petite marque de priorité sur les quêtes faisables maintenant, du point à la flamme, pour le meilleur gain par rapport à l'effort.
+- Avec le suivi Papycha relié, une entrée « Quêtes rentables » à côté de « Suivantes » classe ce que vous pouvez faire maintenant, séries comprises, en XP ou en kamas.
 - Un interrupteur XP ou kamas pour le classement, les marques et les gains des listes.
 - Les cases de niveau et de Bonus Pack sont maintenant dans toutes les vues de la fenêtre des guides.
 

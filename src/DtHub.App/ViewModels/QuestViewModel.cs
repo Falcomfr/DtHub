@@ -88,6 +88,22 @@ public sealed partial class QuestViewModel : ObservableObject
         RedrawAfterRead();
     }
 
+    /// <summary>The game read failure last logged: it stays set until a read succeeds.</summary>
+    private Exception? _loggedTouchFailure;
+
+    /// <summary>The game read's failure if not logged yet, so it is logged once, by the read that hit it first.</summary>
+    private Exception? UnloggedTouchFailure()
+    {
+        if (_touchNames.LastFailure is not { } failure || failure == _loggedTouchFailure)
+        {
+            return null;
+        }
+
+        _loggedTouchFailure = failure;
+
+        return failure;
+    }
+
     /// <summary>
     /// Starts the bulk read in the background; the first one takes about two
     /// minutes, the next ones come from the week's cache.
@@ -107,6 +123,12 @@ public sealed partial class QuestViewModel : ObservableObject
 
         // Never throws but on cancellation, and none is asked for.
         _facts = await _touchNames.FactsAsync(TouchNameService.CurrentLanguage).ConfigureAwait(true);
+
+        if (UnloggedTouchFailure() is { } failure)
+        {
+            Log.Warning(failure, "The game's quest rewards and objectives could not be read");
+        }
+
         Rescore();
     }
 
@@ -610,7 +632,7 @@ public sealed partial class QuestViewModel : ObservableObject
                 return;
             }
 
-            if (steps.Count == 0 && _touchNames.LastFailure is { } failure)
+            if (steps.Count == 0 && UnloggedTouchFailure() is { } failure)
             {
                 Log.Warning(failure, "The game's steps could not be read");
             }
@@ -984,12 +1006,15 @@ public sealed partial class QuestViewModel : ObservableObject
                     Glyph: QuestNodeGlyph.Family));
             }
 
-            if (Tracker.IsLinked && _facts is not null && Scores.Count > 0)
+            // While the facts load, the branch leads to "Calcul en cours" and comes back counted once they land.
+            var profit = ProfitEntries();
+
+            if (Tracker.IsLinked && (_facts is null || profit.Count > 0))
             {
                 Nodes.Add(new QuestNode(
                     QuestNodeKind.Branch,
                     Strings.Get("ProfitQuests"),
-                    QuestTree.Nombre(Scores.Count),
+                    _facts is null ? null : QuestTree.Nombre(profit.Count),
                     Id: QuestTree.ProfitSection,
                     Glyph: QuestNodeGlyph.Family));
             }
@@ -1095,7 +1120,7 @@ public sealed partial class QuestViewModel : ObservableObject
             return;
         }
 
-        foreach (var entry in QuestProfit.Entries(_catalog.Catalog.Quests, Scores, Tracker.Progress, _facts, Tracker.RewardLevel))
+        foreach (var entry in ProfitEntries())
         {
             var node = Marked(_tree.NodeOf(entry.Quests[0]));
 
@@ -1116,6 +1141,13 @@ public sealed partial class QuestViewModel : ObservableObject
             Nodes.Add(new QuestNode(QuestNodeKind.Pending, Strings.Get("NoResult")));
         }
     }
+
+    /// <summary>The rows of "Quêtes rentables"; empty until the facts are read.</summary>
+    private IReadOnlyList<ProfitEntry> ProfitEntries() =>
+        _facts is null
+            ? []
+            : QuestProfit.Entries(_catalog.Catalog.Quests, Scores, Tracker.Progress, _facts, Tracker.RewardLevel,
+                Tracker.RewardXpBonus, Tracker.RewardRanking);
 
     /// <summary>The catalogue quests the site suggests next, in its order.</summary>
     private IEnumerable<QuestSummary> NextQuests()

@@ -138,15 +138,15 @@ public static class QuestProfit
     private static int Share(int n, double part) => (int)Math.Round(n * part, MidpointRounding.AwayFromZero);
 
     /// <summary>
-    /// A series starts at its first doable quest and goes on with the following quests that pass every
-    /// doable rule but Available, in play order, until one fails. Members without a score stay members
-    /// and add no gain.
+    /// A series run starts at a doable quest and goes on with the following quests that pass every
+    /// doable rule but Available, in play order, until one fails; the next doable quest starts another
+    /// run. Every member counts in gain and effort, scored or not.
     /// </summary>
     public static IReadOnlyList<ProfitEntry> Entries(
         IEnumerable<QuestSummary> catalog, IReadOnlyDictionary<int, QuestScore> scores, TrackerProgress? progress,
-        IReadOnlyDictionary<int, TouchQuestFacts> facts, int level)
+        IReadOnlyDictionary<int, TouchQuestFacts> facts, int level, int bonusPercent, RewardRanking ranking)
     {
-        var entries = new List<(ProfitEntry Entry, double Sum)>();
+        var entries = new List<(ProfitEntry Entry, double Score)>();
         var all = catalog.ToList();
         var series = all.Where(q => q.SuccessName.Length > 0).GroupBy(q => q.SuccessName).Where(g => g.Count() > 1).ToList();
         var inSeries = series.SelectMany(g => g).Select(q => q.Id).ToHashSet();
@@ -155,8 +155,20 @@ public static class QuestProfit
         {
             foreach (var group in series)
             {
+                var started = group.Any(q => QuestTracking.StatusOf(progress, q.Id) is QuestStatus.Completed or QuestStatus.InProgress);
                 var members = new List<QuestSummary>();
-                foreach (var q in group.OrderBy(q => q.PlayOrder))
+
+                void Flush()
+                {
+                    if (members.Any(q => scores.ContainsKey(q.Id)))
+                    {
+                        entries.Add(Build(members.Count == 1 ? members[0].Title : group.Key, members, scores, facts, level, bonusPercent, ranking, started));
+                    }
+
+                    members = [];
+                }
+
+                foreach (var q in QuestPlayOrder.Sorted(group))
                 {
                     var known = facts.TryGetValue(q.Id, out var f);
                     if (members.Count == 0)
@@ -165,31 +177,33 @@ public static class QuestProfit
                     }
                     else if (QuestTracking.StatusOf(progress, q.Id) == QuestStatus.Completed) continue;
                     else if (known && Continuable(q, progress, f!, level)) members.Add(q);
-                    else break;
+                    // Failing Continuable, it fails IsDoable too: it cannot start the next run.
+                    else Flush();
                 }
 
-                if (!members.Any(q => scores.ContainsKey(q.Id))) continue;
-                var started = group.Any(q => QuestTracking.StatusOf(progress, q.Id) is QuestStatus.Completed or QuestStatus.InProgress);
-                entries.Add(Build(members.Count == 1 ? members[0].Title : group.Key, members, scores, facts, level, started));
+                Flush();
             }
         }
 
         foreach (var q in all.Where(q => scores.ContainsKey(q.Id) && !inSeries.Contains(q.Id)))
         {
-            entries.Add(Build(q.Title, [q], scores, facts, level, QuestTracking.StatusOf(progress, q.Id) == QuestStatus.InProgress));
+            entries.Add(Build(q.Title, [q], scores, facts, level, bonusPercent, ranking, QuestTracking.StatusOf(progress, q.Id) == QuestStatus.InProgress));
         }
 
-        return [.. entries.OrderByDescending(e => e.Entry.Started).ThenByDescending(e => e.Sum).Select(e => e.Entry)];
+        return [.. entries.OrderByDescending(e => e.Entry.Started).ThenByDescending(e => e.Score).Select(e => e.Entry)];
     }
 
+    // Score = summed gain / summed effort, so a single quest and a series compare on the same ratio.
     private static (ProfitEntry, double) Build(
         string title, List<QuestSummary> quests, IReadOnlyDictionary<int, QuestScore> scores,
-        IReadOnlyDictionary<int, TouchQuestFacts> facts, int level, bool started)
+        IReadOnlyDictionary<int, TouchQuestFacts> facts, int level, int bonusPercent, RewardRanking ranking, bool started)
     {
-        var s = quests.Where(q => scores.ContainsKey(q.Id)).Select(q => scores[q.Id]).ToList();
         var f = quests.Select(q => facts[q.Id]).ToList();
+        var gains = f.Select(x => GainOf(x, level, bonusPercent)).OfType<QuestGain>().ToList();
         var effort = new QuestEffort(f.Sum(x => EffortOf(x, level).Value), Reasons(f.SelectMany(x => x.Objectives), level));
-        var gain = new QuestGain(s.Sum(x => x.Gain.Xp), s.Sum(x => x.Gain.Kamas));
-        return (new ProfitEntry(title, quests, gain, effort, s.Max(x => x.Tier), started), s.Sum(x => x.Score));
+        var gain = new QuestGain(gains.Sum(x => x.Xp), gains.Sum(x => x.Kamas));
+        var value = ranking == RewardRanking.Xp ? gain.Xp : gain.Kamas;
+        var tier = quests.Where(q => scores.ContainsKey(q.Id)).Max(q => scores[q.Id].Tier);
+        return (new ProfitEntry(title, quests, gain, effort, tier, started), value / effort.Value);
     }
 }

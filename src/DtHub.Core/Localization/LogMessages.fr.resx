@@ -725,6 +725,9 @@
   <data name="éteint" xml:space="preserve">
     <value>éteint</value>
   </data>
+  <data name="The game's quest rewards and objectives could not be read" xml:space="preserve">
+    <value>Les récompenses et objectifs des quêtes du jeu n'ont pas pu être lus</value>
+  </data>
   <data name="The game's steps could not be read" xml:space="preserve">
     <value>Les étapes du jeu n'ont pas pu être lues</value>
   </data>

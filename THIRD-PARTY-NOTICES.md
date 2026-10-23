@@ -287,7 +287,8 @@ no Ankama graphical resource enters this repository.
 
 **No resource is copied or redistributed.** The guides window reads the
 official names of quests, dungeons, bosses, key items and achievements, the
-levels of quests, the rewards of the quest being read and, on demand, the
+levels of quests, the rewards of the quest being read, once a week the
+objectives and step rewards of every paired quest and, on demand, the
 official steps of a quest, then draws
 them itself. Same principle as the Almanax above: the repository carries no
 file extracted from Ankama's game. When the player's language is not French,

@@ -725,6 +725,9 @@
   <data name="éteint" xml:space="preserve">
     <value>apagada</value>
   </data>
+  <data name="The game's quest rewards and objectives could not be read" xml:space="preserve">
+    <value>No se pudieron leer las recompensas y los objetivos de las misiones del juego</value>
+  </data>
   <data name="The game's steps could not be read" xml:space="preserve">
     <value>No se pudieron leer los pasos del juego</value>
   </data>
