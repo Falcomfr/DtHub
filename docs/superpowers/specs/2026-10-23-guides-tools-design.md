@@ -23,9 +23,9 @@ least two of them. Detailed brief: the controller's dungeon brief (copied into t
 ## 2. Team recommendations
 
 Papycha's tracker already holds every character of the account with its level and progress. A "Moi" / "Équipe" toggle in
-"Recommandées" matches series by name, takes each character's best run of a series at its own level (one Bonus Pack setting
-for the account, Claude's choice), sums the gains, shows "3 persos" with their names in the tooltip, and lists only series
-shared by at least two characters. No new data.
+"Recommandées" matches each character's recommended single quests by id, at its own level (one Bonus Pack setting
+for the account, Claude's choice), sums the gains, shows "3 persos" with their names in the tooltip, and lists only quests
+shared by at least two characters (a series quest only when it is the next doable one of each, D220). No new data.
 
 ## 3. Where to find (items asked by quests)
 

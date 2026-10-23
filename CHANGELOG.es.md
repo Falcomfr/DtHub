@@ -18,16 +18,16 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 - Una casilla de nivel en la ventana de guías: al cambiarla también se actualiza el nivel de tu personaje en Papycha.
 - Cada lista de misiones muestra lo que da cada misión a tu personaje, XP y kamas lado a lado.
 - Con el seguimiento de Papycha vinculado, una pequeña marca de prioridad en las misiones que puedes hacer ahora, del punto a la llama, para las que más valen la pena, por la XP o por los kamas.
-- Un botón «Recomendadas» junto a «Por hacer» y «Accesibles» muestra dos listas cortas con el seguimiento de Papycha vinculado, «Para la XP» y «Para los kamas», las mejores misiones y series que hacer ahora, 8 como máximo cada una, ordenadas por ganancia por minuto.
+- Un botón «Recomendadas» junto a «Por hacer» y «Accesibles» muestra dos listas cortas con el seguimiento de Papycha vinculado, «Para la XP» y «Para los kamas», las mejores misiones que hacer ahora (de una serie, solo su siguiente misión), 8 como máximo cada una, ordenadas por ganancia por minuto.
 - Las casillas de nivel y de Bonus Pack están ahora en todas las vistas de la ventana de guías.
 - Cada misión muestra un tiempo estimado, por ejemplo ≈ 25 min, calculado por DT Hub a partir de los objetivos y los mapas del juego; «Recomendadas» ordena por XP y kamas por minuto y deja fuera lo que dura más de una hora.
 - Marcar muchas misiones como terminadas de una vez: el botón de selección de la lista de guías marca misiones (Mayús+clic para un rango), y los títulos de logro y de zona ofrecen «Marcar todo terminado»; DT Hub las escribe una a una, comprueba lo que Papycha guardó y vuelve a escribir lo que se perdió.
-- Con varios personajes vinculados, «Recomendadas» tiene un botón «Yo» y «Equipo»: las series que varios de tus personajes pueden hacer, con las ganancias sumadas.
+- Con varios personajes vinculados, «Recomendadas» tiene un botón «Yo» y «Equipo»: las misiones que varios de tus personajes pueden hacer, con las ganancias sumadas.
 - Las mazmorras que hacen avanzar al menos dos misiones recomendadas aparecen en «Recomendadas», y en las listas de mazmorras con sus ganancias.
 - Un icono de regalo en una fila de misión lista los objetos y otras recompensas que da a tu nivel.
 - Pasa el cursor sobre una misión para ver dónde encontrar los objetos que pide: monstruos que los sueltan, recolección, fabricación, arquimonstruos y sus zonas.
 - «Accesibles» y las misiones siguientes funcionan ahora para los personajes distintos del activo en Papycha, a partir de las misiones que han terminado.
-- La barra del seguimiento de la ventana de guías pasa bajo el personaje cuando la ventana es estrecha, y cada misión recomendada muestra su zona.
+- La barra del seguimiento de la ventana de guías pasa bajo el personaje cuando la ventana es estrecha, y cada misión recomendada muestra su zona y, en una serie, su lugar (3/11).
 
 ## [0.10.5] - 2026-10-22
 

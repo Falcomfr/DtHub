@@ -11106,8 +11106,9 @@ ne contient que ce qui est démarrable maintenant, pas la suite de la chaîne). 
 s'arrête à la première qui en échoue une, et la quête faisable suivante de la même
 série ouvre une nouvelle entrée : une quête faisable classée ne disparaît jamais du
 classement. Une entrée d'une seule quête s'affiche comme une quête seule. Un membre
-sans gain calculable reste dans la série et n'y ajoute rien. Une série déjà
-commencée (un membre fait ou en cours) porte un sablier avant son titre.
+sans gain calculable reste dans la série et n'y ajoute rien. « Recommandées » ne
+montre d'une entrée que sa première quête (voir plus bas) : le sablier avant le
+titre d'une série commencée a disparu avec les lignes de série.
 
 **Effort.** Remplacé par le temps estimé, en minutes : voir D221. Le plafond des
 objets à 7 de la première version, puis à 40, n'existe plus.
@@ -11141,9 +11142,14 @@ combiné faisait changer l'ordre à chaque affichage, parce que le meilleur rapp
 de chaque côté, qui sert de diviseur, bougeait avec l'ensemble des quêtes
 faisables (une quête finie en entre-temps réordonnait des lignes inchangées).
 Égalités : ordre du catalogue, puis identifiant de la quête. Exclus des listes
-courtes : une ligne de plus de 60 minutes, un côté sans gain, les séries coupées
-à leurs 4 premières quêtes, une série qui arrive à une quête « trousseau » (objectif
-texte contenant trousseau, keyring ou llavero), une quête de plus de 5 âmes. Les
+courtes : une ligne de plus de 60 minutes, un côté sans gain, une quête
+« trousseau » (objectif texte contenant trousseau, keyring ou llavero), une quête
+de plus de 5 âmes. Les listes courtes ne montrent que des quêtes seules : d'une
+série, seulement sa prochaine quête faisable (la première de son entrée), sur sa
+propre ligne. Revue du 23/10/2026 : une suite de 4 quêtes de la série
+« Agriculture et Alchimie » y figurait comme une seule ligne de moins d'une heure,
+alors que chacune demande de récolter des dizaines d'objets ; la coupe des séries
+à 4 quêtes est retirée avec les lignes de série. Les
 lignes de « Recommandées » ne portent pas de marque : l'ordre et le titre de la
 liste la disent déjà, et les paliers du score combiné contredisaient l'ordre.
 Un donjon n'y entre que s'il fait avancer au moins deux quêtes faisables (D220).
@@ -11165,8 +11171,9 @@ monstres (environ 30 Ko chacun, trop lourd pour toutes les quêtes).
 bleu puis les kamas en or (vide sans kamas), une icône cadeau quand la quête donne
 des objets ou d'autres récompenses à ce niveau (survol : une ligne par
 récompense), le nom de la zone en suffixe gris après le titre dans
-« Recommandées » (le regroupement « Par zone » prévu n'existe pas : il aurait
-cassé l'ordre des deux listes), une marque à
+« Recommandées », suivi pour une quête de série du nom de la série et de sa place
+dans l'ordre de jeu (« · Agriculture et Alchimie 3/11 ») (le regroupement « Par
+zone » prévu n'existe pas : il aurait cassé l'ordre des deux listes), une marque à
 trois paliers (flamme pleine, flamme creuse, point), une vue « Quêtes
 recommandées » (deux listes courtes, voir plus haut) ouverte par un bouton « Recommandées » de la barre du haut, à côté
 de « À faire » et « Accessibles » (seule entrée : la branche des zones est
@@ -11220,11 +11227,11 @@ de D219, un donjon n'entre que s'il fait avancer au moins deux quêtes faisables
 avec une seule, il doublait la ligne de cette quête.
 
 **Équipe.** Avec au moins deux personnages reliés, « Moi » / « Équipe » dans la
-barre de « Recommandées ». Les séries sont rapprochées par leur nom (le succès de
-leur première quête, sinon la quête elle-même) ; de chaque personnage on garde sa
-meilleure suite pour cette série, au niveau et avec les quêtes faites de ce
-personnage, et les gains de ces suites sont additionnés. Seules les séries
-partagées par au moins deux personnages restent ; la ligne dit « 3 persos » et
+barre de « Recommandées ». Mêmes lignes que la vue d'un personnage, des quêtes
+seules (D219), rapprochées par leur identifiant : une quête de série n'est
+partagée que si elle est la prochaine quête faisable de chacun ; ses gains, au
+niveau de chaque personnage, sont additionnés. Seules les quêtes partagées par
+au moins deux personnages restent ; la ligne dit « 3 persos » et
 l'infobulle nomme les personnages. Le Bonus Pack est un réglage unique pour le
 compte. Pas de donjons dans la vue d'équipe.
 
@@ -11285,7 +11292,9 @@ objectif, la carte où il se fait (`coords` de `QuestObjectives`) et le rang de
 son étape ; un cache d'avant est relu une fois. Le temps d'une quête, en
 secondes : 90 pour rejoindre le personnage de départ ; par objectif, parler,
 montrer ou aller voir 15, découvrir une carte 45, rapporter des objets
-10 + 5 par objet au plus 300, fabriquer 60, combattre 90 par monstre (au plus
+10 + 20 par objet au plus 1200 (d'abord 10 + 5 au plus 300 : une quête
+d'« Agriculture et Alchimie » qui demande 20 + 3 + 10 objets récoltés sortait à
+5 min, elle en fait 13 depuis la revue du 23/10/2026), fabriquer 60, combattre 90 par monstre (au plus
 10), rapporter une âme 300, texte libre ou type inconnu 300 ; un combat unique
 dans une étape qui a aussi une carte à découvrir est un donjon (étape connue :
 un cache d'avant, sans rang d'étape, n'en voit aucun) : 900 pour le
@@ -11302,8 +11311,8 @@ courtes de « Recommandées » classent chacune sur l'XP par minute ou les kamas
 par minute, et le score combiné des marques de priorité aussi. Les règles
 d'égalité restent (ordre du catalogue, puis identifiant de la quête). Une ligne
 qui prend plus de 60 minutes sort des listes courtes (au lieu d'un effort
-au-dessus de 25) ; la coupe des séries à 4 quêtes et l'exclusion du trousseau
-et des âmes restent. Les raisons de l'infobulle sont classées sur leur temps,
+au-dessus de 25) ; l'exclusion du trousseau et des âmes reste, et une série n'y
+figure que par sa prochaine quête faisable (D219). Les raisons de l'infobulle sont classées sur leur temps,
 le trajet compris.
 
 **Affichage.** « ≈ 25 min », ou « ≈ 1 h 05 » à partir d'une heure, en petit

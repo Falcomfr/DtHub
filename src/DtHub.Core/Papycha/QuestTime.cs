@@ -12,8 +12,9 @@ public static partial class QuestTime
     private const int Talk = 15;
     private const int Map = 45;
     private const int ItemsBase = 10;
-    private const int ItemsEach = 5;
-    private const int ItemsCap = 300;
+    // Harvested items take far longer than 5 s each: "Agriculture et Alchimie" came out at 5 min a quest (2026-10-23).
+    private const int ItemsEach = 20;
+    private const int ItemsCap = 1200;
     private const int Craft = 60;
     private const int PerMonster = 90;
     private const int MonstersCap = 10;

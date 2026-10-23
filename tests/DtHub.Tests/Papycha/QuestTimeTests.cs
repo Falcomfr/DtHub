@@ -26,12 +26,22 @@ public class QuestTimeTests
         Assert.Equal(expected, Seconds(Obj(type)));
 
     [Theory]
-    [InlineData(new[] { 1, 2, 5 }, 35)]
-    [InlineData(new[] { 1, 2, 58 }, 300)]
-    [InlineData(new[] { 1, 2, 1000 }, 300)]
+    [InlineData(new[] { 1, 2, 5 }, 110)]
+    [InlineData(new[] { 1, 2, 59 }, 1190)]
+    [InlineData(new[] { 1, 2, 60 }, 1200)]
+    [InlineData(new[] { 1, 2, 1000 }, 1200)]
     [InlineData(new[] { 1, 2 }, 10)]
-    public void Bringing_items_grows_with_the_quantity_up_to_five_minutes(int[] parameters, int expected) =>
+    public void Bringing_items_grows_with_the_quantity_up_to_twenty_minutes(int[] parameters, int expected) =>
         Assert.Equal(expected, Seconds(Obj(3, parameters)));
+
+    [Fact]
+    public void A_quest_bringing_twenty_three_and_ten_harvested_items_takes_about_thirteen_minutes()
+    {
+        // "Agriculture et Alchimie" (11038): 90 + 410 + 70 + 210 = 780 s, where 10 + 5 per item gave 5 min.
+        var facts = Facts(Obj(3, [1, 2, 20]), Obj(3, [1, 2, 3]), Obj(3, [1, 2, 10]));
+
+        Assert.Equal(13, QuestTime.EstimateMinutes(facts, null));
+    }
 
     [Fact]
     public void Objectives_without_a_known_step_never_make_a_dungeon_run()

@@ -28,7 +28,7 @@ usable from the lists too, not only in a quest's guide.
 4. **"Recommandées" view**, opened by a button in the window's top bar next to "À faire"
    and "Accessibles" (its only entry point): two short lists, "Pour l'XP" and "Pour les kamas", 8 rows at most
    each, every side ranked on its own gain per minute (ties by catalog order, then quest id), a row possibly in both;
-   a started series shows an hourglass. Rows carry no priority mark; the combined score below only drives the marks of
+   single quests only, a series by its next doable quest with "· Series 3/11" after its zone (D219). Rows carry no priority mark; the combined score below only drives the marks of
    the other lists (D219). Pressed again, it returns to where the reader was, guide included; Back
    returns to the section left, with its list open.
 
@@ -99,8 +99,8 @@ quests and takes the same two ratios against the same quest maxima.
 
 Among the character's doable quests, ranked by the combined score: top 10 % tier 3, next 15 % tier 2,
 next 25 % tier 1, the rest no mark (Claude's choice). Marks: a filled flame, a half flame, a
-small dot (glyphs in the list's style, priority brush). The view shows the two short lists, series and single
-quests together, each with both gains, its time and its reasons in a few words (no tier mark); clicking opens the guide as any row does. Not linked, it shows a muted
+small dot (glyphs in the list's style, priority brush). The view shows the two short lists of single
+quests, each with both gains, its time and its reasons in a few words (no tier mark); clicking opens the guide as any row does. Not linked, it shows a muted
 line asking to link the Papycha tracker.
 
 ## Left to the builder

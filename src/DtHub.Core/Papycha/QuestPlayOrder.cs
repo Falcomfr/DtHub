@@ -111,6 +111,18 @@ public static class QuestPlayOrder
         return Sort(all, keys, after, waiting);
     }
 
+    /// <summary>The quest's rank in its achievement's play order, from 1, and the achievement's size; null alone in it.</summary>
+    public static (int Rank, int Count)? Position(IEnumerable<QuestSummary> catalog, QuestSummary quest)
+    {
+        ArgumentNullException.ThrowIfNull(catalog);
+        ArgumentNullException.ThrowIfNull(quest);
+
+        if (quest.SuccessName.Length == 0) return null;
+        var series = Sorted(catalog.Where(q => string.Equals(q.SuccessName, quest.SuccessName, StringComparison.Ordinal)));
+        var rank = series.ToList().FindIndex(q => q.Id == quest.Id) + 1;
+        return series.Count > 1 && rank > 0 ? (rank, series.Count) : null;
+    }
+
     /// <summary>
     /// The topological sort, with a fallback on cycles: we then take
     /// the smallest remaining quest in the sense of the tiebreaker

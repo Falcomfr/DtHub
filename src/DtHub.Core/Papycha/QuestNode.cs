@@ -126,8 +126,7 @@ public enum QuestNodeGlyph
 /// <param name="GainKamas">The kamas it gives, compact; <c>null</c> when unknown or none.</param>
 /// <param name="Tier">The priority mark among the character's doable quests, 0 for none, 3 for the best.</param>
 /// <param name="ProfitTip">The gain's hover: XP and kamas, then the tier and the effort when doable.</param>
-/// <param name="Started">A recommended series the character already started: an hourglass before its title.</param>
-/// <param name="Suffix">Muted words right after the label, " · Frigost" on a recommended row.</param>
+/// <param name="Suffix">Muted words right after the label, " · Frigost · Agriculture et Alchimie 3/11" on a recommended row.</param>
 /// <param name="OtherRewards">What the quest gives besides XP and kamas, one per line; <c>null</c> hides the gift.</param>
 /// <param name="Duration">The estimated time, "≈ 25 min"; <c>null</c> hides it.</param>
 /// <param name="Checked">In selection mode, whether the quest is ticked; <c>null</c> shows no box.</param>
@@ -153,7 +152,6 @@ public sealed record QuestNode(
     string? GainKamas = null,
     int Tier = 0,
     string? ProfitTip = null,
-    bool Started = false,
     string? Suffix = null,
     string? OtherRewards = null,
     string? Duration = null,

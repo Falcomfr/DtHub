@@ -1586,8 +1586,8 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
     private static readonly IReadOnlyDictionary<int, long> XpTable = new Dictionary<int, long>();
 
     /// <summary>
-    /// Two short lists, for XP then for kamas: the doable quests, series runs and dungeons, best on that side
-    /// per minute. A series row opens its first quest; a started entry carries an hourglass.
+    /// Two short lists, for XP then for kamas: the doable quests, a series by its next one, and dungeons, best on
+    /// that side per minute.
     /// </summary>
     private void ShowProfit()
     {
@@ -1675,40 +1675,19 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         }),
     ];
 
-    /// <summary>A quest or series run as a row: its first quest's, with the run's gains and its first quest's zone.</summary>
+    /// <summary>A recommended quest as a row: its zone, then its series and place in it ("· Agriculture et Alchimie 3/11").</summary>
     private QuestNode EntryNode(ProfitEntry entry)
     {
         var first = entry.Quests[0];
         var node = Marked(_tree.NodeOf(first));
         var zone = first.SectionId == 0 ? string.Empty : _tree.NameOf(first.SectionId);
-        node = node with { Suffix = zone.Length > 0 ? " · " + zone : null };
+        var series = QuestPlayOrder.Position(_catalog.Catalog.Quests, first) is { } at ? $" · {first.SuccessName} {at.Rank}/{at.Count}" : string.Empty;
+        var suffix = (zone.Length > 0 ? " · " + zone : string.Empty) + series;
+        node = node with { Suffix = suffix.Length > 0 ? suffix : null };
 
         // No tier in the hover either: the short lists carry no mark (see ShowProfit), and the tier's side would
         // contradict the list ("pour l'XP" in the kamas list).
-        if (entry.Quests.Count == 1)
-        {
-            return node.ProfitTip is null ? node : node with { ProfitTip = QuestGainText.Tip(entry.Gain, effort: entry.Effort) };
-        }
-
-        var (xp, kamas) = QuestGainText.Columns(entry.Gain);
-
-        // A quest under way, alone or first of its series, already carries the status hourglass on its right.
-        return node with
-        {
-            Started = entry.Started && node.Status != QuestStatus.InProgress,
-            Label = entry.Title,
-            Detail = QuestTree.Nombre(entry.Quests.Count),
-            // A box would tick the first quest alone.
-            Checked = null,
-            // The first quest's prerequisites and other rewards are not the series'.
-            Needs = null,
-            OtherRewards = null,
-            GainXp = xp,
-            GainKamas = kamas,
-            Tier = entry.Tier,
-            Duration = QuestTime.Text(entry.Effort.Minutes),
-            ProfitTip = QuestGainText.Tip(entry.Gain, effort: entry.Effort),
-        };
+        return node.ProfitTip is null ? node : node with { ProfitTip = QuestGainText.Tip(entry.Gain, effort: entry.Effort) };
     }
 
     /// <summary>The catalogue quests to suggest next: the site's, or read from the previous quests done.</summary>

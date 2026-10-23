@@ -13,26 +13,23 @@ public sealed record LevelLine(int Count, int From, int To);
 public static class QuestPlanning
 {
     /// <summary>
-    /// Each character's recommendable entries at its own level, a series matched by its name (each character's best run), a lone
-    /// quest by its id, kept when two characters or more can do them; one Bonus Pack setting for the account.
+    /// Each character's recommendable quests at its own level, matched by their id, kept when two characters or more can
+    /// do them; one Bonus Pack setting for the account.
     /// </summary>
     public static IReadOnlyList<TeamEntry> Team(
         IEnumerable<QuestSummary> catalog, IReadOnlyDictionary<int, TouchQuestFacts> facts,
         IReadOnlyList<(TrackerCharacter Character, TrackerProgress Progress)> characters, int bonusPercent)
     {
         var all = catalog.ToList();
-        var shared = new Dictionary<string, (ProfitEntry Entry, List<TrackerCharacter> Characters, long Xp, long Kamas, double Score)>();
+        var shared = new Dictionary<int, (ProfitEntry Entry, List<TrackerCharacter> Characters, long Xp, long Kamas, double Score)>();
         foreach (var (character, progress) in characters)
         {
             var scores = QuestProfit.Score(all, facts, progress, character.Level, bonusPercent);
-            var seen = new HashSet<string>();
             var entries = QuestProfit.Entries(all, scores, progress, facts, character.Level, bonusPercent);
             foreach (var entry in QuestProfit.Recommendable(entries, scores, facts, character.Level, bonusPercent))
             {
-                // A run depends on the character's level and on what it did: a series matches by name, its best run only.
-                var name = entry.Quests[0].SuccessName;
-                var key = name.Length > 0 ? "s:" + name : "q:" + entry.Quests[0].Id;
-                if (!seen.Add(key)) continue;
+                // Recommendable entries are single quests, each once per character.
+                var key = entry.Quests[0].Id;
                 var s = shared.TryGetValue(key, out var found) ? found : (entry, [], 0, 0, 0);
                 s.Characters.Add(character);
                 shared[key] = (s.Entry, s.Characters, s.Xp + entry.Gain.Xp, s.Kamas + entry.Gain.Kamas, s.Score + entry.Score);

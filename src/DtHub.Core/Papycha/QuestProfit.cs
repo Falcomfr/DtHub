@@ -237,9 +237,6 @@ public static class QuestProfit
         return (new ProfitEntry(title, quests, gain, effort, tier, started, side.ByKamas, side.Score), side.Score);
     }
 
-    /// <summary>The short lists cut a run here: past four quests a series is an evening, not a next step.</summary>
-    public const int ShortRun = 4;
-
     /// <summary>Past this many minutes a row stays out of the short lists, however much it pays.</summary>
     public const int ShortMinutes = 60;
 
@@ -252,8 +249,8 @@ public static class QuestProfit
             && Keyring.Any(word => text.Contains(word, StringComparison.OrdinalIgnoreCase)));
 
     /// <summary>
-    /// The entries fit for the short lists: each run cut before its first very long quest and to its first
-    /// <see cref="ShortRun"/> quests, gain and effort summed again; a run left empty is dropped.
+    /// The entries fit for the short lists, single quests only: a run gives its first quest, the series' next doable
+    /// one, alone; a very long quest is dropped.
     /// </summary>
     public static IReadOnlyList<ProfitEntry> Recommendable(
         IReadOnlyList<ProfitEntry> entries, IReadOnlyDictionary<int, QuestScore> scores,
@@ -266,13 +263,10 @@ public static class QuestProfit
         var kept = new List<ProfitEntry>();
         foreach (var entry in entries)
         {
-            var quests = entry.Quests.TakeWhile(q => !IsVeryLong(facts[q.Id])).Take(ShortRun).ToList();
-            if (quests.Count == entry.Quests.Count) kept.Add(entry);
-            else if (quests.Count > 0)
-            {
-                var title = quests.Count == 1 ? quests[0].Title : entry.Title;
-                kept.Add(Build(title, quests, scores, facts, level, bonusPercent, best, entry.Started).Item1);
-            }
+            // A run of four quests could pass for an hour's work and take an evening.
+            var first = entry.Quests[0];
+            if (IsVeryLong(facts[first.Id])) continue;
+            kept.Add(entry.Quests.Count == 1 ? entry : Build(first.Title, [first], scores, facts, level, bonusPercent, best, entry.Started).Item1);
         }
 
         return kept;

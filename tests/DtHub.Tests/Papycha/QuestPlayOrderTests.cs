@@ -131,4 +131,20 @@ public sealed class QuestPlayOrderTests
         Assert.Empty(QuestPlayOrder.Sorted([]));
         Assert.Single(QuestPlayOrder.Sorted([Quete("Seule")]));
     }
+
+    [Fact]
+    public void La_place_d_une_quete_est_son_rang_dans_l_ordre_de_jeu_sur_la_taille_de_sa_serie()
+    {
+        var b = Quete("B", 2) with { Id = 2 };
+        var catalogue = new[]
+        {
+            Quete("C", 3) with { Id = 3 }, Quete("A", 1) with { Id = 1 }, b,
+            Quete("Seule", succes: "Autre") with { Id = 4 }, Quete("Hors", succes: "") with { Id = 5 },
+        };
+
+        Assert.Equal((2, 3), QuestPlayOrder.Position(catalogue, b));
+        // Seule de son succès, ou sans succès : pas de place à donner.
+        Assert.Null(QuestPlayOrder.Position(catalogue, catalogue[3]));
+        Assert.Null(QuestPlayOrder.Position(catalogue, catalogue[4]));
+    }
 }

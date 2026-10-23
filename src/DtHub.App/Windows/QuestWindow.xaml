@@ -1156,22 +1156,8 @@
                                Visibility="{Binding HasLevelColumn,
                                                     Converter={StaticResource BoolToVisibility}}" />
 
-                    <!-- A recommended series already started: the hourglass of
-                         a quest under way, before its title. -->
-                    <Border DockPanel.Dock="Left" Width="12" Height="12" Margin="0,0,4,0"
-                            VerticalAlignment="Center" Background="Transparent"
-                            ToolTip="{loc:T QuestStatusInProgress}"
-                            ToolTipService.InitialShowDelay="200"
-                            Visibility="{Binding Started, Converter={StaticResource BoolToVisibility}}">
-                      <Path Stretch="None" Stroke="{DynamicResource AccentBrush}"
-                            StrokeThickness="1.5" StrokeStartLineCap="Round"
-                            StrokeEndLineCap="Round" StrokeLineJoin="Round"
-                            Data="M 2.5,1.5 H 9.5 M 2.5,10.5 H 9.5
-                                  M 3.5,1.5 L 6,6 L 3.5,10.5 M 8.5,1.5 L 6,6 L 8.5,10.5" />
-                    </Border>
-
                     <!-- The label, then muted words that only situate it: the
-                         zone of a recommended row. -->
+                         zone and series place of a recommended row. -->
                     <TextBlock x:Name="Libelle"
                                TextTrimming="CharacterEllipsis" VerticalAlignment="Center">
                       <Run Text="{Binding Label, Mode=OneWay}" /><Run

@@ -32,7 +32,7 @@ public class QuestProfitTests
     public void Effort_reasons_are_aggregated_and_costliest_first_at_most_three()
     {
         var effort = QuestProfit.EffortOf(
-            Facts(Obj(1), Obj(1), Obj(3, [1, 2, 5]), Obj(6, [1, 5]), Obj(6, [1, 5]), Obj(6, [1, 5]), Obj(6, [1, 1]), Obj(12)), Quest(1));
+            Facts(Obj(1), Obj(1), Obj(3, [1, 2, 3]), Obj(6, [1, 5]), Obj(6, [1, 5]), Obj(6, [1, 5]), Obj(6, [1, 1]), Obj(12)), Quest(1));
         Assert.Equal(3, effort.Reasons.Count);
         // Ranked on their time: 3 x 450 s, 300 s, then the lone fight's 90 s.
         Assert.Equal(["3 combats", "âmes", "1 boss"], effort.Reasons);
@@ -458,17 +458,17 @@ public class QuestProfitTests
     }
 
     [Fact]
-    public void A_recommended_series_run_keeps_its_first_four_quests()
+    public void A_series_is_recommended_by_its_next_doable_quest_alone()
     {
         var catalog = Enumerable.Range(1, 6).Select(i => Quest(i, "S", i)).ToArray();
         var facts = catalog.ToDictionary(q => q.Id, q => Xp(q.Id));
 
-        var entry = Assert.Single(Recommendable(catalog, Progress([1]), facts));
+        var entry = Assert.Single(Recommendable(catalog, Progress([3], completed: [1, 2]), facts));
 
-        Assert.Equal("S", entry.Title);
-        Assert.Equal([1, 2, 3, 4], entry.Quests.Select(q => q.Id));
-        Assert.Equal(Enumerable.Range(1, 4).Sum(i => XpOf(facts[i])), entry.Gain.Xp);
-        Assert.Equal(8, entry.Effort.Minutes);
+        Assert.Equal("Q3", entry.Title);
+        Assert.Equal([3], entry.Quests.Select(q => q.Id));
+        Assert.Equal(XpOf(facts[3]), entry.Gain.Xp);
+        Assert.Equal(2, entry.Effort.Minutes);
     }
 
     [Theory]
