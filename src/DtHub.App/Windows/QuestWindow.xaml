@@ -1389,26 +1389,45 @@
 
                     <!-- What the quest gives the chosen character: XP then
                          kamas, last on the right in two fixed columns, wide
-                         enough for "999,9 M" and "999 k", so the numbers line
-                         up. The kamas column stays empty when there are none.
+                         enough for a glyph and "999,9 M" or "999 k", so the
+                         numbers line up on their right edge. A glyph says
+                         which is which, the words come on hover: a blue
+                         four-point sparkle for XP, a gold coin for kamas.
+                         The kamas column stays empty when there are none.
                          Hidden on a quest row without data, collapsed on
                          other rows and in a list with no gain at all. -->
-                    <TextBlock x:Name="GainXp" Width="42" Margin="4,0,0,0"
-                               Text="{Binding GainXp}" Background="Transparent"
-                               TextAlignment="Right" TextWrapping="NoWrap"
-                               VerticalAlignment="Center" Style="{StaticResource Muted}"
-                               Foreground="{DynamicResource GainXpBrush}"
-                               FontSize="{StaticResource FontSmall}"
-                               ToolTip="{Binding ProfitTip}"
-                               ToolTipService.InitialShowDelay="200" />
-                    <TextBlock x:Name="GainKamas" Width="32" Margin="4,0,0,0"
-                               Text="{Binding GainKamas}" Background="Transparent"
-                               TextAlignment="Right" TextWrapping="NoWrap"
-                               VerticalAlignment="Center" Style="{StaticResource Muted}"
-                               Foreground="{DynamicResource GainKamasBrush}"
-                               FontSize="{StaticResource FontSmall}"
-                               ToolTip="{Binding ProfitTip}"
-                               ToolTipService.InitialShowDelay="200" />
+                    <Border x:Name="GainXp" Width="52" Margin="4,0,0,0"
+                            Background="Transparent" VerticalAlignment="Center"
+                            ToolTip="{Binding ProfitTip}"
+                            ToolTipService.InitialShowDelay="200">
+                      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Path Width="10" Height="10" Margin="0,0,2,0" VerticalAlignment="Center"
+                              Stretch="None" Fill="{DynamicResource GainXpBrush}"
+                              Data="M 5,0.5 C 5.4,3.6 6.4,4.6 9.5,5 C 6.4,5.4 5.4,6.4 5,9.5
+                                    C 4.6,6.4 3.6,5.4 0.5,5 C 3.6,4.6 4.6,3.6 5,0.5 Z" />
+                        <TextBlock Text="{Binding GainXp}" TextWrapping="NoWrap"
+                                   VerticalAlignment="Center" Style="{StaticResource Muted}"
+                                   Foreground="{DynamicResource GainXpBrush}"
+                                   FontSize="{StaticResource FontSmall}" />
+                      </StackPanel>
+                    </Border>
+                    <Border x:Name="GainKamas" Width="40" Margin="4,0,0,0"
+                            Background="Transparent" VerticalAlignment="Center"
+                            ToolTip="{Binding ProfitTip}"
+                            ToolTipService.InitialShowDelay="200">
+                      <StackPanel x:Name="GainKamasValeur" Orientation="Horizontal"
+                                  HorizontalAlignment="Right">
+                        <Path Width="10" Height="10" Margin="0,0,2,0" VerticalAlignment="Center"
+                              Stretch="None" Stroke="{DynamicResource GainKamasBrush}"
+                              StrokeThickness="1.2"
+                              Data="M 0.9,5 A 4.1,4.1 0 1 0 9.1,5 A 4.1,4.1 0 1 0 0.9,5 Z
+                                    M 3.2,5 A 1.8,1.8 0 1 0 6.8,5 A 1.8,1.8 0 1 0 3.2,5 Z" />
+                        <TextBlock Text="{Binding GainKamas}" TextWrapping="NoWrap"
+                                   VerticalAlignment="Center" Style="{StaticResource Muted}"
+                                   Foreground="{DynamicResource GainKamasBrush}"
+                                   FontSize="{StaticResource FontSmall}" />
+                      </StackPanel>
+                    </Border>
                   </StackPanel>
                 </Grid>
 
@@ -1685,6 +1704,10 @@
 
                   <!-- Before the quest trigger below, which must win on
                        rows that are not quests. -->
+                  <DataTrigger Binding="{Binding GainKamas}" Value="{x:Null}">
+                    <Setter TargetName="GainKamasValeur" Property="Visibility" Value="Collapsed" />
+                  </DataTrigger>
+
                   <DataTrigger Binding="{Binding GainXp}" Value="{x:Null}">
                     <Setter TargetName="GainXp" Property="Visibility" Value="Hidden" />
                     <Setter TargetName="GainKamas" Property="Visibility" Value="Hidden" />
