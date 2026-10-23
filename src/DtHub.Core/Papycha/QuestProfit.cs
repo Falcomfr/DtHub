@@ -12,9 +12,13 @@ public sealed record QuestGain(long Xp, long Kamas);
 /// </summary>
 public sealed record QuestScore(int QuestId, QuestGain Gain, QuestEffort Effort, double Score, int Tier, bool ByKamas);
 
-/// <summary>A quest or a series in the "profitable quests" ranking; <c>Quests.Count &gt; 1</c> is a series.</summary>
+/// <summary>
+/// A quest or a series in the "profitable quests" ranking; <c>Quests.Count &gt; 1</c> is a series. <c>Score</c> is its
+/// combined score against the quest maxima, comparable with <see cref="DungeonValue.Score"/>.
+/// </summary>
 public sealed record ProfitEntry(
-    string Title, IReadOnlyList<QuestSummary> Quests, QuestGain Gain, QuestEffort Effort, int Tier, bool Started, bool ByKamas);
+    string Title, IReadOnlyList<QuestSummary> Quests, QuestGain Gain, QuestEffort Effort, int Tier, bool Started, bool ByKamas,
+    double Score);
 
 /// <summary>A dungeon is worth the listable quests it advances, one entry per quest; <c>Tier</c> is the one its score would have among quests.</summary>
 public sealed record DungeonValue(int PapychaDungeonId, IReadOnlyList<ProfitEntry> Advances, QuestGain Gain, double Score, int Tier);
@@ -228,10 +232,10 @@ public static class QuestProfit
         var gain = new QuestGain(gains.Sum(x => x.Xp), gains.Sum(x => x.Kamas));
         var side = Combined(gain, effort.Value, best);
         var tier = quests.Where(q => scores.ContainsKey(q.Id)).Select(q => scores[q.Id].Tier).DefaultIfEmpty(0).Max();
-        return (new ProfitEntry(title, quests, gain, effort, tier, started, side.ByKamas), side.Score);
+        return (new ProfitEntry(title, quests, gain, effort, tier, started, side.ByKamas, side.Score), side.Score);
     }
 
-    private static readonly HashSet<string> Articles = ["le", "la", "les", "l", "du", "des", "de"];
+    private static readonly HashSet<string> Articles = ["le", "la", "les", "l", "du", "des", "de", "the", "el", "los", "las", "del"];
 
     /// <summary>
     /// The game dungeons named in the quest's objective texts, compared without case, accents, punctuation or leading

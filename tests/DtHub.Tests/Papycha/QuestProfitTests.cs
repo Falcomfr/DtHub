@@ -340,6 +340,36 @@ public class QuestProfitTests
         Assert.Equal([1], QuestProfit.DungeonsOf(Facts(Said("Sortie du Donjon des Bouftous")), names));
     }
 
+    [Fact]
+    public void English_and_spanish_leading_articles_are_dropped_too()
+    {
+        var names = new Dictionary<int, string> { [1] = "The Flooded Chapel", [2] = "Los Pantanos del Sur" };
+        Assert.Equal([1], QuestProfit.DungeonsOf(Facts(Said("Exit of Flooded Chapel")), names));
+        Assert.Equal([2], QuestProfit.DungeonsOf(Facts(Said("Salida pantanos del sur")), names));
+    }
+
+    [Fact]
+    public void Entries_carry_their_score_in_order_and_a_single_quest_scores_as_its_dungeon()
+    {
+        var catalog = new[] { Quest(1, "A", 1), Quest(2, "A", 2), Quest(3), Quest(4) };
+        var facts = new Dictionary<int, TouchQuestFacts>
+        {
+            [1] = Xp(3f),
+            [2] = Xp(3f),
+            [3] = new([Step(10, 4f, 1f)], [Said("Donjon Fungus")]),
+            [4] = Xp(1f),
+        };
+        var progress = Progress([1, 2, 3, 4]);
+        var scores = QuestProfit.Score(catalog, facts, progress, 10, 0);
+        var entries = QuestProfit.Entries(catalog, scores, progress, facts, 10, 0);
+        var values = QuestProfit.DungeonValues(
+            entries, scores, progress, facts, 10, 0, new Dictionary<int, TouchDungeonIds> { [7] = new([70]) }, new Dictionary<int, string> { [70] = "Donjon Fungus" });
+
+        Assert.Equal(entries.Select(e => e.Score).OrderByDescending(x => x), entries.Select(e => e.Score));
+        Assert.True(entries[0].Score > 0);
+        Assert.Equal(values[7].Score, entries.Single(e => e.Title == "Q3").Score);
+    }
+
     // Papycha dungeon n pairs with game dungeon 10n.
     private static IReadOnlyDictionary<int, DungeonValue> DungeonValues(
         QuestSummary[] catalog, TrackerProgress progress, Dictionary<int, TouchQuestFacts> facts, Dictionary<int, string> names)
