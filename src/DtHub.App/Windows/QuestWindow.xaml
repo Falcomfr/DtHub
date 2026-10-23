@@ -1069,27 +1069,6 @@
                                Visibility="{Binding HasLevelColumn,
                                                     Converter={StaticResource BoolToVisibility}}" />
 
-                    <!-- The tracker's mark, the row's only status sign: a
-                         check, an hourglass, a barred circle, a dash; the
-                         word comes on hover. A status word on the right
-                         was tried and crowded the row. Hidden, not
-                         collapsed, on an unmarked quest row so every
-                         quest label starts at the same place; collapsed
-                         on rows that are not quests, and while no tracker
-                         is linked: the room it kept read as a gap between
-                         the level and the name. The transparent border
-                         carries the tooltip, an open stroke catches no
-                         hover. -->
-                    <Border x:Name="Marque" DockPanel.Dock="Left" Width="12" Height="12"
-                            Margin="0,0,4,0" VerticalAlignment="Center"
-                            Background="Transparent" Visibility="Hidden"
-                            ToolTipService.InitialShowDelay="200">
-                      <Path x:Name="MarqueTrait" Stretch="None"
-                            Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.5"
-                            StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                            StrokeLineJoin="Round" />
-                    </Border>
-
                     <TextBlock x:Name="Libelle" Text="{Binding Label}"
                                TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
                   </DockPanel>
@@ -1297,6 +1276,26 @@
                               Data="M 2,6.5 L 5,9.5 L 10.5,3" />
                       </Border>
                     </Grid>
+
+                    <!-- The tracker's mark, the row's only status sign: a
+                         check, an hourglass, a barred circle, a dash; the
+                         word comes on hover. First of the fixed right-hand
+                         columns: at the left of the name it kept a gap
+                         between the level and the name on every unmarked
+                         row. Hidden, not collapsed, on an unmarked quest row
+                         so the columns stay straight; collapsed on rows that
+                         are not quests, and while no tracker is linked. The
+                         transparent border carries the tooltip, an open
+                         stroke catches no hover. -->
+                    <Border x:Name="Marque" Width="12" Height="12"
+                            Margin="8,0,0,0" VerticalAlignment="Center"
+                            Background="Transparent" Visibility="Hidden"
+                            ToolTipService.InitialShowDelay="200">
+                      <Path x:Name="MarqueTrait" Stretch="None"
+                            Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.5"
+                            StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                            StrokeLineJoin="Round" />
+                    </Border>
 
                     <!-- A quest's rhythm, drawn in a column of fixed width
                          before the lock, so that rhythms and locks stand
