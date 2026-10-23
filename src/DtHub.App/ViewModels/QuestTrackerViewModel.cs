@@ -517,13 +517,15 @@ public sealed partial class QuestTrackerViewModel(
             if (result.Success)
             {
                 var index = Characters.IndexOf(character);
+                // Read before the replace: the selector drops a replaced selected item and pushes null back.
+                var wasSelected = SelectedCharacter?.Id == character.Id;
 
                 if (index >= 0)
                 {
                     Characters[index] = updated;
                 }
 
-                if (SelectedCharacter?.Id == character.Id)
+                if (wasSelected)
                 {
                     SelectedCharacter = updated;
                 }

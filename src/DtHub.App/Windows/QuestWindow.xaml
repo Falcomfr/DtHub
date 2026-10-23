@@ -93,9 +93,8 @@
     </Border>
 
     <!-- The player's Papycha tracker: the link when there is none, the
-         character and the menu once linked. Always there: its second row
-         holds the level and Bonus Pack boxes, which every view of the
-         window uses. -->
+         character and the menu once linked. Always there: it holds the
+         level and Bonus Pack boxes, which every view of the window uses. -->
     <Border DockPanel.Dock="Top" Padding="10,6" DataContext="{Binding Tracker}"
             BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,0,0,1">
       <Grid>
@@ -103,45 +102,9 @@
           <ColumnDefinition Width="*" />
           <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-          <RowDefinition Height="Auto" />
-          <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
-
-        <!-- Level and XP bonus feed the reward line, the gains and
-             the marks of every list: shown in every view, linked or not.
-             The bonus is a switch: the Bonus Pack is the one bonus a player
-             knows, a free percentage box left them guessing what to type. -->
-        <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal"
-                    HorizontalAlignment="Left" Margin="0,6,0,0">
-          <TextBlock Text="{loc:T RewardLevelLabel}" Style="{StaticResource Muted}"
-                     FontSize="{StaticResource FontSmall}" VerticalAlignment="Center"
-                     Margin="0,0,6,0" />
-          <TextBox Width="44" Padding="4,2" MaxLength="3" VerticalAlignment="Center"
-                   Text="{Binding RewardLevel, Mode=OneWay}"
-                   KeyDown="OnRewardLevelKey" LostFocus="OnRewardLevelApply">
-            <TextBox.Style>
-              <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
-                <Setter Property="ToolTip" Value="{loc:T RewardLevelTipLocal}" />
-                <Style.Triggers>
-                  <DataTrigger Binding="{Binding IsLinked}" Value="True">
-                    <Setter Property="ToolTip" Value="{loc:T RewardLevelTipLinked}" />
-                  </DataTrigger>
-                </Style.Triggers>
-              </Style>
-            </TextBox.Style>
-          </TextBox>
-          <!-- OneWay survives the click: a toggle sets its current value, not
-               a local one, so a later refresh still moves it. -->
-          <CheckBox Margin="14,0,0,0" VerticalAlignment="Center"
-                    FontSize="{StaticResource FontSmall}"
-                    Foreground="{DynamicResource TextMutedBrush}"
-                    Content="{loc:T RewardXpBonusLabel}" ToolTip="{loc:T RewardXpBonusTip}"
-                    IsChecked="{Binding HasBonusPack, Mode=OneWay}"
-                    Click="OnBonusPackClick" />
-        </StackPanel>
-
-        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+        <!-- A dock rather than a horizontal stack: the last child, the
+             pitch or the notice, gets the width left and wraps in it. -->
+        <DockPanel Grid.Column="0" VerticalAlignment="Center">
           <ComboBox ItemsSource="{Binding Characters}" SelectedItem="{Binding SelectedCharacter}"
                     MinWidth="150" Margin="0,0,10,0"
                     Visibility="{Binding HasSeveralCharacters, Converter={StaticResource BoolToVisibility}}">
@@ -165,17 +128,53 @@
                      Visibility="{Binding HasSeveralCharacters,
                                           Converter={StaticResource InverseBoolToVisibility}}" />
 
-          <TextBlock Text="{loc:T TrackerPitch}" Style="{StaticResource Muted}"
-                     FontSize="{StaticResource FontSmall}" VerticalAlignment="Center"
-                     TextWrapping="Wrap"
-                     Visibility="{Binding ShowsPitch, Converter={StaticResource BoolToVisibility}}" />
+          <!-- Level and XP bonus feed the reward line, the gains and
+               the marks of every list: shown in every view, linked or not,
+               right after the character so its level is changed where it is
+               read; linked, the level is saved on Papycha.
+               The bonus is a switch: the Bonus Pack is the one bonus a player
+               knows, a free percentage box left them guessing what to type. -->
+          <StackPanel Orientation="Horizontal" Margin="0,0,10,0" VerticalAlignment="Center">
+            <TextBlock Text="{loc:T RewardLevelLabel}" Style="{StaticResource Muted}"
+                       FontSize="{StaticResource FontSmall}" VerticalAlignment="Center"
+                       Margin="0,0,6,0" />
+            <TextBox Width="44" Padding="4,2" MaxLength="3" VerticalAlignment="Center"
+                     Text="{Binding RewardLevel, Mode=OneWay}"
+                     KeyDown="OnRewardLevelKey" LostFocus="OnRewardLevelApply">
+              <TextBox.Style>
+                <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+                  <Setter Property="ToolTip" Value="{loc:T RewardLevelTipLocal}" />
+                  <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsLinked}" Value="True">
+                      <Setter Property="ToolTip" Value="{loc:T RewardLevelTipLinked}" />
+                    </DataTrigger>
+                  </Style.Triggers>
+                </Style>
+              </TextBox.Style>
+            </TextBox>
+            <!-- OneWay survives the click: a toggle sets its current value, not
+                 a local one, so a later refresh still moves it. -->
+            <CheckBox Margin="10,0,0,0" VerticalAlignment="Center"
+                      FontSize="{StaticResource FontSmall}"
+                      Foreground="{DynamicResource TextMutedBrush}"
+                      Content="{loc:T RewardXpBonusLabel}" ToolTip="{loc:T RewardXpBonusTip}"
+                      IsChecked="{Binding HasBonusPack, Mode=OneWay}"
+                      Click="OnBonusPackClick" />
+          </StackPanel>
 
-          <TextBlock Text="{Binding Notice}" Style="{StaticResource Muted}"
-                     FontSize="{StaticResource FontSmall}" VerticalAlignment="Center"
-                     TextWrapping="Wrap"
-                     Visibility="{Binding Notice, Converter={StaticResource EmptyToVisibility},
-                                          ConverterParameter=inverse}" />
-        </StackPanel>
+          <StackPanel VerticalAlignment="Center">
+            <TextBlock Text="{loc:T TrackerPitch}" Style="{StaticResource Muted}"
+                       FontSize="{StaticResource FontSmall}" VerticalAlignment="Center"
+                       TextWrapping="Wrap"
+                       Visibility="{Binding ShowsPitch, Converter={StaticResource BoolToVisibility}}" />
+
+            <TextBlock Text="{Binding Notice}" Style="{StaticResource Muted}"
+                       FontSize="{StaticResource FontSmall}" VerticalAlignment="Center"
+                       TextWrapping="Wrap"
+                       Visibility="{Binding Notice, Converter={StaticResource EmptyToVisibility},
+                                            ConverterParameter=inverse}" />
+          </StackPanel>
+        </DockPanel>
 
         <Button Grid.Column="1" Style="{StaticResource OutlineButton}" Padding="8,3"
                 VerticalAlignment="Center" Click="OnLinkTracker"

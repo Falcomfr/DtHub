@@ -11135,7 +11135,9 @@ monstres (environ 30 Ko chacun, trop lourd pour toutes les quêtes).
 bleu puis les kamas en or (vide sans kamas), une marque à
 trois paliers (flamme pleine, flamme creuse, point), l'entrée « Quêtes rentables »
 à côté de « Suivantes », et les cases de niveau et de Bonus Pack dans toutes
-les vues de la fenêtre des guides.
+les vues de la fenêtre des guides, sur la même ligne que le personnage, juste
+après lui : son niveau se change là où on le lit, et relié, il est enregistré sur
+Papycha puis affiché dans la liste des personnages.
 
 **Icônes serrées.** Sur une ligne de quête, les icônes de droite (priorité, rythme,
 statut, cadenas) ne gardent plus de place vide : absentes, elles sont repliées et
