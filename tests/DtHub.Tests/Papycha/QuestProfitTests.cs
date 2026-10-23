@@ -544,25 +544,37 @@ public class QuestProfitTests
         new(quest.Title, [quest], new QuestGain(xp, kamas), new QuestEffort(minutes, []), 0, false, false, 0);
 
     [Fact]
-    public void Each_short_list_ranks_on_its_own_side_for_the_effort_and_keeps_eight()
+    public void Each_short_list_ranks_on_its_own_side_for_the_effort_and_keeps_twenty()
     {
-        var catalog = Enumerable.Range(1, 12).Select(i => Quest(i)).ToArray();
-        // XP grows with the id, kamas shrink with it, and quest 12 gives none.
-        var rows = catalog.Select(q => Row(q, q.Id * 10, q.Id == 12 ? 0 : (13 - q.Id) * 10, 2)).ToList();
+        var catalog = Enumerable.Range(1, 26).Select(i => Quest(i)).ToArray();
+        // XP grows with the id, kamas shrink with it, and quest 26 gives none.
+        var rows = catalog.Select(q => Row(q, q.Id * 10, q.Id == 26 ? 0 : (27 - q.Id) * 10, 2)).ToList();
 
-        Assert.Equal([12, 11, 10, 9, 8, 7, 6, 5], Short(rows, catalog, kamas: false).Select(e => e.Quests[0].Id));
-        Assert.Equal([1, 2, 3, 4, 5, 6, 7, 8], Short(rows, catalog, kamas: true).Select(e => e.Quests[0].Id));
-        Assert.Equal([5, 6, 7, 8, 9, 10, 11], Short(rows.Skip(4), catalog, kamas: true).Select(e => e.Quests[0].Id));
+        Assert.Equal(Enumerable.Range(7, 20).Reverse(), Short(rows, catalog, kamas: false).Select(e => e.Quests[0].Id));
+        Assert.Equal(Enumerable.Range(1, 20), Short(rows, catalog, kamas: true).Select(e => e.Quests[0].Id));
+        Assert.Equal(Enumerable.Range(10, 16), Short(rows.Skip(9), catalog, kamas: true).Select(e => e.Quests[0].Id));
     }
 
     [Fact]
-    public void A_row_above_60_minutes_or_with_nothing_on_its_side_stays_out()
+    public void A_row_above_120_minutes_stays_out_of_a_list_of_ten_and_one_with_nothing_on_its_side_always()
     {
-        var catalog = new[] { Quest(1), Quest(2), Quest(3) };
-        List<ProfitEntry> rows = [Row(catalog[0], 1000, 1000, 61), Row(catalog[1], 10, 0, 60), Row(catalog[2], 0, 10, 1)];
+        var catalog = Enumerable.Range(1, 12).Select(i => Quest(i)).ToArray();
+        // Ten rows within the limit, one far richer above it, one with no kamas.
+        List<ProfitEntry> rows = [.. catalog.Take(10).Select(q => Row(q, 10, 10, 120)), Row(catalog[10], 1000, 1000, 121), Row(catalog[11], 10, 0, 1)];
 
-        Assert.Equal([2], Short(rows, catalog, kamas: false).Select(e => e.Quests[0].Id));
-        Assert.Equal([3], Short(rows, catalog, kamas: true).Select(e => e.Quests[0].Id));
+        Assert.Equal([12, .. Enumerable.Range(1, 10)], Short(rows, catalog, kamas: false).Select(e => e.Quests[0].Id));
+        Assert.Equal(Enumerable.Range(1, 10), Short(rows, catalog, kamas: true).Select(e => e.Quests[0].Id));
+    }
+
+    [Fact]
+    public void A_list_under_ten_is_topped_up_with_the_best_rows_above_120_minutes_after_its_own()
+    {
+        var catalog = Enumerable.Range(1, 14).Select(i => Quest(i)).ToArray();
+        // Three rows within the limit, eleven above it, better per minute as the id grows.
+        List<ProfitEntry> rows = [.. catalog.Take(3).Select(q => Row(q, 10, 0, 100)), .. catalog.Skip(3).Select(q => Row(q, q.Id * 100, 0, 200))];
+
+        Assert.Equal([1, 2, 3, 14, 13, 12, 11, 10, 9, 8], Short(rows, catalog, kamas: false).Select(e => e.Quests[0].Id));
+        Assert.Empty(Short(rows, catalog, kamas: true));
     }
 
     [Fact]

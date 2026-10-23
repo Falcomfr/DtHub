@@ -26,7 +26,7 @@ usable from the lists too, not only in a quest's guide.
    quests doable now, ranked among the character's doable quests; tooltip explains the
    tier, whether the quest is worth it mostly for XP or for kamas, and the effort reasons.
 4. **"Recommandées" view**, opened by a button in the window's top bar next to "À faire"
-   and "Accessibles" (its only entry point): two short lists, "Pour l'XP" and "Pour les kamas", 8 rows at most
+   and "Accessibles" (its only entry point): two short lists, "Pour l'XP" and "Pour les kamas", 20 rows at most
    each, every side ranked on its own gain per minute (ties by catalog order, then quest id), a row possibly in both;
    single quests only, a series by its next doable quest with "· Series 3/11" after its zone (D219). Rows carry no priority mark; the combined score below only drives the marks of
    the other lists (D219). Pressed again, it returns to where the reader was, guide included; Back
@@ -65,7 +65,7 @@ like the names. Item names stay read on demand (tooltip, open guide).
 ## Effort model (Claude's choice, tunable)
 
 Superseded by an estimated time in minutes (D221): the ranking is gain per minute and the short lists drop what takes more
-than 60 minutes. The first-version table follows, kept for the record.
+than 120 minutes unless a list would hold fewer than 10 (D219). The first-version table follows, kept for the record.
 
 Per objective, by `typeId` (templates from `QuestObjectiveTypes`, read 2026-10-23):
 

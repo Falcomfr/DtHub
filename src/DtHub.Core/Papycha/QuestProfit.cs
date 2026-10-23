@@ -240,8 +240,11 @@ public static class QuestProfit
         return (new ProfitEntry(title, quests, gain, effort, tier, started, side.ByKamas, side.Score), side.Score);
     }
 
-    /// <summary>Past this many minutes a row stays out of the short lists, however much it pays.</summary>
-    public const int ShortMinutes = 60;
+    /// <summary>Past this many minutes a row only tops up a short list holding fewer than <see cref="ShortFloor"/>.</summary>
+    public const int ShortMinutes = 120;
+
+    /// <summary>A short list shorter than this takes the best rows above <see cref="ShortMinutes"/>, after its own.</summary>
+    public const int ShortFloor = 10;
 
     private static readonly string[] Keyring = ["trousseau", "keyring", "llavero"];
 
@@ -277,26 +280,29 @@ public static class QuestProfit
 
     /// <summary>
     /// At most <paramref name="count"/> rows, best first on one side alone: its gain per minute, so a row never moves
-    /// because another came or went. Rows above <see cref="ShortMinutes"/> or gaining nothing on that side stay out; ties
-    /// follow the catalog, then the quest id.
+    /// because another came or went. Rows gaining nothing on that side stay out; rows above <see cref="ShortMinutes"/>
+    /// only top up a list of fewer than <see cref="ShortFloor"/>, after its own rows. Ties follow the catalog, then the
+    /// quest id.
     /// </summary>
     public static IReadOnlyList<T> Shortlist<T>(
         IEnumerable<T> rows, Func<T, QuestGain> gainOf, Func<T, int> minutesOf, Func<T, QuestSummary> firstOf,
-        IReadOnlyList<QuestSummary> catalog, bool kamas, int count = 8)
+        IReadOnlyList<QuestSummary> catalog, bool kamas, int count = 20)
     {
         ArgumentNullException.ThrowIfNull(catalog);
 
         var rank = new Dictionary<int, int>();
         for (var i = 0; i < catalog.Count; i++) rank.TryAdd(catalog[i].Id, i);
 
-        return [.. rows
+        var ranked = rows
             .Select(r => (Row: r, Side: kamas ? gainOf(r).Kamas : gainOf(r).Xp, Minutes: minutesOf(r), First: firstOf(r)))
-            .Where(r => r.Side > 0 && r.Minutes <= ShortMinutes)
+            .Where(r => r.Side > 0)
             .OrderByDescending(r => (double)r.Side / r.Minutes)
             .ThenBy(r => rank.GetValueOrDefault(r.First.Id, int.MaxValue))
             .ThenBy(r => r.First.Id)
-            .Take(count)
-            .Select(r => r.Row)];
+            .ToList();
+        var within = ranked.Where(r => r.Minutes <= ShortMinutes).Take(count).ToList();
+        var above = ranked.Where(r => r.Minutes > ShortMinutes).Take(Math.Max(0, ShortFloor - within.Count));
+        return [.. within.Concat(above).Select(r => r.Row)];
     }
 
     private static readonly HashSet<string> Articles = ["le", "la", "les", "l", "du", "des", "de", "the", "el", "los", "las", "del"];

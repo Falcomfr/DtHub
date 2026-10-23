@@ -25,9 +25,9 @@ belongs in the commits and in `docs/DECISIONS.md`.
 - A level box in the guides window: changing it updates your character's level on Papycha too.
 - Every quest list shows what each quest gives your character, XP and kamas side by side.
 - With the Papycha tracker linked, a small priority mark on the quests you can do now, from a dot to a flame, for the ones most worth doing, for XP or for kamas.
-- A "Recommended" button next to "To do" and "Available" shows two short lists with the Papycha tracker linked, "For XP" and "For kamas", the best quests to do now (from a series, only its next quest), at most 8 each, ranked by gain per minute.
+- A "Recommended" button next to "To do" and "Available" shows two short lists with the Papycha tracker linked, "For XP" and "For kamas", the best quests to do now (from a series, only its next quest), at most 20 each, ranked by gain per minute.
 - The level and Bonus Pack boxes are now in every view of the guides window.
-- Each quest shows an estimated time, about 25 min for example, worked out by DT Hub from the game's objectives and maps; Recommended ranks on XP and kamas per minute and leaves out what takes over an hour.
+- Each quest shows an estimated time, about 25 min for example, worked out by DT Hub from the game's objectives and maps; Recommended ranks on XP and kamas per minute and leaves out what takes over two hours, unless a list would hold fewer than 10.
 - Mark many quests done at once: the selection button in the guides list ticks quests (Shift+click for a range), and achievement and zone headings offer "Mark all done"; DT Hub writes them one by one, checks what Papycha kept and writes again what was lost.
 - With several characters linked, "Recommended" has a "Me" and a "Team" toggle: the quests several of your characters can do, with the gains added up; tick which characters count.
 - Dungeons that advance at least two recommended quests appear in "Recommended", and in the dungeon lists with the reward of the quest steps that go through them; every dungeon shows the estimated time of a run.

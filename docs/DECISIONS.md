@@ -11135,14 +11135,17 @@ en kamas valent toutes deux 1. Ces marques sont celles des autres listes ; les
 lignes de « Recommandées » n'en portent pas (voir plus bas).
 
 **Deux listes courtes.** « Recommandées » n'est plus une liste unique sur le
-score combiné mais deux : « Pour l'XP » et « Pour les kamas », 8 lignes au plus
-chacune, chaque côté classé sur son propre rapport par minute (une ligne peut
+score combiné mais deux : « Pour l'XP » et « Pour les kamas », 20 lignes au plus
+chacune (8 dans la première version : les listes restaient presque vides, revue
+du 23/10/2026), chaque côté classé sur son propre rapport par minute (une ligne peut
 être dans les deux). Cette valeur ne dépend que de la ligne : classer sur le score
 combiné faisait changer l'ordre à chaque affichage, parce que le meilleur rapport
 de chaque côté, qui sert de diviseur, bougeait avec l'ensemble des quêtes
 faisables (une quête finie en entre-temps réordonnait des lignes inchangées).
-Égalités : ordre du catalogue, puis identifiant de la quête. Exclus des listes
-courtes : une ligne de plus de 60 minutes, un côté sans gain, une quête
+Égalités : ordre du catalogue, puis identifiant de la quête. Une ligne de plus de
+120 minutes n'y entre que pour compléter à 10 une liste qui en aurait moins,
+après ses propres lignes, les meilleures d'abord (son temps affiché le dit).
+Exclus des listes courtes : un côté sans gain, une quête
 « trousseau » (objectif texte contenant trousseau, keyring ou llavero), une quête
 de plus de 5 âmes. Les listes courtes ne montrent que des quêtes seules : d'une
 série, seulement sa prochaine quête faisable (la première de son entrée), sur sa
@@ -11331,8 +11334,9 @@ Claude, vérifiés le 23/10/2026 sur 18 pages publiques (rapport médian de 1,1 
 courtes de « Recommandées » classent chacune sur l'XP par minute ou les kamas
 par minute, et le score combiné des marques de priorité aussi. Les règles
 d'égalité restent (ordre du catalogue, puis identifiant de la quête). Une ligne
-qui prend plus de 60 minutes sort des listes courtes (au lieu d'un effort
-au-dessus de 25) ; l'exclusion du trousseau et des âmes reste, et une série n'y
+qui prend plus de 120 minutes (60 dans la première version) ne fait que
+compléter à 10 une liste courte trop maigre (au lieu d'un effort au-dessus de
+25, D219) ; l'exclusion du trousseau et des âmes reste, et une série n'y
 figure que par sa prochaine quête faisable (D219). Les raisons de l'infobulle sont classées sur leur temps,
 le trajet compris.
 
