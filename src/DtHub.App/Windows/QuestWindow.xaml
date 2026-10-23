@@ -1588,21 +1588,25 @@
                          other rows and in a list with no gain at all. -->
                     <!-- The gains' hover adds, for a quest asking items, where
                          they come from: read when the hover opens, dropped
-                         when it closes, filled in place once read. -->
+                         when it closes, filled in place once read. Rich: the
+                         plain tooltip shows its content as text, and a panel
+                         as text is empty. -->
                     <Border x:Name="GainXp" Width="54" Margin="4,0,0,0"
                             Background="Transparent" VerticalAlignment="Center"
                             ToolTipService.InitialShowDelay="200"
                             ToolTipService.ShowDuration="30000"
                             ToolTipOpening="OnGainTipOpening" ToolTipClosing="OnGainTipClosing">
                       <Border.ToolTip>
-                        <ToolTip>
-                          <StackPanel>
-                            <TextBlock Text="{Binding ProfitTip}" />
-                            <TextBlock Margin="0,6,0,0" Visibility="Collapsed" />
+                        <ToolTip Style="{StaticResource RichToolTip}">
+                          <StackPanel MaxWidth="330" TextElement.Foreground="{DynamicResource TextBrush}"
+                                      TextElement.FontFamily="{StaticResource UiFont}"
+                                      TextElement.FontSize="{StaticResource FontBody}">
+                            <TextBlock Text="{Binding ProfitTip}" TextWrapping="Wrap" />
+                            <TextBlock Margin="0,6,0,0" TextWrapping="Wrap" Visibility="Collapsed" />
                           </StackPanel>
                         </ToolTip>
                       </Border.ToolTip>
-                      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                      <StackPanel x:Name="GainXpValeur" Orientation="Horizontal" HorizontalAlignment="Right">
                         <Path Width="10" Height="10" Margin="0,0,2,0" VerticalAlignment="Center"
                               Stretch="None" Fill="{DynamicResource GainXpBrush}"
                               Data="M 5,0.5 C 5.4,3.6 6.4,4.6 9.5,5 C 6.4,5.4 5.4,6.4 5,9.5
@@ -1619,10 +1623,12 @@
                             ToolTipService.ShowDuration="30000"
                             ToolTipOpening="OnGainTipOpening" ToolTipClosing="OnGainTipClosing">
                       <Border.ToolTip>
-                        <ToolTip>
-                          <StackPanel>
-                            <TextBlock Text="{Binding ProfitTip}" />
-                            <TextBlock Margin="0,6,0,0" Visibility="Collapsed" />
+                        <ToolTip Style="{StaticResource RichToolTip}">
+                          <StackPanel MaxWidth="330" TextElement.Foreground="{DynamicResource TextBrush}"
+                                      TextElement.FontFamily="{StaticResource UiFont}"
+                                      TextElement.FontSize="{StaticResource FontBody}">
+                            <TextBlock Text="{Binding ProfitTip}" TextWrapping="Wrap" />
+                            <TextBlock Margin="0,6,0,0" TextWrapping="Wrap" Visibility="Collapsed" />
                           </StackPanel>
                         </ToolTip>
                       </Border.ToolTip>
@@ -1917,6 +1923,11 @@
                        rows that are not quests. -->
                   <DataTrigger Binding="{Binding GainKamas}" Value="{x:Null}">
                     <Setter TargetName="GainKamasValeur" Property="Visibility" Value="Collapsed" />
+                  </DataTrigger>
+
+                  <!-- No XP at all (bounties, Nowel stars): no "0", the column and its hover stay. -->
+                  <DataTrigger Binding="{Binding GainXp}" Value="">
+                    <Setter TargetName="GainXpValeur" Property="Visibility" Value="Collapsed" />
                   </DataTrigger>
 
                   <DataTrigger Binding="{Binding GainXp}" Value="{x:Null}">

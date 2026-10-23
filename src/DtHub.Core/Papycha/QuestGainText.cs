@@ -16,12 +16,15 @@ public static class QuestGainText
             : value.ToString(culture);
     }
 
-    /// <summary>The XP and kamas columns; no kamas text when the quest gives none.</summary>
+    /// <summary>
+    /// The XP and kamas columns: an empty XP text when the quest gives none (known, unlike null), no kamas text when
+    /// it gives none.
+    /// </summary>
     public static (string Xp, string? Kamas) Columns(QuestGain gain)
     {
         ArgumentNullException.ThrowIfNull(gain);
 
-        return (Compact(gain.Xp), gain.Kamas > 0 ? Compact(gain.Kamas) : null);
+        return (gain.Xp > 0 ? Compact(gain.Xp) : string.Empty, gain.Kamas > 0 ? Compact(gain.Kamas) : null);
     }
 
     /// <summary>

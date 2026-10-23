@@ -36,6 +36,14 @@ public class QuestGainTextTests : IDisposable
     }
 
     [Fact]
+    public void Zero_XP_leaves_its_column_empty_but_known()
+    {
+        // Bounties and Nowel stars give no XP in the game's own data: no "0" shown, the kamas column stays.
+        Assert.Equal(("", "35"), QuestGainText.Columns(new QuestGain(0, 35)));
+        Assert.Equal(("", null), QuestGainText.Columns(new QuestGain(0, 0)));
+    }
+
+    [Fact]
     public void L_infobulle_d_une_quete_non_faisable_donne_XP_et_kamas() =>
         Assert.Equal($"{1_200L.ToString("N0", Fr)} XP · 35 kamas", QuestGainText.Tip(new QuestGain(1_200, 35)));
 

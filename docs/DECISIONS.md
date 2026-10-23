@@ -11174,7 +11174,9 @@ une quête (étape en cours, objectifs faits), que seul le jeu montre, et les
 monstres (environ 30 Ko chacun, trop lourd pour toutes les quêtes).
 
 **Affichage.** Deux colonnes de gain à droite de chaque ligne de quête, l'XP en
-bleu puis les kamas en or (vide sans kamas), une icône cadeau quand la quête donne
+bleu puis les kamas en or (chacune vide quand la quête n'en donne pas : 61
+quêtes du jeu, primes « On recherche… » ou étoiles de Nowel, ont un ratio d'XP
+nul, aucun « 0 » n'est affiché ; leur survol reste), une icône cadeau quand la quête donne
 des objets ou d'autres récompenses à ce niveau (survol : une ligne par
 récompense), le nom de la zone en suffixe gris après le titre dans
 « Recommandées », suivi pour une quête de série du nom de la série et de sa place
