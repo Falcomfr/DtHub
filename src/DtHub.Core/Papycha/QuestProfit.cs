@@ -86,11 +86,18 @@ public static class QuestProfit
         return total is null ? null : new QuestGain(total.Experience, total.Kamas);
     }
 
-    public static bool IsDoable(QuestSummary quest, TrackerProgress? progress, TouchQuestFacts facts, int level) =>
+    public static bool IsDoable(QuestSummary quest, TrackerProgress? progress, TouchQuestFacts facts, int level, QuestChainIndex chain) =>
         progress is not null && Continuable(quest, progress, facts, level)
-        && (progress.Available.Contains(quest.Id) || QuestTracking.StatusOf(progress, quest.Id) == QuestStatus.InProgress);
+        && (progress.Available.Contains(quest.Id) || QuestTracking.StatusOf(progress, quest.Id) == QuestStatus.InProgress
+            || PreviousDone(quest, progress, chain));
 
-    // Every doable rule except membership in Available, which lists only what is startable now.
+    // The site fills Available for its active character only: for the others, every previous quest done makes it startable.
+    // A prerequisite naming no quest (alignment, free text) is not checked.
+    private static bool PreviousDone(QuestSummary quest, TrackerProgress progress, QuestChainIndex chain) =>
+        quest.Prerequisites.Select(chain.Resolve)
+            .All(p => p is null || p.Id == quest.Id || QuestTracking.StatusOf(progress, p.Id) == QuestStatus.Completed);
+
+    // Every doable rule except being startable now (Available, in progress, previous quests done).
     private static bool Continuable(QuestSummary quest, TrackerProgress progress, TouchQuestFacts facts, int level)
     {
         ArgumentNullException.ThrowIfNull(quest);
@@ -105,10 +112,12 @@ public static class QuestProfit
         IEnumerable<QuestSummary> catalog, IReadOnlyDictionary<int, TouchQuestFacts> facts, TrackerProgress? progress,
         int level, int bonusPercent)
     {
+        var all = catalog.ToList();
+        var chain = new QuestChainIndex(all);
         var raw = new List<(int Id, QuestGain Gain, QuestEffort Effort)>();
-        foreach (var quest in catalog)
+        foreach (var quest in all)
         {
-            if (!facts.TryGetValue(quest.Id, out var f) || !IsDoable(quest, progress, f, level)) continue;
+            if (!facts.TryGetValue(quest.Id, out var f) || !IsDoable(quest, progress, f, level, chain)) continue;
             if (GainOf(f, level, bonusPercent) is not { } gain || (gain.Xp == 0 && gain.Kamas == 0)) continue;
             raw.Add((quest.Id, gain, EffortOf(f, level)));
         }
@@ -148,7 +157,7 @@ public static class QuestProfit
 
     /// <summary>
     /// A series run starts at a doable quest and goes on with the following quests that pass every
-    /// doable rule but Available, in play order, until one fails; the next doable quest starts another
+    /// doable rule but being startable now, in play order, until one fails; the next doable quest starts another
     /// run. Every member counts in gain and effort, scored or not.
     /// </summary>
     public static IReadOnlyList<ProfitEntry> Entries(
@@ -158,6 +167,7 @@ public static class QuestProfit
         var best = Maxima(scores.Values.Select(s => (s.Gain, s.Effort.Value)));
         var entries = new List<(ProfitEntry Entry, double Score)>();
         var all = catalog.ToList();
+        var chain = new QuestChainIndex(all);
         var series = all.Where(q => q.SuccessName.Length > 0).GroupBy(q => q.SuccessName).Where(g => g.Count() > 1).ToList();
         var inSeries = series.SelectMany(g => g).Select(q => q.Id).ToHashSet();
 
@@ -183,7 +193,7 @@ public static class QuestProfit
                     var known = facts.TryGetValue(q.Id, out var f);
                     if (members.Count == 0)
                     {
-                        if (known && IsDoable(q, progress, f!, level)) members.Add(q);
+                        if (known && IsDoable(q, progress, f!, level, chain)) members.Add(q);
                     }
                     else if (QuestTracking.StatusOf(progress, q.Id) == QuestStatus.Completed) continue;
                     else if (known && Continuable(q, progress, f!, level)) members.Add(q);

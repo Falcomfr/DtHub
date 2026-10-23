@@ -78,6 +78,7 @@ public class QuestProfitTests
     public void Doable_rules_one_by_one()
     {
         var facts = Facts();
+        var chain = new QuestChainIndex([]);
         var progress = Progress([1, 2, 3, 4, 5, 6], new()
         {
             [2] = QuestStatus.Blocked,
@@ -85,17 +86,35 @@ public class QuestProfitTests
             [4] = QuestStatus.InProgress,
             [7] = QuestStatus.InProgress,
         }, [5]);
-        Assert.True(QuestProfit.IsDoable(Quest(1), progress, facts, 10));
-        Assert.False(QuestProfit.IsDoable(Quest(2), progress, facts, 10));
-        Assert.False(QuestProfit.IsDoable(Quest(3), progress, facts, 10));
-        Assert.True(QuestProfit.IsDoable(Quest(4), progress, facts, 10));
-        Assert.False(QuestProfit.IsDoable(Quest(5), progress, facts, 10));
-        Assert.True(QuestProfit.IsDoable(Quest(7), progress, facts, 10));
-        Assert.False(QuestProfit.IsDoable(Quest(8), progress, facts, 10));
-        Assert.False(QuestProfit.IsDoable(Quest(1), progress, facts, 9));
-        Assert.False(QuestProfit.IsDoable(Quest(1, rec: QuestRecurrence.Daily), progress, facts, 10));
-        Assert.False(QuestProfit.IsDoable(Quest(1) with { SectionIds = [QuestRecurrenceLabel.RepeatableSection] }, progress, facts, 10));
-        Assert.False(QuestProfit.IsDoable(Quest(1), null, facts, 10));
+        Assert.True(QuestProfit.IsDoable(Quest(1), progress, facts, 10, chain));
+        Assert.False(QuestProfit.IsDoable(Quest(2), progress, facts, 10, chain));
+        Assert.False(QuestProfit.IsDoable(Quest(3), progress, facts, 10, chain));
+        Assert.True(QuestProfit.IsDoable(Quest(4), progress, facts, 10, chain));
+        Assert.False(QuestProfit.IsDoable(Quest(5), progress, facts, 10, chain));
+        Assert.True(QuestProfit.IsDoable(Quest(7), progress, facts, 10, chain));
+        Assert.True(QuestProfit.IsDoable(Quest(8), progress, facts, 10, chain));
+        Assert.False(QuestProfit.IsDoable(Quest(1), progress, facts, 9, chain));
+        Assert.False(QuestProfit.IsDoable(Quest(1, rec: QuestRecurrence.Daily), progress, facts, 10, chain));
+        Assert.False(QuestProfit.IsDoable(Quest(1) with { SectionIds = [QuestRecurrenceLabel.RepeatableSection] }, progress, facts, 10, chain));
+        Assert.False(QuestProfit.IsDoable(Quest(1), null, facts, 10, chain));
+    }
+
+    [Fact]
+    public void Out_of_available_a_quest_is_doable_once_its_previous_quests_are_completed()
+    {
+        // The site lists available quests for its active character only: here, quest 5 alone.
+        var catalog = new List<QuestSummary>
+        {
+            Quest(1),
+            Quest(2) with { Prerequisites = ["Q1"] },
+            Quest(3) with { Prerequisites = ["Q1", "Q6"] },
+            Quest(4) with { Prerequisites = ["Alignement bontarien 40 minimum."] },
+            Quest(5) with { Prerequisites = ["Q6"] },
+            Quest(6),
+        };
+        var facts = catalog.ToDictionary(q => q.Id, _ => Facts());
+        var scores = QuestProfit.Score(catalog, facts, Progress([5], completed: [1]), 10, 0);
+        Assert.Equal([2, 4, 5, 6], scores.Keys.Order());
     }
 
     private static (List<QuestSummary> Catalog, Dictionary<int, TouchQuestFacts> Facts) Twenty()

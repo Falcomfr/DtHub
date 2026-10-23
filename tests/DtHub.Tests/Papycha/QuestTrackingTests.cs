@@ -33,19 +33,23 @@ public class QuestTrackingTests
 
     [Fact]
     public void Passes_to_do_drops_completed_and_ignored() =>
-        Assert.Equal([1, 2, 6], Enumerable.Range(1, 6).Where(i => QuestTracking.Passes(Progress, i, true, false)));
+        Assert.Equal([1, 2, 6], Enumerable.Range(1, 6).Where(i => QuestTracking.Passes(Progress, i, true, false, false)));
 
     [Fact]
     public void Passes_available_keeps_available_only() =>
-        Assert.Equal([1, 6], Enumerable.Range(1, 6).Where(i => QuestTracking.Passes(Progress, i, false, true)));
+        Assert.Equal([1, 6], Enumerable.Range(1, 6).Where(i => QuestTracking.Passes(Progress, i, false, true, false)));
 
     [Fact]
     public void Passes_both_filters_combine() =>
-        Assert.Equal([1, 6], Enumerable.Range(1, 6).Where(i => QuestTracking.Passes(Progress, i, true, true)));
+        Assert.Equal([1, 6], Enumerable.Range(1, 6).Where(i => QuestTracking.Passes(Progress, i, true, true, false)));
+
+    [Fact]
+    public void Passes_available_also_keeps_what_is_startable() =>
+        Assert.Equal([1, 3, 6], Enumerable.Range(1, 6).Where(i => QuestTracking.Passes(Progress, i, false, true, i == 3)));
 
     [Fact]
     public void Passes_is_always_true_without_progress() =>
-        Assert.True(QuestTracking.Passes(null, 1, true, true));
+        Assert.True(QuestTracking.Passes(null, 1, true, true, false));
 
     [Theory]
     [InlineData(QuestStatus.NotStarted, 5, 1, 0, true)]

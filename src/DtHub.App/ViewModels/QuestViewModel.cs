@@ -205,7 +205,10 @@ public sealed partial class QuestViewModel : ObservableObject
     }
 
     private bool Passes(QuestSummary quest) =>
-        QuestTracking.Passes(Tracker.Progress, quest.Id, FilterToDo, FilterAvailable);
+        QuestTracking.Passes(Tracker.Progress, quest.Id, FilterToDo, FilterAvailable,
+            FilterAvailable && Tracker.Progress is { } progress && _tree.Chain is { } chain
+            && _facts is not null && _facts.TryGetValue(quest.Id, out var facts)
+            && QuestProfit.IsDoable(quest, progress, facts, Tracker.RewardLevel, chain));
 
     /// <summary>The "to do" filter of the list, remembered.</summary>
     [ObservableProperty]

@@ -111,7 +111,7 @@ public sealed class QuestChainIndex
     /// means requiring everything it contains. Without this reading,
     /// one prerequisite in eight linked to nothing.
     /// </summary>
-    private QuestSummary? Resolve(string? need)
+    public QuestSummary? Resolve(string? need)
     {
         var target = PrerequisiteLabel.Of(need);
 

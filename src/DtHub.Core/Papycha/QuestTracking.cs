@@ -74,8 +74,10 @@ public static class QuestTracking
     /// <summary>
     /// Whether a quest stays in the list under the two filters. Without a
     /// linked tracker nothing is filtered: the list must read as before.
+    /// <paramref name="startable"/> is DT Hub's own reading, since the site
+    /// lists available quests for its active character only.
     /// </summary>
-    public static bool Passes(TrackerProgress? progress, int questId, bool toDo, bool available)
+    public static bool Passes(TrackerProgress? progress, int questId, bool toDo, bool available, bool startable)
     {
         if (progress is null)
         {
@@ -87,7 +89,7 @@ public static class QuestTracking
             return false;
         }
 
-        return !available || progress.Available.Contains(questId);
+        return !available || startable || progress.Available.Contains(questId);
     }
 
     /// <summary>
