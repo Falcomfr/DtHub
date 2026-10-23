@@ -89,7 +89,7 @@ public class QuestPlanningTests
         var team = QuestPlanning.Team(catalog, facts, [Character("A", 10, all), Character("B", 10, all)], 0);
         Assert.Equal(20, team.Count);
         Assert.Equal(20, team[0].Entry.Quests.Single().Id);
-        Assert.Equal([2, 3, 5, 10], new[] { 3, 2, 1, 0 }.Select(tier => team.Count(t => t.Tier == tier)));
+        Assert.Equal([2, 3, 5, 10], [team.Count(t => t.Tier == 3), team.Count(t => t.Tier == 2), team.Count(t => t.Tier == 1), team.Count(t => t.Tier == 0)]);
     }
 
     [Fact]
