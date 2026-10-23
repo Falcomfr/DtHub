@@ -50,11 +50,13 @@ Per step, with `L` the character's level, `opt` the step's `optimalLevel`,
 `d` its `duration`, and the ratios read as the server sends them (float32
 values such as 0.80000001):
 
-- `fixe(x) = floor(x · (100 + 2x)² / 20 · d · xpRatio)`
-- XP when `L ≤ opt`: `fixe(L) · (1 + bonus)`
-- XP when `L > opt`: `floor(0.3 · fixe(opt) + 0.7 · fixe(min(L, 1.5 · opt))) · (1 + bonus)`
-- kamas: `(K² + 20K − 20) · kamasRatio · d`, with `K = L` when
+- `fixe(x) = floor(x · (100 + 2x)² / 20) · d · xpRatio` (no rounding after the ratios)
+- XP when `L ≤ opt`: `floor(fixe(L) · (1 + bonus))`
+- XP when `L > opt`: `floor(floor((1 − 0.7) · fixe(opt) + 0.7 · fixe(min(L, 1.5 · opt))) · (1 + bonus))`
+- kamas: `floor((K² + 20K − 20) · kamasRatio · d)`, with `K = L` when
   `kamasScaleWithPlayerLevel`, else `K = opt`.
+
+`d`, the ratios and 0.7 are float32 widened to double; the rest is double.
 
 `bonus` is the character's XP bonus in percent / 100 (the Bonus Pack gives
 +150 %, shown in game under the rewards). A quest's reward is the sum of its
@@ -75,9 +77,12 @@ settled before release** with one more capped case read in game (a quest whose
 level is below two thirds of the character's), and the formula adjusted to
 match. Until then the code carries the PC rule above.
 
-The float rounding matters: the 1 162 075 case matches only when 0.7 and
-0.3 are float32, as the game computes them. The builder keeps the game's
-precision and tests each row of the table above.
+The rounding matters: the Eni row matches only with the floor inside
+`fixe`, and the Cra row only without a floor after the ratios. The builder
+keeps exactly this precision and tests each row of the table above. The
+capped Enu row gives 581 040 with this rule; the game shows 1 162 075, which
+is not exactly twice either (twice would be 1 162 080), so the capped rule
+itself is in doubt, not just a factor.
 
 ## Goals
 
