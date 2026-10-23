@@ -70,6 +70,20 @@ public class QuestTrackingTests
     }
 
     [Fact]
+    public void NextQuests_read_from_what_is_done_leave_repeatable_quests_out()
+    {
+        var catalog = new[]
+        {
+            Named(4),
+            Named(30, 0, "Q4"),
+            Named(31, 0, "Q4") with { Recurrence = QuestRecurrence.Daily },
+            Named(32, 0, "Q4") with { SectionIds = [QuestRecurrenceLabel.RepeatableSection] },
+        };
+
+        Assert.Equal([30], QuestTracking.NextQuests(Progress, catalog).Select(q => q.Id));
+    }
+
+    [Fact]
     public void NextQuests_come_in_play_order()
     {
         var catalog = new[] { Named(4), Named(20, 3, "Q4"), Named(21, 1, "Q4"), Named(22, 2, "Q4") };

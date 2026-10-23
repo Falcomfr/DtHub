@@ -97,7 +97,7 @@ public static class QuestTracking
     /// it gives one; it does for its active character only, so otherwise
     /// the quests not done whose previous quests are all completed, in play
     /// order. A quest naming no previous quest is no one's follow-up and
-    /// stays out, as do ignored ones.
+    /// stays out, as do ignored and repeatable ones.
     /// </summary>
     public static IReadOnlyList<QuestSummary> NextQuests(TrackerProgress? progress, IReadOnlyList<QuestSummary> catalog)
     {
@@ -117,8 +117,10 @@ public static class QuestTracking
 
         var chain = new QuestChainIndex(catalog);
 
+        // Repeatable quests follow their previous quests forever: they made the list very long.
         return QuestPlayOrder.Sorted(catalog.Where(q =>
-            StatusOf(progress, q.Id) is not (QuestStatus.Completed or QuestStatus.Ignored)
+            !QuestRecurrenceLabel.IsRepeatable(q)
+            && StatusOf(progress, q.Id) is not (QuestStatus.Completed or QuestStatus.Ignored)
             && q.Prerequisites.Select(chain.Resolve).OfType<QuestSummary>().Where(p => p.Id != q.Id).ToList() is { Count: > 0 } previous
             && previous.All(p => StatusOf(progress, p.Id) == QuestStatus.Completed)));
     }
