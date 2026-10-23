@@ -38,10 +38,6 @@ public sealed partial class QuestViewModel : ObservableObject
             if (e.PropertyName is nameof(QuestTrackerViewModel.RewardLevel) or nameof(QuestTrackerViewModel.RewardXpBonus))
             {
                 _ = RefreshRewardsAsync();
-            }
-
-            if (e.PropertyName is nameof(QuestTrackerViewModel.RewardLevel) or nameof(QuestTrackerViewModel.RewardXpBonus))
-            {
                 Rescore();
             }
         };
@@ -461,10 +457,11 @@ public sealed partial class QuestViewModel : ObservableObject
 
     /// <summary>
     /// The "to do" and "available" filters: only where they act, the lists of
-    /// quests, linked and not searching. A search is never filtered, and a
-    /// guide has nothing to filter.
+    /// quests, linked and not searching. A search is never filtered, a
+    /// guide has nothing to filter, and "Recommandées" lists only what is
+    /// doable already.
     /// </summary>
-    public bool ShowsFilters => Tracker.IsLinked && IsListOpen && Query.Length == 0;
+    public bool ShowsFilters => Tracker.IsLinked && IsListOpen && Query.Length == 0 && _section != QuestTree.ProfitSection;
 
     /// <summary>
     /// True if closing the list leads somewhere.
@@ -882,6 +879,7 @@ public sealed partial class QuestViewModel : ObservableObject
     {
         _section = 0;
         OnPropertyChanged(nameof(ShowsRecommended));
+        OnPropertyChanged(nameof(ShowsFilters));
         Breadcrumb = string.Empty;
         ClearBack();
 
@@ -921,6 +919,7 @@ public sealed partial class QuestViewModel : ObservableObject
     {
         _section = section;
         OnPropertyChanged(nameof(ShowsRecommended));
+        OnPropertyChanged(nameof(ShowsFilters));
 
         if (section == 0)
         {
@@ -1059,7 +1058,7 @@ public sealed partial class QuestViewModel : ObservableObject
             Breadcrumb = Strings.Get("QuestAreaCrumb") + Separator + Strings.Get("NextQuests");
             SetBack(target: QuestTree.RootSection);
 
-            // The site's order, not DT Hub's: these are its suggestions.
+            // Already in order: the site's when it suggests, play order otherwise.
             foreach (var quest in NextQuests().Where(Passes))
             {
                 Nodes.Add(Marked(_tree.NodeOf(quest)));
@@ -1111,7 +1110,7 @@ public sealed partial class QuestViewModel : ObservableObject
         }
 
         // Read before clearing the query, which redraws the section left.
-        _beforeRecommended = (_section == QuestTree.ProfitSection ? QuestTree.RootSection : _section, IsListOpen);
+        _beforeRecommended = (_section == QuestTree.ProfitSection ? _beforeRecommended.Section : _section, IsListOpen);
         Query = string.Empty;
         ShowSection(QuestTree.ProfitSection);
         IsListOpen = true;
@@ -1146,10 +1145,10 @@ public sealed partial class QuestViewModel : ObservableObject
             var node = Marked(_tree.NodeOf(entry.Quests[0]));
             var (xp, kamas) = QuestGainText.Columns(entry.Gain);
 
-            // A single quest under way already carries the status hourglass on its right.
+            // A quest under way, alone or first of its series, already carries the status hourglass on its right.
             Nodes.Add(entry.Quests.Count == 1 ? node : node with
             {
-                Started = entry.Started,
+                Started = entry.Started && node.Status != QuestStatus.InProgress,
                 Label = entry.Title,
                 Detail = QuestTree.Nombre(entry.Quests.Count),
                 // The first quest's prerequisites are not the series'.
@@ -1174,18 +1173,8 @@ public sealed partial class QuestViewModel : ObservableObject
             : QuestProfit.Entries(_catalog.Catalog.Quests, Scores, Tracker.Progress, _facts, Tracker.RewardLevel,
                 Tracker.RewardXpBonus);
 
-    /// <summary>The catalogue quests the site suggests next, in its order.</summary>
-    private IEnumerable<QuestSummary> NextQuests()
-    {
-        if (Tracker.Progress is not { } progress)
-        {
-            return [];
-        }
-
-        var byId = _catalog.Catalog.Quests.ToLookup(q => q.Id);
-
-        return progress.Next.Distinct().SelectMany(id => byId[id].Take(1));
-    }
+    /// <summary>The catalogue quests to suggest next: the site's, or read from the previous quests done.</summary>
+    private IReadOnlyList<QuestSummary> NextQuests() => QuestTracking.NextQuests(Tracker.Progress, _catalog.Catalog.Quests);
 
     /// <summary>
     /// Section the back button leads back to, when there is a level above.

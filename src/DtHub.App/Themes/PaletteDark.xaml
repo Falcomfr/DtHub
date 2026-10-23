@@ -116,7 +116,7 @@
   <SolidColorBrush x:Key="GlyphSuccessBrush" Color="#FFE0BE58" />
   <SolidColorBrush x:Key="GlyphNeedBrush" Color="#FF6F9CC4" />
 
-  <!-- The priority marks of profitable quests: an ember orange, warmer
+  <!-- The priority marks of recommended quests: an ember orange, warmer
        than the places' amber and the achievements' gold beside it. -->
   <SolidColorBrush x:Key="GlyphPriorityBrush" Color="#FFE5814F" />
 

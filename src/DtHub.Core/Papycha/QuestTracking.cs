@@ -93,6 +93,37 @@ public static class QuestTracking
     }
 
     /// <summary>
+    /// The quests to suggest next. The site's own list, in its order, when
+    /// it gives one; it does for its active character only, so otherwise
+    /// the quests not done whose previous quests are all completed, in play
+    /// order. A quest naming no previous quest is no one's follow-up and
+    /// stays out, as do ignored ones.
+    /// </summary>
+    public static IReadOnlyList<QuestSummary> NextQuests(TrackerProgress? progress, IReadOnlyList<QuestSummary> catalog)
+    {
+        ArgumentNullException.ThrowIfNull(catalog);
+
+        if (progress is null)
+        {
+            return [];
+        }
+
+        if (progress.Next.Count > 0)
+        {
+            var byId = catalog.ToLookup(q => q.Id);
+
+            return [.. progress.Next.Distinct().SelectMany(id => byId[id].Take(1))];
+        }
+
+        var chain = new QuestChainIndex(catalog);
+
+        return QuestPlayOrder.Sorted(catalog.Where(q =>
+            StatusOf(progress, q.Id) is not (QuestStatus.Completed or QuestStatus.Ignored)
+            && q.Prerequisites.Select(chain.Resolve).OfType<QuestSummary>().Where(p => p.Id != q.Id).ToList() is { Count: > 0 } previous
+            && previous.All(p => StatusOf(progress, p.Id) == QuestStatus.Completed)));
+    }
+
+    /// <summary>
     /// Moving past the first step of an untouched quest starts it. The step
     /// restored when the guide reopens does not count, or merely opening a
     /// guide would mark it started.

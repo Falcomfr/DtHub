@@ -2650,7 +2650,7 @@ To avoid it: {1}  ›  "Auto lock Secure Folder" › the longest option.</value>
     <value>Hides finished or ignored quests. Those to do or in progress stay, even if not startable yet.</value>
   </data>
   <data name="FilterAvailableTip" xml:space="preserve">
-    <value>Keeps only the quests your character can start now, according to Papycha: level and earlier quests done. With “To do”, what you can do right away.</value>
+    <value>Keeps only the quests your character can start now: level and earlier quests done, read from your tracked progress. With “To do”, what you can do right away.</value>
   </data>
   <data name="NextQuests" xml:space="preserve">
     <value>Next</value>

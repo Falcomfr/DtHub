@@ -32,7 +32,7 @@ public sealed class QuestTree
     /// <summary>The quests the tracker suggests next, in the site's order.</summary>
     public const int NextSection = -105;
 
-    /// <summary>The character's doable quests and series, ranked by gain for effort.</summary>
+    /// <summary>The character's recommended quests and series, ranked by combined score.</summary>
     public const int ProfitSection = -106;
 
     /// <summary>

@@ -11137,10 +11137,10 @@ bleu puis les kamas en or (vide sans kamas), une marque à
 trois paliers (flamme pleine, flamme creuse, point), une vue « Quêtes
 recommandées » ouverte par un bouton « Recommandées » de la barre du haut, à côté
 de « À faire » et « Accessibles » (seule entrée : la branche des zones est
-retirée ; pressé de nouveau, ou par Retour, il rend la section ou le guide
-quitté ; non relié, une ligne dit de relier le suivi Papycha), et les cases de niveau et de Bonus Pack dans toutes
-les vues de la fenêtre des guides, sur la même ligne que le personnage, juste
-après lui : son niveau se change là où on le lit, et relié, il est enregistré sur
+retirée ; pressé de nouveau, il rend la section ou le guide quitté, Retour
+rend la section quittée, liste ouverte ; non relié, une ligne dit de relier le suivi Papycha), et les cases de niveau et de Bonus Pack dans toutes
+les vues de la fenêtre des guides, juste après le personnage, sur sa ligne quand
+la place le permet et dessous sinon : son niveau se change là où on le lit, et relié, il est enregistré sur
 Papycha puis affiché dans la liste des personnages.
 
 **Icônes serrées.** Sur une ligne de quête, les icônes de droite (priorité, rythme,
@@ -11152,6 +11152,7 @@ pratique. Seuls les gains gardent des colonnes fixes, des nombres doivent
 s'aligner. Même règle sur les donjons, raids et antres : la pierre d'âme seule dit
 la taille (le mot passe dans l'infobulle), et les colonnes fixes, gardées à cause
 de la virtualisation, sont réduites à leur contenu (18, 60 et 19 px au lieu de
-90, 66 et 26). La taille arrive en majuscule de l'API (« Gigantesque ») alors que
-les pierres attendaient « gigantesque » : elle est mise en minuscules, sans quoi
-aucune pierre ne s'affichait.
+90, 66 et 26). La taille garde la majuscule de l'API (« Gigantesque ») : c'est le
+mot de l'infobulle, et les pierres attendent les quatre mots tels que l'API les
+écrit (« Petite », « Moyenne », « Grande », « Gigantesque ») ; une autre casse
+n'affichait aucune pierre.

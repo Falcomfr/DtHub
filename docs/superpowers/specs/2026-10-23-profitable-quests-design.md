@@ -28,7 +28,8 @@ usable from the lists too, not only in a quest's guide.
 4. **"Recommandées" view**, opened by a button in the window's top bar next to "À faire"
    and "Accessibles" (its only entry point): the doable quests and series ranked by the
    combined score below, most worth doing first; a started series keeps its rank and shows
-   an hourglass. Pressed again, or Back, returns to where the reader was.
+   an hourglass. Pressed again, it returns to where the reader was, guide included; Back
+   returns to the section left, with its list open.
 
 ## Non-goals
 

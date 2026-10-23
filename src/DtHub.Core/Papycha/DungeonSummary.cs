@@ -53,8 +53,8 @@ public sealed record DungeonSummary
 
     /// <summary>
     /// Size of the soul stone, exactly as the site writes it:
-    /// "petite" (small), "moyenne" (medium), "grande" (large) or
-    /// "gigantesque" (huge).
+    /// "Petite" (small), "Moyenne" (medium), "Grande" (large) or
+    /// "Gigantesque" (huge).
     /// </summary>
     public string SoulStone { get; init; } = string.Empty;
 

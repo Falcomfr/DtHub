@@ -4,7 +4,7 @@ namespace DtHub.Tests.Papycha;
 
 public class DungeonFactsTests
 {
-    private static DungeonSummary Donjon(int level = 30, string size = "petite") => new()
+    private static DungeonSummary Donjon(int level = 30, string size = "Petite") => new()
     {
         Title = "Donjon des Champs",
         Level = level,
@@ -32,17 +32,17 @@ public class DungeonFactsTests
         var facts = DungeonFacts.Of(Donjon());
 
         Assert.Equal("30", facts.Level);
-        Assert.Equal("petite", facts.Size);
+        Assert.Equal("Petite", facts.Size);
         Assert.Equal("[7,-25]", facts.Position);
     }
 
     /// <summary>
-    /// The API sends "Gigantesque"; the list draws a stone per size word
-    /// and would match none of them.
+    /// The API sends "Gigantesque": the size is the stone's tooltip, so it
+    /// keeps the capital, and the list's stones match that word.
     /// </summary>
     [Fact]
-    public void La_taille_s_ecrit_en_minuscules() =>
-        Assert.Equal("gigantesque", DungeonFacts.Of(Donjon(size: "Gigantesque")).Size);
+    public void La_taille_garde_la_casse_de_l_api() =>
+        Assert.Equal("Gigantesque", DungeonFacts.Of(Donjon(size: "Gigantesque")).Size);
 
     /// <summary>
     /// The site writes a few positions with a semicolon, "[9;-13]": in a
@@ -77,8 +77,8 @@ public class DungeonFactsTests
     public void La_taille_ne_repete_pas_la_pierre_d_ame()
     {
         Assert.Equal(
-            "gigantesque",
-            DungeonFacts.Of(Donjon(size: "gigantesque pierre d’âme")).Size);
+            "Gigantesque",
+            DungeonFacts.Of(Donjon(size: "Gigantesque pierre d’âme")).Size);
     }
 
     [Fact]

@@ -31,6 +31,56 @@ public class QuestTrackingTests
     public void StatusOf_is_not_started_without_progress() =>
         Assert.Equal(QuestStatus.NotStarted, QuestTracking.StatusOf(null, 1));
 
+    private static QuestSummary Named(int id, int order = 0, params string[] needs) =>
+        new() { Id = id, Title = "Q" + id, Url = "q" + id, PlayOrder = order, Prerequisites = needs };
+
+    [Fact]
+    public void NextQuests_keeps_the_site_s_list_and_order_when_it_gives_one()
+    {
+        var progress = Progress with { Next = [6, 1, 6] };
+
+        Assert.Equal([6, 1], QuestTracking.NextQuests(progress, [Named(1), Named(6)]).Select(q => q.Id));
+    }
+
+    /// <summary>
+    /// The site fills nextQuests for its active character only: for the
+    /// others "Suivantes" comes from the previous quests done.
+    /// </summary>
+    [Fact]
+    public void NextQuests_follow_what_is_done_when_the_site_gives_none()
+    {
+        // Q4 and Q5 are completed, Q3 ignored, Q1 in progress.
+        var catalog = new[]
+        {
+            Named(4),
+            Named(5),
+            Named(10, 0, "Q4"), // previous done, untouched: next
+            Named(11, 0, "Q4", "Q12"), // one previous not done
+            Named(12), // no previous quest: not a follow-up
+            Named(13, 0, "Q4", "Q5"), // every previous done: next, played before Q10
+            Named(3, 0, "Q4"), // ignored
+            Named(1, 0, "Q5"), // in progress: still next
+            Named(14, 0, "Alignement bontarien 40 minimum."), // names no quest
+            Named(15, 0, "Q15"), // only itself
+        };
+
+        Assert.Equal(
+            [1, 10, 13],
+            QuestTracking.NextQuests(Progress, catalog).Select(q => q.Id).Order());
+    }
+
+    [Fact]
+    public void NextQuests_come_in_play_order()
+    {
+        var catalog = new[] { Named(4), Named(20, 3, "Q4"), Named(21, 1, "Q4"), Named(22, 2, "Q4") };
+
+        Assert.Equal([21, 22, 20], QuestTracking.NextQuests(Progress, catalog).Select(q => q.Id));
+    }
+
+    [Fact]
+    public void NextQuests_is_empty_without_progress() =>
+        Assert.Empty(QuestTracking.NextQuests(null, [Named(1)]));
+
     [Fact]
     public void Passes_to_do_drops_completed_and_ignored() =>
         Assert.Equal([1, 2, 6], Enumerable.Range(1, 6).Where(i => QuestTracking.Passes(Progress, i, true, false, false)));

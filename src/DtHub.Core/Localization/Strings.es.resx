@@ -2650,7 +2650,7 @@ Para evitarlo: {1}  ›  «Bloqueo automático de Carpeta segura» › la opció
     <value>Oculta las misiones terminadas o ignoradas. Quedan las pendientes o en curso, aunque aún no se puedan empezar.</value>
   </data>
   <data name="FilterAvailableTip" xml:space="preserve">
-    <value>Solo deja las misiones que tu personaje puede lanzar ahora, según Papycha: nivel y misiones anteriores hechas. Con «Por hacer», lo que puedes hacer ya.</value>
+    <value>Solo deja las misiones que tu personaje puede lanzar ahora: nivel y misiones anteriores hechas, según tu seguimiento. Con «Por hacer», lo que puedes hacer ya.</value>
   </data>
   <data name="NextQuests" xml:space="preserve">
     <value>Siguientes</value>

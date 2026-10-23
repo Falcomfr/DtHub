@@ -21,7 +21,7 @@ namespace DtHub.Core.Papycha;
 /// for.
 /// </param>
 /// <param name="Size">
-/// The soul stone's size alone, "petite", "gigantesque".
+/// The soul stone's size alone, "Petite", "Gigantesque".
 /// </param>
 /// <param name="Position">The map coordinates, "[7,-25]".</param>
 public sealed record DungeonFacts(string Level, string Size, string Position)
@@ -36,13 +36,12 @@ public sealed record DungeonFacts(string Level, string Size, string Position)
             // the row, where a level is the only thing a number can be.
             dungeon.Level > 0 ? dungeon.Level.ToString(CultureInfo.CurrentCulture) : string.Empty,
 
-            // "gigantesque pierre d'âme" ("gigantic soul stone") says
+            // "Gigantesque pierre d'âme" ("gigantic soul stone") says
             // "pierre d'âme" ("soul stone") twice in a column where
-            // every line already carries one: the size is enough. Lower
-            // case: the API sends "Gigantesque", the list's stones match
-            // "gigantesque".
-            dungeon.SoulStone.Replace(" pierre d’âme", string.Empty, StringComparison.Ordinal)
-                .ToLower(CultureInfo.GetCultureInfo("fr")),
+            // every line already carries one: the size is enough. The
+            // API's capital stays: the word is the stone's tooltip, and
+            // the list's stones match "Gigantesque".
+            dungeon.SoulStone.Replace(" pierre d’âme", string.Empty, StringComparison.Ordinal),
 
             // The site writes a few as "[9;-13]", which reads as a typo
             // among "[9,-57]".
