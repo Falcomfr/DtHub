@@ -152,7 +152,8 @@ public sealed record QuestNode(
     string? ProfitTip = null,
     bool Started = false,
     string? Suffix = null,
-    string? OtherRewards = null)
+    string? OtherRewards = null,
+    string? Duration = null)
 {
     /// <summary>
     /// Neither unmade branches nor subheadings are clickable.

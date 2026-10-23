@@ -2948,7 +2948,16 @@ To avoid it: {1}  ›  "Auto lock Secure Folder" › the longest option.</value>
     <value>Link the Papycha tracker to see the recommended quests.</value>
   </data>
   <data name="ProfitEffort" xml:space="preserve">
-    <value>Takes: {0}</value>
+    <value>Takes {0}: {1}</value>
+  </data>
+  <data name="ProfitTime" xml:space="preserve">
+    <value>Takes {0}</value>
+  </data>
+  <data name="QuestTimeMinutes" xml:space="preserve">
+    <value>≈ {0} min</value>
+  </data>
+  <data name="QuestTimeHours" xml:space="preserve">
+    <value>≈ {0} h {1:00}</value>
   </data>
   <data name="ProfitForXp" xml:space="preserve">
     <value>For XP</value>

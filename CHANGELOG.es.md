@@ -20,6 +20,7 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 - Con el seguimiento de Papycha vinculado, una pequeña marca de prioridad en las misiones que puedes hacer ahora, del punto a la llama, para las que más valen la pena, por la XP o por los kamas.
 - Un botón «Recomendadas» junto a «Por hacer» y «Accesibles» lista lo que puedes hacer ahora con el seguimiento de Papycha vinculado, series incluidas, lo más interesante primero, tanto si da XP como kamas.
 - Las casillas de nivel y de Bonus Pack están ahora en todas las vistas de la ventana de guías.
+- Cada misión muestra un tiempo estimado, por ejemplo ≈ 25 min, calculado por DT Hub a partir de los objetivos y los mapas del juego; «Recomendadas» ordena por XP y kamas por minuto y deja fuera lo que dura más de una hora.
 
 ## [0.10.5] - 2026-10-22
 

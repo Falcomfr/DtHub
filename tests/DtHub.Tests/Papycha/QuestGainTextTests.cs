@@ -42,8 +42,12 @@ public class QuestGainTextTests : IDisposable
     [Fact]
     public void L_infobulle_d_une_quete_faisable_ajoute_le_rang_et_ce_qu_elle_demande() =>
         Assert.Equal(
-            $"{1_200L.ToString("N0", Fr)} XP · 35 kamas\nParmi les plus rentables, surtout pour l'XP\nDemande : 2 combats, dialogues",
-            QuestGainText.Tip(new QuestGain(1_200, 35), 3, false, ["2 combats", "dialogues"]));
+            $"{1_200L.ToString("N0", Fr)} XP · 35 kamas\nParmi les plus rentables, surtout pour l'XP\nDemande ≈ 25 min : 2 combats, dialogues",
+            QuestGainText.Tip(new QuestGain(1_200, 35), 3, false, new QuestEffort(25, ["2 combats", "dialogues"])));
+
+    [Fact]
+    public void L_infobulle_donne_le_temps_meme_sans_raison() =>
+        Assert.Equal("10 XP · 0 kamas\nDemande ≈ 1 h 05", QuestGainText.Tip(new QuestGain(10, 0), 0, false, new QuestEffort(65, [])));
 
     [Fact]
     public void L_infobulle_dit_quand_la_quete_vaut_surtout_pour_les_kamas() =>
@@ -53,5 +57,5 @@ public class QuestGainTextTests : IDisposable
 
     [Fact]
     public void Sans_rang_ni_raison_l_infobulle_reste_au_gain() =>
-        Assert.Equal("10 XP · 0 kamas", QuestGainText.Tip(new QuestGain(10, 0), 0, false, []));
+        Assert.Equal("10 XP · 0 kamas", QuestGainText.Tip(new QuestGain(10, 0), 0, false, null));
 }

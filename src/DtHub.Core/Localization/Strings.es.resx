@@ -2948,7 +2948,16 @@ Para evitarlo: {1}  ›  «Bloqueo automático de Carpeta segura» › la opció
     <value>Vincula el seguimiento de Papycha para ver las misiones recomendadas.</value>
   </data>
   <data name="ProfitEffort" xml:space="preserve">
-    <value>Requiere: {0}</value>
+    <value>Requiere {0}: {1}</value>
+  </data>
+  <data name="ProfitTime" xml:space="preserve">
+    <value>Requiere {0}</value>
+  </data>
+  <data name="QuestTimeMinutes" xml:space="preserve">
+    <value>≈ {0} min</value>
+  </data>
+  <data name="QuestTimeHours" xml:space="preserve">
+    <value>≈ {0} h {1:00}</value>
   </data>
   <data name="ProfitForXp" xml:space="preserve">
     <value>Para la XP</value>

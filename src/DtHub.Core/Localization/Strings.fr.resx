@@ -2948,7 +2948,16 @@ Pour l'éviter : {1}  ›  « Verrouillage auto. Dossier sécurisé » › l'opt
     <value>Reliez le suivi Papycha pour voir les quêtes recommandées.</value>
   </data>
   <data name="ProfitEffort" xml:space="preserve">
-    <value>Demande : {0}</value>
+    <value>Demande {0} : {1}</value>
+  </data>
+  <data name="ProfitTime" xml:space="preserve">
+    <value>Demande {0}</value>
+  </data>
+  <data name="QuestTimeMinutes" xml:space="preserve">
+    <value>≈ {0} min</value>
+  </data>
+  <data name="QuestTimeHours" xml:space="preserve">
+    <value>≈ {0} h {1:00}</value>
   </data>
   <data name="ProfitForXp" xml:space="preserve">
     <value>Pour l'XP</value>

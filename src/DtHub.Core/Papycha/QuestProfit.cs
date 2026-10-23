@@ -2,12 +2,13 @@
 
 namespace DtHub.Core.Papycha;
 
-public sealed record QuestEffort(double Value, IReadOnlyList<string> Reasons);
+/// <summary>The estimated minutes (<see cref="QuestTime"/>) and the costliest kinds of work, at most three.</summary>
+public sealed record QuestEffort(int Minutes, IReadOnlyList<string> Reasons);
 
 public sealed record QuestGain(long Xp, long Kamas);
 
 /// <summary>
-/// <c>Score</c> is the better of XP and kamas for the effort, each against the best doable quest's,
+/// <c>Score</c> is the better of XP and kamas per minute, each against the best doable quest's,
 /// so 1 is the best on one side; <c>ByKamas</c> tells which side gave it.
 /// </summary>
 public sealed record QuestScore(int QuestId, QuestGain Gain, QuestEffort Effort, double Score, int Tier, bool ByKamas);
@@ -23,7 +24,7 @@ public sealed record ProfitEntry(
 /// <summary>A dungeon is worth the listable quests it advances, one entry per quest; <c>Tier</c> is the one its score would have among quests.</summary>
 public sealed record DungeonValue(int PapychaDungeonId, IReadOnlyList<ProfitEntry> Advances, QuestGain Gain, double Score, int Tier);
 
-/// <summary>What a quest gives for the effort it asks, from the game's own objectives. Pure.</summary>
+/// <summary>What a quest gives per minute it takes, from the game's own objectives. Pure.</summary>
 public static class QuestProfit
 {
     private enum Kind { Boss, Items, Fights, Souls, Crafting, Travel, Dialogues, Vague }
@@ -31,51 +32,49 @@ public static class QuestProfit
     // Reasons are listed costliest first, so this is also the display order of equal costs.
     private static readonly Kind[] Kinds = [Kind.Boss, Kind.Fights, Kind.Items, Kind.Souls, Kind.Crafting, Kind.Vague, Kind.Travel, Kind.Dialogues];
 
-    public static QuestEffort EffortOf(TouchQuestFacts facts, int level)
-    {
-        ArgumentNullException.ThrowIfNull(facts);
+    public static QuestEffort EffortOf(TouchQuestFacts facts, QuestSummary quest) => EffortOf([(quest, facts)]);
 
-        return new QuestEffort(1 + facts.Objectives.Sum(o => Objective(o, level).Item2), Reasons(facts.Objectives, level));
-    }
-
-    // Aggregated per kind with counts, costliest first, at most three.
-    private static List<string> Reasons(IEnumerable<TouchObjective> objectives, int level)
+    // A series' minutes are its quests', each from its own start.
+    private static QuestEffort EffortOf(IReadOnlyList<(QuestSummary Quest, TouchQuestFacts Facts)> quests)
     {
-        var cost = new Dictionary<Kind, double>();
+        var cost = new Dictionary<Kind, int>();
         var count = new Dictionary<Kind, int>();
-        foreach (var o in objectives)
+        foreach (var (quest, facts) in quests)
         {
-            var (kind, value) = Objective(o, level);
-            cost[kind] = cost.GetValueOrDefault(kind) + value;
-            count[kind] = count.GetValueOrDefault(kind) + 1;
+            ArgumentNullException.ThrowIfNull(quest);
+            ArgumentNullException.ThrowIfNull(facts);
+
+            foreach (var o in facts.Objectives)
+            {
+                var kind = KindOf(o);
+                cost[kind] = cost.GetValueOrDefault(kind) + QuestTime.SecondsOf(o, facts);
+                count[kind] = count.GetValueOrDefault(kind) + 1;
+            }
+
+            if (QuestTime.TravelSeconds(facts, QuestTime.StartOf(quest)) is > 0 and var travel)
+            {
+                cost[Kind.Travel] = cost.GetValueOrDefault(Kind.Travel) + travel;
+            }
         }
 
-        return [.. Kinds.Where(count.ContainsKey).OrderByDescending(k => cost[k]).Take(3).Select(k => Reason(k, count[k]))];
+        // Aggregated per kind with counts, costliest first, at most three.
+        var reasons = Kinds.Where(cost.ContainsKey).OrderByDescending(k => cost[k]).Take(3)
+            .Select(k => Reason(k, count.GetValueOrDefault(k)));
+        return new QuestEffort(quests.Sum(q => QuestTime.EstimateMinutes(q.Facts, QuestTime.StartOf(q.Quest))), [.. reasons]);
     }
 
-    private static (Kind, double) Objective(TouchObjective o, int level)
+    private static Kind KindOf(TouchObjective o) => o.TypeId switch
     {
-        var p = o.Parameters;
-        switch (o.TypeId)
-        {
-            case 1 or 9 or 2:
-                return (Kind.Dialogues, 1);
-            case 4:
-                return (Kind.Travel, 1.5);
-            case 3:
-                return (Kind.Items, Math.Min(40, 2 + (p.Length > 2 ? p[2] : 0) / 10.0));
-            case 20:
-                return (Kind.Crafting, 3);
-            case 6 or 14:
-                var boss = o.TypeId == 6 && p.Length > 1 && p[1] == 1;
-                return (boss ? Kind.Boss : Kind.Fights, (boss ? 8 : 3) + (o.StepOptimalLevel > level ? 4 : 0));
-            case 12:
-                return (Kind.Souls, 5);
-            default:
-                // Types 0 and 10, and any type the game adds later: unknown work is priced as vague.
-                return (Kind.Vague, 6);
-        }
-    }
+        1 or 9 or 2 => Kind.Dialogues,
+        4 => Kind.Travel,
+        3 => Kind.Items,
+        20 => Kind.Crafting,
+        6 when o.Parameters.Length > 1 && o.Parameters[1] == 1 => Kind.Boss,
+        6 or 14 => Kind.Fights,
+        12 => Kind.Souls,
+        // Types 0 and 10, and any type the game adds later.
+        _ => Kind.Vague,
+    };
 
     private static string Reason(Kind kind, int n)
     {
@@ -128,13 +127,13 @@ public static class QuestProfit
         {
             if (!facts.TryGetValue(quest.Id, out var f) || !IsDoable(quest, progress, f, level, chain)) continue;
             if (GainOf(f, level, bonusPercent) is not { } gain || (gain.Xp == 0 && gain.Kamas == 0)) continue;
-            raw.Add((quest.Id, gain, EffortOf(f, level)));
+            raw.Add((quest.Id, gain, EffortOf(f, quest)));
         }
 
-        var best = Maxima(raw.Select(r => (r.Gain, r.Effort.Value)));
+        var best = Maxima(raw.Select(r => (r.Gain, r.Effort.Minutes)));
 
         // OrderBy is stable: ties keep catalog order.
-        var ordered = raw.Select(r => (r.Id, r.Gain, r.Effort, Side: Combined(r.Gain, r.Effort.Value, best)))
+        var ordered = raw.Select(r => (r.Id, r.Gain, r.Effort, Side: Combined(r.Gain, r.Effort.Minutes, best)))
             .OrderByDescending(s => s.Side.Score).ToList();
         var n = ordered.Count;
         var t3 = Math.Max(1, Share(n, 0.10));
@@ -151,14 +150,14 @@ public static class QuestProfit
         return result;
     }
 
-    private static (double Xp, double Kamas) Maxima(IEnumerable<(QuestGain Gain, double Effort)> quests) =>
-        quests.Aggregate((0.0, 0.0), (m, q) => (Math.Max(m.Item1, q.Gain.Xp / q.Effort), Math.Max(m.Item2, q.Gain.Kamas / q.Effort)));
+    private static (double Xp, double Kamas) Maxima(IEnumerable<(QuestGain Gain, int Minutes)> quests) =>
+        quests.Aggregate((0.0, 0.0), (m, q) => (Math.Max(m.Item1, (double)q.Gain.Xp / q.Minutes), Math.Max(m.Item2, (double)q.Gain.Kamas / q.Minutes)));
 
-    // Each side against its best doable quest; a side nobody gains on counts 0. XP wins a tie.
-    private static (double Score, bool ByKamas) Combined(QuestGain gain, double effort, (double Xp, double Kamas) best)
+    // Each side per minute against its best doable quest; a side nobody gains on counts 0. XP wins a tie.
+    private static (double Score, bool ByKamas) Combined(QuestGain gain, int minutes, (double Xp, double Kamas) best)
     {
-        var xp = best.Xp > 0 ? gain.Xp / effort / best.Xp : 0;
-        var kamas = best.Kamas > 0 ? gain.Kamas / effort / best.Kamas : 0;
+        var xp = best.Xp > 0 ? (double)gain.Xp / minutes / best.Xp : 0;
+        var kamas = best.Kamas > 0 ? (double)gain.Kamas / minutes / best.Kamas : 0;
         return (Math.Max(xp, kamas), kamas > xp);
     }
 
@@ -173,7 +172,7 @@ public static class QuestProfit
         IEnumerable<QuestSummary> catalog, IReadOnlyDictionary<int, QuestScore> scores, TrackerProgress? progress,
         IReadOnlyDictionary<int, TouchQuestFacts> facts, int level, int bonusPercent)
     {
-        var best = Maxima(scores.Values.Select(s => (s.Gain, s.Effort.Value)));
+        var best = Maxima(scores.Values.Select(s => (s.Gain, s.Effort.Minutes)));
         var entries = new List<(ProfitEntry Entry, double Score)>();
         var all = catalog.ToList();
         var chain = new QuestChainIndex(all);
@@ -223,16 +222,16 @@ public static class QuestProfit
         return [.. entries.OrderByDescending(e => e.Score).Select(e => e.Entry)];
     }
 
-    // Summed gain / summed effort against the quest maxima, so a single quest and a series compare on the same ratios.
+    // Summed gain / summed minutes against the quest maxima, so a single quest and a series compare on the same ratios.
     private static (ProfitEntry, double) Build(
         string title, List<QuestSummary> quests, IReadOnlyDictionary<int, QuestScore> scores,
         IReadOnlyDictionary<int, TouchQuestFacts> facts, int level, int bonusPercent, (double Xp, double Kamas) best, bool started)
     {
         var f = quests.Select(q => facts[q.Id]).ToList();
         var gains = f.Select(x => GainOf(x, level, bonusPercent)).OfType<QuestGain>().ToList();
-        var effort = new QuestEffort(f.Sum(x => EffortOf(x, level).Value), Reasons(f.SelectMany(x => x.Objectives), level));
+        var effort = EffortOf([.. quests.Select(q => (q, facts[q.Id]))]);
         var gain = new QuestGain(gains.Sum(x => x.Xp), gains.Sum(x => x.Kamas));
-        var side = Combined(gain, effort.Value, best);
+        var side = Combined(gain, effort.Minutes, best);
         var tier = quests.Where(q => scores.ContainsKey(q.Id)).Select(q => scores[q.Id].Tier).DefaultIfEmpty(0).Max();
         return (new ProfitEntry(title, quests, gain, effort, tier, started, side.ByKamas, side.Score), side.Score);
     }
@@ -240,8 +239,8 @@ public static class QuestProfit
     /// <summary>The short lists cut a run here: past four quests a series is an evening, not a next step.</summary>
     public const int ShortRun = 4;
 
-    /// <summary>Past this effort a row stays out of the short lists, however much it pays.</summary>
-    public const double ShortEffort = 25;
+    /// <summary>Past this many minutes a row stays out of the short lists, however much it pays.</summary>
+    public const int ShortMinutes = 60;
 
     private static readonly string[] Keyring = ["trousseau", "keyring", "llavero"];
 
@@ -262,7 +261,7 @@ public static class QuestProfit
         ArgumentNullException.ThrowIfNull(entries);
         ArgumentNullException.ThrowIfNull(scores);
 
-        var best = Maxima(scores.Values.Select(s => (s.Gain, s.Effort.Value)));
+        var best = Maxima(scores.Values.Select(s => (s.Gain, s.Effort.Minutes)));
         var kept = new List<ProfitEntry>();
         foreach (var entry in entries)
         {
@@ -279,12 +278,12 @@ public static class QuestProfit
     }
 
     /// <summary>
-    /// At most <paramref name="count"/> rows, best first on one side alone: its gain for the effort, so a row never moves
-    /// because another came or went. Rows above <see cref="ShortEffort"/> or gaining nothing on that side stay out; ties
+    /// At most <paramref name="count"/> rows, best first on one side alone: its gain per minute, so a row never moves
+    /// because another came or went. Rows above <see cref="ShortMinutes"/> or gaining nothing on that side stay out; ties
     /// follow the catalog, then the quest id.
     /// </summary>
     public static IReadOnlyList<T> Shortlist<T>(
-        IEnumerable<T> rows, Func<T, QuestGain> gainOf, Func<T, double> effortOf, Func<T, QuestSummary> firstOf,
+        IEnumerable<T> rows, Func<T, QuestGain> gainOf, Func<T, int> minutesOf, Func<T, QuestSummary> firstOf,
         IReadOnlyList<QuestSummary> catalog, bool kamas, int count = 8)
     {
         ArgumentNullException.ThrowIfNull(catalog);
@@ -293,9 +292,9 @@ public static class QuestProfit
         for (var i = 0; i < catalog.Count; i++) rank.TryAdd(catalog[i].Id, i);
 
         return [.. rows
-            .Select(r => (Row: r, Side: kamas ? gainOf(r).Kamas : gainOf(r).Xp, Effort: effortOf(r), First: firstOf(r)))
-            .Where(r => r.Side > 0 && r.Effort <= ShortEffort)
-            .OrderByDescending(r => r.Side / r.Effort)
+            .Select(r => (Row: r, Side: kamas ? gainOf(r).Kamas : gainOf(r).Xp, Minutes: minutesOf(r), First: firstOf(r)))
+            .Where(r => r.Side > 0 && r.Minutes <= ShortMinutes)
+            .OrderByDescending(r => (double)r.Side / r.Minutes)
             .ThenBy(r => rank.GetValueOrDefault(r.First.Id, int.MaxValue))
             .ThenBy(r => r.First.Id)
             .Take(count)
@@ -353,7 +352,7 @@ public static class QuestProfit
         ArgumentNullException.ThrowIfNull(scores);
         ArgumentNullException.ThrowIfNull(dungeons);
 
-        var best = Maxima(scores.Values.Select(s => (s.Gain, s.Effort.Value)));
+        var best = Maxima(scores.Values.Select(s => (s.Gain, s.Effort.Minutes)));
         var named = entries.SelectMany(e => e.Quests).DistinctBy(q => q.Id)
             .Select(q => (Quest: q, Dungeons: DungeonsOf(facts[q.Id], dungeonNames)))
             .Where(q => q.Dungeons.Count > 0).ToList();
@@ -366,7 +365,7 @@ public static class QuestProfit
                 .ToList();
             if (advances.Count == 0) continue;
             var gain = new QuestGain(advances.Sum(a => a.Item1.Gain.Xp), advances.Sum(a => a.Item1.Gain.Kamas));
-            var score = Combined(gain, advances.Sum(a => a.Item1.Effort.Value), best).Score;
+            var score = Combined(gain, advances.Sum(a => a.Item1.Effort.Minutes), best).Score;
             // The tier of the best quest it equals or beats: below every quest, none.
             var tier = scores.Values.Where(s => s.Score <= score).Select(s => s.Tier).DefaultIfEmpty(0).Max();
             result[papychaId] = new DungeonValue(papychaId, [.. advances.OrderByDescending(a => a.Item2).Select(a => a.Item1)], gain, score, tier);

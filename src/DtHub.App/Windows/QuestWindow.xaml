@@ -1350,6 +1350,19 @@
                     <!-- The priority mark of a quest doable now, among the
                          character's doable quests: a flame, a hollow flame,
                          a dot. -->
+                    <!-- The estimated time, muted words first among the right-hand
+                         signs: its width varies, so it sits left of the icons and
+                         the fixed gain columns, which keep their alignment. Collapsed
+                         when the game's objectives are not read yet. -->
+                    <TextBlock x:Name="Duree" Margin="4,0,0,0" VerticalAlignment="Center"
+                               Text="{Binding Duration}" TextWrapping="NoWrap"
+                               Style="{StaticResource Muted}"
+                               FontSize="{StaticResource FontSmall}"
+                               ToolTip="{Binding ProfitTip}"
+                               ToolTipService.InitialShowDelay="200"
+                               Visibility="{Binding Duration,
+                                                    Converter={StaticResource EmptyToVisibility},
+                                                    ConverterParameter=inverse}" />
                     <!-- A gift: the quest gives more than XP and kamas, what
                          comes on hover. Collapsed otherwise, like the others. -->
                     <Border x:Name="Cadeau" Width="12" Height="12"

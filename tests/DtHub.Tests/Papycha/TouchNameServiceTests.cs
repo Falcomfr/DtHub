@@ -375,8 +375,8 @@ public class TouchNameServiceTests
         };
         _client.Rows["QuestObjectives"] = new()
         {
-            [70] = """{"typeId":3,"parameters":[5,12]}""",
-            [71] = """{"typeId":1,"parameters":[8]}""",
+            [70] = """{"typeId":3,"parameters":[5,12],"coords":{"_type":"Point","x":-3,"y":-44}}""",
+            [71] = """{"typeId":1,"parameters":[8],"coords":{}}""",
             [72] = """{"typeId":6,"parameters":[9,1]}""",
         };
         _client.Rows["QuestStepRewards"] = new() { [500] = """{"levelMin":1,"levelMax":-1,"itemsReward":[[600,2]]}""" };
@@ -399,6 +399,8 @@ public class TouchNameServiceTests
         Assert.Equal([3, 1, 6], facts[1].Objectives.Select(o => o.TypeId));
         Assert.Equal([5, 12], facts[1].Objectives[0].Parameters);
         Assert.Equal(40, facts[1].Objectives[0].StepOptimalLevel);
+        Assert.Equal([(-3, -44), (null, null), (null, null)], facts[1].Objectives.Select(o => (o.X, o.Y)));
+        Assert.Equal([0, 0, 1], facts[1].Objectives.Select(o => o.Step));
 
         _client.Requested.Clear();
         _ = await service.FactsAsync("en");
@@ -506,6 +508,33 @@ public class TouchNameServiceTests
 
         Assert.Equal([10, 11], _client.Requested["QuestSteps"].Single());
         Assert.All(facts.Values.SelectMany(f => f.Objectives), o => Assert.NotNull(o.Text));
+
+        _client.Requested.Clear();
+        _ = await service.FactsAsync("en");
+
+        Assert.Empty(_client.Requested);
+    }
+
+    [Fact]
+    public async Task Des_faits_d_avant_les_coordonnees_sont_relus_une_fois()
+    {
+        SeedFacts();
+        // As a cache written with texts but before coordinates and steps reads back.
+        var objective = System.Text.Json.JsonSerializer.Deserialize<TouchObjective>("""{"TypeId":1,"Parameters":[8],"StepOptimalLevel":40,"Text":""}""")!;
+        Assert.Null(objective.Step);
+        using var service = new TouchNameService(_client, _store, new FakeTable()) { FactsPause = TimeSpan.Zero };
+        var names = (await service.RefreshAsync("en"))!;
+        (await _store.LoadAsync()).Languages["en"] = names with
+        {
+            Facts = new() { [1] = new([], [objective]) },
+            FactsReadUtc = DateTimeOffset.UtcNow,
+        };
+        _client.Requested.Clear();
+
+        var facts = await service.FactsAsync("en");
+
+        Assert.Equal([10, 11], _client.Requested["QuestSteps"].Single());
+        Assert.All(facts.Values.SelectMany(f => f.Objectives), o => Assert.NotNull(o.Step));
 
         _client.Requested.Clear();
         _ = await service.FactsAsync("en");

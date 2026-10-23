@@ -228,9 +228,17 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         node = node with { Status = QuestTracking.StatusOf(Tracker.Progress, quest.Id) };
         var level = Tracker.RewardLevel;
 
+        if (_facts is null || !_facts.TryGetValue(quest.Id, out var facts))
+        {
+            return node;
+        }
+
+        // The time does not depend on the level: it shows even when the gain cannot.
+        var effort = QuestProfit.EffortOf(facts, quest);
+        node = node with { Duration = QuestTime.Text(effort.Minutes) };
+
         // Unknown data hides the gain and the mark, as it hides the reward line.
-        if (_facts is null || level <= 0 || !_facts.TryGetValue(quest.Id, out var facts)
-            || QuestProfit.RewardOf(facts, level, Tracker.RewardXpBonus) is not { } reward)
+        if (level <= 0 || QuestProfit.RewardOf(facts, level, Tracker.RewardXpBonus) is not { } reward)
         {
             return node;
         }
@@ -247,7 +255,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             GainXp = xp,
             GainKamas = kamas,
             Tier = tier,
-            ProfitTip = QuestGainText.Tip(gain, tier, score?.ByKamas ?? false, score?.Effort.Reasons),
+            ProfitTip = QuestGainText.Tip(gain, tier, score?.ByKamas ?? false, effort),
             OtherRewards = QuestRewardText.Others(reward, _itemNames),
         };
     }
@@ -255,9 +263,12 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
     /// <summary>The read behind the hover in flight, cancelled when the hover goes: a sweep of the list reads nothing more.</summary>
     private CancellationTokenSource? _finding;
 
+    /// <summary>A hover held this long reads; a sweep across the list, whose tooltips open one after the other, does not.</summary>
+    private static readonly TimeSpan HoverDelay = TimeSpan.FromMilliseconds(400);
+
     /// <summary>
     /// Where the items a quest asks for come from, for the gain's hover; null when it asks none or nothing is known.
-    /// Read on demand, cached by the service; the previous hover's read is cancelled.
+    /// Read on demand after <see cref="HoverDelay"/>, cached by the service; the previous hover's read is cancelled.
     /// </summary>
     public async Task<string?> WhereToFindAsync(QuestSummary quest)
     {
@@ -266,6 +277,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
 
         try
         {
+            await Task.Delay(HoverDelay, _finding.Token).ConfigureAwait(true);
             return await FindAsync(quest, _finding.Token).ConfigureAwait(true);
         }
         catch (OperationCanceledException)
@@ -313,7 +325,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             GainXp = xp,
             GainKamas = kamas,
             Tier = value.Tier,
-            ProfitTip = QuestGainText.Tip(value.Gain) + "\n"
+            ProfitTip = QuestGainText.Tip(value.Gain, effort: new QuestEffort(value.Advances.Sum(a => a.Effort.Minutes), [])) + "\n"
                 + Strings.Format(value.Advances.Count == 1 ? "DungeonAdvancesOne" : "DungeonAdvances", value.Advances.Count, titles),
         };
     }
@@ -1278,8 +1290,8 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(ProfitTeam));
     }
 
-    /// <summary>A row of the short lists: what it gains, for which effort, and where ties put it.</summary>
-    private sealed record ProfitRow(QuestGain Gain, double Effort, QuestSummary First, QuestNode Node, ProfitEntry? Entry = null);
+    /// <summary>A row of the short lists: what it gains, in how many minutes, and where ties put it.</summary>
+    private sealed record ProfitRow(QuestGain Gain, int Minutes, QuestSummary First, QuestNode Node, ProfitEntry? Entry = null);
 
     /// <summary>
     /// The game publishes no XP table (checked 2026-10-23), so the whole-level line never shows.
@@ -1289,7 +1301,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
 
     /// <summary>
     /// Two short lists, for XP then for kamas: the doable quests, series runs and dungeons, best on that side
-    /// for the effort. A series row opens its first quest; a started entry carries an hourglass.
+    /// per minute. A series row opens its first quest; a started entry carries an hourglass.
     /// </summary>
     private void ShowProfit()
     {
@@ -1315,7 +1327,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         var rows = team ? TeamRows() : MyRows();
         foreach (var (title, kamas) in new[] { ("ProfitForXp", false), ("ProfitForKamas", true) })
         {
-            var shown = QuestProfit.Shortlist(rows, r => r.Gain, r => r.Effort, r => r.First, _catalog.Catalog.Quests, kamas);
+            var shown = QuestProfit.Shortlist(rows, r => r.Gain, r => r.Minutes, r => r.First, _catalog.Catalog.Quests, kamas);
             Nodes.Add(new QuestNode(QuestNodeKind.Header, Strings.Get(title)));
 
             foreach (var row in shown)
@@ -1339,14 +1351,15 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
     /// <summary>The chosen character's entries and the dungeons that advance them.</summary>
     private List<ProfitRow> MyRows()
     {
-        var rows = Recommendable.Select(e => new ProfitRow(e.Gain, e.Effort.Value, e.Quests[0], EntryNode(e), e)).ToList();
+        var rows = Recommendable.Select(e => new ProfitRow(e.Gain, e.Effort.Minutes, e.Quests[0], EntryNode(e), e)).ToList();
 
         foreach (var value in DungeonValues.Values)
         {
             if (_catalog.Catalog.Dungeons.FirstOrDefault(d => d.Id == value.PapychaDungeonId) is { } dungeon)
             {
                 var node = QuestTree.NodeOf(dungeon) with { Glyph = QuestTree.GlyphOf(dungeon.Kind) };
-                rows.Add(new ProfitRow(value.Gain, value.Advances.Sum(a => a.Effort.Value), value.Advances[0].Quests[0], Valued(node, value)));
+                var minutes = value.Advances.Sum(a => a.Effort.Minutes);
+                rows.Add(new ProfitRow(value.Gain, minutes, value.Advances[0].Quests[0], Valued(node, value) with { Duration = QuestTime.Text(minutes) }));
             }
         }
 
@@ -1362,13 +1375,13 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             var (xp, kamas) = QuestGainText.Columns(t.Gain);
             var count = Strings.Format("ProfitCharacters", t.Characters.Count);
 
-            return new ProfitRow(t.Gain, t.Entry.Effort.Value, t.Entry.Quests[0], node with
+            return new ProfitRow(t.Gain, t.Entry.Effort.Minutes, t.Entry.Quests[0], node with
             {
                 GainXp = xp,
                 GainKamas = kamas,
                 Tier = t.Tier,
                 Detail = node.Detail is { Length: > 0 } detail ? $"{detail} · {count}" : count,
-                ProfitTip = QuestGainText.Tip(t.Gain, t.Tier, t.Entry.ByKamas, t.Entry.Effort.Reasons)
+                ProfitTip = QuestGainText.Tip(t.Gain, t.Tier, t.Entry.ByKamas, t.Entry.Effort)
                     + "\n" + string.Join(", ", t.Characters.Select(c => c.Name)),
             });
         }),
@@ -1401,7 +1414,8 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             GainXp = xp,
             GainKamas = kamas,
             Tier = entry.Tier,
-            ProfitTip = QuestGainText.Tip(entry.Gain, entry.Tier, entry.ByKamas, entry.Effort.Reasons),
+            Duration = QuestTime.Text(entry.Effort.Minutes),
+            ProfitTip = QuestGainText.Tip(entry.Gain, entry.Tier, entry.ByKamas, entry.Effort),
         };
     }
 

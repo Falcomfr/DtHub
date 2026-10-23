@@ -18,51 +18,39 @@ public class QuestProfitTests
     private static QuestSummary Quest(int id, string success = "", int order = 0, QuestRecurrence rec = QuestRecurrence.Once) =>
         new() { Id = id, Title = "Q" + id, SuccessName = success, PlayOrder = order, Recurrence = rec };
 
-    [Theory]
-    [InlineData(1, 2.0)]
-    [InlineData(9, 2.0)]
-    [InlineData(2, 2.0)]
-    [InlineData(4, 2.5)]
-    [InlineData(20, 4.0)]
-    [InlineData(12, 6.0)]
-    [InlineData(0, 7.0)]
-    [InlineData(10, 7.0)]
-    public void Effort_of_simple_objective_types(int type, double expected) =>
-        Assert.Equal(expected, QuestProfit.EffortOf(Facts(Obj(type)), 50).Value);
-
-    [Theory]
-    [InlineData(5, 3.5)]
-    [InlineData(100, 13.0)]
-    [InlineData(365, 39.5)]
-    [InlineData(1000, 41.0)]
-    public void Effort_of_bringing_items_grows_with_quantity_up_to_forty(int quantity, double expected) =>
-        Assert.Equal(expected, QuestProfit.EffortOf(Facts(Obj(3, [1, 2, quantity])), 50).Value);
-
     [Fact]
-    public void Effort_of_fights_boss_and_over_level()
+    public void Effort_is_the_quest_time_from_its_start()
     {
-        Assert.Equal(4.0, QuestProfit.EffortOf(Facts(Obj(14, [1, 5])), 50).Value);
-        Assert.Equal(4.0, QuestProfit.EffortOf(Facts(Obj(6, [1, 5])), 50).Value);
-        Assert.Equal(9.0, QuestProfit.EffortOf(Facts(Obj(6, [1, 1])), 50).Value);
-        Assert.Equal(4.0, QuestProfit.EffortOf(Facts(Obj(14, [1, 1])), 50).Value);
-        Assert.Equal(8.0, QuestProfit.EffortOf(Facts(Obj(14, [1, 5], 60)), 50).Value);
-        Assert.Equal(13.0, QuestProfit.EffortOf(Facts(Obj(6, [1, 1], 60)), 50).Value);
+        var facts = new TouchQuestFacts([Step(10, 1f)], [new(14, [1, 5], 10, "", 4, 0, 0)]);
+        var quest = Quest(1) with { StartPosition = "[0,0]" };
+
+        Assert.Equal(QuestTime.EstimateMinutes(facts, (0, 0)), QuestProfit.EffortOf(facts, quest).Minutes);
+        Assert.Equal(10, QuestProfit.EffortOf(facts, quest).Minutes);
     }
 
     [Fact]
     public void Effort_reasons_are_aggregated_and_costliest_first_at_most_three()
     {
         var effort = QuestProfit.EffortOf(
-            Facts(Obj(1), Obj(1), Obj(3, [1, 2, 5]), Obj(6, [1, 5]), Obj(6, [1, 5]), Obj(6, [1, 5]), Obj(6, [1, 1]), Obj(12)), 50);
+            Facts(Obj(1), Obj(1), Obj(3, [1, 2, 5]), Obj(6, [1, 5]), Obj(6, [1, 5]), Obj(6, [1, 5]), Obj(6, [1, 1]), Obj(12)), Quest(1));
         Assert.Equal(3, effort.Reasons.Count);
-        Assert.Equal(["3 combats", "1 boss", "âmes"], effort.Reasons);
+        // Ranked on their time: 3 x 450 s, 300 s, then the lone fight's 90 s.
+        Assert.Equal(["3 combats", "âmes", "1 boss"], effort.Reasons);
     }
 
     [Fact]
     public void Effort_reasons_name_dialogues_and_vague()
     {
-        Assert.Equal(["objectif vague", "dialogues"], QuestProfit.EffortOf(Facts(Obj(1), Obj(0)), 50).Reasons);
-        Assert.Equal(["1 objet"], QuestProfit.EffortOf(Facts(Obj(3, [1, 2, 1])), 50).Reasons);
+        Assert.Equal(["objectif vague", "dialogues"], QuestProfit.EffortOf(Facts(Obj(1), Obj(0)), Quest(1)).Reasons);
+        Assert.Equal(["1 objet"], QuestProfit.EffortOf(Facts(Obj(3, [1, 2, 1])), Quest(1)).Reasons);
+    }
+
+    [Fact]
+    public void A_long_way_between_objectives_names_travel()
+    {
+        var far = Facts(new TouchObjective(1, [1], 10, "", 30, 0, 0), new TouchObjective(1, [1], 10, "", 0, 0, 0));
+
+        Assert.Equal(["déplacements", "dialogues"], QuestProfit.EffortOf(far, Quest(1)).Reasons);
     }
 
     [Fact]
@@ -218,7 +206,8 @@ public class QuestProfitTests
         var facts = new Dictionary<int, TouchQuestFacts> { [1] = Xp(1f), [2] = Xp(2f), [3] = Xp(3f) };
         var entry = Assert.Single(Entries(catalog, Progress([1]), facts));
         Assert.Equal([1, 2, 3], entry.Quests.Select(q => q.Id));
-        Assert.Equal(6, entry.Effort.Value);
+        // Three quests of 90 + 15 s, 2 minutes each.
+        Assert.Equal(6, entry.Effort.Minutes);
         Assert.Equal(XpOf(facts[1]) + XpOf(facts[2]) + XpOf(facts[3]), entry.Gain.Xp);
     }
 
@@ -280,8 +269,8 @@ public class QuestProfitTests
     [Fact]
     public void Crafting_and_travel_have_their_own_reasons()
     {
-        Assert.Equal(["fabrication"], QuestProfit.EffortOf(Facts(Obj(20)), 50).Reasons);
-        Assert.Equal(["déplacements"], QuestProfit.EffortOf(Facts(Obj(4)), 50).Reasons);
+        Assert.Equal(["fabrication"], QuestProfit.EffortOf(Facts(Obj(20)), Quest(1)).Reasons);
+        Assert.Equal(["déplacements"], QuestProfit.EffortOf(Facts(Obj(4)), Quest(1)).Reasons);
     }
 
     [Fact]
@@ -448,7 +437,7 @@ public class QuestProfitTests
         Assert.Equal("S", entry.Title);
         Assert.Equal([1, 2, 3, 4], entry.Quests.Select(q => q.Id));
         Assert.Equal(Enumerable.Range(1, 4).Sum(i => XpOf(facts[i])), entry.Gain.Xp);
-        Assert.Equal(8, entry.Effort.Value);
+        Assert.Equal(8, entry.Effort.Minutes);
     }
 
     [Theory]
@@ -482,10 +471,10 @@ public class QuestProfitTests
     }
 
     private static IReadOnlyList<ProfitEntry> Short(IEnumerable<ProfitEntry> rows, IReadOnlyList<QuestSummary> catalog, bool kamas) =>
-        QuestProfit.Shortlist(rows, e => e.Gain, e => e.Effort.Value, e => e.Quests[0], catalog, kamas);
+        QuestProfit.Shortlist(rows, e => e.Gain, e => e.Effort.Minutes, e => e.Quests[0], catalog, kamas);
 
-    private static ProfitEntry Row(QuestSummary quest, long xp, long kamas, double effort) =>
-        new(quest.Title, [quest], new QuestGain(xp, kamas), new QuestEffort(effort, []), 0, false, false, 0);
+    private static ProfitEntry Row(QuestSummary quest, long xp, long kamas, int minutes) =>
+        new(quest.Title, [quest], new QuestGain(xp, kamas), new QuestEffort(minutes, []), 0, false, false, 0);
 
     [Fact]
     public void Each_short_list_ranks_on_its_own_side_for_the_effort_and_keeps_eight()
@@ -500,10 +489,10 @@ public class QuestProfitTests
     }
 
     [Fact]
-    public void A_row_above_25_of_effort_or_with_nothing_on_its_side_stays_out()
+    public void A_row_above_60_minutes_or_with_nothing_on_its_side_stays_out()
     {
         var catalog = new[] { Quest(1), Quest(2), Quest(3) };
-        List<ProfitEntry> rows = [Row(catalog[0], 1000, 1000, 25.5), Row(catalog[1], 10, 0, 25), Row(catalog[2], 0, 10, 1)];
+        List<ProfitEntry> rows = [Row(catalog[0], 1000, 1000, 61), Row(catalog[1], 10, 0, 60), Row(catalog[2], 0, 10, 1)];
 
         Assert.Equal([2], Short(rows, catalog, kamas: false).Select(e => e.Quests[0].Id));
         Assert.Equal([3], Short(rows, catalog, kamas: true).Select(e => e.Quests[0].Id));
@@ -518,6 +507,24 @@ public class QuestProfitTests
 
         Assert.Equal([5, 3, 9, 1, 2], Short(rows, catalog, kamas: false).Select(e => e.Quests[0].Id));
         Assert.Equal(Short(rows, catalog, kamas: true), Short(rows.AsEnumerable().Reverse(), catalog, kamas: true));
+    }
+
+    [Fact]
+    public void Gains_are_per_minute_so_a_quick_quest_beats_a_long_richer_one()
+    {
+        // Q1: three times Q2's XP, but ten monsters (90 + 900 s, 17 min) against one dialogue (2 min).
+        var catalog = new[] { Quest(1), Quest(2) };
+        var facts = new Dictionary<int, TouchQuestFacts>
+        {
+            [1] = new([Step(10, 3f)], [Obj(14, [1, 10])]),
+            [2] = new([Step(10, 1f)], [Obj(1)]),
+        };
+        var progress = Progress([1, 2]);
+        var scores = QuestProfit.Score(catalog, facts, progress, 10, 0);
+
+        Assert.Equal(17, scores[1].Effort.Minutes);
+        Assert.Equal(1.0, scores[2].Score);
+        Assert.Equal([2, 1], Short(Recommendable(catalog, progress, facts), catalog, kamas: false).Select(e => e.Quests[0].Id));
     }
 
     [Fact]

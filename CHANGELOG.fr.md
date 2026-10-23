@@ -21,6 +21,7 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 - Avec le suivi Papycha relié, une petite marque de priorité sur les quêtes faisables maintenant, du point à la flamme, pour celles qui valent le plus la peine, pour l'XP ou pour les kamas.
 - Un bouton « Recommandées » à côté de « À faire » et « Accessibles » liste ce que vous pouvez faire maintenant avec le suivi Papycha relié, séries comprises, le plus intéressant d'abord, que ça rapporte en XP ou en kamas.
 - Les cases de niveau et de Bonus Pack sont maintenant dans toutes les vues de la fenêtre des guides.
+- Chaque quête affiche un temps estimé, par exemple ≈ 25 min, calculé par DT Hub à partir des objectifs et des cartes du jeu ; « Recommandées » classe sur l'XP et les kamas par minute et écarte ce qui prend plus d'une heure.
 
 ## [0.10.5] - 2026-10-22
 

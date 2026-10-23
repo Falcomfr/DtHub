@@ -249,9 +249,10 @@ public sealed class TouchNameService(
         }
     }
 
-    // A cache from before the objective texts has null ones: read again, once.
+    // A cache from before the objective texts, or before their coordinates, has null ones: read again, once.
     private bool FactsAreSettled(TouchLanguageNames known) =>
-        (DateTimeOffset.UtcNow - known.FactsReadUtc < Freshness && !known.Facts.Values.Any(f => f.Objectives.Any(o => o.Text is null)))
+        (DateTimeOffset.UtcNow - known.FactsReadUtc < Freshness
+            && !known.Facts.Values.Any(f => f.Objectives.Any(o => o.Text is null || o.Step is null)))
         || (_factsFailedUtc is { } failed && DateTimeOffset.UtcNow - failed < FactsRetry);
 
     private async Task<Dictionary<int, TouchQuestFacts>> ReadFactsAsync(
@@ -318,11 +319,17 @@ public sealed class TouchNameService(
 
                     return new TouchQuestFacts(
                         [.. own.Select(step => BuildReward(step, rewardRows))],
-                        [.. own.SelectMany(step => Ints(step, "objectiveIds")
+                        [.. own.SelectMany((step, index) => Ints(step, "objectiveIds")
                             .Where(objectives.ContainsKey)
-                            .Select(id => new TouchObjective(
-                                Int(objectives[id], "typeId"), Ints(objectives[id], "parameters"), (int)(Single(step, "optimalLevel") ?? 0),
-                                TextId(objectives[id]) is { } text ? texts.GetValueOrDefault(text, "") : "")))]);
+                            .Select(id =>
+                            {
+                                var o = objectives[id];
+                                var at = Coords(o);
+
+                                return new TouchObjective(
+                                    Int(o, "typeId"), Ints(o, "parameters"), (int)(Single(step, "optimalLevel") ?? 0),
+                                    TextId(o) is { } text ? texts.GetValueOrDefault(text, "") : "", at?.X, at?.Y, index);
+                            }))]);
                 });
     }
 
@@ -414,9 +421,7 @@ public sealed class TouchNameService(
 
             return new(
                 TouchObjectiveText.Fill(template, type, Ints(objective, "parameters"), NameOf),
-                objective.TryGetProperty("coords", out var c) && c.TryGetProperty("x", out _) && c.TryGetProperty("y", out _)
-                    ? $"[{Int(c, "x")},{Int(c, "y")}]"
-                    : "");
+                Coords(objective) is { } at ? $"[{at.X},{at.Y}]" : "");
         }
 
         Dictionary<int, TouchRewardRow>? rewardRows;
@@ -549,6 +554,13 @@ public sealed class TouchNameService(
     private static string? Name(JsonElement row) =>
         row.TryGetProperty("nameId", out var value) && value.ValueKind == JsonValueKind.String
             ? value.GetString()
+            : null;
+
+    /// <summary>An objective's <c>coords</c>, <c>{"x":..,"y":..}</c>, or <c>{}</c> when it has no map.</summary>
+    private static (int X, int Y)? Coords(JsonElement objective) =>
+        objective.TryGetProperty("coords", out var c) && c.ValueKind == JsonValueKind.Object
+            && c.TryGetProperty("x", out _) && c.TryGetProperty("y", out _)
+            ? (Int(c, "x"), Int(c, "y"))
             : null;
 
     private static int Int(JsonElement row, string name) =>

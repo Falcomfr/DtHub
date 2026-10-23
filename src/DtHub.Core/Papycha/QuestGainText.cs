@@ -24,8 +24,8 @@ public static class QuestGainText
         return (Compact(gain.Xp), gain.Kamas > 0 ? Compact(gain.Kamas) : null);
     }
 
-    /// <summary>XP and kamas; then, for a doable quest, its tier with the side it is worth it for, and what it asks for.</summary>
-    public static string Tip(QuestGain gain, int tier = 0, bool byKamas = false, IReadOnlyList<string>? reasons = null)
+    /// <summary>XP and kamas; then, for a doable quest, its tier with the side it is worth it for; then its time and what it asks for.</summary>
+    public static string Tip(QuestGain gain, int tier = 0, bool byKamas = false, QuestEffort? effort = null)
     {
         ArgumentNullException.ThrowIfNull(gain);
 
@@ -41,9 +41,12 @@ public static class QuestGainText
                 + ", " + Strings.Get(byKamas ? "ProfitByKamas" : "ProfitByXp"));
         }
 
-        if (reasons is { Count: > 0 })
+        if (effort is not null)
         {
-            lines.Add(Strings.Format("ProfitEffort", string.Join(", ", reasons)));
+            var time = QuestTime.Text(effort.Minutes);
+            lines.Add(effort.Reasons.Count > 0
+                ? Strings.Format("ProfitEffort", time, string.Join(", ", effort.Reasons))
+                : Strings.Format("ProfitTime", time));
         }
 
         return string.Join("\n", lines);

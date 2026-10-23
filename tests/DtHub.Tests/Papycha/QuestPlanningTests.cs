@@ -17,7 +17,7 @@ public class QuestPlanningTests
     private static (TrackerCharacter, TrackerProgress) Character(string name, int level, TrackerProgress progress) =>
         (new TrackerCharacter(name, name, level), progress);
 
-    private static ProfitEntry Entry(int id, long xp = 0, long kamas = 0, double effort = 1) =>
+    private static ProfitEntry Entry(int id, long xp = 0, long kamas = 0, int effort = 1) =>
         new("Q" + id, [Quest(id)], new QuestGain(xp, kamas), new QuestEffort(effort, []), 0, false, false, 0);
 
     [Fact]

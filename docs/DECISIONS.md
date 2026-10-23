@@ -11156,3 +11156,46 @@ de la virtualisation, sont réduites à leur contenu (18, 60 et 19 px au lieu de
 mot de l'infobulle, et les pierres attendent les quatre mots tels que l'API les
 écrit (« Petite », « Moyenne », « Grande », « Gigantesque ») ; une autre casse
 n'affichait aucune pierre.
+
+## D221 - Le temps estimé d'une quête remplace l'effort : gain par minute
+
+**2026-10-23 - Acceptée, remplace l'effort de D219**
+
+L'utilisateur veut que la durée des quêtes compte, et a choisi que DT Hub estime
+lui-même un temps à partir des données du jeu. Papycha affiche une durée, mais
+pas dans son API publique, et ses conditions interdisent d'extraire ce que l'API
+ne publie pas : ses durées ne sont utilisées d'aucune façon.
+
+**Estimation.** La lecture en masse de D219 garde désormais, pour chaque
+objectif, la carte où il se fait (`coords` de `QuestObjectives`) et le rang de
+son étape ; un cache d'avant est relu une fois. Le temps d'une quête, en
+secondes : 90 pour rejoindre le personnage de départ ; par objectif, parler,
+montrer ou aller voir 15, découvrir une carte 45, rapporter des objets
+10 + 5 par objet au plus 300, fabriquer 60, combattre 90 par monstre (au plus
+10), rapporter une âme 300, texte libre ou type inconnu 300 ; un combat unique
+dans une étape qui a aussi une carte à découvrir est un donjon : 900 pour le
+combat, 0 pour la carte (la sortie du donjon). S'y ajoute le trajet : la
+distance en cartes (|dx| + |dy|) entre les objectifs qui ont une carte, depuis
+la position de départ de la quête quand Papycha la donne, 8 s par carte et au
+plus 300 s par saut (un zaap). Le total est arrondi à la minute supérieure.
+Une série additionne les temps de ses quêtes. Ce sont les premiers réglages de
+Claude, vérifiés le 23/10/2026 sur 18 pages publiques (rapport médian de 1,1 à
+1,3, rien de recopié), à ajuster selon l'avis de l'utilisateur.
+
+**Gain par minute.** L'effort abstrait de D219 disparaît : les deux listes
+courtes de « Recommandées » classent chacune sur l'XP par minute ou les kamas
+par minute, et le score combiné des marques de priorité aussi. Les règles
+d'égalité restent (ordre du catalogue, puis identifiant de la quête). Une ligne
+qui prend plus de 60 minutes sort des listes courtes (au lieu d'un effort
+au-dessus de 25) ; la coupe des séries à 4 quêtes et l'exclusion du trousseau
+et des âmes restent. Les raisons de l'infobulle sont classées sur leur temps,
+le trajet compris.
+
+**Affichage.** « ≈ 25 min », ou « ≈ 1 h 05 » à partir d'une heure, en petit
+et en gris, avant les icônes de droite de chaque ligne de quête et de chaque
+ligne de « Recommandées » (absent tant que les objectifs ne sont pas lus) ;
+l'infobulle du gain dit « Demande ≈ 25 min : » puis les raisons.
+
+**Survol.** Où trouver les objets d'une quête n'est lu qu'après 400 ms de
+survol : un balayage de la liste, dont les infobulles s'ouvrent l'une après
+l'autre, ne demande rien au serveur du jeu.
