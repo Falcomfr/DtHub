@@ -110,14 +110,14 @@ public class QuestProfitTests
     }
 
     [Fact]
-    public void For_the_site_s_active_character_its_available_list_alone_says_what_is_startable()
+    public void For_the_site_s_active_character_a_quest_needs_its_list_and_its_previous_quests()
     {
         var catalog = new List<QuestSummary> { Quest(1), Quest(2) with { Prerequisites = ["Q1"] }, Quest(5) with { Prerequisites = ["Q6"] }, Quest(6) };
         var facts = catalog.ToDictionary(q => q.Id, _ => Facts());
 
-        var scores = QuestProfit.Score(catalog, facts, Progress([5], completed: [1]), 10, 0);
-
-        Assert.Equal([5], scores.Keys);
+        // 2 is not listed, 5 is but 6 is not done: its lock would say unmet on a recommended row.
+        Assert.Empty(QuestProfit.Score(catalog, facts, Progress([5], completed: [1]), 10, 0));
+        Assert.Equal([5], QuestProfit.Score(catalog, facts, Progress([5], completed: [1, 6]), 10, 0).Keys);
     }
 
     private static (List<QuestSummary> Catalog, Dictionary<int, TouchQuestFacts> Facts) Twenty()
@@ -658,5 +658,34 @@ public class QuestProfitTests
         Assert.Equal([1, 2, 3, 4, 4, 3], Lists(Progress([1, 2, 3, 4])));
         Assert.Equal([1, 2, 3, 3], Lists(Progress([1, 2, 3], completed: [4])));
         Assert.Equal(Lists(Progress([1, 2, 3, 4])), Lists(Progress([1, 2, 3, 4])));
+    }
+    [Fact]
+    public void A_recommended_quest_never_shows_an_unmet_lock()
+    {
+        // 2 follows done 1; 3 and 6 follow undone 4, 6 with free text too; 5 follows 4 but is in progress; 7 needs the
+        // achievement S, closed by the undone 9.
+        QuestSummary Q(int id, string success = "", int order = 0, params string[] needs) =>
+            Quest(id, success, order) with { Prerequisites = needs };
+        var catalog = new[]
+        {
+            Q(1), Q(2, needs: "Q1"), Q(3, needs: "Q4"), Q(4), Q(5, needs: "Q4"), Q(6, needs: ["Q4", "Un objet"]),
+            Q(7, needs: "Succès S réalisé"), Q(8, "S", 1), Q(9, "S", 2),
+        };
+        var facts = catalog.ToDictionary(q => q.Id, _ => Xp(1f));
+        var chain = new QuestChainIndex(catalog);
+        var inProgress = new Dictionary<int, QuestStatus> { [5] = QuestStatus.InProgress };
+
+        // The active character, whose list the site fills (here wrongly listing 3, 6 and 7), then another one.
+        foreach (var progress in new[] { Progress([2, 3, 4, 6, 7, 8], inProgress, [1]), Progress([], inProgress, [1]) })
+        {
+            var shown = Recommendable(catalog, progress, facts).Select(e => e.Quests[0]).ToList();
+
+            Assert.Equal([2, 4, 5, 8], shown.Select(q => q.Id).Order());
+            Assert.All(shown, q => Assert.NotEqual(
+                false,
+                QuestTracking.Locked(
+                    new QuestNode(QuestNodeKind.Quest, q.Title, Quest: q, Needs: [.. q.Prerequisites.Select(n => new QuestNeed(n, chain.Find(n)))]),
+                    progress, chain).NeedsMet));
+        }
     }
 }

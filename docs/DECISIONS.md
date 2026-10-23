@@ -11085,13 +11085,15 @@ Si une donnée manque, le gain et la marque sont masqués, jamais devinés.
 elle n'est pas répétable (journalière, hebdomadaire, saisonnière : leur
 disponibilité dépend d'un délai ou d'un événement que DT Hub ne voit pas) ; le
 niveau optimal de sa première étape ne dépasse pas le niveau du personnage ; et
-elle est démarrable : dans `available_quests` de Papycha pour lui, en cours, ou,
-quand cette liste est vide, dont toutes les quêtes précédentes sont terminées.
+elle est démarrable : en cours, ou toutes ses quêtes précédentes terminées et,
+quand `available_quests` de Papycha n'est pas vide pour lui, dans cette liste.
 Papycha ne remplit `available_quests` que pour le personnage actif du site : pour
 les autres la liste est vide, et sans la troisième voie « Recommandées » et
 « Accessibles » restaient vides. Pour le personnage actif, la liste du site fait
 foi : une quête qu'elle ne donne pas n'est pas démarrable, même si ses
-précédentes sont faites (revue finale du 23/10/2026). Les quêtes précédentes sont résolues par `QuestChainIndex` (titre,
+précédentes sont faites (revue finale du 23/10/2026). Une quête qu'elle donne doit
+avoir aussi ses précédentes terminées (revue du 23/10/2026) : sinon le cadenas
+(voir plus bas) la dirait verrouillée dans « Recommandées ». Les quêtes précédentes sont résolues par `QuestChainIndex` (titre,
 « ... atteint », succès = dernière quête du succès) ; un prérequis qui ne
 désigne aucune quête (alignement, texte libre) est ignoré. Même règle pour
 « Accessibles » et pour les « Suivantes » calculées : répétables, bloquées et

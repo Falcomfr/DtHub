@@ -99,11 +99,12 @@ public static class QuestProfit
 
     public static bool IsDoable(QuestSummary quest, TrackerProgress? progress, TouchQuestFacts facts, int level, QuestChainIndex chain) =>
         progress is not null && Continuable(quest, progress, facts, level)
-        && (progress.Available.Contains(quest.Id) || QuestTracking.StatusOf(progress, quest.Id) == QuestStatus.InProgress
-            || (progress.Available.Count == 0 && PreviousDone(quest, progress, chain)));
+        && (QuestTracking.StatusOf(progress, quest.Id) == QuestStatus.InProgress
+            || ((progress.Available.Count == 0 || progress.Available.Contains(quest.Id)) && PreviousDone(quest, progress, chain)));
 
-    // The site fills Available for its active character only, and for it the list is the truth: for the others (an empty
-    // list), every previous quest done makes it startable.
+    // The site fills Available for its active character only, and for it a quest it leaves out is not startable: for the
+    // others (an empty list), every previous quest done makes it startable. A listed quest needs its previous quests done
+    // too, or the lock (QuestTracking.Locked) would call a recommended row unmet.
     // A prerequisite naming no quest (alignment, free text) is not checked.
     public static bool PreviousDone(QuestSummary quest, TrackerProgress progress, QuestChainIndex chain) =>
         quest.Prerequisites.Select(chain.Resolve)
