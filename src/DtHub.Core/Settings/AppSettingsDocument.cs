@@ -1,6 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 
 using DtHub.Core.Hotkeys;
+using DtHub.Core.Papycha;
 using DtHub.Core.Windows;
 
 namespace DtHub.Core.Settings;
@@ -131,6 +132,9 @@ public sealed class AppSettingsDocument
 
     /// <summary>XP bonus in percent (guild, ...) applied to the quest XP shown. 0 = none.</summary>
     public int RewardXpBonus { get; set; }
+
+    /// <summary>Whether quest gains, marks and the profitable quests follow XP or kamas.</summary>
+    public RewardRanking RewardRanking { get; set; } = RewardRanking.Xp;
 
     /// <summary>
     /// True when the quest list is filtered to the quests still "to do",

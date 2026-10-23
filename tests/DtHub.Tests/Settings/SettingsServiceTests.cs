@@ -1,5 +1,6 @@
 ﻿using DtHub.Core.Dofus;
 using DtHub.Core.Hotkeys;
+using DtHub.Core.Papycha;
 using DtHub.Core.Scrcpy;
 using DtHub.Core.Settings;
 using DtHub.Core.Windows;
@@ -1820,6 +1821,23 @@ public sealed class SettingsServiceTests : IDisposable
 
         await _service.SetRewardLevelAsync(87);
         await _service.SetRewardXpBonusAsync(50);
+
+        Assert.Equal(0, writes);
+    }
+
+    [Fact]
+    public async Task Le_classement_XP_ou_kamas_se_relit_et_une_valeur_inchangee_nenregistre_pas()
+    {
+        Assert.Equal(RewardRanking.Xp, (await _service.GetAsync()).RewardRanking);
+
+        await _service.SetRewardRankingAsync(RewardRanking.Kamas);
+
+        Assert.Equal(RewardRanking.Kamas, (await _service.GetAsync()).RewardRanking);
+
+        var writes = 0;
+        _service.Changed += (_, _) => writes++;
+
+        await _service.SetRewardRankingAsync(RewardRanking.Kamas);
 
         Assert.Equal(0, writes);
     }

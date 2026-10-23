@@ -1,6 +1,7 @@
 ﻿using DtHub.Core.Dofus;
 using DtHub.Core.Hotkeys;
 using DtHub.Core.Localization;
+using DtHub.Core.Papycha;
 using DtHub.Core.Scrcpy;
 using DtHub.Core.Storage;
 using DtHub.Core.Windows;
@@ -1655,6 +1656,21 @@ public sealed class SettingsService : IDisposable
                 }
 
                 settings.RewardXpBonus = percent;
+                return true;
+            },
+            cancellationToken);
+
+    /// <summary>Remembers whether quest gains are ranked by XP or by kamas.</summary>
+    public Task SetRewardRankingAsync(RewardRanking ranking, CancellationToken cancellationToken = default) =>
+        UpdateIfChangedAsync(
+            settings =>
+            {
+                if (settings.RewardRanking == ranking)
+                {
+                    return false;
+                }
+
+                settings.RewardRanking = ranking;
                 return true;
             },
             cancellationToken);
