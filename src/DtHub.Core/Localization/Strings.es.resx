@@ -2824,4 +2824,49 @@ Para evitarlo: {1}  ›  «Bloqueo automático de Carpeta segura» › la opció
   <data name="ReopenNow" xml:space="preserve">
     <value>Reabrir ahora</value>
   </data>
+  <data name="RewardLine" xml:space="preserve">
+    <value>Nv. {0}</value>
+  </data>
+  <data name="RewardBonus" xml:space="preserve">
+    <value>bonus +{0} %</value>
+  </data>
+  <data name="RewardKamas" xml:space="preserve">
+    <value>kamas</value>
+  </data>
+  <data name="RewardSpell" xml:space="preserve">
+    <value>hechizo</value>
+  </data>
+  <data name="RewardSpells" xml:space="preserve">
+    <value>hechizos</value>
+  </data>
+  <data name="RewardTitle" xml:space="preserve">
+    <value>título</value>
+  </data>
+  <data name="RewardTitles" xml:space="preserve">
+    <value>títulos</value>
+  </data>
+  <data name="RewardEmote" xml:space="preserve">
+    <value>emoticono</value>
+  </data>
+  <data name="RewardEmotes" xml:space="preserve">
+    <value>emoticonos</value>
+  </data>
+  <data name="RewardOrnament" xml:space="preserve">
+    <value>ornamento</value>
+  </data>
+  <data name="RewardOrnaments" xml:space="preserve">
+    <value>ornamentos</value>
+  </data>
+  <data name="RewardCompanion" xml:space="preserve">
+    <value>compañero</value>
+  </data>
+  <data name="RewardCompanions" xml:space="preserve">
+    <value>compañeros</value>
+  </data>
+  <data name="RewardJob" xml:space="preserve">
+    <value>oficio</value>
+  </data>
+  <data name="RewardJobs" xml:space="preserve">
+    <value>oficios</value>
+  </data>
 </root>

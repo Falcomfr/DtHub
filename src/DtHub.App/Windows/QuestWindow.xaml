@@ -369,6 +369,11 @@
           <TextBlock Text="{Binding QuestTitle}" FontWeight="SemiBold"
                      TextTrimming="CharacterEllipsis" />
 
+          <TextBlock Text="{Binding RewardText}" Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
+                     TextTrimming="CharacterEllipsis"
+                     Visibility="{Binding RewardText, Converter={StaticResource EmptyToVisibility},
+                                          ConverterParameter=inverse}" />
+
         </StackPanel>
 
         <!-- The step arrows, on the title's row: the site's intro block,

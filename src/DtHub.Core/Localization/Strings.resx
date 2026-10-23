@@ -2824,4 +2824,49 @@ To avoid it: {1}  ›  "Auto lock Secure Folder" › the longest option.</value>
   <data name="ReopenNow" xml:space="preserve">
     <value>Reopen now</value>
   </data>
+  <data name="RewardLine" xml:space="preserve">
+    <value>Lvl {0}</value>
+  </data>
+  <data name="RewardBonus" xml:space="preserve">
+    <value>bonus +{0}%</value>
+  </data>
+  <data name="RewardKamas" xml:space="preserve">
+    <value>kamas</value>
+  </data>
+  <data name="RewardSpell" xml:space="preserve">
+    <value>spell</value>
+  </data>
+  <data name="RewardSpells" xml:space="preserve">
+    <value>spells</value>
+  </data>
+  <data name="RewardTitle" xml:space="preserve">
+    <value>title</value>
+  </data>
+  <data name="RewardTitles" xml:space="preserve">
+    <value>titles</value>
+  </data>
+  <data name="RewardEmote" xml:space="preserve">
+    <value>emote</value>
+  </data>
+  <data name="RewardEmotes" xml:space="preserve">
+    <value>emotes</value>
+  </data>
+  <data name="RewardOrnament" xml:space="preserve">
+    <value>ornament</value>
+  </data>
+  <data name="RewardOrnaments" xml:space="preserve">
+    <value>ornaments</value>
+  </data>
+  <data name="RewardCompanion" xml:space="preserve">
+    <value>companion</value>
+  </data>
+  <data name="RewardCompanions" xml:space="preserve">
+    <value>companions</value>
+  </data>
+  <data name="RewardJob" xml:space="preserve">
+    <value>job</value>
+  </data>
+  <data name="RewardJobs" xml:space="preserve">
+    <value>jobs</value>
+  </data>
 </root>

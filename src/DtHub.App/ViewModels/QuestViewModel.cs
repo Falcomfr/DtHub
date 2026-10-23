@@ -34,6 +34,11 @@ public sealed partial class QuestViewModel : ObservableObject
             {
                 OnPropertyChanged(nameof(ShowsFilters));
             }
+
+            if (e.PropertyName is nameof(QuestTrackerViewModel.RewardLevel) or nameof(QuestTrackerViewModel.RewardXpBonus))
+            {
+                _ = RefreshRewardsAsync();
+            }
         };
         _catalog = catalog;
         _tree = new QuestTree(catalog, _sectionCounts);
@@ -410,8 +415,59 @@ public sealed partial class QuestViewModel : ObservableObject
     /// <summary>Papycha quest the steps in <see cref="OfficialSteps"/> belong to.</summary>
     private int _officialStepsOf;
 
+    /// <summary>The reward line under the title; empty hides it.</summary>
+    [ObservableProperty]
+    private string _rewardText = string.Empty;
+
+    /// <summary>
+    /// Reads the shown quest's steps in the background (once: the official steps view reuses them)
+    /// and words what they give at the tracker's level.
+    /// </summary>
+    private async Task RefreshRewardsAsync()
+    {
+        if (_current is not { } quest || Tracker.RewardLevel <= 0)
+        {
+            RewardText = string.Empty;
+
+            return;
+        }
+
+        var steps = OfficialSteps;
+
+        if (_officialStepsOf != quest.Id)
+        {
+            steps = await _touchNames.StepsAsync(quest.Id, TouchNameService.CurrentLanguage).ConfigureAwait(true);
+
+            if (_current?.Id != quest.Id)
+            {
+                return;
+            }
+
+            if (steps.Count == 0)
+            {
+                return;
+            }
+
+            OfficialSteps = steps;
+            _officialStepsOf = quest.Id;
+        }
+
+        var names = (await _touchNames.CachedAsync(TouchNameService.CurrentLanguage).ConfigureAwait(true))?.Items;
+
+        if (_current?.Id != quest.Id)
+        {
+            return;
+        }
+
+        var level = Tracker.RewardLevel;
+        var total = names is null || level <= 0 ? null : QuestRewards.For(steps, level, Tracker.RewardXpBonus);
+
+        RewardText = total is null ? string.Empty : QuestRewardText.Format(total, level, Tracker.RewardXpBonus, names!);
+    }
+
     private void ResetOfficialSteps()
     {
+        RewardText = string.Empty;
         ShowsOfficialSteps = false;
         OfficialSteps = [];
         _officialStepsOf = 0;
@@ -1189,6 +1245,8 @@ public sealed partial class QuestViewModel : ObservableObject
         // would let the arrows walk a guide that is no longer shown.
         ResetSteps([]);
         SetStep(-1);
+
+        _ = RefreshRewardsAsync();
     }
 
     /// <summary>

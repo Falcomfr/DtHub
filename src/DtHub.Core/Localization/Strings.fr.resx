@@ -2824,4 +2824,49 @@ Pour l'éviter : {1}  ›  « Verrouillage auto. Dossier sécurisé » › l'opt
   <data name="ReopenNow" xml:space="preserve">
     <value>Rouvrir maintenant</value>
   </data>
+  <data name="RewardLine" xml:space="preserve">
+    <value>Niv. {0}</value>
+  </data>
+  <data name="RewardBonus" xml:space="preserve">
+    <value>bonus +{0} %</value>
+  </data>
+  <data name="RewardKamas" xml:space="preserve">
+    <value>kamas</value>
+  </data>
+  <data name="RewardSpell" xml:space="preserve">
+    <value>sort</value>
+  </data>
+  <data name="RewardSpells" xml:space="preserve">
+    <value>sorts</value>
+  </data>
+  <data name="RewardTitle" xml:space="preserve">
+    <value>titre</value>
+  </data>
+  <data name="RewardTitles" xml:space="preserve">
+    <value>titres</value>
+  </data>
+  <data name="RewardEmote" xml:space="preserve">
+    <value>émoticône</value>
+  </data>
+  <data name="RewardEmotes" xml:space="preserve">
+    <value>émoticônes</value>
+  </data>
+  <data name="RewardOrnament" xml:space="preserve">
+    <value>ornement</value>
+  </data>
+  <data name="RewardOrnaments" xml:space="preserve">
+    <value>ornements</value>
+  </data>
+  <data name="RewardCompanion" xml:space="preserve">
+    <value>compagnon</value>
+  </data>
+  <data name="RewardCompanions" xml:space="preserve">
+    <value>compagnons</value>
+  </data>
+  <data name="RewardJob" xml:space="preserve">
+    <value>métier</value>
+  </data>
+  <data name="RewardJobs" xml:space="preserve">
+    <value>métiers</value>
+  </data>
 </root>
