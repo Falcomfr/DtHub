@@ -34,7 +34,7 @@ public sealed class FakeDofusTouchClient : IDofusTouchClient
     {
         if (Pause is not null)
         {
-            await Pause.Task;
+            await Pause.Task.WaitAsync(cancellationToken);
         }
 
         if (Failure is not null)
