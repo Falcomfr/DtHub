@@ -11233,7 +11233,12 @@ partagée que si elle est la prochaine quête faisable de chacun ; ses gains, au
 niveau de chaque personnage, sont additionnés. Seules les quêtes partagées par
 au moins deux personnages restent ; la ligne dit « 3 persos » et
 l'infobulle nomme les personnages. Le Bonus Pack est un réglage unique pour le
-compte. Pas de donjons dans la vue d'équipe.
+compte. Pas de donjons dans la vue d'équipe. Sous « Moi » / « Équipe », une case
+par personnage du suivi (non archivé) choisit qui compte (demande du
+23/10/2026) : tous cochés par défaut, le réglage garde ceux qu'on décoche, donc
+un personnage ajouté plus tard est coché et un personnage disparu du suivi est
+oublié. Avec moins de deux cochés, les listes de l'équipe disent d'en cocher
+au moins deux.
 
 **Où trouver.** Pour les objectifs qui demandent des objets (rapporter, montrer),
 l'infobulle du gain et le guide ouvert disent où les obtenir. Les classes

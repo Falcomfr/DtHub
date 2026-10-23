@@ -33,6 +33,11 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         Tracker = tracker;
         _settings = settings;
         tracker.ProgressChanged += (_, _) => Rescore();
+        tracker.TeamChanged += (_, _) =>
+        {
+            _team = null;
+            RedrawAfterRead();
+        };
         tracker.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(QuestTrackerViewModel.IsLinked))
@@ -1613,6 +1618,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
 
         // The toggle hides with a single character left: the team view must not stay on, empty.
         var team = ProfitTeam && Tracker.HasSeveralCharacters;
+        var tooFew = team && Tracker.TeamProgress().Count < 2;
         var rows = team ? TeamRows() : MyRows();
         foreach (var (title, kamas) in new[] { ("ProfitForXp", false), ("ProfitForKamas", true) })
         {
@@ -1627,7 +1633,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
 
             if (shown.Count == 0)
             {
-                Nodes.Add(new QuestNode(QuestNodeKind.Pending, Strings.Get("NoResult")));
+                Nodes.Add(new QuestNode(QuestNodeKind.Pending, Strings.Get(tooFew ? "ProfitPickTwo" : "NoResult")));
             }
 
             if (!kamas && !team

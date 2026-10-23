@@ -29,6 +29,15 @@ public enum TrackerLink
     Unreadable,
 }
 
+/// <summary>A character's box in the team view of "Recommandées": ticked, it counts in the team lists.</summary>
+public sealed partial class TeamMember(TrackerCharacter character, bool included) : ObservableObject
+{
+    public TrackerCharacter Character { get; } = character;
+
+    [ObservableProperty]
+    private bool _included = included;
+}
+
 /// <summary>
 /// The player's tracker laid over the guides window. Thin on purpose: every
 /// decision goes through <see cref="QuestTracking"/>. Driven from the UI
@@ -44,6 +53,7 @@ public sealed partial class QuestTrackerViewModel(
     private bool _startedThisQuest;
     private bool _filling;
     private string _rememberedId = string.Empty;
+    private HashSet<string> _leftOut = [];
 
     /// <summary>
     /// Bumped by each write: a read begun before it holds a status the write
@@ -73,6 +83,12 @@ public sealed partial class QuestTrackerViewModel(
     public event EventHandler? ProgressChanged;
 
     public ObservableCollection<TrackerCharacter> Characters { get; } = [];
+
+    /// <summary>The team view's boxes, one per character.</summary>
+    public ObservableCollection<TeamMember> TeamMembers { get; } = [];
+
+    /// <summary>Raised when a team box is ticked or unticked.</summary>
+    public event EventHandler? TeamChanged;
 
     /// <summary>"Marquer « X » terminée ?", or empty when nothing is offered.</summary>
     [ObservableProperty]
@@ -167,6 +183,7 @@ public sealed partial class QuestTrackerViewModel(
         var version = _writeVersion;
         var held = await settings.GetAsync();
         _rememberedId = held.PapychaCharacterId;
+        _leftOut = [.. held.PapychaTeamLeftOut];
         var (level, bonus) = (RewardLevel, RewardXpBonus);
         _settingLevel = RewardInput.IsLevel(held.RewardLevel) ? held.RewardLevel : 0;
         _settingBonus = RewardInput.IsBonus(held.RewardXpBonus) ? held.RewardXpBonus : 0;
@@ -229,11 +246,49 @@ public sealed partial class QuestTrackerViewModel(
             ? Task.CompletedTask
             : RefreshAsync();
 
-    /// <summary>Every character with its progress, at the level the selector shows (a level just saved included).</summary>
+    /// <summary>
+    /// Every ticked character with its progress, at the level the selector shows (a level just saved included).
+    /// </summary>
     public IReadOnlyList<(TrackerCharacter Character, TrackerProgress Progress)> TeamProgress() =>
         _state is not { } state
             ? []
-            : [.. Characters.Where(c => state.Progress.ContainsKey(c.Id)).Select(c => (c, state.Progress[c.Id]))];
+            : [.. Characters.Where(c => state.Progress.ContainsKey(c.Id) && !_leftOut.Contains(c.Id)).Select(c => (c, state.Progress[c.Id]))];
+
+    private void OnTeamMemberChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        // Ids of characters gone from the tracker are dropped with this save.
+        _leftOut = [.. TeamMembers.Where(m => !m.Included).Select(m => m.Character.Id)];
+        _ = RememberTeamAsync([.. _leftOut]);
+        TeamChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private async Task RememberTeamAsync(IReadOnlyList<string> leftOut)
+    {
+        try
+        {
+            await settings.SetPapychaTeamLeftOutAsync(leftOut);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            LogRememberFailed(exception);
+        }
+    }
+
+    private void FillTeam()
+    {
+        foreach (var member in TeamMembers)
+        {
+            member.PropertyChanged -= OnTeamMemberChanged;
+        }
+
+        TeamMembers.Clear();
+        foreach (var character in Characters)
+        {
+            var member = new TeamMember(character, !_leftOut.Contains(character.Id));
+            member.PropertyChanged += OnTeamMemberChanged;
+            TeamMembers.Add(member);
+        }
+    }
 
     /// <summary>The quest the guides window shows, or null for none.</summary>
     public void ShowQuest(int? questId)
@@ -783,6 +838,7 @@ public sealed partial class QuestTrackerViewModel(
         }
 
         HasSeveralCharacters = Characters.Count > 1;
+        FillTeam();
 
         var picked = state is null
             ? null
@@ -812,6 +868,7 @@ public sealed partial class QuestTrackerViewModel(
         Notice = NoticeFor(link);
         Characters.Clear();
         HasSeveralCharacters = false;
+        FillTeam();
         SelectedCharacter = null;
         ShowProgressOf(null);
         ProgressChanged?.Invoke(this, EventArgs.Empty);

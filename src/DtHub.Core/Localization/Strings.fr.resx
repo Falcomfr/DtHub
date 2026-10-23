@@ -1918,6 +1918,9 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="ZonePassingBothOne" xml:space="preserve">
     <value>{0} quête accessible à faire</value>
   </data>
+  <data name="ProfitPickTwo" xml:space="preserve">
+    <value>Cochez au moins deux personnages pour l’équipe.</value>
+  </data>
   <data name="AndroidTooOld" xml:space="preserve">
     <value>cet appareil est en {0}, or ouvrir une fenêtre de jeu demande {1} ou plus récent.</value>
   </data>

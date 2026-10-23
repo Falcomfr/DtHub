@@ -1630,6 +1630,21 @@ public sealed class SettingsService : IDisposable
             },
             cancellationToken);
 
+    /// <summary>Remembers the characters unticked in the team view.</summary>
+    public Task SetPapychaTeamLeftOutAsync(IReadOnlyList<string> ids, CancellationToken cancellationToken = default) =>
+        UpdateIfChangedAsync(
+            settings =>
+            {
+                if (settings.PapychaTeamLeftOut.SequenceEqual(ids, StringComparer.Ordinal))
+                {
+                    return false;
+                }
+
+                settings.PapychaTeamLeftOut = [.. ids];
+                return true;
+            },
+            cancellationToken);
+
     /// <summary>Remembers the character level used for quest rewards (0 = unknown).</summary>
     public Task SetRewardLevelAsync(int level, CancellationToken cancellationToken = default) =>
         UpdateIfChangedAsync(

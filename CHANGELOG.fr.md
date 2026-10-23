@@ -23,7 +23,7 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 - Les cases de niveau et de Bonus Pack sont maintenant dans toutes les vues de la fenêtre des guides.
 - Chaque quête affiche un temps estimé, par exemple ≈ 25 min, calculé par DT Hub à partir des objectifs et des cartes du jeu ; « Recommandées » classe sur l'XP et les kamas par minute et écarte ce qui prend plus d'une heure.
 - Marquer beaucoup de quêtes terminées d'un coup : le bouton de sélection de la liste des guides coche des quêtes (Maj+clic pour une plage), et les titres de succès et de zone proposent « Tout marquer terminé » ; DT Hub les écrit une à une, vérifie ce que Papycha a gardé et réécrit ce qui s'est perdu.
-- Avec plusieurs personnages reliés, « Recommandées » a un bouton « Moi » et « Équipe » : les quêtes que plusieurs de vos personnages peuvent faire, gains additionnés.
+- Avec plusieurs personnages reliés, « Recommandées » a un bouton « Moi » et « Équipe » : les quêtes que plusieurs de vos personnages peuvent faire, gains additionnés ; cochez les personnages qui comptent.
 - Les donjons qui font avancer au moins deux quêtes recommandées apparaissent dans « Recommandées », et dans les listes de donjons avec leurs gains.
 - Une icône cadeau sur une ligne de quête liste les objets et autres récompenses qu'elle donne à votre niveau.
 - Survolez une quête pour voir où trouver les objets qu'elle demande : monstres qui les lâchent, récolte, fabrication, archimonstres et leurs zones.

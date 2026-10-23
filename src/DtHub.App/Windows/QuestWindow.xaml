@@ -931,6 +931,39 @@
             </Button>
           </Grid>
 
+          <!-- The team view's boxes, one per character: only the ticked
+               ones count in its lists. -->
+          <StackPanel DockPanel.Dock="Top" Margin="10,0,4,4"
+                      Visibility="{Binding ShowsRecommended, Converter={StaticResource BoolToVisibility}}">
+            <ItemsControl ItemsSource="{Binding Tracker.TeamMembers}">
+              <ItemsControl.Style>
+                <Style TargetType="ItemsControl">
+                  <Setter Property="Visibility" Value="Collapsed" />
+                  <Style.Triggers>
+                    <MultiDataTrigger>
+                      <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding ProfitTeam}" Value="True" />
+                        <Condition Binding="{Binding Tracker.HasSeveralCharacters}" Value="True" />
+                      </MultiDataTrigger.Conditions>
+                      <Setter Property="Visibility" Value="Visible" />
+                    </MultiDataTrigger>
+                  </Style.Triggers>
+                </Style>
+              </ItemsControl.Style>
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <WrapPanel />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <CheckBox Content="{Binding Character.Name}" IsChecked="{Binding Included}"
+                            FontSize="{StaticResource FontSmall}" Margin="0,2,10,0" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+
           <!-- The back button is fixed and not a row of the list: it
                used to scroll with it and disappear as soon as you went
                down into a section of sixty quests. -->

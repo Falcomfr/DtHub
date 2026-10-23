@@ -1918,6 +1918,9 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="ZonePassingBothOne" xml:space="preserve">
     <value>{0} misión accesible por hacer</value>
   </data>
+  <data name="ProfitPickTwo" xml:space="preserve">
+    <value>Marca al menos dos personajes para el equipo.</value>
+  </data>
   <data name="AndroidTooOld" xml:space="preserve">
     <value>este aparato tiene {0}, y abrir una ventana de juego necesita {1} o posterior.</value>
   </data>

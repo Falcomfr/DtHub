@@ -1918,6 +1918,9 @@ In the meantime, the button at the bottom opens the page in your browser.</value
   <data name="ZonePassingBothOne" xml:space="preserve">
     <value>{0} available quest to do</value>
   </data>
+  <data name="ProfitPickTwo" xml:space="preserve">
+    <value>Tick at least two characters for the team.</value>
+  </data>
   <data name="AndroidTooOld" xml:space="preserve">
     <value>this device runs {0}, and opening a game window needs {1} or newer.</value>
   </data>

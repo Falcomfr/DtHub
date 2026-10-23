@@ -126,6 +126,12 @@ public sealed class AppSettingsDocument
     /// </summary>
     public string PapychaCharacterId { get; set; } = string.Empty;
 
+    /// <summary>
+    /// The Papycha characters unticked in the team view of "Recommandées".
+    /// The ones left out, so the default and a character added later are in.
+    /// </summary>
+    public List<string> PapychaTeamLeftOut { get; set; } = [];
+
     /// <summary>Character level used to pick quest rewards in the guides window. 0 = unknown.</summary>
     public int RewardLevel { get; set; }
 

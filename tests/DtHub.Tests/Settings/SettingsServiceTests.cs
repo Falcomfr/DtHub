@@ -1801,6 +1801,19 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Les_personnages_ecartes_de_l_equipe_se_relisent()
+    {
+        // Vide par défaut : toute l'équipe est cochée.
+        Assert.Empty((await _service.GetAsync()).PapychaTeamLeftOut);
+
+        await _service.SetPapychaTeamLeftOutAsync(["perso-2", "perso-3"]);
+        Assert.Equal(["perso-2", "perso-3"], (await _service.GetAsync()).PapychaTeamLeftOut);
+
+        await _service.SetPapychaTeamLeftOutAsync([]);
+        Assert.Empty((await _service.GetAsync()).PapychaTeamLeftOut);
+    }
+
+    [Fact]
     public async Task Le_niveau_et_le_bonus_dXP_se_relisent_et_une_valeur_inchangee_nenregistre_pas()
     {
         var document = await _service.GetAsync();
