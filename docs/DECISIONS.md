@@ -11070,3 +11070,55 @@ décochée par défaut : DT Hub ne voit pas le Bonus Pack. Si une étape manque,
 ne répond pas ou que la quête n'est pas appariée au jeu, la ligne est masquée,
 jamais devinée.
 
+
+## D219 - Les quêtes rentables : gain pour l'effort, calculé chez le joueur
+
+**2026-10-23 - Acceptée, complète D218 et D212**
+
+Le joueur veut voir ce que paie chaque quête dans toutes les listes, repérer les
+meilleures d'un coup d'oeil et obtenir un classement de ce qu'il peut faire
+maintenant, séries comprises. Même règle que D212 et D218 : tout est lu chez le
+joueur, rien n'est embarqué, le gain est celui de D218 pour le personnage choisi.
+Si une donnée manque, le gain et la marque sont masqués, jamais devinés.
+
+**Quête faisable.** Le personnage ne l'a ni terminée, ni bloquée, ni ignorée ;
+elle n'est pas répétable (journalière, hebdomadaire, saisonnière : leur
+disponibilité dépend d'un délai ou d'un événement que DT Hub ne voit pas) ; le
+niveau optimal de sa première étape ne dépasse pas le niveau du personnage ; et
+elle est dans `available_quests` de Papycha pour lui, ou en cours.
+
+**Série.** Une entrée de série commence à sa première quête faisable et continue
+avec les quêtes suivantes, dans l'ordre de jeu, pas encore faites, qui passent
+toutes les règles ci-dessus sauf l'appartenance à `available_quests` (cette liste
+ne contient que ce qui est démarrable maintenant, pas la suite de la chaîne). Elle
+s'arrête à la première qui en échoue une. Un membre sans gain calculable reste dans
+la série et n'y ajoute rien. Les séries déjà commencées passent avant les autres.
+
+**Effort.** Somme des objectifs lus dans le jeu, plus 1 par quête. Aller, revenir
+ou montrer : 1 ; découvrir une carte : 1,5 ; rapporter des objets : 2 + quantité /
+10, au plus 7 ; fabriquer : 3 ; combattre : 3, ou 8 pour un combat unique (un boss
+en pratique), plus 4 si le niveau optimal de l'étape dépasse celui du personnage ;
+rapporter des âmes : 5 ; texte libre ou type inconnu : 6. Le score est le gain
+(XP ou kamas, Bonus Pack compris) divisé par l'effort ; celui d'une série somme
+les gains et les efforts de ses quêtes restantes. Les raisons affichées sont les
+trois plus coûteuses, par genre (boss, combats, objets, âmes, fabrication, trajet,
+dialogues, tâche vague). Ces valeurs sont des choix de Claude, réglables.
+
+**Paliers.** Parmi les quêtes faisables classées par score : les 10 % de tête
+(au moins une) au palier 3, les 15 % suivants au 2, les 25 % suivants au 1, le
+reste sans marque. En XP comme en kamas ; une quête sans kamas n'est pas classée
+en kamas. Le choix XP ou kamas est mémorisé.
+
+**Lecture en masse et pauses.** Les étapes, objectifs et récompenses d'étapes de
+toutes les quêtes appariées sont lus en trois requêtes (`QuestSteps`,
+`QuestObjectives`, `QuestStepRewards`) espacées d'au moins 60 s, en arrière-plan,
+une seule lecture à la fois, et gardés 7 jours avec les noms, par langue. Après un
+refus du serveur, aucune nouvelle tentative pendant 6 h, et on garde les données de
+la semaine précédente plutôt que rien. Ce qui n'est pas lu : la progression dans
+une quête (étape en cours, objectifs faits), que seul le jeu montre, et les
+monstres (environ 30 Ko chacun, trop lourd pour toutes les quêtes).
+
+**Affichage.** Une colonne de gain à droite de chaque ligne de quête, une marque à
+trois paliers (flamme pleine, demi-flamme, point), l'entrée « Quêtes rentables »
+à côté de « Quêtes suivantes », et les cases de niveau et de Bonus Pack dans toutes
+les vues de la fenêtre des guides.

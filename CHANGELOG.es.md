@@ -16,6 +16,11 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 
 - Una guía de misión muestra sus recompensas bajo el título (XP, kamas, objetos), calculadas para el nivel de tu personaje y la bonificación de XP que indiques.
 - Una casilla de nivel en la ventana de guías: al cambiarla también se actualiza el nivel de tu personaje en Papycha.
+- Cada lista de misiones muestra lo que da cada misión a tu personaje, en XP o en kamas.
+- Una pequeña marca de prioridad en las misiones que puedes hacer ahora, del punto a la llama, para la mejor ganancia por esfuerzo.
+- Una entrada «Misiones rentables» junto a «Siguientes» ordena lo que puedes hacer ahora, series incluidas, en XP o en kamas.
+- Un interruptor XP o kamas para la clasificación, las marcas y las ganancias de las listas.
+- Las casillas de nivel y de Bonus Pack están ahora en todas las vistas de la ventana de guías.
 
 ## [0.10.5] - 2026-10-22
 

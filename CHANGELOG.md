@@ -23,6 +23,11 @@ belongs in the commits and in `docs/DECISIONS.md`.
 
 - A quest guide shows its rewards under the title (XP, kamas, items), computed for your character's level and the XP bonus you set.
 - A level box in the guides window: changing it updates your character's level on Papycha too.
+- Every quest list shows what each quest gives your character, in XP or kamas.
+- A small priority mark on the quests you can do now, from a dot to a flame, for the best gain for the effort.
+- A "Profitable quests" entry next to "Next" ranks what you can do now, series included, by XP or kamas.
+- A switch between XP and kamas for the ranking, the marks and the gains in the lists.
+- The level and Bonus Pack boxes are now in every view of the guides window.
 
 ## [0.10.5] - 2026-10-22
 

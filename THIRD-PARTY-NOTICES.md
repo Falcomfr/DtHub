@@ -280,6 +280,10 @@ no Ankama graphical resource enters this repository.
 - Quest step rewards (experience, kamas, reward items and their quantities)
   and the names of reward items are read from the same server in the same way:
   on the player's PC, kept in the same cache, nothing embedded
+- The objectives (type and parameters) and the step rewards of every quest
+  paired with the game are read from the same server in the same way, in three
+  requests at least 60 seconds apart, to rank quests by reward for the effort:
+  on the player's PC, kept in the same cache for 7 days, nothing embedded
 
 **No resource is copied or redistributed.** The guides window reads the
 official names of quests, dungeons, bosses, key items and achievements, the
