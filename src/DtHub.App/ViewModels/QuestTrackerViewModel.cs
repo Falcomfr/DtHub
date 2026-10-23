@@ -129,6 +129,12 @@ public sealed partial class QuestTrackerViewModel(
 
     public int RewardXpBonus => _settingBonus;
 
+    /// <summary>The game's Bonus Pack: +150 % XP on quests, the one bonus a player has to tell.</summary>
+    public const int BonusPackPercent = 150;
+
+    /// <summary>Any saved bonus reads as the pack: older versions took a free percentage.</summary>
+    public bool HasBonusPack => _settingBonus > 0;
+
     public bool ShowsLinkButton => Link is TrackerLink.NotLinked or TrackerLink.Lost;
 
     /// <summary>
@@ -164,6 +170,7 @@ public sealed partial class QuestTrackerViewModel(
         _settingBonus = RewardInput.IsBonus(held.RewardXpBonus) ? held.RewardXpBonus : 0;
         OnPropertyChanged(nameof(RewardLevel));
         OnPropertyChanged(nameof(RewardXpBonus));
+        OnPropertyChanged(nameof(HasBonusPack));
         var (cookie, cookieFailed) = await ReadCookieAsync();
 
         if (cookieFailed)
@@ -545,18 +552,19 @@ public sealed partial class QuestTrackerViewModel(
         return false;
     }
 
-    /// <summary>Applies the bonus box (0 to 1000 percent); a refused text puts the old value back.</summary>
-    public async Task<bool> SetRewardXpBonusAsync(string text)
+    /// <summary>Applies the Bonus Pack switch (0 to 1000 percent); a refused value puts the old one back.</summary>
+    public async Task<bool> SetRewardXpBonusAsync(int percent)
     {
-        if (!RewardInput.TryBonus(text, out var percent) || percent == _settingBonus)
+        if (!RewardInput.IsBonus(percent) || percent == _settingBonus)
         {
-            OnPropertyChanged(nameof(RewardXpBonus));
+            OnPropertyChanged(nameof(HasBonusPack));
 
             return false;
         }
 
         _settingBonus = percent;
         OnPropertyChanged(nameof(RewardXpBonus));
+        OnPropertyChanged(nameof(HasBonusPack));
         await SaveSettingAsync(() => settings.SetRewardXpBonusAsync(percent));
 
         return true;

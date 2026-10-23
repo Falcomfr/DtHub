@@ -125,7 +125,9 @@
           <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Level and XP bonus feed the reward line: shown with any guide, linked or not. -->
+        <!-- Level and XP bonus feed the reward line: shown with any guide, linked or not.
+             The bonus is a switch: the Bonus Pack is the one bonus a player
+             knows, a free percentage box left them guessing what to type. -->
         <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal"
                     HorizontalAlignment="Left" Margin="0,6,0,0"
                     Visibility="{Binding DataContext.ShowsQuestChrome,
@@ -136,13 +138,24 @@
                      Margin="0,0,6,0" />
           <TextBox Width="44" Padding="4,2" MaxLength="3" VerticalAlignment="Center"
                    Text="{Binding RewardLevel, Mode=OneWay}"
-                   KeyDown="OnRewardLevelKey" LostFocus="OnRewardLevelApply" />
-          <TextBlock Text="{loc:T RewardXpBonusLabel}" Style="{StaticResource Muted}"
-                     FontSize="{StaticResource FontSmall}" VerticalAlignment="Center"
-                     Margin="12,0,6,0" />
-          <TextBox Width="52" Padding="4,2" MaxLength="4" VerticalAlignment="Center"
-                   Text="{Binding RewardXpBonus, Mode=OneWay}"
-                   KeyDown="OnRewardBonusKey" LostFocus="OnRewardBonusApply" />
+                   KeyDown="OnRewardLevelKey" LostFocus="OnRewardLevelApply">
+            <TextBox.Style>
+              <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+                <Setter Property="ToolTip" Value="{loc:T RewardLevelTipLocal}" />
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding IsLinked}" Value="True">
+                    <Setter Property="ToolTip" Value="{loc:T RewardLevelTipLinked}" />
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+            </TextBox.Style>
+          </TextBox>
+          <!-- OneWay survives the click: a toggle sets its current value, not
+               a local one, so a later refresh still moves it. -->
+          <CheckBox Margin="14,0,0,0" VerticalAlignment="Center"
+                    Content="{loc:T RewardXpBonusLabel}" ToolTip="{loc:T RewardXpBonusTip}"
+                    IsChecked="{Binding HasBonusPack, Mode=OneWay}"
+                    Click="OnBonusPackClick" />
         </StackPanel>
 
         <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">

@@ -2488,7 +2488,16 @@ Para evitarlo: {1}  ›  «Bloqueo automático de Carpeta segura» › la opció
     <value>Niv.</value>
   </data>
   <data name="RewardXpBonusLabel" xml:space="preserve">
-    <value>Bono XP %</value>
+    <value>Bonus Pack</value>
+  </data>
+  <data name="RewardXpBonusTip" xml:space="preserve">
+    <value>+150 % de XP en misiones</value>
+  </data>
+  <data name="RewardLevelTipLinked" xml:space="preserve">
+    <value>Nivel del personaje, guardado también en Papycha</value>
+  </data>
+  <data name="RewardLevelTipLocal" xml:space="preserve">
+    <value>Nivel del personaje, guardado en DT Hub</value>
   </data>
   <data name="TrackerMyQuests" xml:space="preserve">
     <value>Mis misiones</value>

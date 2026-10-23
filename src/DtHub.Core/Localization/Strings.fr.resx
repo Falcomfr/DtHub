@@ -2488,7 +2488,16 @@ Pour l'éviter : {1}  ›  « Verrouillage auto. Dossier sécurisé » › l'opt
     <value>Niv.</value>
   </data>
   <data name="RewardXpBonusLabel" xml:space="preserve">
-    <value>Bonus XP %</value>
+    <value>Bonus Pack</value>
+  </data>
+  <data name="RewardXpBonusTip" xml:space="preserve">
+    <value>+150 % d'XP sur les quêtes</value>
+  </data>
+  <data name="RewardLevelTipLinked" xml:space="preserve">
+    <value>Niveau du personnage, enregistré aussi sur Papycha</value>
+  </data>
+  <data name="RewardLevelTipLocal" xml:space="preserve">
+    <value>Niveau du personnage, gardé dans DT Hub</value>
   </data>
   <data name="TrackerMyQuests" xml:space="preserve">
     <value>Mes quêtes</value>

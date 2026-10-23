@@ -601,8 +601,6 @@ public partial class QuestWindow : Window
 
     private void OnRewardLevelKey(object sender, KeyEventArgs e) => ApplyOnEnter(e, OnRewardLevelApply, sender);
 
-    private void OnRewardBonusKey(object sender, KeyEventArgs e) => ApplyOnEnter(e, OnRewardBonusApply, sender);
-
     private static void ApplyOnEnter(KeyEventArgs e, RoutedEventHandler apply, object sender)
     {
         if (e.Key == Key.Enter)
@@ -616,8 +614,9 @@ public partial class QuestWindow : Window
     private void OnRewardLevelApply(object sender, RoutedEventArgs e) =>
         _ = _viewModel.Tracker.SetRewardLevelAsync(((TextBox)sender).Text);
 
-    private void OnRewardBonusApply(object sender, RoutedEventArgs e) =>
-        _ = _viewModel.Tracker.SetRewardXpBonusAsync(((TextBox)sender).Text);
+    private void OnBonusPackClick(object sender, RoutedEventArgs e) =>
+        _ = _viewModel.Tracker.SetRewardXpBonusAsync(
+            ((CheckBox)sender).IsChecked == true ? QuestTrackerViewModel.BonusPackPercent : 0);
 
     private void OnLinkTracker(object sender, RoutedEventArgs e) => OpenTrackerWindow(quests: false);
 
