@@ -11016,3 +11016,53 @@ chargement compris.
 
 Non vérifié : la bande grise d'environ 95 pixels que DTStuff laisse en bas de
 son afficheur, vue en paysage, n'a pas été comparée au portrait.
+
+## D218 - Les récompenses d'une quête sont calculées pour le niveau du personnage
+
+**2026-10-23 - Acceptée**
+
+Le joueur veut savoir ce que paie une quête avant de la faire, « exactement
+comme le jeu » pour son personnage. Le jeu ne l'affiche que pour la quête
+sélectionnée dans son journal. Même source et même règle que D212 : le serveur
+de données du jeu, sans compte, rien d'embarqué, tout lu à l'exécution et gardé
+7 jours dans le cache local.
+
+Lus avec les étapes d'une quête : `optimalLevel`, `duration`, `xpRatio`,
+`kamasRatio`, `kamasScaleWithPlayerLevel` et leurs lignes `QuestStepRewards`
+(tranches de niveau, objets avec quantités, et les identifiants d'émotes, de
+sorts, de titres, d'ornements, de compagnons et de métiers), puis les noms des
+objets (`Items`). Au plus deux requêtes de plus par guide ouvert. Le nom des
+autres récompenses n'est pas lu : la ligne en donne le nombre.
+
+Formule, par étape, avec `L` le niveau, `opt` le niveau optimal, `d` la durée,
+`bonus` le bonus d'XP en pourcentage / 100 :
+
+- `fixe(x) = floor(x * (100 + 2x)^2 / 20) * d * xpRatio`, sans arrondi après les ratios
+- `L <= opt` : XP = `floor(fixe(L) * (1 + bonus))`
+- `L > opt` : XP = `floor(floor(0,3 * fixe(opt) + 0,7 * fixe(min(L, 1,5 * opt))) * (1 + bonus))`
+- kamas = `floor((K^2 + 20K - 20) * kamasRatio * d)`, avec `K = L` si
+  `kamasScaleWithPlayerLevel`, sinon `K = opt`
+
+`d`, les ratios et 0,7 sont des float32 élargis en double. La récompense d'une
+quête est la somme de ses étapes.
+
+Vérifiée à l'unité sur le journal du jeu le 2026-10-23 : Cra niveau 191, Gare
+au Kailleu (11 512 kamas, 1 976 445 XP) ; Eni niveau 184, Distribution de
+Marrons (5 541 305 XP) ; Enu niveau 190, Ça rend aimable. (4 780 kamas exacts).
+
+**Reste ouvert : le cas plafonné.** Pour l'Enu, l'XP du jeu (1 162 075) vaut
+près du double de la formule (581 040), mais pas exactement (le double ferait
+1 162 080). Le plafond `1,5 * opt` est le seul de ces trois cas à s'appliquer,
+donc c'est la règle plafonnée qui est en doute. À trancher avant la sortie par
+une lecture en jeu d'une quête de niveau inférieur aux deux tiers de celui du
+personnage ; d'ici là le code porte la règle ci-dessus.
+
+Le niveau vient du personnage Papycha choisi quand le suivi est lié, d'un
+réglage local sinon. Une case de niveau dans la fenêtre des guides le change et,
+lié, l'enregistre sur Papycha (action `papycha_tracker_character`,
+`mode=save`) en renvoyant les autres champs du personnage tels que lus : un
+refus laisse l'ancienne valeur. Le bonus d'XP est un réglage manuel, 0 par
+défaut : DT Hub ne voit pas le Bonus Pack. Si une étape manque, que le serveur
+ne répond pas ou que la quête n'est pas appariée au jeu, la ligne est masquée,
+jamais devinée.
+

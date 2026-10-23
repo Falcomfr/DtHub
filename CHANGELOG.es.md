@@ -10,6 +10,13 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Añadido
+
+- Una guía de misión muestra sus recompensas bajo el título (XP, kamas, objetos), calculadas para el nivel de tu personaje y la bonificación de XP que indiques.
+- Una casilla de nivel en la ventana de guías: al cambiarla también se actualiza el nivel de tu personaje en Papycha.
+
 ## [0.10.5] - 2026-10-22
 
 ### Añadido

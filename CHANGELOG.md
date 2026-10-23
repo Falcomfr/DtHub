@@ -17,6 +17,13 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Added
+
+- A quest guide shows its rewards under the title (XP, kamas, items), computed for your character's level and the XP bonus you set.
+- A level box in the guides window: changing it updates your character's level on Papycha too.
+
 ## [0.10.5] - 2026-10-22
 
 ### Added

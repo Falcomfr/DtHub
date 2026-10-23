@@ -11,6 +11,13 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Ajouté
+
+- Un guide de quête affiche ses récompenses sous le titre (XP, kamas, objets), calculées pour le niveau de votre personnage et le bonus d'XP que vous réglez.
+- Une case de niveau dans la fenêtre des guides : la changer met aussi à jour le niveau de votre personnage sur Papycha.
+
 ## [0.10.5] - 2026-10-22
 
 ### Ajouté
