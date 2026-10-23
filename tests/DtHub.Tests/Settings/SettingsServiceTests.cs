@@ -1800,6 +1800,31 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Le_niveau_et_le_bonus_dXP_se_relisent_et_une_valeur_inchangee_nenregistre_pas()
+    {
+        var document = await _service.GetAsync();
+
+        Assert.Equal(0, document.RewardLevel);
+        Assert.Equal(0, document.RewardXpBonus);
+
+        await _service.SetRewardLevelAsync(87);
+        await _service.SetRewardXpBonusAsync(50);
+
+        document = await _service.GetAsync();
+
+        Assert.Equal(87, document.RewardLevel);
+        Assert.Equal(50, document.RewardXpBonus);
+
+        var writes = 0;
+        _service.Changed += (_, _) => writes++;
+
+        await _service.SetRewardLevelAsync(87);
+        await _service.SetRewardXpBonusAsync(50);
+
+        Assert.Equal(0, writes);
+    }
+
+    [Fact]
     public async Task Les_filtres_de_quetes_se_relisent()
     {
         await _service.SetQuestFiltersAsync(toDo: true, available: true);

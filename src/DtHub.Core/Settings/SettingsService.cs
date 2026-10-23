@@ -1629,6 +1629,36 @@ public sealed class SettingsService : IDisposable
             },
             cancellationToken);
 
+    /// <summary>Remembers the character level used for quest rewards (0 = unknown).</summary>
+    public Task SetRewardLevelAsync(int level, CancellationToken cancellationToken = default) =>
+        UpdateIfChangedAsync(
+            settings =>
+            {
+                if (settings.RewardLevel == level)
+                {
+                    return false;
+                }
+
+                settings.RewardLevel = level;
+                return true;
+            },
+            cancellationToken);
+
+    /// <summary>Remembers the XP bonus in percent applied to quest rewards.</summary>
+    public Task SetRewardXpBonusAsync(int percent, CancellationToken cancellationToken = default) =>
+        UpdateIfChangedAsync(
+            settings =>
+            {
+                if (settings.RewardXpBonus == percent)
+                {
+                    return false;
+                }
+
+                settings.RewardXpBonus = percent;
+                return true;
+            },
+            cancellationToken);
+
     /// <summary>Remembers the "to do" and "available" quest list filters.</summary>
     public Task SetQuestFiltersAsync(bool toDo, bool available, CancellationToken cancellationToken = default) =>
         UpdateIfChangedAsync(

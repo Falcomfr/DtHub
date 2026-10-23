@@ -126,6 +126,12 @@ public sealed class AppSettingsDocument
     /// </summary>
     public string PapychaCharacterId { get; set; } = string.Empty;
 
+    /// <summary>Character level used to pick quest rewards in the guides window. 0 = unknown.</summary>
+    public int RewardLevel { get; set; }
+
+    /// <summary>XP bonus in percent (guild, ...) applied to the quest XP shown. 0 = none.</summary>
+    public int RewardXpBonus { get; set; }
+
     /// <summary>
     /// True when the quest list is filtered to the quests still "to do",
     /// so the choice survives closing the window.
