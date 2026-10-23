@@ -32,6 +32,9 @@ public sealed class QuestTree
     /// <summary>The quests the tracker suggests next, in the site's order.</summary>
     public const int NextSection = -105;
 
+    /// <summary>The character's doable quests and series, ranked by gain for effort.</summary>
+    public const int ProfitSection = -106;
+
     /// <summary>
     /// The chevron that separates the levels of a breadcrumb trail. It lives
     /// here because three places used to write it each on their own: the

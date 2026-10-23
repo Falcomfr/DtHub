@@ -14,4 +14,12 @@ public static class QuestListColumns
     /// <summary>True when a quest row of the list carries a status, which every status but not started marks.</summary>
     public static bool HasQuestMarks(IEnumerable<QuestNode> nodes) =>
         nodes.Any(n => n.Quest is not null && n.Status != QuestStatus.NotStarted);
+
+    /// <summary>True when a quest row of the list shows a gain.</summary>
+    public static bool HasQuestGains(IEnumerable<QuestNode> nodes) =>
+        nodes.Any(n => n.Quest is not null && n.Gain is not null);
+
+    /// <summary>True when a quest row of the list carries a priority mark.</summary>
+    public static bool HasQuestTiers(IEnumerable<QuestNode> nodes) =>
+        nodes.Any(n => n.Quest is not null && n.Tier > 0);
 }

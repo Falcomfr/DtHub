@@ -2917,4 +2917,31 @@ Pour l'éviter : {1}  ›  « Verrouillage auto. Dossier sécurisé » › l'opt
   <data name="ProfitReasonTravel" xml:space="preserve">
     <value>déplacements</value>
   </data>
+  <data name="ProfitQuests" xml:space="preserve">
+    <value>Quêtes rentables</value>
+  </data>
+  <data name="ProfitComputing" xml:space="preserve">
+    <value>Calcul en cours…</value>
+  </data>
+  <data name="ProfitTier1" xml:space="preserve">
+    <value>Rentable</value>
+  </data>
+  <data name="ProfitTier2" xml:space="preserve">
+    <value>Très rentable</value>
+  </data>
+  <data name="ProfitTier3" xml:space="preserve">
+    <value>Parmi les plus rentables</value>
+  </data>
+  <data name="ProfitEffort" xml:space="preserve">
+    <value>Demande : {0}</value>
+  </data>
+  <data name="RankingXp" xml:space="preserve">
+    <value>XP</value>
+  </data>
+  <data name="RankingKamas" xml:space="preserve">
+    <value>Kamas</value>
+  </data>
+  <data name="RankingTip" xml:space="preserve">
+    <value>Classer les gains et les quêtes rentables par XP ou par kamas</value>
+  </data>
 </root>

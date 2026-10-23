@@ -614,6 +614,9 @@ public partial class QuestWindow : Window
     private void OnRewardLevelApply(object sender, RoutedEventArgs e) =>
         _ = _viewModel.Tracker.SetRewardLevelAsync(((TextBox)sender).Text);
 
+    private void OnRankingClick(object sender, RoutedEventArgs e) =>
+        _ = _viewModel.Tracker.SetRewardRankingAsync((RewardRanking)((FrameworkElement)sender).Tag);
+
     private void OnBonusPackClick(object sender, RoutedEventArgs e) =>
         _ = _viewModel.Tracker.SetRewardXpBonusAsync(
             ((CheckBox)sender).IsChecked == true ? QuestTrackerViewModel.BonusPackPercent : 0);

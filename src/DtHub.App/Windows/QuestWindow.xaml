@@ -93,28 +93,11 @@
     </Border>
 
     <!-- The player's Papycha tracker: the link when there is none, the
-         character and the menu once linked. The strip disappears while
-         nothing is known and nothing is to be said; a player who never
-         linked sees only the link button. -->
+         character and the menu once linked. Always there: its second row
+         holds the level, Bonus Pack and ranking boxes, which every view
+         of the window uses. -->
     <Border DockPanel.Dock="Top" Padding="10,6" DataContext="{Binding Tracker}"
             BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,0,0,1">
-      <Border.Style>
-        <Style TargetType="Border">
-          <Style.Triggers>
-            <MultiDataTrigger>
-              <MultiDataTrigger.Conditions>
-                <Condition Binding="{Binding IsLinked}" Value="False" />
-                <Condition Binding="{Binding ShowsLinkButton}" Value="False" />
-                <Condition Binding="{Binding Notice}" Value="" />
-                <Condition Binding="{Binding DataContext.ShowsQuestChrome,
-                                             RelativeSource={RelativeSource AncestorType=Window}}"
-                           Value="False" />
-              </MultiDataTrigger.Conditions>
-              <Setter Property="Visibility" Value="Collapsed" />
-            </MultiDataTrigger>
-          </Style.Triggers>
-        </Style>
-      </Border.Style>
       <Grid>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*" />
@@ -125,14 +108,12 @@
           <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Level and XP bonus feed the reward line: shown with any guide, linked or not.
+        <!-- Level, XP bonus and ranking feed the reward line, the gains and
+             the marks of every list: shown in every view, linked or not.
              The bonus is a switch: the Bonus Pack is the one bonus a player
              knows, a free percentage box left them guessing what to type. -->
         <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal"
-                    HorizontalAlignment="Left" Margin="0,6,0,0"
-                    Visibility="{Binding DataContext.ShowsQuestChrome,
-                                         RelativeSource={RelativeSource AncestorType=Window},
-                                         Converter={StaticResource BoolToVisibility}}">
+                    HorizontalAlignment="Left" Margin="0,6,0,0">
           <TextBlock Text="{loc:T RewardLevelLabel}" Style="{StaticResource Muted}"
                      FontSize="{StaticResource FontSmall}" VerticalAlignment="Center"
                      Margin="0,0,6,0" />
@@ -158,6 +139,21 @@
                     Content="{loc:T RewardXpBonusLabel}" ToolTip="{loc:T RewardXpBonusTip}"
                     IsChecked="{Binding HasBonusPack, Mode=OneWay}"
                     Click="OnBonusPackClick" />
+
+          <!-- XP or kamas for the gains, the marks and the profitable quests:
+               two halves of one switch, OneWay for the reason given above. -->
+          <ToggleButton Style="{StaticResource OutlineToggle}" Margin="14,0,0,0" Padding="7,1"
+                        VerticalAlignment="Center" FontSize="{StaticResource FontSmall}"
+                        Content="{loc:T RankingXp}" ToolTip="{loc:T RankingTip}"
+                        Tag="{x:Static papycha:RewardRanking.Xp}"
+                        IsChecked="{Binding RanksByKamas, Mode=OneWay, Converter={StaticResource InverseBool}}"
+                        Click="OnRankingClick" />
+          <ToggleButton Style="{StaticResource OutlineToggle}" Margin="2,0,0,0" Padding="7,1"
+                        VerticalAlignment="Center" FontSize="{StaticResource FontSmall}"
+                        Content="{loc:T RankingKamas}" ToolTip="{loc:T RankingTip}"
+                        Tag="{x:Static papycha:RewardRanking.Kamas}"
+                        IsChecked="{Binding RanksByKamas, Mode=OneWay}"
+                        Click="OnRankingClick" />
         </StackPanel>
 
         <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
@@ -1287,6 +1283,22 @@
                          are not quests, and while no tracker is linked. The
                          transparent border carries the tooltip, an open
                          stroke catches no hover. -->
+                    <!-- The priority mark of a quest doable now, among the
+                         character's doable quests: a flame, a hollow flame,
+                         a dot. Just before the status mark, hidden on a
+                         quest row without one, collapsed on other rows and
+                         in a list where no row has one. -->
+                    <Border x:Name="Priorite" Width="12" Height="12"
+                            Margin="8,0,0,0" VerticalAlignment="Center"
+                            Background="Transparent" Visibility="Hidden"
+                            ToolTip="{Binding ProfitTip}"
+                            ToolTipService.InitialShowDelay="200">
+                      <Path x:Name="PrioriteTrait" Stretch="None"
+                            Fill="{DynamicResource GlyphPriorityBrush}"
+                            Stroke="{DynamicResource GlyphPriorityBrush}" StrokeThickness="0"
+                            StrokeLineJoin="Round" />
+                    </Border>
+
                     <Border x:Name="Marque" Width="12" Height="12"
                             Margin="8,0,0,0" VerticalAlignment="Center"
                             Background="Transparent" Visibility="Hidden"
@@ -1392,6 +1404,20 @@
                                   M 3.7,7 L 11.3,7 L 11.3,12.9 L 3.7,12.9 Z
                                   M 7.5,9.3 L 7.5,10.8" />
                     </Button>
+
+                    <!-- What the quest gives the chosen character, XP or
+                         kamas as the switch says, last on the right and wide
+                         enough for "999,9 M". Hidden on a quest row without
+                         data, collapsed on other rows and in a list with no
+                         gain at all. -->
+                    <TextBlock x:Name="Gain" Width="48" Margin="4,0,0,0"
+                               Text="{Binding Gain}" Background="Transparent"
+                               TextAlignment="Right" TextWrapping="NoWrap"
+                               VerticalAlignment="Center"
+                               Style="{StaticResource Muted}"
+                               FontSize="{StaticResource FontSmall}"
+                               ToolTip="{Binding ProfitTip}"
+                               ToolTipService.InitialShowDelay="200" />
                   </StackPanel>
                 </Grid>
 
@@ -1659,13 +1685,67 @@
                                    a 1.15,1.55 0 1 0 -2.3,0 Z" />
                   </DataTrigger>
 
+                  <!-- A line that only says something is coming, or that
+                       nothing came: in the muted ink. -->
+                  <DataTrigger Binding="{Binding Kind}" Value="Pending">
+                    <Setter TargetName="Libelle" Property="Foreground"
+                            Value="{DynamicResource TextMutedBrush}" />
+                  </DataTrigger>
+
+                  <!-- Before the quest trigger below, which must win on
+                       rows that are not quests. -->
+                  <DataTrigger Binding="{Binding Gain}" Value="{x:Null}">
+                    <Setter TargetName="Gain" Property="Visibility" Value="Hidden" />
+                  </DataTrigger>
+
+                  <!-- The priority marks, on a twelve unit square: a flame
+                       for the best tenth, the same flame hollow for the
+                       next, a dot for the quarter after. -->
+                  <DataTrigger Binding="{Binding Tier}" Value="3">
+                    <Setter TargetName="Priorite" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="PrioriteTrait" Property="Data"
+                            Value="M 6,0.8 C 6.9,3 9.8,4.6 9.8,7.6 A 3.8,3.6 0 0 1 2.2,7.6
+                                   C 2.2,5.9 3.2,4.9 4,3.8 C 4.3,5 4.9,5.6 5.5,5.8
+                                   C 5.2,4.1 5.3,2.4 6,0.8 Z" />
+                  </DataTrigger>
+
+                  <DataTrigger Binding="{Binding Tier}" Value="2">
+                    <Setter TargetName="Priorite" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="PrioriteTrait" Property="Fill" Value="{x:Null}" />
+                    <Setter TargetName="PrioriteTrait" Property="StrokeThickness" Value="1.3" />
+                    <Setter TargetName="PrioriteTrait" Property="Data"
+                            Value="M 6,1.4 C 6.8,3.4 9.4,4.8 9.4,7.6 A 3.4,3.2 0 0 1 2.6,7.6
+                                   C 2.6,6 3.5,5.1 4.1,4.3 C 4.4,5.2 4.9,5.7 5.5,5.9
+                                   C 5.3,4.4 5.4,2.9 6,1.4 Z" />
+                  </DataTrigger>
+
+                  <DataTrigger Binding="{Binding Tier}" Value="1">
+                    <Setter TargetName="Priorite" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="PrioriteTrait" Property="Data"
+                            Value="M 4,7 A 2,2 0 1 0 8,7 A 2,2 0 1 0 4,7 Z" />
+                  </DataTrigger>
+
                   <!-- Keyed on the quest and not on the kind: dungeon, raid,
                        lair and path rows are of the quest kind too, and kept
                        the two empty columns on their right. -->
                   <DataTrigger Binding="{Binding Quest}" Value="{x:Null}">
+                    <Setter TargetName="Priorite" Property="Visibility" Value="Collapsed" />
                     <Setter TargetName="Marque" Property="Visibility" Value="Collapsed" />
                     <Setter TargetName="Rythme" Property="Visibility" Value="Collapsed" />
                     <Setter TargetName="Cadenas" Property="Visibility" Value="Collapsed" />
+                    <Setter TargetName="Gain" Property="Visibility" Value="Collapsed" />
+                  </DataTrigger>
+
+                  <DataTrigger Binding="{Binding DataContext.ListHasQuestGains,
+                                                 RelativeSource={RelativeSource AncestorType=Window}}"
+                               Value="False">
+                    <Setter TargetName="Gain" Property="Visibility" Value="Collapsed" />
+                  </DataTrigger>
+
+                  <DataTrigger Binding="{Binding DataContext.ListHasQuestTiers,
+                                                 RelativeSource={RelativeSource AncestorType=Window}}"
+                               Value="False">
+                    <Setter TargetName="Priorite" Property="Visibility" Value="Collapsed" />
                   </DataTrigger>
 
                   <DataTrigger Binding="{Binding DataContext.Tracker.IsLinked,

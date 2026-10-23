@@ -27,7 +27,7 @@ public sealed partial class QuestViewModel : ObservableObject
         _touchNames = touchNames;
         Tracker = tracker;
         _settings = settings;
-        tracker.ProgressChanged += (_, _) => RedrawAfterRead();
+        tracker.ProgressChanged += (_, _) => Rescore();
         tracker.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(QuestTrackerViewModel.IsLinked))
@@ -39,6 +39,12 @@ public sealed partial class QuestViewModel : ObservableObject
             {
                 _ = RefreshRewardsAsync();
             }
+
+            if (e.PropertyName is nameof(QuestTrackerViewModel.RewardLevel) or nameof(QuestTrackerViewModel.RewardXpBonus)
+                or nameof(QuestTrackerViewModel.RewardRanking))
+            {
+                Rescore();
+            }
         };
         _catalog = catalog;
         _tree = new QuestTree(catalog, _sectionCounts);
@@ -47,7 +53,70 @@ public sealed partial class QuestViewModel : ObservableObject
         {
             ListHasQuestLevels = QuestListColumns.HasQuestLevels(Nodes);
             ListHasQuestMarks = QuestListColumns.HasQuestMarks(Nodes);
+            ListHasQuestGains = QuestListColumns.HasQuestGains(Nodes);
+            ListHasQuestTiers = QuestListColumns.HasQuestTiers(Nodes);
         };
+    }
+
+    /// <summary>True when a quest row of the displayed list shows a gain: the column is kept only then.</summary>
+    [ObservableProperty]
+    private bool _listHasQuestGains;
+
+    /// <summary>True when a quest row of the displayed list has a priority mark: its room is kept only then.</summary>
+    [ObservableProperty]
+    private bool _listHasQuestTiers;
+
+    /// <summary>Every paired quest's rewards and objectives, by Papycha id; <c>null</c> until read.</summary>
+    private IReadOnlyDictionary<int, TouchQuestFacts>? _facts;
+
+    /// <summary>The bulk read in flight, so a second show does not start another.</summary>
+    private Task _factsRead = Task.CompletedTask;
+
+    /// <summary>The last ranking, dropped whenever what it depends on changes.</summary>
+    private IReadOnlyDictionary<int, QuestScore>? _scores;
+
+    private IReadOnlyDictionary<int, QuestScore> Scores => _scores ??=
+        _facts is null || Tracker.RewardLevel <= 0
+            ? new Dictionary<int, QuestScore>()
+            : QuestProfit.Score(_catalog.Catalog.Quests, _facts, Tracker.Progress,
+                Tracker.RewardLevel, Tracker.RewardXpBonus, Tracker.RewardRanking);
+
+    /// <summary>Ranks again, once, and redraws the shown list.</summary>
+    private void Rescore()
+    {
+        _scores = null;
+        RedrawAfterRead();
+    }
+
+    /// <summary>
+    /// Starts the bulk read in the background; the first one takes about two
+    /// minutes, the next ones come from the week's cache.
+    /// </summary>
+    private void ReadFacts()
+    {
+        if (_factsRead.IsCompleted)
+        {
+            _factsRead = ReadFactsAsync();
+        }
+    }
+
+    private async Task ReadFactsAsync()
+    {
+        // After the names: the facts read starts from them, and two first reads would fetch them twice.
+        await NamesRead.ConfigureAwait(true);
+
+        // Never throws but on cancellation, and none is asked for.
+        _facts = await _touchNames.FactsAsync(TouchNameService.CurrentLanguage).ConfigureAwait(true);
+        Rescore();
+    }
+
+    // Each show reads again: past the week, the cache hands over to a fresh read.
+    partial void OnIsWindowVisibleChanged(bool value)
+    {
+        if (value)
+        {
+            ReadFacts();
+        }
     }
 
     /// <summary>True when a quest row of the displayed list has a level: the level column is kept only then.</summary>
@@ -89,9 +158,37 @@ public sealed partial class QuestViewModel : ObservableObject
         }
     }
 
-    /// <summary>Lays the tracker's status over a quest row; other rows pass through.</summary>
-    private QuestNode Marked(QuestNode node) =>
-        node.Quest is { } quest ? node with { Status = QuestTracking.StatusOf(Tracker.Progress, quest.Id) } : node;
+    /// <summary>
+    /// Lays the tracker's status, the gain at the chosen level and the
+    /// priority mark over a quest row; other rows pass through.
+    /// </summary>
+    private QuestNode Marked(QuestNode node)
+    {
+        if (node.Quest is not { } quest)
+        {
+            return node;
+        }
+
+        node = node with { Status = QuestTracking.StatusOf(Tracker.Progress, quest.Id) };
+        var level = Tracker.RewardLevel;
+
+        // Unknown data hides the gain and the mark, as it hides the reward line.
+        if (_facts is null || level <= 0 || !_facts.TryGetValue(quest.Id, out var facts)
+            || QuestProfit.GainOf(facts, level, Tracker.RewardXpBonus) is not { } gain)
+        {
+            return node;
+        }
+
+        var score = Scores.GetValueOrDefault(quest.Id);
+        var tier = score?.Tier ?? 0;
+
+        return node with
+        {
+            Gain = QuestGainText.Column(gain, Tracker.RewardRanking),
+            Tier = tier,
+            ProfitTip = QuestGainText.Tip(gain, tier, score?.Effort.Reasons),
+        };
+    }
 
     private bool Passes(QuestSummary quest) =>
         QuestTracking.Passes(Tracker.Progress, quest.Id, FilterToDo, FilterAvailable);
@@ -155,7 +252,8 @@ public sealed partial class QuestViewModel : ObservableObject
         {
             // "Suivantes" comes from the tracker: once it is gone (unlinked,
             // lost, unreadable) the level has nothing left to hold.
-            ShowSection(_section == QuestTree.NextSection && !NextQuests().Any()
+            ShowSection((_section == QuestTree.NextSection && !NextQuests().Any())
+                || (_section == QuestTree.ProfitSection && !Tracker.IsLinked)
                 ? QuestTree.RootSection
                 : _section);
         }
@@ -590,6 +688,7 @@ public sealed partial class QuestViewModel : ObservableObject
 
         // Not awaited: names that arrive later show at the next opening.
         NamesRead = ReadNamesAsync();
+        ReadFacts();
     }
 
     /// <summary>
@@ -600,6 +699,7 @@ public sealed partial class QuestViewModel : ObservableObject
     {
         await _catalog.RefreshNamesAsync(CancellationToken.None).ConfigureAwait(true);
         _tree.Chain = new QuestChainIndex(_catalog.Catalog.Quests);
+        _scores = null;
 
         // The rows drawn before hold the French records: clicking one would open it outside the localized chain.
         RedrawAfterRead();
@@ -624,6 +724,7 @@ public sealed partial class QuestViewModel : ObservableObject
     private void Settle(QuestCatalogDocument catalog, QuestTally before)
     {
         _tree.Chain = new QuestChainIndex(catalog.Quests);
+        _scores = null;
 
         IsBusy = false;
 
@@ -883,6 +984,16 @@ public sealed partial class QuestViewModel : ObservableObject
                     Glyph: QuestNodeGlyph.Family));
             }
 
+            if (Tracker.IsLinked && _facts is not null && Scores.Count > 0)
+            {
+                Nodes.Add(new QuestNode(
+                    QuestNodeKind.Branch,
+                    Strings.Get("ProfitQuests"),
+                    QuestTree.Nombre(Scores.Count),
+                    Id: QuestTree.ProfitSection,
+                    Glyph: QuestNodeGlyph.Family));
+            }
+
             // Only the paths no zone takes: the others head their zone.
             if (_tree.Paths(PathSide.Quests).Count > 0)
             {
@@ -947,6 +1058,13 @@ public sealed partial class QuestViewModel : ObservableObject
             return;
         }
 
+        if (section == QuestTree.ProfitSection)
+        {
+            ShowProfit();
+
+            return;
+        }
+
         Breadcrumb = Strings.Get("QuestAreaCrumb") + Separator + _tree.NameOf(section);
         SetBack(target: QuestTree.RootSection);
 
@@ -959,6 +1077,44 @@ public sealed partial class QuestViewModel : ObservableObject
         }
 
         AddBySuccess(_catalog.InSection(section));
+    }
+
+    /// <summary>
+    /// The doable quests and series, best first. A series row opens its first
+    /// quest, and shows the series' summed gain and its best tier.
+    /// </summary>
+    private void ShowProfit()
+    {
+        Breadcrumb = Strings.Get("QuestAreaCrumb") + Separator + Strings.Get("ProfitQuests");
+        SetBack(target: QuestTree.RootSection);
+
+        if (_facts is null)
+        {
+            Nodes.Add(new QuestNode(QuestNodeKind.Pending, Strings.Get("ProfitComputing")));
+
+            return;
+        }
+
+        foreach (var entry in QuestProfit.Entries(_catalog.Catalog.Quests, Scores, Tracker.Progress, _facts, Tracker.RewardLevel))
+        {
+            var node = Marked(_tree.NodeOf(entry.Quests[0]));
+
+            Nodes.Add(entry.Quests.Count == 1 ? node : node with
+            {
+                Label = entry.Title,
+                Detail = QuestTree.Nombre(entry.Quests.Count),
+                // The first quest's prerequisites are not the series'.
+                Needs = null,
+                Gain = QuestGainText.Column(entry.Gain, Tracker.RewardRanking),
+                Tier = entry.Tier,
+                ProfitTip = QuestGainText.Tip(entry.Gain, entry.Tier, entry.Effort.Reasons),
+            });
+        }
+
+        if (Nodes.Count == 0)
+        {
+            Nodes.Add(new QuestNode(QuestNodeKind.Pending, Strings.Get("NoResult")));
+        }
     }
 
     /// <summary>The catalogue quests the site suggests next, in its order.</summary>
