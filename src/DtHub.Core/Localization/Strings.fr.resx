@@ -2869,4 +2869,10 @@ Pour l'éviter : {1}  ›  « Verrouillage auto. Dossier sécurisé » › l'opt
   <data name="RewardJobs" xml:space="preserve">
     <value>métiers</value>
   </data>
+  <data name="RewardJoin" xml:space="preserve">
+    <value>{0} : {1}</value>
+  </data>
+  <data name="RewardXp" xml:space="preserve">
+    <value>{0} XP</value>
+  </data>
 </root>

@@ -40,4 +40,13 @@ public class QuestRewardTextTests : IDisposable
     public void Un_objet_sans_nom_est_omis()
         => Assert.Equal($"Niv. 5 : {100L.ToString("N0", Fr)} XP · 1 × A",
             QuestRewardText.Format(Total(100, 0, items: [new(1, 1), new(9, 4)]), 5, 0, Names));
+
+    [Fact]
+    public void La_ligne_en_anglais_n_a_pas_d_espace_avant_les_deux_points()
+    {
+        var en = CultureInfo.GetCultureInfo("en");
+        Strings.Speak(en);
+        Assert.Equal($"Lvl 191 · bonus +150%: {1_976_445L.ToString("N0", en)} XP · {11_512L.ToString("N0", en)} kamas · 10 × A, 1 × B",
+            QuestRewardText.Format(Total(items: [new(1, 10), new(2, 1)]), 191, 150, Names));
+    }
 }

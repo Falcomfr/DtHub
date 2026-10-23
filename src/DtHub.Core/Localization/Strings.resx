@@ -2869,4 +2869,10 @@ To avoid it: {1}  ›  "Auto lock Secure Folder" › the longest option.</value>
   <data name="RewardJobs" xml:space="preserve">
     <value>jobs</value>
   </data>
+  <data name="RewardJoin" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="RewardXp" xml:space="preserve">
+    <value>{0} XP</value>
+  </data>
 </root>

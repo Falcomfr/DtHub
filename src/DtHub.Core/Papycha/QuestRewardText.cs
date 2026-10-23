@@ -15,7 +15,7 @@ public static class QuestRewardText
             head += " · " + Strings.Format("RewardBonus", bonusPercent);
         }
 
-        var parts = new List<string> { $"{total.Experience.ToString("N0", culture)} XP" };
+        var parts = new List<string> { Strings.Format("RewardXp", total.Experience.ToString("N0", culture)) };
         if (total.Kamas > 0)
         {
             parts.Add($"{total.Kamas.ToString("N0", culture)} {Strings.Get("RewardKamas")}");
@@ -36,7 +36,7 @@ public static class QuestRewardText
             parts.Add(string.Join(", ", gains));
         }
 
-        return $"{head} : {string.Join(" · ", parts)}";
+        return Strings.Format("RewardJoin", head, string.Join(" · ", parts));
     }
 
     private static void AddKind(List<string> gains, int count, string key)
