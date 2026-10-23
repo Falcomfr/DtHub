@@ -265,13 +265,13 @@ public class QuestTrackingTests
     private static readonly QuestSummary[] Six = [Q(1), Q(2), Q(3), Q(4), Q(5), Q(6), Q(7, QuestRecurrence.Daily)];
 
     [Fact]
-    public void ZoneProgress_under_to_do_counts_what_the_filter_keeps_but_repeatables()
+    public void ZoneProgress_under_to_do_counts_what_the_filter_keeps_as_the_label_does()
     {
         var tally = QuestTracking.ZoneProgress(Zone, Six, toDo: true);
 
-        // 1, 2 and 6 are not done nor ignored; the daily 7 passes too but stays out of the count.
-        Assert.Equal("3", tally?.Count);
-        Assert.Equal("3 quêtes à faire", tally?.PassingTip);
+        // 1, 2 and 6 are not done nor ignored, and the daily 7 passes too: the zone's label counts it.
+        Assert.Equal("4", tally?.Count);
+        Assert.Equal("4 quêtes à faire", tally?.PassingTip);
         Assert.Equal(2, tally?.Started);
         Assert.False(tally?.IsComplete);
     }

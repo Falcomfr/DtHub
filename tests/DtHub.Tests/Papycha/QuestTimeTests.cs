@@ -57,6 +57,13 @@ public class QuestTimeTests
     }
 
     [Fact]
+    public void The_free_text_words_never_price_a_map()
+    {
+        Assert.Equal(30, Seconds(Obj(4, text: "Terminer le chantier")));
+        Assert.Equal(30, Seconds(Obj(4, text: "Braver la tempête")));
+    }
+
+    [Fact]
     public void Objectives_without_a_known_step_never_make_a_dungeon_run()
     {
         // A cache read before steps were kept: null must not match null.

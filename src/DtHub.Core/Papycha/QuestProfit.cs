@@ -173,9 +173,9 @@ public static class QuestProfit
     private static int Share(int n, double part) => (int)Math.Round(n * part, MidpointRounding.AwayFromZero);
 
     /// <summary>
-    /// A series run starts at a doable quest and goes on with the following quests that pass every
-    /// doable rule but being startable now, in play order, until one fails; the next doable quest starts another
-    /// run. Every member counts in gain and effort, scored or not.
+    /// A series gives one run, from its next doable quest: it goes on with the following quests that pass every
+    /// doable rule but being startable now, in play order, until one fails. A doable quest after that failure starts
+    /// nothing: the series is not there yet. Every member counts in gain and effort, scored or not.
     /// </summary>
     public static IReadOnlyList<ProfitEntry> Entries(
         IEnumerable<QuestSummary> catalog, IReadOnlyDictionary<int, QuestScore> scores, TrackerProgress? progress,
@@ -194,12 +194,14 @@ public static class QuestProfit
             {
                 var started = group.Any(q => QuestTracking.StatusOf(progress, q.Id) is QuestStatus.Completed or QuestStatus.InProgress);
                 var members = new List<QuestSummary>();
+                var emitted = false;
 
                 void Flush()
                 {
                     if (members.Any(q => scores.ContainsKey(q.Id)))
                     {
                         entries.Add(Build(members.Count == 1 ? members[0].Title : group.Key, members, scores, facts, level, bonusPercent, best, started));
+                        emitted = true;
                     }
 
                     members = [];
@@ -207,6 +209,8 @@ public static class QuestProfit
 
                 foreach (var q in QuestPlayOrder.Sorted(group))
                 {
+                    // One row per series: a second run made Recommandées list a split series twice.
+                    if (emitted) break;
                     var known = facts.TryGetValue(q.Id, out var f);
                     if (members.Count == 0)
                     {

@@ -244,16 +244,27 @@ public class QuestProfitTests
     }
 
     [Fact]
-    public void A_blocked_or_over_level_quest_ends_a_run_and_the_next_doable_one_starts_another()
+    public void A_blocked_or_over_level_quest_ends_the_series_entry_and_nothing_after_it_starts_another()
     {
+        // One entry per series, from its next doable quest: 3 is doable too, but the series is not there yet.
         var catalog = new[] { Quest(1, "S", 1), Quest(2, "S", 2), Quest(3, "S", 3), Quest(4, "S", 4) };
         var blocked = Progress([1, 3], new() { [2] = QuestStatus.Blocked });
-        Assert.Equal(["Q1", "S"], Entries(catalog, blocked).Select(e => e.Title));
-        Assert.Equal([3, 4], Entries(catalog, blocked)[1].Quests.Select(q => q.Id));
+        Assert.Equal([1], Assert.Single(Entries(catalog, blocked)).Quests.Select(q => q.Id));
 
         var facts = catalog.ToDictionary(q => q.Id, _ => Facts(Obj(1)));
         facts[2] = new([Step(20, 1f)], []);
-        Assert.Equal(["Q1", "S"], Entries(catalog, Progress([1, 3]), facts).Select(e => e.Title));
+        Assert.Equal(["Q1"], Entries(catalog, Progress([1, 3]), facts).Select(e => e.Title));
+    }
+
+    [Fact]
+    public void A_series_split_by_a_blocked_quest_gives_one_recommended_row()
+    {
+        var catalog = new[] { Quest(1, "S", 1), Quest(2, "S", 2), Quest(3, "S", 3), Quest(4, "S", 4) };
+        var facts = catalog.ToDictionary(q => q.Id, q => Xp(q.Id));
+
+        var row = Assert.Single(Recommendable(catalog, Progress([1, 3], new() { [2] = QuestStatus.Blocked }), facts));
+
+        Assert.Equal("Q1", row.Title);
     }
 
     [Fact]

@@ -35,8 +35,9 @@ public static class QuestTracking
     /// (daily, weekly, repeatable, seasonal) stays out of the count, or a zone
     /// would never read as finished. Null without a linked tracker, the
     /// columns then stay empty. Under the list's filters, the quests they
-    /// keep are counted instead (by the same <see cref="Passes"/>): none of
-    /// them is done, so "done over total" would say nothing.
+    /// keep are counted instead (by the same <see cref="Passes"/>, repeatables
+    /// included, as the label): none of them is done, so "done over total"
+    /// would say nothing.
     /// </summary>
     public static ZoneTally? ZoneProgress(
         TrackerProgress? progress, IReadOnlyCollection<QuestSummary> quests, bool toDo = false, bool available = false,
@@ -61,7 +62,8 @@ public static class QuestTracking
             return tally;
         }
 
-        var passing = once.Count(q => Passes(progress, q.Id, toDo, available, startable?.Invoke(q) ?? false));
+        // All the zone's quests, repeatables included, as its label counts them under the same filters.
+        var passing = quests.Count(q => Passes(progress, q.Id, toDo, available, startable?.Invoke(q) ?? false));
         var key = "ZonePassing" + (toDo && available ? "Both" : toDo ? "ToDo" : "Available") + (passing == 1 ? "One" : "");
         return tally with { Passing = passing, PassingTip = Strings.Format(key, passing) };
     }

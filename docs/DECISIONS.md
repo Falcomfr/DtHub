@@ -11103,9 +11103,11 @@ site est gardée telle quelle.
 avec les quêtes suivantes, dans l'ordre de jeu, pas encore faites, qui passent
 toutes les règles ci-dessus sauf l'appartenance à `available_quests` (cette liste
 ne contient que ce qui est démarrable maintenant, pas la suite de la chaîne). Elle
-s'arrête à la première qui en échoue une, et la quête faisable suivante de la même
-série ouvre une nouvelle entrée : une quête faisable classée ne disparaît jamais du
-classement. Une entrée d'une seule quête s'affiche comme une quête seule. Un membre
+s'arrête à la première qui en échoue une. Une série ne donne qu'une entrée, depuis
+sa prochaine quête faisable : une quête faisable plus loin, après une quête
+bloquée ou au-dessus du niveau, n'en ouvre pas d'autre (revue du 23/10/2026 :
+une série coupée apparaissait deux fois dans « Recommandées » et dans la vue
+d'équipe). Une entrée d'une seule quête s'affiche comme une quête seule. Un membre
 sans gain calculable reste dans la série et n'y ajoute rien. « Recommandées » ne
 montre d'une entrée que sa première quête (voir plus bas) : le sablier avant le
 titre d'une série commencée a disparu avec les lignes de série.
