@@ -37,7 +37,7 @@ public static class QuestPlanning
                 if (!seen.Add(key)) continue;
                 var s = shared.TryGetValue(key, out var found) ? found : (entry, [], 0, 0, 0);
                 s.Characters.Add(character);
-                shared[key] = (s.Entry, s.Characters, s.Xp + entry.Gain.Xp, s.Kamas + entry.Gain.Kamas, s.Score + ScoreOf(entry, scores));
+                shared[key] = (s.Entry, s.Characters, s.Xp + entry.Gain.Xp, s.Kamas + entry.Gain.Kamas, s.Score + entry.Score);
             }
         }
 
@@ -49,22 +49,6 @@ public static class QuestPlanning
         var t1 = t2 + Share(n, 0.25);
         return [.. ordered.Select((s, i) => new TeamEntry(
             s.Entry, s.Characters, new QuestGain(s.Xp, s.Kamas), s.Score, i < t3 ? 3 : i < t2 ? 2 : i < t1 ? 1 : 0))];
-    }
-
-    /// <summary>
-    /// The score <see cref="QuestProfit.Entries"/> ranks on: summed gain for summed effort, each side against the best
-    /// scored quest's, the better side. Same formula as QuestProfit's private one, kept in step by a test.
-    /// </summary>
-    public static double ScoreOf(ProfitEntry entry, IReadOnlyDictionary<int, QuestScore> scores)
-    {
-        ArgumentNullException.ThrowIfNull(entry);
-        ArgumentNullException.ThrowIfNull(scores);
-
-        var bestXp = scores.Values.Select(s => s.Gain.Xp / s.Effort.Value).DefaultIfEmpty().Max();
-        var bestKamas = scores.Values.Select(s => s.Gain.Kamas / s.Effort.Value).DefaultIfEmpty().Max();
-        var xp = bestXp > 0 ? entry.Gain.Xp / entry.Effort.Value / bestXp : 0;
-        var kamas = bestKamas > 0 ? entry.Gain.Kamas / entry.Effort.Value / bestKamas : 0;
-        return Math.Max(xp, kamas);
     }
 
     private static int Share(int n, double part) => (int)Math.Round(n * part, MidpointRounding.AwayFromZero);

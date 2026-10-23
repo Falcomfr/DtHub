@@ -18,7 +18,7 @@ public class QuestPlanningTests
         (new TrackerCharacter(name, name, level), progress);
 
     private static ProfitEntry Entry(int id, long xp = 0, long kamas = 0, double effort = 1) =>
-        new("Q" + id, [Quest(id)], new QuestGain(xp, kamas), new QuestEffort(effort, []), 0, false, false);
+        new("Q" + id, [Quest(id)], new QuestGain(xp, kamas), new QuestEffort(effort, []), 0, false, false, 0);
 
     [Fact]
     public void Team_with_one_character_is_empty()
@@ -93,28 +93,9 @@ public class QuestPlanningTests
     }
 
     [Fact]
-    public void Score_of_an_entry_is_the_one_its_rank_comes_from()
-    {
-        var catalog = new[] { Quest(1, "K", 1), Quest(2, "K", 2), Quest(3), Quest(4) };
-        var facts = new Dictionary<int, TouchQuestFacts>
-        {
-            [1] = new([Step(10, 0.1f, 1f)], []),
-            [2] = new([Step(10, 0.1f, 3f)], []),
-            [3] = Xp(1f),
-            [4] = Xp(4f),
-        };
-        var progress = Progress([1, 2, 3, 4]);
-        var scores = QuestProfit.Score(catalog, facts, progress, 10, 0);
-        var entries = QuestProfit.Entries(catalog, scores, progress, facts, 10, 0);
-        var ranked = entries.Select(e => QuestPlanning.ScoreOf(e, scores)).ToList();
-        Assert.Equal(ranked.OrderDescending(), ranked);
-        Assert.Equal(scores[4].Score, QuestPlanning.ScoreOf(entries[0], scores));
-    }
-
-    [Fact]
     public void By_area_groups_on_the_first_quest_and_orders_groups_by_summed_score()
     {
-        var series = new ProfitEntry("S", [Quest(4), Quest(1)], new QuestGain(1, 0), new QuestEffort(1, []), 0, false, false);
+        var series = new ProfitEntry("S", [Quest(4), Quest(1)], new QuestGain(1, 0), new QuestEffort(1, []), 0, false, false, 0);
         var entries = new[] { Entry(1), Entry(2), Entry(3), series };
         var score = new Dictionary<ProfitEntry, double> { [entries[0]] = 0.5, [entries[1]] = 0.9, [entries[2]] = 0.1, [series] = 0.3 };
         string Area(QuestSummary q) => q.Id is 1 or 3 ? "X" : "Y";
