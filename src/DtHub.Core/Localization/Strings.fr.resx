@@ -3061,6 +3061,9 @@ Pour l'éviter : {1}  ›  « Verrouillage auto. Dossier sécurisé » › l'opt
   <data name="BatchConfirm" xml:space="preserve">
     <value>Marquer {0} quêtes terminées sur Papycha pour {1} ?</value>
   </data>
+  <data name="BatchConfirmNoName" xml:space="preserve">
+    <value>Marquer {0} quêtes terminées sur Papycha ?</value>
+  </data>
   <data name="BatchSelection" xml:space="preserve">
     <value>Sélection : cocher des quêtes pour les marquer terminées d'un coup. Maj+clic coche une plage.</value>
   </data>

@@ -3061,6 +3061,9 @@ To avoid it: {1}  ›  "Auto lock Secure Folder" › the longest option.</value>
   <data name="BatchConfirm" xml:space="preserve">
     <value>Mark {0} quests done on Papycha for {1}?</value>
   </data>
+  <data name="BatchConfirmNoName" xml:space="preserve">
+    <value>Mark {0} quests done on Papycha?</value>
+  </data>
   <data name="BatchSelection" xml:space="preserve">
     <value>Selection: tick quests to mark them done at once. Shift+click ticks a range.</value>
   </data>

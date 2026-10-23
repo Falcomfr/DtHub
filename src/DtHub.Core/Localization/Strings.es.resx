@@ -3061,6 +3061,9 @@ Para evitarlo: {1}  ›  «Bloqueo automático de Carpeta segura» › la opció
   <data name="BatchConfirm" xml:space="preserve">
     <value>¿Marcar {0} misiones como terminadas en Papycha para {1}?</value>
   </data>
+  <data name="BatchConfirmNoName" xml:space="preserve">
+    <value>¿Marcar {0} misiones como terminadas en Papycha?</value>
+  </data>
   <data name="BatchSelection" xml:space="preserve">
     <value>Selección: marca misiones para darlas por terminadas de una vez. Mayús+clic marca un rango.</value>
   </data>

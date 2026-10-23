@@ -39,6 +39,20 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             {
                 OnPropertyChanged(nameof(ShowsFilters));
                 OnPropertyChanged(nameof(ShowsSelection));
+                OnPropertyChanged(nameof(ShowsSelectionPanel));
+
+                // Unlinked: the batch stops at its next pause, the cookie it holds is no longer the player's wish.
+                if (!tracker.IsLinked)
+                {
+                    CancelBatch();
+                }
+            }
+
+            // Ticks are for one character: a batch must not write them for another. A read puts null in passing.
+            if (e.PropertyName == nameof(QuestTrackerViewModel.SelectedCharacter)
+                && tracker.SelectedCharacter is { } character && character.Id != _pickedFor)
+            {
+                Selecting = false;
             }
 
             if (e.PropertyName is nameof(QuestTrackerViewModel.RewardLevel) or nameof(QuestTrackerViewModel.RewardXpBonus))
@@ -101,12 +115,19 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             : QuestProfit.DungeonValues(Recommendable, Scores, Tracker.Progress, _facts, Tracker.RewardLevel,
                 Tracker.RewardXpBonus, _touchNames.Table.Dungeons, _dungeonNames);
 
+    private IReadOnlyList<TeamEntry>? _team;
+
+    /// <summary>The account's shared entries: one ranking per character, so kept with the ranking.</summary>
+    private IReadOnlyList<TeamEntry> Team => _team ??=
+        _facts is null ? [] : QuestPlanning.Team(_catalog.Catalog.Quests, _facts, Tracker.TeamProgress(), Tracker.RewardXpBonus);
+
     /// <summary>Drops the ranking and what is built on it, so the next read computes them again.</summary>
     private void ForgetRanking()
     {
         _scores = null;
         _recommendable = null;
         _dungeonValues = null;
+        _team = null;
     }
 
     /// <summary>Ranks again, once, and redraws the shown list.</summary>
@@ -172,6 +193,11 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         if (value)
         {
             ReadFacts();
+        }
+        else
+        {
+            // Nobody reads the guide's item sources any more; the next show reads them again after the facts.
+            _guideSources?.Cancel();
         }
     }
 
@@ -292,7 +318,11 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         }
     }
 
-    public void Dispose() => _guideSources?.Dispose();
+    public void Dispose()
+    {
+        CancelBatch();
+        _guideSources?.Dispose();
+    }
 
     private async Task<string?> FindAsync(QuestSummary quest, CancellationToken ct)
     {
@@ -303,9 +333,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
 
         var blocks = new List<string>();
 
-        // Bring (3) or show (2) an item: its id is the second parameter.
-        foreach (var item in facts.Objectives.Where(o => o.TypeId is 2 or 3 && o.Parameters.Length > 1)
-                     .Select(o => o.Parameters[1]).Distinct())
+        foreach (var item in ItemSourceService.ItemsAsked(facts))
         {
             if (await _itemSources.SourceAsync(item, TouchNameService.CurrentLanguage, ct).ConfigureAwait(true) is { } source)
             {
@@ -341,6 +369,9 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
     /// <summary>The quest last ticked or unticked: Shift+click ticks from it.</summary>
     private int? _pickAnchor;
 
+    /// <summary>The character selection mode was entered for.</summary>
+    private string? _pickedFor;
+
     private CancellationTokenSource? _batch;
 
     /// <summary>"Sélection": quest rows carry a box, headings "Tout marquer terminé".</summary>
@@ -352,6 +383,9 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
 
     partial void OnSelectingChanged(bool value)
     {
+        OnPropertyChanged(nameof(ShowsSelectionPanel));
+        _pickedFor = Tracker.SelectedCharacter?.Id;
+
         if (!value)
         {
             _picked.Clear();
@@ -366,6 +400,9 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
     /// <summary>The selection toggle: only once linked, on the list.</summary>
     public bool ShowsSelection => Tracker.IsLinked && IsListOpen;
 
+    /// <summary>The batch line under the toolbar: in selection mode where it can act, and while a batch runs (its Cancel).</summary>
+    public bool ShowsSelectionPanel => (Selecting && ShowsSelection) || BatchRunning;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MarkPickedLabel))]
     [NotifyPropertyChangedFor(nameof(CanMarkPicked))]
@@ -377,6 +414,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanMarkPicked))]
+    [NotifyPropertyChangedFor(nameof(ShowsSelectionPanel))]
     private bool _batchRunning;
 
     /// <summary>"42 / 140", the pass after the first; the count goes down when a read finds lost writes.</summary>
@@ -412,7 +450,10 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
 
         for (var i = from; i <= to; i++)
         {
-            if (Nodes[i] is not { Checked: { } state, Quest: { } q } row)
+            // A range ticks only what "Tout marquer terminé" would send: an ignored, blocked or repeatable row is ticked
+            // by its own click, never swept in by a Shift+click.
+            if (Nodes[i] is not { Checked: { } state, Quest: { } q } row
+                || (on && i != index && QuestBatch.ToMarkDone([q], Tracker.Progress).Count == 0))
             {
                 continue;
             }
@@ -460,8 +501,9 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             .Distinct()]);
 
     /// <summary>
-    /// "Tout marquer terminé" on a heading: an achievement's quests listed under it, or a whole zone, through
-    /// <see cref="QuestBatch.ToMarkDone"/> (done, ignored, blocked and repeatable quests stay out).
+    /// "Tout marquer terminé" on a heading: an achievement's quests listed under it, or a zone's quests its row counts
+    /// (the filters applied), through <see cref="QuestBatch.ToMarkDone"/> (done, ignored, blocked and repeatable quests
+    /// stay out). Either way the player marks what the list shows.
     /// </summary>
     public Task MarkAllAsync(QuestNode heading)
     {
@@ -477,7 +519,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
 
         IEnumerable<QuestSummary> quests = heading.Kind == QuestNodeKind.Success
             ? Nodes.Skip(index + 1).TakeWhile(n => n.InSuccess).Select(n => n.Quest).OfType<QuestSummary>().ToList()
-            : _catalog.InSection(heading.Id);
+            : _catalog.InSection(heading.Id).Where(Passes);
 
         return RunBatchAsync(QuestBatch.ToMarkDone(quests, Tracker.Progress));
     }
@@ -497,7 +539,9 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         }
 
         if (ids.Count > ConfirmAbove
-            && !_dialogs.Confirm(Strings.Format("BatchConfirm", ids.Count, Tracker.SelectedCharacter?.Name ?? string.Empty)))
+            && !_dialogs.Confirm(Tracker.SelectedCharacter is { Name.Length: > 0 } character
+                ? Strings.Format("BatchConfirm", ids.Count, character.Name)
+                : Strings.Format("BatchConfirmNoName", ids.Count)))
         {
             return;
         }
@@ -760,6 +804,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
     [NotifyPropertyChangedFor(nameof(ShowsFilters))]
     [NotifyPropertyChangedFor(nameof(ShowsRecommended))]
     [NotifyPropertyChangedFor(nameof(ShowsSelection))]
+    [NotifyPropertyChangedFor(nameof(ShowsSelectionPanel))]
     private bool _isListOpen;
 
     /// <summary>
@@ -930,7 +975,8 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
     {
         _guideSources?.Cancel();
 
-        if (_current is not { } quest)
+        // Hidden: the next show reads the facts again, then this.
+        if (_current is not { } quest || !IsWindowVisible)
         {
             return;
         }
@@ -1611,7 +1657,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
     /// <summary>The account's shared entries, gains summed, the characters named on hover.</summary>
     private List<ProfitRow> TeamRows() =>
     [
-        .. QuestPlanning.Team(_catalog.Catalog.Quests, _facts!, Tracker.TeamProgress(), Tracker.RewardXpBonus).Select(t =>
+        .. Team.Select(t =>
         {
             var node = EntryNode(t.Entry);
             var (xp, kamas) = QuestGainText.Columns(t.Gain);
@@ -1623,7 +1669,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
                 GainKamas = kamas,
                 Tier = t.Tier,
                 Detail = node.Detail is { Length: > 0 } detail ? $"{detail} · {count}" : count,
-                ProfitTip = QuestGainText.Tip(t.Gain, t.Tier, t.Entry.ByKamas, t.Entry.Effort)
+                ProfitTip = QuestGainText.Tip(t.Gain, effort: t.Entry.Effort)
                     + "\n" + string.Join(", ", t.Characters.Select(c => c.Name)),
             });
         }),
@@ -1637,9 +1683,11 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         var zone = first.SectionId == 0 ? string.Empty : _tree.NameOf(first.SectionId);
         node = node with { Suffix = zone.Length > 0 ? " · " + zone : null };
 
+        // No tier in the hover either: the short lists carry no mark (see ShowProfit), and the tier's side would
+        // contradict the list ("pour l'XP" in the kamas list).
         if (entry.Quests.Count == 1)
         {
-            return node;
+            return node.ProfitTip is null ? node : node with { ProfitTip = QuestGainText.Tip(entry.Gain, effort: entry.Effort) };
         }
 
         var (xp, kamas) = QuestGainText.Columns(entry.Gain);
@@ -1659,12 +1707,12 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             GainKamas = kamas,
             Tier = entry.Tier,
             Duration = QuestTime.Text(entry.Effort.Minutes),
-            ProfitTip = QuestGainText.Tip(entry.Gain, entry.Tier, entry.ByKamas, entry.Effort),
+            ProfitTip = QuestGainText.Tip(entry.Gain, effort: entry.Effort),
         };
     }
 
     /// <summary>The catalogue quests to suggest next: the site's, or read from the previous quests done.</summary>
-    private IReadOnlyList<QuestSummary> NextQuests() => QuestTracking.NextQuests(Tracker.Progress, _catalog.Catalog.Quests);
+    private IReadOnlyList<QuestSummary> NextQuests() => QuestTracking.NextQuests(Tracker.Progress, _catalog.Catalog.Quests, _facts, Tracker.RewardLevel);
 
     /// <summary>
     /// Section the back button leads back to, when there is a level above.

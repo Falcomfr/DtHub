@@ -122,7 +122,7 @@
         <!-- Selection mode: the batch button, then while it runs the count
              and Cancel, then the summary, refusals in the site's words. -->
         <StackPanel Margin="0,6,0,0"
-                    Visibility="{Binding Selecting, Converter={StaticResource BoolToVisibility}}">
+                    Visibility="{Binding ShowsSelectionPanel, Converter={StaticResource BoolToVisibility}}">
           <WrapPanel>
             <Button Style="{StaticResource OutlineButton}" Padding="8,3"
                     Content="{Binding MarkPickedLabel}" Click="OnMarkPickedClick"
@@ -171,6 +171,7 @@
           <WrapPanel>
             <ComboBox ItemsSource="{Binding Characters}" SelectedItem="{Binding SelectedCharacter}"
                       MinWidth="150" Margin="0,0,10,0"
+                      IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"
                       Visibility="{Binding HasSeveralCharacters, Converter={StaticResource BoolToVisibility}}">
               <ComboBox.ItemTemplate>
                 <DataTemplate>
@@ -1570,6 +1571,7 @@
                     <Border x:Name="GainXp" Width="54" Margin="4,0,0,0"
                             Background="Transparent" VerticalAlignment="Center"
                             ToolTipService.InitialShowDelay="200"
+                            ToolTipService.ShowDuration="30000"
                             ToolTipOpening="OnGainTipOpening" ToolTipClosing="OnGainTipClosing">
                       <Border.ToolTip>
                         <ToolTip>
@@ -1593,6 +1595,7 @@
                     <Border x:Name="GainKamas" Width="46" Margin="4,0,0,0"
                             Background="Transparent" VerticalAlignment="Center"
                             ToolTipService.InitialShowDelay="200"
+                            ToolTipService.ShowDuration="30000"
                             ToolTipOpening="OnGainTipOpening" ToolTipClosing="OnGainTipClosing">
                       <Border.ToolTip>
                         <ToolTip>

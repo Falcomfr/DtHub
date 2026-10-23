@@ -167,11 +167,21 @@ public sealed partial class QuestTrackerViewModel(
         var version = _writeVersion;
         var held = await settings.GetAsync();
         _rememberedId = held.PapychaCharacterId;
+        var (level, bonus) = (RewardLevel, RewardXpBonus);
         _settingLevel = RewardInput.IsLevel(held.RewardLevel) ? held.RewardLevel : 0;
         _settingBonus = RewardInput.IsBonus(held.RewardXpBonus) ? held.RewardXpBonus : 0;
-        OnPropertyChanged(nameof(RewardLevel));
-        OnPropertyChanged(nameof(RewardXpBonus));
-        OnPropertyChanged(nameof(HasBonusPack));
+
+        // Each one ranks the whole catalogue again in the guides window: told only when it changed.
+        if (RewardLevel != level)
+        {
+            OnPropertyChanged(nameof(RewardLevel));
+        }
+
+        if (RewardXpBonus != bonus)
+        {
+            OnPropertyChanged(nameof(RewardXpBonus));
+            OnPropertyChanged(nameof(HasBonusPack));
+        }
         var (cookie, cookieFailed) = await ReadCookieAsync();
 
         if (cookieFailed)
