@@ -2911,4 +2911,10 @@ To avoid it: {1}  ›  "Auto lock Secure Folder" › the longest option.</value>
   <data name="ProfitReasonVague" xml:space="preserve">
     <value>vague objective</value>
   </data>
+  <data name="ProfitReasonCrafting" xml:space="preserve">
+    <value>crafting</value>
+  </data>
+  <data name="ProfitReasonTravel" xml:space="preserve">
+    <value>travel</value>
+  </data>
 </root>

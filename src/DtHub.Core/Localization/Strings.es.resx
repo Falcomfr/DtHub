@@ -2911,4 +2911,10 @@ Para evitarlo: {1}  ›  «Bloqueo automático de Carpeta segura» › la opció
   <data name="ProfitReasonVague" xml:space="preserve">
     <value>objetivo vago</value>
   </data>
+  <data name="ProfitReasonCrafting" xml:space="preserve">
+    <value>fabricación</value>
+  </data>
+  <data name="ProfitReasonTravel" xml:space="preserve">
+    <value>desplazamientos</value>
+  </data>
 </root>

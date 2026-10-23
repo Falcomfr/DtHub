@@ -152,30 +152,84 @@ public class QuestProfitTests
         items.ToDictionary(i => i.Id, i => new QuestScore(
             i.Id, new QuestGain(100, 10), new QuestEffort(2, ["dialogues"]), i.Score, 1));
 
-    [Fact]
-    public void Series_is_cut_at_the_first_quest_neither_doable_nor_done()
-    {
-        var catalog = new[] { Quest(1, "S", 1), Quest(2, "S", 2), Quest(3, "S", 3), Quest(4, "S", 4) };
-        var progress = Progress([2, 3], completed: [1]);
-        var entries = QuestProfit.Entries(catalog, Scores((2, 5), (4, 5)), progress);
-        var entry = Assert.Single(entries);
-        Assert.Equal("Q2", entry.Title);
-        Assert.Equal([2], entry.Quests.Select(q => q.Id));
+    private static Dictionary<int, TouchQuestFacts> AllFacts(IEnumerable<QuestSummary> catalog) =>
+        catalog.ToDictionary(q => q.Id, _ => Facts(Obj(1)));
 
-        entry = Assert.Single(QuestProfit.Entries(catalog, Scores((2, 5), (3, 4), (4, 5)), progress));
+    private static IReadOnlyList<ProfitEntry> Entries(
+        QuestSummary[] catalog, IReadOnlyDictionary<int, QuestScore> scores, TrackerProgress progress,
+        Dictionary<int, TouchQuestFacts>? facts = null) =>
+        QuestProfit.Entries(catalog, scores, progress, facts ?? AllFacts(catalog), 10);
+
+    [Fact]
+    public void Series_starts_at_the_first_doable_quest_and_skips_leading_done_ones()
+    {
+        var catalog = new[] { Quest(1, "S", 1), Quest(2, "S", 2), Quest(3, "S", 3) };
+        var entry = Assert.Single(Entries(catalog, Scores((2, 5), (3, 4)), Progress([2], completed: [1])));
         Assert.Equal("S", entry.Title);
-        Assert.Equal([2, 3, 4], entry.Quests.Select(q => q.Id));
+        Assert.Equal([2, 3], entry.Quests.Select(q => q.Id));
         Assert.True(entry.Started);
-        Assert.Equal(300, entry.Gain.Xp);
+        Assert.Equal(200, entry.Gain.Xp);
+    }
+
+    [Fact]
+    public void Series_lists_later_quests_even_when_only_the_first_is_available()
+    {
+        var catalog = new[] { Quest(1, "S", 1), Quest(2, "S", 2), Quest(3, "S", 3) };
+        var entry = Assert.Single(Entries(catalog, Scores((1, 5), (2, 4), (3, 3)), Progress([1])));
+        Assert.Equal([1, 2, 3], entry.Quests.Select(q => q.Id));
         Assert.Equal(6, entry.Effort.Value);
     }
 
     [Fact]
-    public void Series_stops_at_a_blocking_quest()
+    public void Series_stops_at_a_blocked_or_over_level_quest()
     {
         var catalog = new[] { Quest(1, "S", 1), Quest(2, "S", 2), Quest(3, "S", 3) };
-        var entry = Assert.Single(QuestProfit.Entries(catalog, Scores((1, 5), (3, 5)), Progress([1, 3])));
-        Assert.Equal([1], entry.Quests.Select(q => q.Id));
+        var blocked = Progress([1], new() { [2] = QuestStatus.Blocked });
+        Assert.Equal([1], Assert.Single(Entries(catalog, Scores((1, 5), (3, 5)), blocked)).Quests.Select(q => q.Id));
+
+        var facts = AllFacts(catalog);
+        facts[2] = new([Step(20, 1f)], []);
+        Assert.Equal([1], Assert.Single(Entries(catalog, Scores((1, 5), (3, 5)), Progress([1]), facts)).Quests.Select(q => q.Id));
+    }
+
+    [Fact]
+    public void Unscored_members_stay_in_the_series_and_add_no_gain()
+    {
+        var catalog = new[] { Quest(1, "S", 1), Quest(2, "S", 2), Quest(3, "S", 3) };
+        var facts = new Dictionary<int, TouchQuestFacts>
+        {
+            [1] = new([Step(10, 1f, 1f)], []),
+            [2] = new([Step(10, 1f, 0f)], []),
+            [3] = new([Step(10, 1f, 1f)], []),
+        };
+        var progress = Progress([1, 2, 3]);
+        var scores = QuestProfit.Score(catalog, facts, progress, 10, 0, RewardRanking.Kamas);
+        Assert.Equal(2, scores.Count);
+        var entry = Assert.Single(QuestProfit.Entries(catalog, scores, progress, facts, 10));
+        Assert.Equal([1, 2, 3], entry.Quests.Select(q => q.Id));
+        Assert.Equal(scores[1].Gain.Kamas + scores[3].Gain.Kamas, entry.Gain.Kamas);
+    }
+
+    [Fact]
+    public void Series_reasons_are_aggregated_per_kind_across_members()
+    {
+        var catalog = new[] { Quest(1, "S", 1), Quest(2, "S", 2) };
+        var facts = new Dictionary<int, TouchQuestFacts>
+        {
+            [1] = Facts(Obj(6, [1, 5]), Obj(1)),
+            [2] = Facts(Obj(6, [1, 5]), Obj(1)),
+        };
+        var progress = Progress([1, 2]);
+        var scores = QuestProfit.Score(catalog, facts, progress, 10, 0, RewardRanking.Xp);
+        var entry = Assert.Single(QuestProfit.Entries(catalog, scores, progress, facts, 10));
+        Assert.Equal(["2 combats", "dialogues"], entry.Effort.Reasons);
+    }
+
+    [Fact]
+    public void Crafting_and_travel_have_their_own_reasons()
+    {
+        Assert.Equal(["fabrication"], QuestProfit.EffortOf(Facts(Obj(20)), 50).Reasons);
+        Assert.Equal(["déplacements"], QuestProfit.EffortOf(Facts(Obj(4)), 50).Reasons);
     }
 
     [Fact]
@@ -186,7 +240,7 @@ public class QuestProfitTests
             Quest(1, "A", 1), Quest(2, "A", 2), Quest(3), Quest(4, "B", 1), Quest(5, "B", 2),
         };
         var progress = Progress([1, 2, 3, 4, 5], new() { [4] = QuestStatus.InProgress });
-        var entries = QuestProfit.Entries(catalog, Scores((1, 3), (2, 3), (3, 100), (4, 1), (5, 1)), progress);
+        var entries = Entries(catalog, Scores((1, 3), (2, 3), (3, 100), (4, 1), (5, 1)), progress);
         Assert.Equal(["B", "Q3", "A"], entries.Select(e => e.Title));
         Assert.Equal([true, false, false], entries.Select(e => e.Started));
     }

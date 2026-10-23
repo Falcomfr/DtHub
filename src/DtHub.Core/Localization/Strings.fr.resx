@@ -2911,4 +2911,10 @@ Pour l'éviter : {1}  ›  « Verrouillage auto. Dossier sécurisé » › l'opt
   <data name="ProfitReasonVague" xml:space="preserve">
     <value>objectif vague</value>
   </data>
+  <data name="ProfitReasonCrafting" xml:space="preserve">
+    <value>fabrication</value>
+  </data>
+  <data name="ProfitReasonTravel" xml:space="preserve">
+    <value>déplacements</value>
+  </data>
 </root>
