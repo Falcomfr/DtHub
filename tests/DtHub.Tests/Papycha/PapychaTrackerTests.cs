@@ -123,6 +123,33 @@ public class PapychaTrackerTests
 
     private const string Refused = """{"success":false,"data":{"message":"Nonce"}}""";
 
+    private static readonly TrackerCharacter Falcom = new("b", "Falcom", 191, "female", "enutrof", "#123456");
+
+    [Fact]
+    public async Task Save_character_posts_every_field_with_the_nonce()
+    {
+        var (tracker, handler) = Make(Linked, """{"success":true}""");
+
+        var result = await tracker.SaveCharacterAsync("abc", Falcom);
+
+        Assert.True(result.Success);
+        Assert.Equal(
+            await new FormUrlEncodedContent(PapychaTracker.CharacterForm("26794092b6", Falcom)).ReadAsStringAsync(),
+            handler.Requests[1].Body);
+        Assert.Contains("action=papycha_tracker_character&nonce=26794092b6&mode=save&character_id=b&name=Falcom&gender=female&level=191&class_key=enutrof&color=%23123456", handler.Requests[1].Body);
+    }
+
+    [Fact]
+    public async Task Save_character_refused_retries_once_after_a_fresh_read()
+    {
+        var (tracker, handler) = Make(Linked, Refused, Linked, """{"success":true}""");
+
+        var result = await tracker.SaveCharacterAsync("abc", Falcom);
+
+        Assert.True(result.Success);
+        Assert.Equal(4, handler.Requests.Count);
+    }
+
     [Fact]
     public async Task Retry_network_failure_keeps_unreadable()
     {

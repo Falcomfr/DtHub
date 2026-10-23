@@ -83,7 +83,13 @@ public static class TrackerPageParser
                     continue;
                 }
 
-                characters.Add(new TrackerCharacter(id, Text(c, "name") ?? string.Empty, Number(c, "level") ?? 0));
+                characters.Add(new TrackerCharacter(
+                    id,
+                    Text(c, "name") ?? string.Empty,
+                    Number(c, "level") ?? 0,
+                    Text(c, "gender") ?? "male",
+                    Text(c, "class_key") ?? "cra",
+                    Text(c, "color") ?? "#6b992f"));
                 var view = views.ValueKind == JsonValueKind.Object && views.TryGetProperty(id, out var w) ? w : default;
                 progress[id] = ReadProgress(c, view);
             }

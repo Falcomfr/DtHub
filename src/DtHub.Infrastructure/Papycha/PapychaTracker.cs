@@ -50,6 +50,20 @@ public sealed partial class PapychaTracker : IPapychaTracker
         new("status", QuestStatusCodes.ToSite(status)),
     ];
 
+    /// <summary>Fields of the site's character save, in its order.</summary>
+    public static IReadOnlyList<KeyValuePair<string, string>> CharacterForm(string nonce, TrackerCharacter c) =>
+    [
+        new("action", "papycha_tracker_character"),
+        new("nonce", nonce),
+        new("mode", "save"),
+        new("character_id", c.Id),
+        new("name", c.Name),
+        new("gender", c.Gender),
+        new("level", c.Level.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+        new("class_key", c.ClassKey),
+        new("color", c.Color),
+    ];
+
     public async Task<TrackerReadResult> ReadAsync(string cookie, CancellationToken cancellationToken = default)
     {
         try
@@ -77,12 +91,21 @@ public sealed partial class PapychaTracker : IPapychaTracker
         }
     }
 
-    public async Task<TrackerWriteResult> SetStatusAsync(
+    public Task<TrackerWriteResult> SetStatusAsync(
         string cookie,
         string characterId,
         int questId,
         QuestStatus status,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default) =>
+        WriteAsync(cookie, nonce => StatusForm(nonce, characterId, questId, status), cancellationToken);
+
+    public Task<TrackerWriteResult> SaveCharacterAsync(
+        string cookie, TrackerCharacter character, CancellationToken cancellationToken = default) =>
+        WriteAsync(cookie, nonce => CharacterForm(nonce, character), cancellationToken);
+
+    // Read first if no nonce, post, and on a refusal one fresh read then one retry.
+    private async Task<TrackerWriteResult> WriteAsync(
+        string cookie, Func<string, IReadOnlyList<KeyValuePair<string, string>>> form, CancellationToken cancellationToken)
     {
         if (_nonce is null)
         {
@@ -93,7 +116,7 @@ public sealed partial class PapychaTracker : IPapychaTracker
             }
         }
 
-        var attempt = await PostAsync(cookie, characterId, questId, status, cancellationToken).ConfigureAwait(false);
+        var attempt = await PostAsync(cookie, form, cancellationToken).ConfigureAwait(false);
         if (attempt.Success || attempt.After is not null)
         {
             return attempt;
@@ -106,20 +129,20 @@ public sealed partial class PapychaTracker : IPapychaTracker
             return new TrackerWriteResult(false, attempt.Message, again.Outcome);
         }
 
-        var retry = await PostAsync(cookie, characterId, questId, status, cancellationToken).ConfigureAwait(false);
+        var retry = await PostAsync(cookie, form, cancellationToken).ConfigureAwait(false);
 
         return retry.After is null ? retry with { After = TrackerReadOutcome.Linked } : retry;
     }
 
     // After is set here only for a network failure (Unreadable), which a retry would not fix.
     private async Task<TrackerWriteResult> PostAsync(
-        string cookie, string characterId, int questId, QuestStatus status, CancellationToken cancellationToken)
+        string cookie, Func<string, IReadOnlyList<KeyValuePair<string, string>>> form, CancellationToken cancellationToken)
     {
         try
         {
             using var request = new HttpRequestMessage(HttpMethod.Post, PapychaSite.AjaxUrl)
             {
-                Content = new FormUrlEncodedContent(StatusForm(_nonce ?? string.Empty, characterId, questId, status)),
+                Content = new FormUrlEncodedContent(form(_nonce ?? string.Empty)),
             };
             request.Headers.TryAddWithoutValidation("Cookie", $"{PapychaSite.TrackerCookie}={cookie}");
 

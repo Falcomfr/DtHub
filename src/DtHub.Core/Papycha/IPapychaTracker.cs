@@ -19,4 +19,9 @@ public interface IPapychaTracker
         int questId,
         QuestStatus status,
         CancellationToken cancellationToken = default);
+
+    Task<TrackerWriteResult> SaveCharacterAsync(
+        string cookie,
+        TrackerCharacter character,
+        CancellationToken cancellationToken = default);
 }

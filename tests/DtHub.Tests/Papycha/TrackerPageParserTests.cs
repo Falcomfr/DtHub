@@ -63,6 +63,15 @@ public class TrackerPageParserTests
     }
 
     [Fact]
+    public void Character_look_is_read_with_site_defaults()
+    {
+        var result = TrackerPageParser.Parse("""window.PAPYCHA_QUEST_TRACKER = {"nonce":"n","space":{"characters":[{"id":"a","name":"A","level":1,"gender":"female","class_key":"enutrof","color":"#123456"},{"id":"b","name":"B","level":2}]},"views":[]};""");
+
+        Assert.Equal(new TrackerCharacter("a", "A", 1, "female", "enutrof", "#123456"), result.State!.Characters[0]);
+        Assert.Equal(new TrackerCharacter("b", "B", 2, "male", "cra", "#6b992f"), result.State.Characters[1]);
+    }
+
+    [Fact]
     public void Empty_statuses_array_is_empty_map()
     {
         var result = TrackerPageParser.Parse("""window.PAPYCHA_QUEST_TRACKER = {"nonce":"n","space":{"characters":[{"id":"a","name":"A","level":1,"quest_statuses":[]}]},"views":[]};""");
