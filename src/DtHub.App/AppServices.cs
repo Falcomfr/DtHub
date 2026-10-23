@@ -58,6 +58,7 @@ public static class AppServices
         services.AddSingleton(CreateStore<DeviceRegistryDocument>(p => p.DevicesFile));
         services.AddSingleton(CreateStore<QuestCatalogDocument>(p => p.QuestCatalogFile));
         services.AddSingleton(CreateStore<TouchNamesDocument>(p => p.TouchNamesFile));
+        services.AddSingleton(CreateStore<ItemSourcesDocument>(p => Path.Combine(p.CacheDirectory, "dofus-touch-sources.json")));
 
         services.AddSingleton<SettingsService>();
 
@@ -114,6 +115,7 @@ public static class AppServices
         services.AddSingleton<QuestCatalogService>();
         services.AddSingleton<ITouchIdTableSource, EmbeddedTouchIdTable>();
         services.AddSingleton<TouchNameService>();
+        services.AddSingleton<ItemSourceService>();
         services.AddSingleton<IAdbLocator, AdbLocator>();
         services.AddSingleton<SdlFocusFix>();
         services.AddSingleton<IScrcpyLocator, ScrcpyLocator>();
