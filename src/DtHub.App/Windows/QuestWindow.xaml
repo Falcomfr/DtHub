@@ -119,12 +119,15 @@
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*" />
           <ColumnDefinition Width="Auto" />
-          <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
 
         <!-- Level and XP bonus feed the reward line: shown with any guide, linked or not. -->
-        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center"
-                    Margin="0,0,12,0"
+        <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal"
+                    HorizontalAlignment="Left" Margin="0,6,0,0"
                     Visibility="{Binding DataContext.ShowsQuestChrome,
                                          RelativeSource={RelativeSource AncestorType=Window},
                                          Converter={StaticResource BoolToVisibility}}">
@@ -178,12 +181,12 @@
                                           ConverterParameter=inverse}" />
         </StackPanel>
 
-        <Button Grid.Column="2" Style="{StaticResource OutlineButton}" Padding="8,3"
+        <Button Grid.Column="1" Style="{StaticResource OutlineButton}" Padding="8,3"
                 VerticalAlignment="Center" Click="OnLinkTracker"
                 Content="{loc:T TrackerLink}"
                 Visibility="{Binding ShowsLinkButton, Converter={StaticResource BoolToVisibility}}" />
 
-        <Grid Grid.Column="2" VerticalAlignment="Center"
+        <Grid Grid.Column="1" VerticalAlignment="Center"
               Visibility="{Binding IsLinked, Converter={StaticResource BoolToVisibility}}">
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />

@@ -466,7 +466,7 @@ public sealed partial class QuestTrackerViewModel(
         {
             _settingLevel = level;
             OnPropertyChanged(nameof(RewardLevel));
-            await settings.SetRewardLevelAsync(level);
+            await SaveSettingAsync(() => settings.SetRewardLevelAsync(level));
 
             return true;
         }
@@ -478,6 +478,7 @@ public sealed partial class QuestTrackerViewModel(
             return false;
         }
 
+        _writeVersion++;
         IsBusy = true;
 
         try
@@ -553,7 +554,7 @@ public sealed partial class QuestTrackerViewModel(
 
         _settingBonus = percent;
         OnPropertyChanged(nameof(RewardXpBonus));
-        await settings.SetRewardXpBonusAsync(percent);
+        await SaveSettingAsync(() => settings.SetRewardXpBonusAsync(percent));
 
         return true;
     }
@@ -614,6 +615,18 @@ public sealed partial class QuestTrackerViewModel(
         _ = RememberAsync(value.Id);
         ShowProgressOf(value);
         ProgressChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private async Task SaveSettingAsync(Func<Task> save)
+    {
+        try
+        {
+            await save();
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            LogRememberFailed(exception);
+        }
     }
 
     private async Task RememberAsync(string id)
