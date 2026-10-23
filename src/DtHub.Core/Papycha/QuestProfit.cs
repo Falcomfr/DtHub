@@ -139,15 +139,20 @@ public static class QuestProfit
         // OrderBy is stable: ties keep catalog order.
         var ordered = raw.Select(r => (r.Id, r.Gain, r.Effort, Side: Combined(r.Gain, r.Effort.Minutes, best)))
             .OrderByDescending(s => s.Side.Score).ToList();
-        var n = ordered.Count;
+
+        // What the short lists leave out gets no mark ("L'éternelle moisson", 579 souls, wore a flame); still scored,
+        // so it can top up a short list.
+        bool Markable(int id, QuestEffort effort) => effort.Minutes <= ShortMinutes && !IsVeryLong(facts[id]);
+        var n = ordered.Count(s => Markable(s.Id, s.Effort));
         var t3 = Math.Max(1, Share(n, 0.10));
         var t2 = t3 + Share(n, 0.15);
         var t1 = t2 + Share(n, 0.25);
         var result = new Dictionary<int, QuestScore>();
-        for (var i = 0; i < n; i++)
+        var i = 0;
+        foreach (var s in ordered)
         {
-            var s = ordered[i];
-            var tier = i < t3 ? 3 : i < t2 ? 2 : i < t1 ? 1 : 0;
+            var tier = !Markable(s.Id, s.Effort) ? 0 : i < t3 ? 3 : i < t2 ? 2 : i < t1 ? 1 : 0;
+            i += Markable(s.Id, s.Effort) ? 1 : 0;
             result[s.Id] = new QuestScore(s.Id, s.Gain, s.Effort, s.Side.Score, tier, s.Side.ByKamas);
         }
 

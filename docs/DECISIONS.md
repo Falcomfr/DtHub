@@ -11131,7 +11131,10 @@ Claude, réglables.
 **Paliers.** Parmi les quêtes faisables classées par score : les 10 % de tête
 (au moins une) au palier 3, les 15 % suivants au 2, les 25 % suivants au 1, le
 reste sans marque, sur le score combiné : la meilleure quête en XP et la meilleure
-en kamas valent toutes deux 1. Ces marques sont celles des autres listes ; les
+en kamas valent toutes deux 1. Une quête que les listes courtes écartent (plus de
+120 minutes, trousseau, plus de 5 âmes) ne porte pas de marque et ne compte pas
+dans les parts : « L'éternelle moisson », 579 âmes, portait une flamme (revue
+du 23/10/2026). Ces marques sont celles des autres listes ; les
 lignes de « Recommandées » n'en portent pas (voir plus bas).
 
 **Deux listes courtes.** « Recommandées » n'est plus une liste unique sur le

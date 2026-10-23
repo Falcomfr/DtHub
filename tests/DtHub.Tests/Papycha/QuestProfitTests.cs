@@ -148,6 +148,25 @@ public class QuestProfitTests
     }
 
     [Fact]
+    public void A_quest_the_short_lists_leave_out_gets_no_mark_but_stays_scored()
+    {
+        // The best gains, but six souls, over two hours of items, or the keyring; quest 4 is the only one left.
+        var catalog = new List<QuestSummary> { Quest(1), Quest(2), Quest(3), Quest(4) };
+        var facts = new Dictionary<int, TouchQuestFacts>
+        {
+            [1] = new([Step(10, 9f)], [.. Enumerable.Repeat(Obj(12), 6)]),
+            [2] = new([Step(10, 900f)], [.. Enumerable.Repeat(Obj(3, [1, 2, 60]), 6)]),
+            [3] = new([Step(10, 9f)], [new TouchObjective(0, [1], 10, "Vider le trousseau")]),
+            [4] = new([Step(10, 1f)], []),
+        };
+
+        var scores = QuestProfit.Score(catalog, facts, Progress([1, 2, 3, 4]), 10, 0);
+
+        Assert.True(scores[2].Effort.Minutes > QuestProfit.ShortMinutes);
+        Assert.Equal([0, 0, 0, 3], scores.Keys.Order().Select(id => scores[id].Tier));
+    }
+
+    [Fact]
     public void Score_ties_keep_catalog_order_and_a_lone_top_quest_is_tier_three()
     {
         var catalog = new List<QuestSummary> { Quest(1), Quest(2), Quest(3) };
