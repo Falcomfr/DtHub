@@ -11,9 +11,6 @@ public static class QuestRewards
     {
         if (steps.Count == 0 || level < 1 || steps.Any(s => s.Reward is null)) return null;
 
-        // shortcut: capped rule unverified in game, see D218; lift once checked
-        if (steps.Any(s => level > 1.5 * s.Reward!.OptimalLevel)) return null;
-
         long xp = 0, kamas = 0;
         int emotes = 0, spells = 0, titles = 0, ornaments = 0, companions = 0, jobs = 0;
         var items = new Dictionary<int, int>();
@@ -45,8 +42,8 @@ public static class QuestRewards
         var bonus = 1 + bonusPercent / 100.0;
         if (level <= opt) return (long)Math.Floor(Fixed(level, step) * bonus);
 
-        // The cap stays a double (61 * 1.5 = 91.5), like the game's Math.min on Numbers.
-        var mix = (1 - (double)0.7f) * Fixed(opt, step) + (double)0.7f * Fixed(Math.Min(level, 1.5 * opt), step);
+        // The cap is a whole level: 85 * 1.5 counts as 127, as the game shows.
+        var mix = (1 - (double)0.7f) * Fixed(opt, step) + (double)0.7f * Fixed(Math.Min(level, Math.Floor(1.5 * opt)), step);
         return (long)Math.Floor(Math.Floor(mix) * bonus);
     }
 
@@ -56,6 +53,7 @@ public static class QuestRewards
         return (long)Math.Floor((k * k + 20 * k - 20) * (double)step.KamasRatio * (double)step.Duration);
     }
 
+    // Rounded after the XP ratio, then scaled by the duration: the order that matches all the game's readings.
     private static double Fixed(double x, TouchStepReward s)
-        => Math.Floor(x * Math.Pow(100 + 2 * x, 2) / 20) * (double)s.Duration * (double)s.XpRatio;
+        => Math.Floor(Math.Floor(x * Math.Pow(100 + 2 * x, 2) / 20) * (double)s.XpRatio) * (double)s.Duration;
 }

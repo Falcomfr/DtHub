@@ -50,9 +50,9 @@ Per step, with `L` the character's level, `opt` the step's `optimalLevel`,
 `d` its `duration`, and the ratios read as the server sends them (float32
 values such as 0.80000001):
 
-- `fixe(x) = floor(x · (100 + 2x)² / 20) · d · xpRatio` (no rounding after the ratios)
+- `fixe(x) = floor(floor(x · (100 + 2x)² / 20) · xpRatio) · d` (settled 2026-10-23 on nine in-game readings, see D218)
 - XP when `L ≤ opt`: `floor(fixe(L) · (1 + bonus))`
-- XP when `L > opt`: `floor(floor((1 − 0.7) · fixe(opt) + 0.7 · fixe(min(L, 1.5 · opt))) · (1 + bonus))`
+- XP when `L > opt`: `floor(floor((1 − 0.7) · fixe(opt) + 0.7 · fixe(min(L, floor(1.5 · opt)))) · (1 + bonus))`
 - kamas: `floor((K² + 20K − 20) · kamasRatio · d)`, with `K = L` when
   `kamasScaleWithPlayerLevel`, else `K = opt`.
 

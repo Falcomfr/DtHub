@@ -11037,33 +11037,36 @@ autres récompenses n'est pas lu : la ligne en donne le nombre.
 Formule, par étape, avec `L` le niveau, `opt` le niveau optimal, `d` la durée,
 `bonus` le bonus d'XP en pourcentage / 100 :
 
-- `fixe(x) = floor(x * (100 + 2x)^2 / 20) * d * xpRatio`, sans arrondi après les ratios
+- `fixe(x) = floor(floor(x * (100 + 2x)^2 / 20) * xpRatio) * d` : arrondi après
+  le ratio d'XP, puis multiplié par la durée
 - `L <= opt` : XP = `floor(fixe(L) * (1 + bonus))`
-- `L > opt` : XP = `floor(floor((1 - 0,7) * fixe(opt) + 0,7 * fixe(min(L, 1,5 * opt))) * (1 + bonus))`
+- `L > opt` : XP = `floor(floor((1 - 0,7) * fixe(opt) + 0,7 * fixe(min(L, floor(1,5 * opt)))) * (1 + bonus))`
 - kamas = `floor((K^2 + 20K - 20) * kamasRatio * d)`, avec `K = L` si
   `kamasScaleWithPlayerLevel`, sinon `K = opt`
 
 `d`, les ratios et 0,7 sont des float32 élargis en double, donc `1 - 0,7`
-n'est pas exactement 0,3. La récompense d'une
-quête est la somme de ses étapes.
+n'est pas exactement 0,3. Le plafond est un niveau entier (85 * 1,5 compte pour
+127). La récompense d'une quête est la somme de ses étapes.
 
-Vérifiée à l'unité sur le journal du jeu le 2026-10-23 : Cra niveau 191, Gare
-au Kailleu (11 512 kamas, 1 976 445 XP) ; Eni niveau 184, Distribution de
-Marrons (5 541 305 XP) ; Enu niveau 190, Ça rend aimable. (4 780 kamas exacts).
+Vérifiée sur le journal du jeu le 2026-10-23, Bonus Pack (+150 %) : Cra niveau
+191 sur Gare au Kailleu (11 512 kamas, 1 976 445 XP), Ça rend aimable. (4 780
+kamas, 581 037 XP), La chasse de Lily (388 122), Redolphe est un vilain
+grincheux (893 715), Mission Solution (12 746 430), Les rescapés du Village
+Enseveli (13 258 350), Le ver de trop (2 046 765) ; Eni niveau 184 sur
+Distribution de Marrons (5 541 305). Exact à l'unité sur ces huit cas, dont
+trois plafonnés. Seul écart connu : Larmes fatales, 1 949 997 calculés pour 1 950 000
+affichés, un arrondi interne non reproduit. Les kamas sont exacts partout.
 
-**Reste ouvert : le cas plafonné.** Pour l'Enu, l'XP du jeu (1 162 075) vaut
-près du double de la formule (581 040), mais pas exactement (le double ferait
-1 162 080). Le plafond `1,5 * opt` est le seul de ces trois cas à s'appliquer,
-donc c'est la règle plafonnée qui est en doute. À trancher avant la sortie par
-une lecture en jeu d'une quête de niveau inférieur aux deux tiers de celui du
-personnage ; d'ici là le code porte la règle ci-dessus, et la ligne reste masquée dans le cas plafonné (niveau au-dessus de 1,5 fois le niveau optimal d'une étape) tant que ce n'est pas vérifié en jeu.
+L'Enu niveau 190 voyait 1 162 075 XP sur Ça rend aimable., le double de ce que
+le Cra 191 voit sur la même quête au même plafond : un bonus propre à ce
+personnage que DT Hub ne voit pas, pas une autre règle.
 
 Le niveau vient du personnage Papycha choisi quand le suivi est lié, d'un
 réglage local sinon. Une case de niveau dans la fenêtre des guides le change et,
 lié, l'enregistre sur Papycha (action `papycha_tracker_character`,
 `mode=save`) en renvoyant les autres champs du personnage tels que lus : un
-refus laisse l'ancienne valeur. Le bonus d'XP est un réglage manuel, 0 par
-défaut : DT Hub ne voit pas le Bonus Pack. Si une étape manque, que le serveur
+refus laisse l'ancienne valeur. Le bonus d'XP est une case « Bonus Pack » (+150 %),
+décochée par défaut : DT Hub ne voit pas le Bonus Pack. Si une étape manque, que le serveur
 ne répond pas ou que la quête n'est pas appariée au jeu, la ligne est masquée,
 jamais devinée.
 
