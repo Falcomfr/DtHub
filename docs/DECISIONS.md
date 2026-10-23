@@ -11310,25 +11310,35 @@ ne publie pas : ses durées ne sont utilisées d'aucune façon.
 **Estimation.** La lecture en masse de D219 garde désormais, pour chaque
 objectif, la carte où il se fait (`coords` de `QuestObjectives`) et le rang de
 son étape ; un cache d'avant est relu une fois. Le temps d'une quête, en
-secondes : 90 pour rejoindre le personnage de départ ; par objectif, parler,
-montrer ou aller voir 15, découvrir une carte 45, rapporter des objets
-10 + 20 par objet au plus 1200 (d'abord 10 + 5 au plus 300 : une quête
-d'« Agriculture et Alchimie » qui demande 20 + 3 + 10 objets récoltés sortait à
-5 min, elle en fait 13 depuis la revue du 23/10/2026), fabriquer 60, combattre 90 par monstre (au plus
-10), rapporter une âme 300, texte libre ou type inconnu 300 ; un combat unique
-dans une étape qui a aussi une carte à découvrir est un donjon (étape connue :
-un cache d'avant, sans rang d'étape, n'en voit aucun) : 900 pour le
-combat, 0 pour la carte (la sortie du donjon). S'y ajoute le trajet : la
-distance en cartes (|dx| + |dy|) entre les objectifs qui ont une carte, depuis
-la position de départ de la quête quand Papycha la donne, 8 s par carte et au
-plus 300 s par saut (un zaap). Le total est arrondi à la minute supérieure.
+secondes : 180 pour rejoindre le personnage de départ et rendre la quête ; par
+objectif, parler, montrer ou aller voir 30, découvrir une carte 30, rapporter
+des objets 10 + 20 par objet au plus 1200, fabriquer 60, combattre 60 par
+monstre (au plus 10), rapporter une âme 300, texte libre ou type inconnu 60,
+sauf un texte qui commence par « Braver » ou « Capturer » (un donjon, un boss :
+900) ou par « Aider » ou « Terminer » (un groupe de quêtes : 1800) ; un combat
+unique dans une étape qui a aussi une carte dont le texte commence par
+« Sortie », « Exit » ou « Salida » est un donjon (étape connue : un cache
+d'avant, sans rang d'étape, n'en voit aucun) : 900 pour le combat, 0 pour la
+sortie. S'y ajoute le trajet : la distance en cartes (|dx| + |dy|) entre les
+objectifs qui ont une carte, depuis la position de départ de la quête quand
+Papycha la donne, 4 s par carte et au plus 180 s par saut (un zaap). Le total
+est arrondi à la minute supérieure.
 Une série additionne les temps de ses quêtes. Un donjon prend 3 minutes par
 salle et 2 de plus, les salles étant le nombre de `mapIds` de la classe
 `Dungeons` du jeu, lue avec les noms sans requête de plus (le plus grand des
 donjons du jeu d'un même donjon Papycha) ; un cache de noms d'avant, sans ce
-nombre, compte 15 minutes jusqu'à sa relecture. Ce sont les premiers réglages de
-Claude, vérifiés le 23/10/2026 sur 18 pages publiques (rapport médian de 1,1 à
-1,3, rien de recopié), à ajuster selon l'avis de l'utilisateur.
+nombre, compte 15 minutes jusqu'à sa relecture. Ce sont des réglages de Claude,
+à ajuster selon l'avis de l'utilisateur. Revue du 23/10/2026 : les premiers
+(base 90, dialogue 15, carte 45, objets 10 + 5 au plus 300, monstre 90, texte
+libre 300, trajet 8 s par carte au plus 300 par saut, donjon dès qu'une carte
+quelconque côtoie un combat unique) donnaient des temps trop hauts
+(« Les indésirables d'Albuera » à 48 min : sa carte « Chantier du Barrage »
+passait pour la sortie d'un donjon, et chaque texte libre comptait 5 minutes) ;
+recalés sur 37 quêtes tirées au hasard, comparées aux durées des pages publiques
+de Papycha (contrôle seulement, rien de recopié) : rapport médian 0,97, 23 sur 37
+dans la fourchette du site, Albuera à 15 min. Les mots des textes libres ne sont
+qu'en français : le cache ne contenait aucun texte d'objectif anglais ou
+espagnol à vérifier.
 
 **Gain par minute.** L'effort abstrait de D219 disparaît : les deux listes
 courtes de « Recommandées » classent chacune sur l'XP par minute ou les kamas

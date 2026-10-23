@@ -6,24 +6,32 @@ namespace DtHub.Core.Papycha;
 /// <summary>How long a quest takes, estimated from the game's own objectives and maps. Pure.</summary>
 public static partial class QuestTime
 {
-    // Claude's first calibration (2026-10-23), checked against a sample of published quest durations, nothing copied:
-    // to be tuned from the user's feedback. All in seconds.
-    private const int Base = 90;
-    private const int Talk = 15;
-    private const int Map = 45;
+    // Recalibrated 2026-10-23 on 37 random quests against their public durations (a check only, nothing copied):
+    // median ratio 0.97. All in seconds.
+    private const int Base = 180;
+    private const int Talk = 30;
+    private const int Map = 30;
     private const int ItemsBase = 10;
-    // Harvested items take far longer than 5 s each: "Agriculture et Alchimie" came out at 5 min a quest (2026-10-23).
+    // Harvested items take far longer than 5 s each: "Agriculture et Alchimie" came out at 5 min a quest.
     private const int ItemsEach = 20;
     private const int ItemsCap = 1200;
     private const int Craft = 60;
-    private const int PerMonster = 90;
+    private const int PerMonster = 60;
     private const int MonstersCap = 10;
     private const int DungeonRun = 900;
     private const int PerSoul = 300;
-    private const int Vague = 300;
-    private const int PerMapTravelled = 8;
+    // Most free-text objectives are a one-minute action ("Trouver", "Adressez-vous").
+    private const int Vague = 60;
+    private const int BossOrDungeon = 900;
+    private const int QuestGroup = 1800;
+    private const int PerMapTravelled = 4;
     // Past this, a zaap is quicker than walking.
-    private const int HopCap = 300;
+    private const int HopCap = 180;
+
+    // shortcut: French only, the cache held no English or Spanish objective text to check (2026-10-23); add them once seen.
+    private static readonly string[] BossOrDungeonWords = ["Braver", "Capturer"];
+    private static readonly string[] QuestGroupWords = ["Aider", "Terminer"];
+    private static readonly string[] ExitWords = ["Sortie", "Exit", "Salida"];
 
     /// <summary>The whole quest in minutes, rounded up: a base, each objective, and the way between their maps.</summary>
     public static int EstimateMinutes(TouchQuestFacts facts, (int X, int Y)? start)
@@ -45,16 +53,24 @@ public static partial class QuestTime
         {
             1 or 9 or 2 => Talk,
             // The dungeon's exit: the run is counted on its fight.
-            4 => facts.Objectives.Any(o => SameStep(o, objective) && IsSingleFight(o)) ? 0 : Map,
+            4 => IsExit(objective) && facts.Objectives.Any(o => SameStep(o, objective) && IsSingleFight(o)) ? 0 : Map,
             3 => Math.Min(ItemsCap, ItemsBase + (ItemsEach * (p.Length > 2 ? p[2] : 0))),
             20 => Craft,
-            6 when IsSingleFight(objective) && facts.Objectives.Any(o => SameStep(o, objective) && o.TypeId == 4) => DungeonRun,
+            6 when IsSingleFight(objective) && facts.Objectives.Any(o => SameStep(o, objective) && IsExit(o)) => DungeonRun,
             6 or 14 => PerMonster * Math.Clamp(p.Length > 1 ? p[1] : 1, 1, MonstersCap),
             12 => PerSoul,
             // Types 0 and 10, and any type the game adds later.
-            _ => Vague,
+            _ => StartsWithAny(objective.Text, BossOrDungeonWords) ? BossOrDungeon
+                : StartsWithAny(objective.Text, QuestGroupWords) ? QuestGroup
+                : Vague,
         };
     }
+
+    // "Sortie du Donjon ...": any other map beside a lone fight ("Chantier du Barrage") made a dungeon run of it.
+    private static bool IsExit(TouchObjective o) => o.TypeId == 4 && StartsWithAny(o.Text, ExitWords);
+
+    private static bool StartsWithAny(string? text, string[] words) =>
+        text is not null && words.Any(w => text.TrimStart().StartsWith(w, StringComparison.OrdinalIgnoreCase));
 
     // An unknown step (a cache read before steps were kept) matches none: every fight would pass for a dungeon run.
     private static bool SameStep(TouchObjective a, TouchObjective b) => a.Step is { } step && b.Step == step;

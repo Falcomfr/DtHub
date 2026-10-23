@@ -25,7 +25,7 @@ public class QuestProfitTests
         var quest = Quest(1) with { StartPosition = "[0,0]" };
 
         Assert.Equal(QuestTime.EstimateMinutes(facts, (0, 0)), QuestProfit.EffortOf(facts, quest).Minutes);
-        Assert.Equal(10, QuestProfit.EffortOf(facts, quest).Minutes);
+        Assert.Equal(9, QuestProfit.EffortOf(facts, quest).Minutes);
     }
 
     [Fact]
@@ -34,8 +34,8 @@ public class QuestProfitTests
         var effort = QuestProfit.EffortOf(
             Facts(Obj(1), Obj(1), Obj(3, [1, 2, 3]), Obj(6, [1, 5]), Obj(6, [1, 5]), Obj(6, [1, 5]), Obj(6, [1, 1]), Obj(12)), Quest(1));
         Assert.Equal(3, effort.Reasons.Count);
-        // Ranked on their time: 3 x 450 s, 300 s, then the lone fight's 90 s.
-        Assert.Equal(["3 combats", "âmes", "1 boss"], effort.Reasons);
+        // Ranked on their time: 3 x 300 s, 300 s, then the 70 s of items over the lone fight's 60 s.
+        Assert.Equal(["3 combats", "âmes", "1 objet"], effort.Reasons);
     }
 
     [Fact]
@@ -219,8 +219,8 @@ public class QuestProfitTests
         var facts = new Dictionary<int, TouchQuestFacts> { [1] = Xp(1f), [2] = Xp(2f), [3] = Xp(3f) };
         var entry = Assert.Single(Entries(catalog, Progress([1]), facts));
         Assert.Equal([1, 2, 3], entry.Quests.Select(q => q.Id));
-        // Three quests of 90 + 15 s, 2 minutes each.
-        Assert.Equal(6, entry.Effort.Minutes);
+        // Three quests of 180 + 30 s, 4 minutes each.
+        Assert.Equal(12, entry.Effort.Minutes);
         Assert.Equal(XpOf(facts[1]) + XpOf(facts[2]) + XpOf(facts[3]), entry.Gain.Xp);
     }
 
@@ -372,9 +372,9 @@ public class QuestProfitTests
 
         Assert.Equal(entries.Select(e => e.Score).OrderByDescending(x => x), entries.Select(e => e.Score));
         Assert.True(entries[0].Score > 0);
-        // Q3 takes 3 min, the one-room run 5: same gain, three fifths of the score.
+        // Q3 takes 4 min, the one-room run 5: same gain, four fifths of the score.
         Assert.Equal(5, values[7].Minutes);
-        Assert.Equal(entries.Single(e => e.Title == "Q3").Score * 3 / 5, values[7].Score, 6);
+        Assert.Equal(entries.Single(e => e.Title == "Q3").Score * 4 / 5, values[7].Score, 6);
     }
 
     // Papycha dungeon n pairs with game dungeon 10n.
@@ -469,9 +469,9 @@ public class QuestProfitTests
     public void A_dungeon_gets_the_tier_its_score_would_have_among_quests()
     {
         var catalog = Enumerable.Range(1, 20).Select(i => Quest(i)).ToList();
-        // Five minutes everywhere (a map, 7 items), as a one-room run; quest i gives i times the XP of quest 1.
+        // Five minutes everywhere (a map, 4 items), as a one-room run; quest i gives i times the XP of quest 1.
         var facts = catalog.ToDictionary(q => q.Id, q => new TouchQuestFacts(
-            [Step(10, q.Id)], [Said(q.Id switch { 20 => "Donjon A", 1 => "Donjon B", 18 or 19 => "Donjon C", _ => "Ailleurs" }), Obj(3, [1, 2, 7])]));
+            [Step(10, q.Id)], [Said(q.Id switch { 20 => "Donjon A", 1 => "Donjon B", 18 or 19 => "Donjon C", _ => "Ailleurs" }), Obj(3, [1, 2, 4])]));
         var names = new Dictionary<int, string> { [10] = "Donjon A", [20] = "Donjon B", [30] = "Donjon C" };
         var rooms = new Dictionary<int, int> { [10] = 1, [20] = 1, [30] = 3 };
 
@@ -504,7 +504,7 @@ public class QuestProfitTests
         Assert.Equal("Q3", entry.Title);
         Assert.Equal([3], entry.Quests.Select(q => q.Id));
         Assert.Equal(XpOf(facts[3]), entry.Gain.Xp);
-        Assert.Equal(2, entry.Effort.Minutes);
+        Assert.Equal(4, entry.Effort.Minutes);
     }
 
     [Theory]
@@ -591,7 +591,7 @@ public class QuestProfitTests
     [Fact]
     public void Gains_are_per_minute_so_a_quick_quest_beats_a_long_richer_one()
     {
-        // Q1: three times Q2's XP, but ten monsters (90 + 900 s, 17 min) against one dialogue (2 min).
+        // Q1: three times Q2's XP, but ten monsters (180 + 600 s, 13 min) against one dialogue (4 min).
         var catalog = new[] { Quest(1), Quest(2) };
         var facts = new Dictionary<int, TouchQuestFacts>
         {
@@ -601,7 +601,7 @@ public class QuestProfitTests
         var progress = Progress([1, 2]);
         var scores = QuestProfit.Score(catalog, facts, progress, 10, 0);
 
-        Assert.Equal(17, scores[1].Effort.Minutes);
+        Assert.Equal(13, scores[1].Effort.Minutes);
         Assert.Equal(1.0, scores[2].Score);
         Assert.Equal([2, 1], Short(Recommendable(catalog, progress, facts), catalog, kamas: false).Select(e => e.Quests[0].Id));
     }
