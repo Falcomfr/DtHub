@@ -910,10 +910,37 @@
               <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <TextBlock Grid.Column="0" VerticalAlignment="Center"
-                       Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
-                       TextTrimming="CharacterEllipsis"
-                       Text="{Binding Breadcrumb}" />
+            <!-- The info glyph of "Recommandées" right after its title, on its
+                 line (the user's call, 24/10/2026): at the right of the line
+                 below, it sat under "Moi / Équipe" and the close cross. Both
+                 docked left, so the title still trims when the line is short. -->
+            <DockPanel Grid.Column="0" LastChildFill="False">
+              <TextBlock DockPanel.Dock="Left" VerticalAlignment="Center"
+                         Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
+                         TextTrimming="CharacterEllipsis"
+                         Text="{Binding Breadcrumb}" />
+              <Border DockPanel.Dock="Left" Background="Transparent" Margin="5,0,0,0"
+                      VerticalAlignment="Center"
+                      ToolTipService.InitialShowDelay="200" ToolTipService.ShowDuration="60000">
+                <Border.Visibility>
+                  <MultiBinding Converter="{StaticResource AllTrue}">
+                    <Binding Path="ShowsRecommended" />
+                    <Binding Path="Tracker.IsLinked" />
+                  </MultiBinding>
+                </Border.Visibility>
+                <Border.ToolTip>
+                  <ToolTip Style="{StaticResource RichToolTip}">
+                    <TextBlock MaxWidth="360" TextWrapping="Wrap" Text="{Binding ProfitHowTip}"
+                               Foreground="{DynamicResource TextBrush}"
+                               FontFamily="{StaticResource UiFont}" FontSize="{StaticResource FontBody}" />
+                  </ToolTip>
+                </Border.ToolTip>
+                <Path Width="12" Height="12" Stretch="None"
+                      Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.1"
+                      Data="M 0.6,6 A 5.4,5.4 0 1 0 11.4,6 A 5.4,5.4 0 1 0 0.6,6 Z
+                            M 6,5.2 L 6,9 M 6,3 L 6,3.9" />
+              </Border>
+            </DockPanel>
 
             <!-- "Moi / Équipe" in "Recommandées", once there are characters to
                  add up. OneWay, the click asks the view model, which tells the
@@ -950,27 +977,10 @@
           <StackPanel DockPanel.Dock="Top" Margin="10,0,4,4"
                       Visibility="{Binding ShowsRecommended, Converter={StaticResource BoolToVisibility}}">
             <!-- How the list is ranked, one line, the detail on the info
-                 glyph's hover. -->
-            <DockPanel Margin="0,0,0,4"
-                       Visibility="{Binding Tracker.IsLinked, Converter={StaticResource BoolToVisibility}}">
-              <Border DockPanel.Dock="Right" Background="Transparent" Margin="6,0,0,0"
-                      VerticalAlignment="Top"
-                      ToolTipService.InitialShowDelay="200" ToolTipService.ShowDuration="60000">
-                <Border.ToolTip>
-                  <ToolTip Style="{StaticResource RichToolTip}">
-                    <TextBlock MaxWidth="360" TextWrapping="Wrap" Text="{Binding ProfitHowTip}"
-                               Foreground="{DynamicResource TextBrush}"
-                               FontFamily="{StaticResource UiFont}" FontSize="{StaticResource FontBody}" />
-                  </ToolTip>
-                </Border.ToolTip>
-                <Path Width="12" Height="12" Stretch="None" Margin="0,1,0,0"
-                      Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.1"
-                      Data="M 0.6,6 A 5.4,5.4 0 1 0 11.4,6 A 5.4,5.4 0 1 0 0.6,6 Z
-                            M 6,5.2 L 6,9 M 6,3 L 6,3.9" />
-              </Border>
-              <TextBlock Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
-                         TextWrapping="Wrap" Text="{Binding ProfitHow}" />
-            </DockPanel>
+                 glyph after the title. -->
+            <TextBlock Margin="0,0,0,4" Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}"
+                       TextWrapping="Wrap" Text="{Binding ProfitHow}"
+                       Visibility="{Binding Tracker.IsLinked, Converter={StaticResource BoolToVisibility}}" />
 
             <!-- The mode, quests or series, then the tab, XP or kamas, with
                  the gain columns' glyphs, then the two toggles. OneWay pairs:

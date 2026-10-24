@@ -11254,7 +11254,11 @@ un prérequis ou pas, donc par défaut c'est pas affiché. » Sous le fil d'Aria
 suivi relié, une ligne grise dit comment la liste est classée (« Classées par gain
 par minute estimé, à votre niveau. », ou « additionné sur l'équipe » dans la vue
 d'équipe ; demande du même jour : « mets une petite explication de comment sont
-recommandées les quêtes »), avec un rond « i » dont le survol donne le détail :
+recommandées les quêtes »), avec un rond « i » dont le survol donne le détail
+(placé juste après le titre « Quêtes recommandées », sur la ligne du fil d'Ariane,
+demande du 24/10/2026 : « la bulle info, mets-la à droite de « Quêtes
+recommandées », sur la même ligne » ; au bout de la ligne grise, il tombait sous
+« Moi » / « Équipe » et la croix de fermeture) :
 quêtes démarrables (niveau, précédentes faites, ou en cours), rapport par minute
 selon l'onglet et temps estimé par DT Hub, une quête par série, ni trousseau ni
 plus de 5 âmes, une quête de plus de 2 h seulement pour compléter une liste de
