@@ -97,6 +97,32 @@ public class TouchNameServiceTests
     }
 
     [Fact]
+    public async Task Apres_un_refus_des_noms_aucune_relecture_avant_le_delai()
+    {
+        using var service = Service();
+        _client.Failure = new HttpRequestException("refus");
+        _ = await service.RefreshAsync("en");
+        _client.Failure = null;
+
+        Assert.Null(await service.RefreshAsync("en"));
+        Assert.Empty(_client.Requested);
+    }
+
+    [Fact]
+    public async Task La_lecture_en_masse_attend_la_pause_apres_la_lecture_des_noms()
+    {
+        // The weekly names and the facts expire together: QuestSteps must not follow the five names requests at once.
+        SeedFacts();
+        using var service = new TouchNameService(_client, _store, new FakeTable()) { FactsPause = TimeSpan.FromMilliseconds(300) };
+        var clock = System.Diagnostics.Stopwatch.StartNew();
+
+        _ = await service.FactsAsync("en");
+
+        // Three pauses: after the names, before the objectives, before the rewards (a little early on a coarse timer).
+        Assert.True(clock.ElapsedMilliseconds >= 850, $"{clock.ElapsedMilliseconds} ms");
+    }
+
+    [Fact]
     public async Task Un_tableau_sans_monstre_ne_demande_aucun_monstre()
     {
         using var service = new TouchNameService(_client, _store, new NoMonsterTable());

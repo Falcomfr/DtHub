@@ -11191,9 +11191,13 @@ bascule sur les mêmes listes pour l'équipe.
 toutes les quêtes appariées sont lus en trois requêtes (`QuestSteps`,
 `QuestObjectives`, `QuestStepRewards`), plus une quatrième pour les textes des
 objectifs libres (D220), espacées d'au moins 60 s, en arrière-plan,
-une seule lecture à la fois, et gardés 7 jours avec les noms, par langue. Après un
+une seule lecture à la fois, et gardés 7 jours avec les noms, par langue. La
+première attend aussi 60 s après une lecture des noms : les deux expirent
+ensemble, et `QuestSteps` partait dans la même seconde que leurs cinq requêtes
+(revue du 24/10/2026). Après un
 refus du serveur, aucune nouvelle tentative pendant 6 h dans la session (le délai
-est gardé en mémoire), et on garde les données de
+est gardé en mémoire), ni de la lecture en masse ni des noms, que chaque
+affichage de la fenêtre redemandait, et on garde les données de
 la semaine précédente plutôt que rien. Ce qui n'est pas lu : la progression dans
 une quête (étape en cours, objectifs faits), que seul le jeu montre, et les
 monstres (environ 30 Ko chacun, trop lourd pour toutes les quêtes).
