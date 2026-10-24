@@ -122,12 +122,21 @@ public class QuestTrackingTests
 
     [Fact]
     public void Passes_doable_drops_completed_and_ignored_and_keeps_blocked() =>
-        Assert.Equal([2, 6], Enumerable.Range(1, 6).Where(i => QuestTracking.Passes(
+        Assert.Equal([1, 2, 6], Enumerable.Range(1, 6).Where(i => QuestTracking.Passes(
             Progress with { Available = new HashSet<int>() }, i, true, i is 2 or 3 or 4 or 6)));
 
     [Fact]
     public void Passes_doable_drops_a_listed_quest_that_is_not_startable() =>
-        Assert.Equal([6], Enumerable.Range(1, 6).Where(i => QuestTracking.Passes(Progress, i, true, i != 1)));
+        Assert.Equal([1], Enumerable.Range(1, 6).Where(i => QuestTracking.Passes(Progress, i, true, i != 6)));
+
+    [Fact]
+    public void Passes_doable_keeps_a_quest_in_progress_for_every_character()
+    {
+        // Below its optimal level, repeatable or without facts, DT Hub's reading says no; D219 keeps it.
+        Assert.True(QuestTracking.Passes(Progress with { Available = new HashSet<int>() }, 1, true, false));
+        // The site's list for its active character may leave it out.
+        Assert.True(QuestTracking.Passes(Progress with { Available = new HashSet<int> { 6 } }, 1, true, false));
+    }
 
     [Fact]
     public void Passes_doable_trusts_the_site_s_list_for_its_active_character() =>
@@ -292,12 +301,13 @@ public class QuestTrackingTests
     [Fact]
     public void ZoneProgress_under_doable_counts_what_the_filter_keeps_as_the_label_does()
     {
-        // 3 is ignored: left out though startable; the daily 7 counts, as in the zone's label.
+        // 3 is ignored: left out though startable; 2 is in progress: kept though not; the daily 7 counts, as in the
+        // zone's label.
         var tally = QuestTracking.ZoneProgress(Zone, Six, doable: true, startable: q => q.Id is 1 or 3 or 6 or 7);
-        var one = QuestTracking.ZoneProgress(Zone, Six, doable: true, startable: q => q.Id == 6);
+        var one = QuestTracking.ZoneProgress(Zone with { Statuses = new Dictionary<int, QuestStatus>() }, Six, doable: true, startable: q => q.Id == 6);
 
-        Assert.Equal("3", tally?.Count);
-        Assert.Equal("3 quêtes faisables", tally?.PassingTip);
+        Assert.Equal("4", tally?.Count);
+        Assert.Equal("4 quêtes faisables", tally?.PassingTip);
         Assert.Equal(2, tally?.Started);
         Assert.False(tally?.IsComplete);
         Assert.Equal("1 quête faisable", one?.PassingTip);

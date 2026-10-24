@@ -119,7 +119,7 @@ public static class QuestTracking
 
     /// <summary>
     /// Whether a quest stays in the list under "Faisables" (<paramref name="doable"/>): not completed nor ignored, a
-    /// blocked one stays (asked 2026-10-24), and startable. Without a linked tracker nothing is filtered: the list must
+    /// blocked one stays (asked 2026-10-24), and startable or in progress. Without a linked tracker nothing is filtered: the list must
     /// read as before. <paramref name="startable"/> is DT Hub's own reading (<see cref="Doable"/>): when the site lists
     /// available quests (it does for its active character only), a quest must be listed and startable; otherwise
     /// startable alone decides.
@@ -131,9 +131,13 @@ public static class QuestTracking
             return true;
         }
 
-        if (StatusOf(progress, questId) is QuestStatus.Completed or QuestStatus.Ignored)
+        switch (StatusOf(progress, questId))
         {
-            return false;
+            case QuestStatus.Completed or QuestStatus.Ignored:
+                return false;
+            // D219: in progress always passes, below its level, repeatable, without facts or off the site's list.
+            case QuestStatus.InProgress:
+                return true;
         }
 
         // The site's list, when it gives one, bounds what its active character can start.
