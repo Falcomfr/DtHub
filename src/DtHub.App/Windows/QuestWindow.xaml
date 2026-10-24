@@ -1733,7 +1733,8 @@
                          "≤ 99,9 M". A glyph says
                          which is which, the words come on hover: a blue
                          four-point sparkle for XP, a gold coin for kamas.
-                         The kamas column stays empty when there are none.
+                         The kamas column stays empty when there are none;
+                         a column no row fills collapses, its gap with it.
                          Hidden on a quest row without data, collapsed on
                          other rows and in a list with no gain at all. -->
                     <!-- The gains' hover adds, for a quest asking items, where
@@ -2083,7 +2084,7 @@
                     <Setter TargetName="GainKamasValeur" Property="Visibility" Value="Collapsed" />
                   </DataTrigger>
 
-                  <!-- No XP at all (bounties, Nowel stars): no "0", the column and its hover stay. -->
+                  <!-- No XP at all (bounties, Nowel stars): no "0", the column and its hover stay, unless no row of the list has XP. -->
                   <DataTrigger Binding="{Binding GainXp}" Value="">
                     <Setter TargetName="GainXpValeur" Property="Visibility" Value="Collapsed" />
                   </DataTrigger>
@@ -2157,6 +2158,10 @@
                   <DataTrigger Binding="{Binding DataContext.TimeColumnWidth,
                                                  RelativeSource={RelativeSource AncestorType=Window}}" Value="0">
                     <Setter TargetName="DureeCase" Property="Visibility" Value="Collapsed" />
+                  </DataTrigger>
+                  <DataTrigger Binding="{Binding DataContext.XpColumnWidth,
+                                                 RelativeSource={RelativeSource AncestorType=Window}}" Value="0">
+                    <Setter TargetName="GainXp" Property="Visibility" Value="Collapsed" />
                   </DataTrigger>
                   <DataTrigger Binding="{Binding DataContext.KamasColumnWidth,
                                                  RelativeSource={RelativeSource AncestorType=Window}}" Value="0">
