@@ -11,24 +11,6 @@ using Microsoft.Extensions.Logging;
 
 namespace DtHub.App.ViewModels;
 
-/// <summary>Where the link with the player's Papycha tracker stands.</summary>
-public enum TrackerLink
-{
-    /// <summary>Not read yet.</summary>
-    Unknown,
-
-    /// <summary>No tracker cookie: the player never linked, or unlinked.</summary>
-    NotLinked,
-
-    Linked,
-
-    /// <summary>The cookie is there but the site no longer accepts it (phrase renewed).</summary>
-    Lost,
-
-    /// <summary>Network down, site changed, or the cookie could not be read.</summary>
-    Unreadable,
-}
-
 /// <summary>A character's box in the team view of "Recommandées": ticked, it counts in the team lists.</summary>
 public sealed partial class TeamMember(TrackerCharacter character, bool included) : ObservableObject
 {

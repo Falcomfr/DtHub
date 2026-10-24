@@ -34,3 +34,21 @@ public enum TrackerReadOutcome
 }
 
 public sealed record TrackerReadResult(TrackerReadOutcome Outcome, TrackerState? State);
+
+/// <summary>Where the link with the player's Papycha tracker stands.</summary>
+public enum TrackerLink
+{
+    /// <summary>Not read yet.</summary>
+    Unknown,
+
+    /// <summary>No tracker cookie: the player never linked, or unlinked.</summary>
+    NotLinked,
+
+    Linked,
+
+    /// <summary>The cookie is there but the site no longer accepts it (phrase renewed).</summary>
+    Lost,
+
+    /// <summary>Network down, site changed, or the cookie could not be read.</summary>
+    Unreadable,
+}

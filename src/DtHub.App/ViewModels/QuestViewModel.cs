@@ -1671,10 +1671,9 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
 
     public bool ShowsProfitWait => ProfitWait.Length > 0;
 
-    public bool ProfitWaitSpins => ProfitWait is "ProfitReadingTracker" or "ProfitReadingGame";
+    public bool ProfitWaitSpins => Core.Papycha.ProfitWait.Spins(ProfitWait);
 
-    /// <summary>Only the tracker is read again on demand: the game's server keeps its own back-off.</summary>
-    public bool ProfitCanRetry => ProfitWait == "ProfitTrackerDown";
+    public bool ProfitCanRetry => Core.Papycha.ProfitWait.CanRetry(ProfitWait);
 
     partial void OnProfitKamasChanged(bool value) => ProfitFiltersChanged();
 
@@ -1747,15 +1746,9 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         ProfitHow = Strings.Get((team ? "ProfitHowTeam" : "ProfitHow") + (ProfitKamas ? "Kamas" : "Xp"));
         ProfitHowTip = Strings.Get(team ? "ProfitHowTeamTip" : "ProfitHowTip");
 
-        // The waits are long and normal: the site may take its thirty seconds, the game's first read some minutes.
         // The ranking itself measured under 25 ms (2026-10-24), so it gets no line of its own.
-        ProfitWait = Tracker.IsLinked
-            ? _facts is null || (_facts.Count == 0 && !_factsRead.IsCompleted) ? "ProfitReadingGame"
-                : _facts.Count == 0 && _touchNames.LastFailure is not null ? "ProfitGameDown"
-                : string.Empty
-            : Tracker.IsReading || Tracker.Link == TrackerLink.Unknown ? "ProfitReadingTracker"
-            : Tracker.Link == TrackerLink.Unreadable ? "ProfitTrackerDown"
-            : "ProfitNeedsLink";
+        ProfitWait = Core.Papycha.ProfitWait.Of(
+            Tracker.Link, Tracker.IsReading, _facts?.Count, _factsRead.IsCompleted, _touchNames.LastFailure is not null);
 
         if (ProfitWait.Length > 0)
         {
