@@ -30,7 +30,7 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 - Pasa el cursor sobre una misión para ver dónde encontrar los objetos que pide: monstruos que los sueltan, recolección, fabricación, arquimonstruos y sus zonas.
 - «Realizables» y las misiones siguientes funcionan ahora para los personajes distintos del activo en Papycha, a partir de las misiones que han terminado.
 - La barra del seguimiento de la ventana de guías pasa bajo el personaje cuando la ventana es estrecha, y cada misión recomendada muestra su zona y, en una serie, su lugar (3/11).
-- «Por hacer» y «Accesibles» pasan a ser un solo botón, «Realizables»: solo deja las misiones que tu personaje puede hacer ahora, ni terminadas ni ignoradas (las bloqueadas siguen visibles), y cada zona muestra entonces cuántas de sus misiones son realizables en lugar de hechas sobre el total.
+- «Por hacer» y «Accesibles» pasan a ser un solo botón, «Realizables»: solo deja las misiones que tu personaje puede hacer ahora, ni terminadas ni ignoradas (las bloqueadas siguen visibles), y cada zona muestra entonces cuántas de sus misiones son realizables en lugar de hechas sobre el total, sin el número de misiones en curso, ya incluido.
 - Con el seguimiento de Papycha vinculado, el candado de requisitos solo aparece si a tu personaje le falta uno (en amarillo, con una marca o una cruz delante de cada misión al pasar el ratón), nunca en «Recomendadas», y «Recomendadas» dice en una línea cómo ordena (el detalle al pasar el ratón sobre la «i») y tiene un botón «Mazmorras incluidas», activo por defecto; nunca muestra una misión con una condición que DT Hub no puede comprobar (franja horaria, alineamiento, objeto…), ni la cuenta en una mazmorra o en la continuación de una serie.
 
 ### Corregido

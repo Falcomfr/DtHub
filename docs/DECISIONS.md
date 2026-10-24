@@ -11372,7 +11372,12 @@ quête bloquée reste affichée (précision du même jour : le joueur veut encor
 voir) : pour ces règles elle compte comme non commencée (`QuestTracking.Doable`,
 testée). Non relié, rien n'est filtré, comme avant. Chaque zone compte alors ses
 quêtes faisables (« 3 quêtes faisables » au survol) au lieu de faites sur le
-total. Un seul réglage est retenu ; un ancien fichier qui avait « Accessibles »
+total. Demande du 24/10/2026 : « quand Faisables est activé, enlève
+carrément le nombre ici, ça fait doublon » : sous « Faisables », le sablier et le
+nombre de quêtes en cours ne sont plus affichés sur les lignes qui ont ce compte
+(zones), puisque les quêtes en cours sont déjà dans le nombre de faisables ; leur
+colonne disparaît avec eux, sans laisser de vide, et le nombre reste aligné à
+droite. Filtre éteint, rien ne change. Un seul réglage est retenu ; un ancien fichier qui avait « Accessibles »
 actif rallume « Faisables » (la clé est encore lue, jamais réécrite), « À faire »
 seul ne le rallume pas : il gardait des quêtes pas encore démarrables.
 
