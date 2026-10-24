@@ -597,6 +597,23 @@ public class QuestProfitTests
     }
 
     [Fact]
+    public void A_dungeon_counts_a_quest_whose_only_fight_is_its_boss_in_its_dungeon()
+    {
+        // Type 45, "Vaincre #1 dans son donjon.", is the dungeon itself; 46 is the same, some times over.
+        var catalog = new[] { Quest(1), Quest(2) };
+        var facts = new Dictionary<int, TouchQuestFacts>
+        {
+            [1] = new([Step(10, 2f)], [Obj(1), Said("Donjon Fungus"), Obj(45, [5])]),
+            [2] = new([Step(10, 3f)], [Said("Donjon Fungus"), Obj(46, [5, 2])]),
+        };
+
+        var values = DungeonValues(catalog, Progress([1, 2]), facts, new Dictionary<int, string> { [70] = "Donjon Fungus" });
+
+        Assert.Equal([1, 2], values[7].Advances.SelectMany(a => a.Quests).Select(q => q.Id).Order());
+        Assert.Equal(["1 boss"], QuestProfit.EffortOf(Facts(Obj(45, [5])), Quest(1)).Reasons);
+    }
+
+    [Fact]
     public void A_dungeon_leaves_out_a_quest_asking_items_or_other_work_besides_it()
     {
         var catalog = Enumerable.Range(1, 7).Select(i => Quest(i)).ToArray();

@@ -73,6 +73,7 @@ public static class QuestProfit
         3 => Kind.Items,
         20 => Kind.Crafting,
         6 when o.Parameters.Length > 1 && o.Parameters[1] == 1 => Kind.Boss,
+        45 or 46 => Kind.Boss,
         6 or 14 => Kind.Fights,
         12 => Kind.Souls,
         // Types 0 and 10, and any type the game adds later.
@@ -468,7 +469,8 @@ public static class QuestProfit
 
     /// <summary>
     /// True when the dungeon is all the quest asks (2026-10-24: "que les quêtes où il y a juste le donjon à faire"):
-    /// dialogues, maps, texts naming it, and lone fights in its run or in a step naming it (its boss).
+    /// dialogues, maps, texts naming it, a boss in its dungeon (types 45, 46), and lone fights in its run or in a step
+    /// naming it (its boss).
     /// </summary>
     private static bool OnlyThe(int[] dungeon, TouchQuestFacts facts, List<(int Id, string Name)> names)
     {
@@ -476,7 +478,7 @@ public static class QuestProfit
 
         return facts.Objectives.All(o => o.TypeId switch
         {
-            1 or 9 or 2 or 4 => true,
+            1 or 9 or 2 or 4 or 45 or 46 => true,
             0 or 10 => Names(o),
             6 => o.Parameters.Length > 1 && o.Parameters[1] == 1
                 && (QuestTime.IsRun(o, facts) || facts.Objectives.Any(e => e.Step is { } step && o.Step == step && Names(e))),

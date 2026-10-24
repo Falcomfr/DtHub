@@ -11472,7 +11472,8 @@ chacune de ses étapes est un dialogue (types 1, 9, 2), une carte à rejoindre
 (type 4), un texte libre (types 0, 10) qui nomme ce donjon (même rapprochement
 que plus haut), ou un combat contre un seul monstre (type 6) dans une étape qui
 a une course de donjon (règle de la carte de sortie de D221) ou un objectif qui
-nomme ce donjon (son boss). Tout autre objectif l'écarte : objets (3),
+nomme ce donjon (son boss), ou « Vaincre #1 dans son donjon » (types 45 et 46).
+Tout autre objectif l'écarte : objets (3),
 fabrication (20), autres combats (6, 14), âmes (12), autre texte libre, type
 inconnu. Le reste ne change pas : au moins deux de ces quêtes parmi les
 recommandées, temps du donjon, rien en équipe. Chacune vaut sa récompense
@@ -11566,7 +11567,11 @@ sauf un texte qui commence par « Braver » ou « Capturer » (un donjon, un bos
 unique dans une étape qui a aussi une carte dont le texte commence par
 « Sortie », « Exit » ou « Salida » est un donjon (étape connue : un cache
 d'avant, sans rang d'étape, n'en voit aucun) : 900 pour le combat, 0 pour la
-sortie. S'y ajoute le trajet : la distance en cartes (|dx| + |dy|) entre les
+sortie. Les objectifs « Vaincre #1 dans son donjon » (types 45 et 46, ce
+dernier « #2 fois ») sont aussi une course de donjon : 900 par fois, sortie à 0,
+« Donjons inclus » éteint les retire, et le combat compte pour la valeur du
+donjon (revue du 24/10/2026 : « Un moment de coupure » passait pour 7 minutes
+de tâches vagues). S'y ajoute le trajet : la distance en cartes (|dx| + |dy|) entre les
 objectifs qui ont une carte, depuis la position de départ de la quête quand
 Papycha la donne, 4 s par carte et au plus 180 s par saut (un zaap). Le total
 est arrondi à la minute supérieure.

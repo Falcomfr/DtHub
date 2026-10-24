@@ -75,6 +75,17 @@ public class QuestTimeTests
     }
 
     [Fact]
+    public void Defeating_a_boss_in_its_dungeon_is_a_dungeon_run()
+    {
+        // Types 45 "Vaincre #1 dans son donjon." and 46 "Vaincre #1 dans son donjon #2 fois." ("Un moment de coupure").
+        Assert.Equal(900, Seconds(Obj(45, [928])));
+        Assert.Equal(1800, Seconds(Obj(46, [800, 2])));
+        Assert.Equal(0, Seconds(Obj(4, text: "Sortie du Donjon des Bouftous"), Obj(45, [147])));
+        Assert.True(QuestTime.HasDungeonRun(Facts(Obj(45, [928]))));
+        Assert.True(QuestTime.HasDungeonRun(Facts(Obj(46, [800, 1]))));
+    }
+
+    [Fact]
     public void Fights_cost_per_monster_up_to_ten()
     {
         Assert.Equal(300, Seconds(Obj(14, [1, 5])));

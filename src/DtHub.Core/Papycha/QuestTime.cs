@@ -53,10 +53,12 @@ public static partial class QuestTime
         {
             1 or 9 or 2 => Talk,
             // The dungeon's exit: the run is counted on its fight.
-            4 => IsExit(objective) && facts.Objectives.Any(o => SameStep(o, objective) && IsSingleFight(o)) ? 0 : Map,
+            4 => IsExit(objective) && facts.Objectives.Any(o => SameStep(o, objective) && (IsSingleFight(o) || IsInDungeon(o))) ? 0 : Map,
             3 => Math.Min(ItemsCap, ItemsBase + (ItemsEach * (p.Length > 2 ? p[2] : 0))),
             20 => Craft,
             6 when IsRun(objective, facts) => DungeonRun,
+            45 => DungeonRun,
+            46 => DungeonRun * Math.Max(1, p.Length > 1 ? p[1] : 1),
             6 or 14 => PerMonster * Math.Clamp(p.Length > 1 ? p[1] : 1, 1, MonstersCap),
             12 => PerSoul,
             // Types 0 and 10, and any type the game adds later.
@@ -66,7 +68,7 @@ public static partial class QuestTime
         };
     }
 
-    /// <summary>True when an objective is a dungeon run: a lone fight beside an exit map of its step.</summary>
+    /// <summary>True when an objective is a dungeon run: a boss in its dungeon, or a lone fight beside an exit map of its step.</summary>
     public static bool HasDungeonRun(TouchQuestFacts facts)
     {
         ArgumentNullException.ThrowIfNull(facts);
@@ -75,7 +77,10 @@ public static partial class QuestTime
     }
 
     internal static bool IsRun(TouchObjective o, TouchQuestFacts facts) =>
-        IsSingleFight(o) && facts.Objectives.Any(e => SameStep(e, o) && IsExit(e));
+        IsInDungeon(o) || (IsSingleFight(o) && facts.Objectives.Any(e => SameStep(e, o) && IsExit(e)));
+
+    // Types 45 "Vaincre #1 dans son donjon." and 46, the same some times over: the game says it is the dungeon.
+    internal static bool IsInDungeon(TouchObjective o) => o.TypeId is 45 or 46;
 
     // "Sortie du Donjon ...": any other map beside a lone fight ("Chantier du Barrage") made a dungeon run of it.
     private static bool IsExit(TouchObjective o) => o.TypeId == 4 && StartsWithAny(o.Text, ExitWords);
