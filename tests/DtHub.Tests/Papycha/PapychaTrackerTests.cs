@@ -81,7 +81,11 @@ public class PapychaTrackerTests
     {
         var (tracker, _) = Make(Throw);
 
-        Assert.Equal(TrackerReadOutcome.Unreadable, (await tracker.ReadAsync("abc")).Outcome);
+        var result = await tracker.ReadAsync("abc");
+
+        Assert.Equal(TrackerReadOutcome.Unreadable, result.Outcome);
+        // The site did not answer: the card may blame it.
+        Assert.True(result.Unreachable);
     }
 
     [Fact]

@@ -2932,6 +2932,9 @@ Pour l'éviter : {1}  ›  « Verrouillage auto. Dossier sécurisé » › l'opt
   <data name="ProfitReadingGame" xml:space="preserve">
     <value>Lecture des données du jeu (récompenses, objectifs)…</value>
   </data>
+  <data name="ProfitTrackerUnreadable" xml:space="preserve">
+    <value>Impossible de lire votre suivi Papycha pour l'instant.</value>
+  </data>
   <data name="ProfitTrackerDown" xml:space="preserve">
     <value>Papycha ne répond pas : impossible de lire votre suivi pour l'instant.</value>
   </data>

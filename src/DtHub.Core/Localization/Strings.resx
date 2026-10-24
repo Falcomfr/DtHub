@@ -2932,6 +2932,9 @@ To avoid it: {1}  ›  "Auto lock Secure Folder" › the longest option.</value>
   <data name="ProfitReadingGame" xml:space="preserve">
     <value>Reading the game's data (rewards, objectives)…</value>
   </data>
+  <data name="ProfitTrackerUnreadable" xml:space="preserve">
+    <value>Your Papycha tracker cannot be read for now.</value>
+  </data>
   <data name="ProfitTrackerDown" xml:space="preserve">
     <value>Papycha is not responding: your tracker cannot be read for now.</value>
   </data>

@@ -88,7 +88,7 @@ public sealed partial class PapychaTracker : IPapychaTracker
             LogReadFailed(ex.Message);
             _nonce = null;
 
-            return new TrackerReadResult(TrackerReadOutcome.Unreadable, null);
+            return new TrackerReadResult(TrackerReadOutcome.Unreadable, null, Unreachable: true);
         }
     }
 

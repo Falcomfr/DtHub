@@ -33,7 +33,8 @@ public enum TrackerReadOutcome
     Unreadable,
 }
 
-public sealed record TrackerReadResult(TrackerReadOutcome Outcome, TrackerState? State);
+/// <param name="Unreachable">Unreadable because the network or the site's HTTP answer failed, not its page.</param>
+public sealed record TrackerReadResult(TrackerReadOutcome Outcome, TrackerState? State, bool Unreachable = false);
 
 /// <summary>Where the link with the player's Papycha tracker stands.</summary>
 public enum TrackerLink

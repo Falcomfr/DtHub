@@ -1748,7 +1748,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
 
         // The ranking itself measured under 25 ms (2026-10-24), so it gets no line of its own.
         ProfitWait = Core.Papycha.ProfitWait.Of(
-            Tracker.Link, Tracker.IsReading, _facts?.Count, _factsRead.IsCompleted, _viewFailed);
+            Tracker.Link, Tracker.IsReading, _facts?.Count, _factsRead.IsCompleted, _viewFailed, Tracker.Unreachable);
 
         if (ProfitWait.Length > 0)
         {

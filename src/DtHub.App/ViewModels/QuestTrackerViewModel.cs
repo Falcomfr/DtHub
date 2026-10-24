@@ -124,6 +124,9 @@ public sealed partial class QuestTrackerViewModel(
 
     public bool IsLinked => Link == TrackerLink.Linked;
 
+    /// <summary>The last read failed on the network or the site's HTTP answer (<see cref="TrackerReadResult.Unreachable"/>).</summary>
+    public bool Unreachable { get; private set; }
+
     /// <summary>The level kept in the settings, used when no character is linked (0 = unknown).</summary>
     private int _settingLevel;
 
@@ -235,7 +238,7 @@ public sealed partial class QuestTrackerViewModel(
 
             // A cookie was sent and refused.
             TrackerReadOutcome.NotLinked => Apply(version, TrackerLink.Lost, null),
-            _ => Apply(version, TrackerLink.Unreadable, null),
+            _ => Apply(version, TrackerLink.Unreadable, null, result.Unreachable),
         };
     }
 
@@ -813,12 +816,14 @@ public sealed partial class QuestTrackerViewModel(
     /// Puts a read's outcome on screen, unless a write began after the read
     /// did (its status is newer than what the read saw). True when it did.
     /// </summary>
-    private bool Apply(int version, TrackerLink link, TrackerState? state)
+    private bool Apply(int version, TrackerLink link, TrackerState? state, bool unreachable = false)
     {
         if (version != _writeVersion || IsBusy)
         {
             return false;
         }
+
+        Unreachable = unreachable;
 
         if (link == TrackerLink.Linked)
         {
@@ -866,6 +871,7 @@ public sealed partial class QuestTrackerViewModel(
 
     private void SetState(TrackerLink link)
     {
+        Unreachable = false;
         _state = null;
         Link = link;
         Notice = NoticeFor(link);

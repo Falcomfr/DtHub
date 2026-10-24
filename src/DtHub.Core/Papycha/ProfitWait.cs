@@ -9,6 +9,7 @@ public static class ProfitWait
     public const string ReadingTracker = "ProfitReadingTracker";
     public const string ReadingGame = "ProfitReadingGame";
     public const string TrackerDown = "ProfitTrackerDown";
+    public const string TrackerUnreadable = "ProfitTrackerUnreadable";
     public const string GameDown = "ProfitGameDown";
     public const string NeedsLink = "ProfitNeedsLink";
 
@@ -19,18 +20,21 @@ public static class ProfitWait
     /// later read of a guide's steps clears the service's last failure).</param>
     /// <param name="viewFailed">The page engine failed to start: no read starts on its own, so a tracker never read is
     /// a failure to retry, not a wait.</param>
-    public static string Of(TrackerLink link, bool reading, int? facts, bool factsDone, bool viewFailed) =>
+    /// <param name="unreachable">The tracker's last failure was the network's or the site's HTTP answer: only then does
+    /// the card say Papycha does not respond; a cookie unread, a page refused or a bug get a neutral text.</param>
+    public static string Of(TrackerLink link, bool reading, int? facts, bool factsDone, bool viewFailed, bool unreachable) =>
         link == TrackerLink.Linked
             ? facts is null || (facts == 0 && !factsDone) ? ReadingGame
                 : facts == 0 ? GameDown
                 : string.Empty
             : reading || (link == TrackerLink.Unknown && !viewFailed) ? ReadingTracker
-            : link is TrackerLink.Unreadable or TrackerLink.Unknown ? TrackerDown
+            : link == TrackerLink.Unreadable && unreachable ? TrackerDown
+            : link is TrackerLink.Unreadable or TrackerLink.Unknown ? TrackerUnreadable
             : NeedsLink;
 
     /// <summary>A wait the spinner turns for.</summary>
     public static bool Spins(string wait) => wait is ReadingTracker or ReadingGame;
 
     /// <summary>Only the tracker is read again on demand: the game's server keeps its own back-off.</summary>
-    public static bool CanRetry(string wait) => wait == TrackerDown;
+    public static bool CanRetry(string wait) => wait is TrackerDown or TrackerUnreadable;
 }
