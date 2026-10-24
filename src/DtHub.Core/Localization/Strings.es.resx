@@ -2935,6 +2935,9 @@ Para evitarlo: {1}  ›  «Bloqueo automático de Carpeta segura» › la opció
   <data name="ProfitTrackerUnreadable" xml:space="preserve">
     <value>No se puede leer tu seguimiento de Papycha por ahora.</value>
   </data>
+  <data name="ProfitNoCharacter" xml:space="preserve">
+    <value>Ningún personaje en tu seguimiento de Papycha.</value>
+  </data>
   <data name="ProfitTrackerDown" xml:space="preserve">
     <value>Papycha no responde: no se puede leer tu seguimiento por ahora.</value>
   </data>

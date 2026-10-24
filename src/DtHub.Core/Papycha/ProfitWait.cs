@@ -12,6 +12,7 @@ public static class ProfitWait
     public const string TrackerUnreadable = "ProfitTrackerUnreadable";
     public const string GameDown = "ProfitGameDown";
     public const string NeedsLink = "ProfitNeedsLink";
+    public const string NoCharacter = "ProfitNoCharacter";
 
     /// <param name="link">Where the tracker link stands.</param>
     /// <param name="reading">A tracker read is under way.</param>
@@ -22,9 +23,12 @@ public static class ProfitWait
     /// a failure to retry, not a wait.</param>
     /// <param name="unreachable">The tracker's last failure was the network's or the site's HTTP answer: only then does
     /// the card say Papycha does not respond; a cookie unread, a page refused or a bug get a neutral text.</param>
-    public static string Of(TrackerLink link, bool reading, int? facts, bool factsDone, bool viewFailed, bool unreachable) =>
+    /// <param name="hasCharacter">The linked tracker holds a character: without one nothing can be ranked.</param>
+    public static string Of(
+        TrackerLink link, bool reading, int? facts, bool factsDone, bool viewFailed, bool unreachable, bool hasCharacter) =>
         link == TrackerLink.Linked
-            ? facts is null || (facts == 0 && !factsDone) ? ReadingGame
+            ? !hasCharacter ? NoCharacter
+                : facts is null || (facts == 0 && !factsDone) ? ReadingGame
                 : facts == 0 ? GameDown
                 : string.Empty
             : reading || (link == TrackerLink.Unknown && !viewFailed) ? ReadingTracker
