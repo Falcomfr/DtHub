@@ -366,15 +366,24 @@ public sealed partial class InstanceListViewModel : ObservableObject
     private bool _rebuildingStartupChoices;
 
     /// <summary>
-    /// The team opened at startup, empty to reopen what was open, or
-    /// <see cref="LaunchProfiles.OpenNothingChoice" /> to open nothing.
+    /// The row of the list that applies: a team, reopening what was open
+    /// (empty value), or <see cref="LaunchProfiles.OpenNothingChoice" />.
     ///
     /// Emptying the list makes it push back a null: that is not a choice,
     /// and saving it would have forgotten the team on every sweep.
+    ///
+    /// Bound by item, not by value. Each sweep empties the list, which
+    /// drops the selection, and a bound value that stays the same was
+    /// never matched again: the list showed nothing chosen, and closed
+    /// itself every three seconds while open.
     /// </summary>
-    public string StartupProfile
+    public TextChoice? StartupChoice
     {
-        get => _openNothing ? LaunchProfiles.OpenNothingChoice : ActiveProfileName;
+        get
+        {
+            var value = _openNothing ? LaunchProfiles.OpenNothingChoice : ActiveProfileName;
+            return StartupChoices.FirstOrDefault(c => c.Value == value);
+        }
         set
         {
             if (_rebuildingStartupChoices || value is null)
@@ -382,7 +391,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
                 return;
             }
 
-            _ = ChooseStartupProfileAsync(value);
+            _ = ChooseStartupProfileAsync(value.Value);
         }
     }
 
@@ -448,7 +457,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
         OnPropertyChanged(nameof(HasActiveProfile));
         OnPropertyChanged(nameof(ProfilesButtonText));
         OnPropertyChanged(nameof(ProfilesTooltip));
-        OnPropertyChanged(nameof(StartupProfile));
+        OnPropertyChanged(nameof(StartupChoice));
     }
 
     /// <summary>
@@ -497,7 +506,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
         OnPropertyChanged(nameof(HasActiveProfile));
         OnPropertyChanged(nameof(ProfilesButtonText));
         OnPropertyChanged(nameof(ProfilesTooltip));
-        OnPropertyChanged(nameof(StartupProfile));
+        OnPropertyChanged(nameof(StartupChoice));
     }
 
     /// <summary>
