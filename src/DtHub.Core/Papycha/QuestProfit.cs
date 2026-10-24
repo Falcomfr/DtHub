@@ -358,7 +358,7 @@ public static class QuestProfit
 
     // The whole dungeon list ("empty the keyring") or a soul hunt: worth it on paper, days of play in fact.
     private static bool IsVeryLong(TouchQuestFacts facts) =>
-        facts.Objectives.Count(o => o.TypeId == 12) > 5
+        facts.Objectives.Sum(QuestTime.SoulsOf) > 5
         || facts.Objectives.Any(o => o.TypeId is 0 or 10 && o.Text is { } text
             && Keyring.Any(word => text.Contains(word, StringComparison.OrdinalIgnoreCase)));
 

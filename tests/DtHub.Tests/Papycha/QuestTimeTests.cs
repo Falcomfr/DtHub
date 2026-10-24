@@ -75,6 +75,10 @@ public class QuestTimeTests
     }
 
     [Fact]
+    public void Each_soul_brought_costs_five_minutes() =>
+        Assert.Equal(900, Seconds(Obj(12, [1, 2, 3])));
+
+    [Fact]
     public void Defeating_a_boss_in_its_dungeon_is_a_dungeon_run()
     {
         // Types 45 "Vaincre #1 dans son donjon." and 46 "Vaincre #1 dans son donjon #2 fois." ("Un moment de coupure").

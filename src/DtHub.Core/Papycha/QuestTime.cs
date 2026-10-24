@@ -60,7 +60,7 @@ public static partial class QuestTime
             45 => DungeonRun,
             46 => DungeonRun * Math.Max(1, p.Length > 1 ? p[1] : 1),
             6 or 14 => PerMonster * Math.Clamp(p.Length > 1 ? p[1] : 1, 1, MonstersCap),
-            12 => PerSoul,
+            12 => PerSoul * SoulsOf(objective),
             // Types 0 and 10, and any type the game adds later.
             _ => StartsWithAny(objective.Text, BossOrDungeonWords) ? BossOrDungeon
                 : StartsWithAny(objective.Text, QuestGroupWords) ? QuestGroup
@@ -90,6 +90,10 @@ public static partial class QuestTime
 
     // An unknown step (a cache read before steps were kept) matches none: every fight would pass for a dungeon run.
     private static bool SameStep(TouchObjective a, TouchObjective b) => a.Step is { } step && b.Step == step;
+
+    /// <summary>The souls a type 12 objective asks, "Ramener #3 âme de #2 à #1" (at least one); 0 for any other type.</summary>
+    internal static int SoulsOf(TouchObjective o) =>
+        o.TypeId == 12 ? Math.Max(1, o.Parameters.Length > 2 ? o.Parameters[2] : 1) : 0;
 
     // "Win 1 in one fight": a boss in practice.
     private static bool IsSingleFight(TouchObjective o) => o.TypeId == 6 && o.Parameters.Length > 1 && o.Parameters[1] == 1;

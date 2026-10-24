@@ -222,6 +222,22 @@ public class QuestProfitTests
     }
 
     [Fact]
+    public void More_than_five_souls_counts_the_souls_not_the_objectives()
+    {
+        // "Les 7 bandits. (brâkmarien 49)": four objectives for 1 + 3 + 2 + 2 = 8 souls.
+        var catalog = new List<QuestSummary> { Quest(1), Quest(2) };
+        var facts = new Dictionary<int, TouchQuestFacts>
+        {
+            [1] = new([Step(10, 90f)], [Obj(12, [1, 2, 1]), Obj(12, [1, 2, 3]), Obj(12, [1, 2, 2]), Obj(12, [1, 2, 2])]),
+            [2] = new([Step(10, 1f)], []),
+        };
+
+        var scores = QuestProfit.Score(catalog, facts, Progress([1, 2]), 10, 0);
+
+        Assert.Equal([0, 3], scores.Keys.Order().Select(id => scores[id].Tier));
+    }
+
+    [Fact]
     public void A_quest_the_short_lists_leave_out_gets_no_mark_but_stays_scored()
     {
         // The best gains, but six souls, over two hours of items, or the keyring; quest 4 is the only one left.

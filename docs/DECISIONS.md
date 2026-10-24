@@ -11563,7 +11563,7 @@ son étape ; un cache d'avant est relu une fois. Le temps d'une quête, en
 secondes : 180 pour rejoindre le personnage de départ et rendre la quête ; par
 objectif, parler, montrer ou aller voir 30, découvrir une carte 30, rapporter
 des objets 10 + 20 par objet au plus 1200, fabriquer 60, combattre 60 par
-monstre (au plus 10), rapporter une âme 300, texte libre ou type inconnu 60,
+monstre (au plus 10), rapporter des âmes 300 par âme demandée, texte libre ou type inconnu 60,
 sauf un texte qui commence par « Braver » ou « Capturer » (un donjon, un boss :
 900) ou par « Aider » ou « Terminer » (un groupe de quêtes : 1800) ; un combat
 unique dans une étape qui a aussi une carte dont le texte commence par
