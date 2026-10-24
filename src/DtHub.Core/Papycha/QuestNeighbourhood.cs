@@ -80,6 +80,21 @@ public static class QuestNeighbourhood
         var rank = 0;
         var count = 0;
 
+        // A series with ways the game takes one for another ("Agriculture ou
+        // alchimie"): its list zigzags between them, so the graph decides,
+        // and the rank counts along the quest's way.
+        if (chain is not null && quest.SuccessName.Length > 0 && quests is not null
+            && quests.Any(q => q.SuccessName == quest.SuccessName && q.Alternatives.Count > 0))
+        {
+            var (at, size) = QuestPlayOrder.Position(quests, quest) ?? (0, 0);
+
+            return new QuestNeighbours(
+                chain.PreviousOf(quest),
+                chain.NextOf(quest) ?? (at == size ? chain.NextSeriesOf(quest) : null),
+                at,
+                size);
+        }
+
         if (quest.SuccessName.Length > 0 && quests is not null)
         {
             List<QuestSummary> group =

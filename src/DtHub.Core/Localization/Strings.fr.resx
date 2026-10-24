@@ -3035,6 +3035,9 @@ Pas de donjon en équipe.
   <data name="ProfitModeSeriesTip" xml:space="preserve">
     <value>Une série par ligne : sa suite à partir de la prochaine quête faisable, gains et temps additionnés</value>
   </data>
+  <data name="ProfitRunWay" xml:space="preserve">
+    <value>voie {0}</value>
+  </data>
   <data name="ProfitRunQuests" xml:space="preserve">
     <value>{0} quêtes ({1}-{2}/{3})</value>
   </data>

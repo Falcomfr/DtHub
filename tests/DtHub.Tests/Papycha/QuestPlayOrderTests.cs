@@ -147,4 +147,31 @@ public sealed class QuestPlayOrderTests
         Assert.Null(QuestPlayOrder.Position(catalogue, catalogue[3]));
         Assert.Null(QuestPlayOrder.Position(catalogue, catalogue[4]));
     }
+
+    /// <summary>
+    /// « Agriculture ou alchimie » en petit : R puis deux voies jouées en
+    /// zigzag, A1-A2-A3 ou B1-B2-B3, la n-ième de chaque voie alternative de
+    /// l'autre.
+    /// </summary>
+    internal static QuestSummary[] DeuxVoies() =>
+    [
+        Quete("R", 1) with { Id = 1 },
+        Quete("A1", 2, prerequis: "R") with { Id = 11, Alternatives = [21] },
+        Quete("B1", 3, prerequis: "R") with { Id = 21, Alternatives = [11] },
+        Quete("A2", 4, prerequis: "A1") with { Id = 12, Alternatives = [22] },
+        Quete("B2", 5, prerequis: "B1") with { Id = 22, Alternatives = [12] },
+        Quete("A3", 6, prerequis: "A2") with { Id = 13, Alternatives = [23] },
+        Quete("B3", 7, prerequis: "B2") with { Id = 23, Alternatives = [13] },
+    ];
+
+    [Fact]
+    public void Dans_une_serie_a_deux_voies_la_place_se_compte_le_long_de_la_voie()
+    {
+        var catalogue = DeuxVoies();
+
+        Assert.Equal((3, 4), QuestPlayOrder.Position(catalogue, catalogue[4]));
+        Assert.Equal(["R", "A1", "A2", "A3"], Titres(QuestPlayOrder.Way(catalogue, [catalogue[3], catalogue[5]])));
+        // Avant l'embranchement, la voie n'est pas choisie : toute la série.
+        Assert.Equal((1, 7), QuestPlayOrder.Position(catalogue, catalogue[0]));
+    }
 }

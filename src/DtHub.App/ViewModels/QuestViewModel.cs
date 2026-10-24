@@ -1858,16 +1858,22 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
                 })];
 
     /// <summary>
-    /// A series run as a row: the series' name, then "· Zone · 3 quêtes (2-4/11)", the run's time and gains, the gift
-    /// when one of its quests gives more; a click opens its first quest.
+    /// A series run as a row: the series' name, then "· voie En semant, se ment" while its way is not taken,
+    /// "· Zone · 3 quêtes (2-4/11)", the run's time and gains, the gift when one of its quests gives more; a click opens
+    /// its first quest.
     /// </summary>
     private ProfitRow RunRow(ProfitEntry run, QuestGain gain, string tip)
     {
         var first = run.Quests[0];
         var node = Marked(_tree.NodeOf(first));
         var zone = first.SectionId == 0 ? string.Empty : " · " + _tree.NameOf(first.SectionId);
-        var series = QuestPlayOrder.Sorted(_catalog.Catalog.Quests.Where(q => q.SuccessName == first.SuccessName)).Select(q => q.Id).ToList();
+        // Places along the run's way: the other way of "Agriculture ou alchimie" is not counted.
+        var series = QuestPlayOrder.Way(_catalog.Catalog.Quests, run.Quests).Select(q => q.Id).ToList();
         var place = Strings.Format("ProfitRunQuests", run.Quests.Count, series.IndexOf(first.Id) + 1, series.IndexOf(run.Quests[^1].Id) + 1, series.Count);
+        // The way is named by its first quest while the player has not taken it: then each way has its row.
+        var way = run.Path is { } path && run.Quests.Contains(path) && QuestTracking.StatusOf(Tracker.Progress, path.Id) != QuestStatus.InProgress
+            ? " · " + Strings.Format("ProfitRunWay", path.Title)
+            : string.Empty;
         var others = run.Quests
             .Select(q => _facts?.GetValueOrDefault(q.Id) is { } f && QuestProfit.RewardOf(f, Tracker.RewardLevel, Tracker.RewardXpBonus) is { } r
                 ? QuestRewardText.Others(r, _itemNames) : null)
@@ -1876,7 +1882,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         node = node with
         {
             Label = run.Title,
-            Suffix = $"{zone} · {place}",
+            Suffix = $"{way}{zone} · {place}",
             Duration = QuestTime.Text(run.Effort.Minutes),
             GainXp = xp,
             GainKamas = kamas,

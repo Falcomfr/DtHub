@@ -111,16 +111,58 @@ public static class QuestPlayOrder
         return Sort(all, keys, after, waiting);
     }
 
-    /// <summary>The quest's rank in its achievement's play order, from 1, and the achievement's size; null alone in it.</summary>
+    /// <summary>
+    /// The quest's rank along its way through its achievement (<see cref="Way"/>), from 1, and the way's size; null
+    /// alone in it.
+    /// </summary>
     public static (int Rank, int Count)? Position(IEnumerable<QuestSummary> catalog, QuestSummary quest)
     {
         ArgumentNullException.ThrowIfNull(catalog);
         ArgumentNullException.ThrowIfNull(quest);
 
         if (quest.SuccessName.Length == 0) return null;
-        var series = Sorted(catalog.Where(q => string.Equals(q.SuccessName, quest.SuccessName, StringComparison.Ordinal)));
-        var rank = series.ToList().FindIndex(q => q.Id == quest.Id) + 1;
-        return series.Count > 1 && rank > 0 ? (rank, series.Count) : null;
+        var way = Way(catalog, [quest]);
+        var rank = way.ToList().FindIndex(q => q.Id == quest.Id) + 1;
+        return way.Count > 1 && rank > 0 ? (rank, way.Count) : null;
+    }
+
+    /// <summary>
+    /// The achievement of <paramref name="on"/> in play order, along the way these quests take: less every quest that
+    /// is an alternative (<see cref="QuestSummary.Alternatives"/>) of one of them, of one before them or of one after
+    /// them, so a way of "Agriculture ou alchimie" counts 11 quests, not 21. Without alternatives, the whole
+    /// achievement; before the ways part, too.
+    /// </summary>
+    public static IReadOnlyList<QuestSummary> Way(IEnumerable<QuestSummary> catalog, IReadOnlyCollection<QuestSummary> on)
+    {
+        ArgumentNullException.ThrowIfNull(catalog);
+        ArgumentNullException.ThrowIfNull(on);
+
+        var name = on.First().SuccessName;
+        var series = Sorted(catalog.Where(q => string.Equals(q.SuccessName, name, StringComparison.Ordinal)));
+        if (!series.Any(q => q.Alternatives.Count > 0)) return series;
+
+        var chain = new QuestChainIndex(series);
+        var edges = series.SelectMany(q => QuestProfit.Previous(q, chain).Select(p => (Before: p.Id, After: q.Id))).ToList();
+        HashSet<int> along = [.. on.Select(q => q.Id)];
+        foreach (var forward in new[] { true, false })
+        {
+            var reached = new Stack<int>(on.Select(q => q.Id));
+            HashSet<int> seen = [.. reached];
+            while (reached.TryPop(out var at))
+            {
+                foreach (var (before, after) in edges)
+                {
+                    var next = forward ? (before == at ? after : 0) : (after == at ? before : 0);
+                    if (next != 0 && seen.Add(next))
+                    {
+                        reached.Push(next);
+                        along.Add(next);
+                    }
+                }
+            }
+        }
+
+        return [.. series.Where(q => along.Contains(q.Id) || !q.Alternatives.Any(along.Contains))];
     }
 
     /// <summary>

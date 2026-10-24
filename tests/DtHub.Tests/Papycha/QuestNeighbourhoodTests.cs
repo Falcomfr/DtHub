@@ -197,4 +197,20 @@ public sealed class QuestNeighbourhoodTests
         Assert.False(voisines.NextFromList);
         Assert.False(voisines.PreviousFromList);
     }
+
+    [Fact]
+    public void Dans_une_serie_a_deux_voies_les_voisines_suivent_le_graphe_de_la_voie()
+    {
+        var tout = QuestPlayOrderTests.DeuxVoies();
+        var chain = new QuestChainIndex(tout);
+
+        // A2 : la liste jouée en zigzag donnerait B1 et B2.
+        var a2 = QuestNeighbourhood.Of(tout[3], tout, chain);
+        Assert.Equal("A1", a2.Previous?.Title);
+        Assert.Equal("A3", a2.Next?.Title);
+        Assert.Equal((3, 4), (a2.Rank, a2.Count));
+
+        // R ouvre les deux voies : aucune suivante plutôt qu'une au hasard.
+        Assert.Null(QuestNeighbourhood.Of(tout[0], tout, chain).Next);
+    }
 }

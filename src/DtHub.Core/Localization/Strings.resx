@@ -3035,6 +3035,9 @@ Team: quests at least 2 ticked characters can do.</value>
   <data name="ProfitModeSeriesTip" xml:space="preserve">
     <value>One series per row: what follows from its next doable quest, gains and times added up</value>
   </data>
+  <data name="ProfitRunWay" xml:space="preserve">
+    <value>path {0}</value>
+  </data>
   <data name="ProfitRunQuests" xml:space="preserve">
     <value>{0} quests ({1}-{2}/{3})</value>
   </data>
