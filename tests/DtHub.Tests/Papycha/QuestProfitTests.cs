@@ -237,6 +237,9 @@ public class QuestProfitTests
         Assert.False(QuestProfit.HasPrerequisite(Catalog(false)[3], new QuestChainIndex(Catalog(false)), [Progress([], completed: [1, 2])], met: [3]));
         // Ways the game takes one for the other: the end of the way not taken does not count.
         Assert.True(Startable(Catalog(true), 1, 2));
+        // Listed by the site for its active character: one end is enough, as one previous quest is.
+        Assert.True(QuestProfit.Startable(Catalog(false)[3], Progress([9], completed: [1, 2]), new QuestChainIndex(Catalog(false))));
+        Assert.False(QuestProfit.Startable(Catalog(false)[3], Progress([9], completed: [1]), new QuestChainIndex(Catalog(false))));
     }
 
     private static (List<QuestSummary> Catalog, Dictionary<int, TouchQuestFacts> Facts) Twenty()

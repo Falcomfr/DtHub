@@ -11527,7 +11527,10 @@ qu'aucune autre de la série ne suit), une fin de la voie écartée comptant com
 faite par la règle B, et non plus la dernière dans l'ordre de jeu
 (`QuestChainIndex.Required`). « Le Héraut de la forêt » et « Premier pas dans les
 ténèbres » n'attendaient que « Meilleurs ennemis » sur les quatre branches d'« Un
-Chemin semé de bûches ». `QuestChainIndex.Resolve` reste le même pour l'affichage.
+Chemin semé de bûches ». `QuestChainIndex.Resolve` reste le même pour l'affichage. Pour une quête que le
+site donne à son personnage actif, une seule fin suffit (revue du même jour,
+décision du contrôleur) : c'est la règle souple de cette liste, une précédente
+faite suffit ; la règle E vaut pour les autres personnages.
 
 *Décisions de l'utilisateur.* Mode « Quêtes » : une entrée par chaîne démarrable
 (chaînes indépendantes et branches parallèles d'une série) et une par voie,

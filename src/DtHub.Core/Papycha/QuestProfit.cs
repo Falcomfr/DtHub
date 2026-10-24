@@ -119,10 +119,12 @@ public static class QuestProfit
         if (QuestTracking.StatusOf(progress, quest.Id) == QuestStatus.InProgress) return true;
         if (IsRuledOut(quest, progress)) return false;
         var needs = QuestNeeds(quest, chain);
-        bool Met(string need) => IsMet(need, quest, chain, p => IsDone(p, quest, progress));
+        bool Done(QuestSummary p) => IsDone(p, quest, progress);
+        // Listed by the site: one previous quest done is enough, and one end of an achievement (rule E is for the others).
         return progress.Available.Count == 0
-            ? needs.All(Met)
-            : progress.Available.Contains(quest.Id) && (needs.Count == 0 || needs.Any(Met));
+            ? needs.All(need => IsMet(need, quest, chain, Done))
+            : progress.Available.Contains(quest.Id)
+                && (needs.Count == 0 || needs.Any(need => chain.Required(need).Any(p => p.Id != quest.Id && Done(p))));
     }
 
     /// <summary>
