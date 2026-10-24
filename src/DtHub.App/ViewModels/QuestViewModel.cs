@@ -1710,11 +1710,12 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             maxMinutes: ProfitSeries ? int.MaxValue : QuestProfit.ShortMinutes);
 
         // No priority mark here: the order and the tab say it, and the combined-score tiers contradicted the order.
+        // No lock either: every row is startable for its characters, and a neutral lock made team rows taller.
         // The hover gives the rates the list ranks on.
         foreach (var row in shown)
         {
             var (tip, rate) = (row.Node.ProfitTip, QuestGainText.Rate(row.Gain, row.Minutes));
-            Nodes.Add(row.Node with { Tier = 0, ProfitTip = rate is null ? tip : tip is null ? rate : $"{tip}\n{rate}" });
+            Nodes.Add(row.Node with { Tier = 0, NeedsMet = true, ProfitTip = rate is null ? tip : tip is null ? rate : $"{tip}\n{rate}" });
         }
 
         if (shown.Count == 0)
@@ -1750,9 +1751,8 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// The account's shared entries, gains summed, the characters named on hover. The lock is the chosen character's,
-    /// so it stays neutral on an entry not shared with them; a previous quest is a prerequisite unless every character
-    /// of the entry has done it.
+    /// The account's shared entries, gains summed, the characters named on hover; a previous quest is a prerequisite
+    /// unless every character of the entry has done it.
     /// </summary>
     private List<ProfitRow> TeamRows()
     {
@@ -1762,11 +1762,6 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             .. Team.Select(t =>
             {
                 var node = EntryNode(t.Entry);
-                if (!t.Characters.Any(c => c.Id == Tracker.SelectedCharacter?.Id))
-                {
-                    node = node with { NeedsMet = null, Needs = node.Needs is { } needs ? [.. needs.Select(n => n with { Met = null })] : null };
-                }
-
                 var progress = team.Where(m => t.Characters.Any(c => c.Id == m.Character.Id)).Select(m => m.Progress).ToList();
                 var (xp, kamas) = QuestGainText.Columns(t.Gain);
                 var count = Strings.Format("ProfitCharacters", t.Characters.Count);
@@ -1794,7 +1789,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
                     + string.Join("\n", r.Quests.Select(RunLine))))];
 
     /// <summary>
-    /// The account's series runs, gains summed, the longest run's time and quests; the lock as in <see cref="TeamRows"/>.
+    /// The account's series runs, gains summed, the longest run's time and quests.
     /// Each quest's own gains differ by character, so the hover gives its time only.
     /// </summary>
     private List<ProfitRow> TeamRunRows() =>
@@ -1809,11 +1804,6 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
                         + "\n" + string.Join(", ", t.Characters.Select(c => c.Name));
                     var row = RunRow(t.Entry, t.Gain, tip);
                     var node = row.Node;
-                    if (!t.Characters.Any(c => c.Id == Tracker.SelectedCharacter?.Id))
-                    {
-                        node = node with { NeedsMet = null, Needs = node.Needs is { } needs ? [.. needs.Select(n => n with { Met = null })] : null };
-                    }
-
                     var count = Strings.Format("ProfitCharacters", t.Characters.Count);
                     return row with { Node = node with { Detail = node.Detail is { Length: > 0 } detail ? $"{detail} · {count}" : count } };
                 })];

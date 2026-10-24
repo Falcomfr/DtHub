@@ -1615,9 +1615,12 @@
 
                          It stays displayed for a long time, because a
                          list of prerequisites reads more slowly than a
-                         button's single word. -->
+                         button's single word.
+
+                         16 px high, not the icon button's 24: a row with
+                         the lock grew taller than its neighbours. -->
                     <Button x:Name="Cadenas" Style="{StaticResource IconButton}"
-                            Width="16" VerticalAlignment="Center" Margin="4,0,0,0"
+                            Width="16" Height="16" VerticalAlignment="Center" Margin="4,0,0,0"
                             Click="OnShowNeeds"
                             ToolTipService.InitialShowDelay="200"
                             ToolTipService.ShowDuration="30000"

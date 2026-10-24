@@ -11234,11 +11234,16 @@ désigne pas d'autre quête (objet, alignement, texte libre, la quête elle-mêm
 garde sa puce, sans marque ; une quête dont aucun prérequis ne désigne une autre
 quête, ni commencée ni terminée, garde le cadenas neutre (revue du 23/10/2026 : il
 s'ouvrait en gris sans rien vérifier). Non relié, le cadenas reste le cadenas
-neutre d'avant. Dans la vue d'équipe, une ligne que le personnage choisi ne partage
-pas garde aussi le cadenas neutre : il n'y dirait que l'état de ce personnage. Le
-clic ouvre toujours la liste dont les quêtes se suivent. Une ligne de
-« Recommandées », vue d'équipe comprise, n'a jamais un cadenas fermé : un test le
-vérifie.
+neutre d'avant. Le clic ouvre toujours la liste dont les quêtes se suivent. Une
+ligne de « Recommandées », vue d'équipe comprise, n'a jamais un cadenas fermé : un
+test le vérifie. Elle n'en a plus aucun depuis le 24/10/2026 (captures de
+l'utilisateur : « ça rajoute des espaces entre les lignes pour rien ») : chaque
+ligne y est démarrable pour ses personnages, elle est donc marquée prérequis
+remplis, ce qui masque le cadenas. Avant, dans la vue d'équipe, une ligne que le
+personnage choisi ne partageait pas gardait le cadenas neutre, et décocher un
+personnage en ajoutait. Le cadenas grandissait aussi la ligne : bouton d'icône de
+24 px de haut contre 15 pour les autres signes ; il fait maintenant 16 px, dans
+toutes les listes, et une ligne avec ou sans lui a la même hauteur.
 
 **Barre de « Recommandées ».** Demande du 24/10/2026, sur la première version
 (deux listes l'une sous l'autre et quatre filtres, « En cours », « À commencer »,
