@@ -11226,8 +11226,8 @@ cadenas avec « Tour de l'île » au survol, et l'utilisateur l'a crue non faisa
 elle était en cours. Le cadenas disait seulement « a des prérequis ». Avec le suivi
 relié, il dit maintenant leur état pour le personnage choisi : rempli quand la
 quête est démarrable (la règle ci-dessus, même fonction), en cours ou terminée ; il
-est alors ouvert et gris, et son survol met une coche devant chaque prérequis
-terminé. Sinon il reste fermé, en jaune d'avertissement, et son survol coche ceux
+n'est alors plus affiché du tout (demande du 24/10/2026 : « on s'en fout des
+prérequis déjà remplis, masque le cadenas si c'est déjà rempli »). Sinon il reste fermé, en jaune d'avertissement, et son survol coche ceux
 qui sont faits et met une croix devant ceux qui manquent. Un prérequis qui ne
 désigne pas d'autre quête (objet, alignement, texte libre, la quête elle-même)
 garde sa puce, sans marque ; une quête dont aucun prérequis ne désigne une autre

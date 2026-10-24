@@ -30,7 +30,7 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 - « Faisables » et les quêtes suivantes marchent maintenant pour les personnages autres que l'actif sur Papycha, d'après les quêtes qu'ils ont terminées.
 - La barre du suivi de la fenêtre des guides passe sous le personnage quand la fenêtre est étroite, et chaque quête recommandée affiche sa zone et, dans une série, sa place (3/11).
 - « À faire » et « Accessibles » deviennent un seul bouton, « Faisables » : il ne garde que les quêtes que votre personnage peut faire maintenant, pas terminées ni ignorées (les bloquées restent affichées), et chaque zone affiche alors le nombre de ses quêtes faisables au lieu de faites sur le total.
-- Avec le suivi Papycha relié, le cadenas des prérequis dit s'ils sont remplis pour votre personnage (ouvert et gris, ou fermé en jaune, avec une coche ou une croix devant chaque quête au survol), et « Recommandées » dit en une ligne comment il classe (le détail au survol du « i ») et a deux boutons : « Donjons inclus », actif par défaut, et « Avec prérequis », qui affiche aussi les quêtes à condition que DT Hub ne peut pas vérifier (créneau horaire, alignement, objet…), masquées par défaut.
+- Avec le suivi Papycha relié, le cadenas des prérequis n'apparaît plus que s'il en manque un à votre personnage (en jaune, avec une coche ou une croix devant chaque quête au survol), et « Recommandées » dit en une ligne comment il classe (le détail au survol du « i ») et a deux boutons : « Donjons inclus », actif par défaut, et « Avec prérequis », qui affiche aussi les quêtes à condition que DT Hub ne peut pas vérifier (créneau horaire, alignement, objet…), masquées par défaut.
 
 ## [0.10.5] - 2026-10-22
 

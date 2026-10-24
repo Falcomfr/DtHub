@@ -1673,11 +1673,11 @@
                         </ToolTip>
                       </Button.ToolTip>
 
-                      <!-- With the tracker linked, the lock says whether the
-                           prerequisites are met for the chosen character: open
-                           and muted when they are (or the quest is under way),
-                           closed in the warning colour when not. Unlinked, the
-                           neutral lock only says the quest has some. -->
+                      <!-- With the tracker linked, the lock shows only when the
+                           prerequisites are not met for the chosen character,
+                           in the warning colour (met: no lock at all, see the
+                           row triggers). Unlinked, the neutral lock only says
+                           the quest has some. -->
                       <Path>
                         <Path.Style>
                           <Style TargetType="Path" BasedOn="{StaticResource ListGlyph}">
@@ -1685,11 +1685,6 @@
                             <Setter Property="Data"
                                     Value="M 5.1,7 L 5.1,5.2 A 2.4,2.4 0 0 1 9.9,5.2 L 9.9,7 M 3.7,7 L 11.3,7 L 11.3,12.9 L 3.7,12.9 Z M 7.5,9.3 L 7.5,10.8" />
                             <Style.Triggers>
-                              <DataTrigger Binding="{Binding NeedsMet}" Value="True">
-                                <Setter Property="Stroke" Value="{DynamicResource TextMutedBrush}" />
-                                <Setter Property="Data"
-                                        Value="M 5.1,7 L 5.1,3.7 A 2.4,2.4 0 0 1 9.9,3.7 L 9.9,4.9 M 3.7,7 L 11.3,7 L 11.3,12.9 L 3.7,12.9 Z M 7.5,9.3 L 7.5,10.8" />
-                              </DataTrigger>
                               <DataTrigger Binding="{Binding NeedsMet}" Value="False">
                                 <Setter Property="Stroke" Value="{DynamicResource WarningBrush}" />
                               </DataTrigger>
@@ -2173,6 +2168,12 @@
 
                   <DataTrigger Binding="{Binding HasNeeds}" Value="True">
                     <Setter TargetName="Cadenas" Property="Visibility" Value="Visible" />
+                  </DataTrigger>
+
+                  <!-- Met prerequisites say nothing worth a glyph (the user's call):
+                       after HasNeeds, so it wins. -->
+                  <DataTrigger Binding="{Binding NeedsMet}" Value="True">
+                    <Setter TargetName="Cadenas" Property="Visibility" Value="Collapsed" />
                   </DataTrigger>
 
                   <!-- The rhythms, on the list's fifteen unit square. A
