@@ -288,9 +288,10 @@ public static class QuestProfit
     /// in play order, leaving out each one that is repeatable, blocked, above the level, of unknown gain, very long
     /// (keyring, souls), with a dungeon when <paramref name="dungeons"/> is off, ruled out (<see cref="IsRuledOut"/>), or
     /// with a prerequisite (<see cref="HasPrerequisite"/>, the run's own quests counting as done). Rule C: a quest left
-    /// out is skipped, not an end, so what follows it falls with it and the other chains go on. Rule D: a startable
-    /// quest left out because one of its alternatives is in the run opens a run of its own, one per way until the
-    /// player takes one. Runs of two quests or more, titled by the series, gains and minutes summed.
+    /// out is skipped, not an end, so what follows it falls with it and the other chains go on. Rule D: a quest
+    /// left out because one of its alternatives is in the run opens a run of its own, kept when it holds that quest:
+    /// one per way until the player takes one, the fork reached before or inside the run. Runs of two quests or more,
+    /// titled by the series, gains and minutes summed.
     /// </summary>
     public static IReadOnlyList<ProfitEntry> Runs(
         IEnumerable<QuestSummary> catalog, IReadOnlyDictionary<int, TouchQuestFacts> facts, TrackerProgress progress,
@@ -316,9 +317,10 @@ public static class QuestProfit
                 foreach (var q in order)
                 {
                     if (off.Contains(q.Id) || !facts.TryGetValue(q.Id, out var f)) continue;
+                    // Startable now or not ("Développement durable." still to do): the opener's own run decides.
                     if (q.Alternatives.Any(a => run.Exists(r => r.Id == a)))
                     {
-                        if (!openers.Contains(q) && IsDoable(q, progress, f, level, chain)) openers.Add(q);
+                        if (!openers.Contains(q)) openers.Add(q);
                         continue;
                     }
 

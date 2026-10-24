@@ -1107,6 +1107,19 @@ public class QuestProfitTests
     }
 
     [Fact]
+    public void A_fork_reached_inside_a_run_still_gives_one_run_per_way()
+    {
+        // The root is not done ("Développement durable." at level 190): no way's head can start yet, both get a row.
+        var catalog = Ways();
+        var facts = catalog.ToDictionary(q => q.Id, q => Xp(1f));
+
+        var runs = Runs(catalog, Progress([]), facts);
+
+        Assert.Equal([[1, 11, 12, 13, 14], [1, 21, 22, 23, 24]], runs.Select(r => r.Quests.Select(q => q.Id).ToArray()));
+        Assert.Equal([11, 21], runs.Select(r => r.Path!.Id));
+    }
+
+    [Fact]
     public void Two_ways_give_one_quests_entry_each_until_one_is_taken()
     {
         var catalog = Ways();
