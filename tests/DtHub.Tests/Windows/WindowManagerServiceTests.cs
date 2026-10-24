@@ -228,6 +228,27 @@ public class WindowManagerServiceTests
         Assert.Empty(desktop.Borderless);
     }
 
+    [Theory]
+    [InlineData(1904, 1008, true)]
+    [InlineData(1920, 1080, false)]
+    public async Task Un_jeu_ne_au_format_de_sa_fenetre_est_signale_en_plein_ecran(int width, int height, bool banded)
+    {
+        // D209 sizes a windowed game from its client area; once in full
+        // screen that format leaves bands until the game reopens (2026-10-24).
+        var (manager, sessions, desktop) = await OpenSessionsAsync(
+            1,
+            ScrcpyOptions.Default with { VirtualDisplayWidth = width, VirtualDisplayHeight = height });
+
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        Assert.Empty(service.FullscreenMisfits(sessions));
+
+        await service.ApplySizeAsync(sessions, service.Presets.FullscreenIndex, CancellationToken.None);
+
+        Assert.Equal(banded, service.FullscreenMisfits(sessions).Contains(sessions[0]));
+    }
+
     [Fact]
     public async Task Sortir_du_plein_ecran_vers_la_taille_d_avant_rend_la_place_exacte()
     {

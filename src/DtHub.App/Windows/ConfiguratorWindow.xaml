@@ -125,13 +125,14 @@
         </Grid>
       </Border>
 
-      <!-- A startup setting changed while windows were open (D216). Shown
-           on every tab, like the update banner: reopening restarts the
-           games and logs the accounts out, so it waits for this button. -->
+      <!-- A startup setting changed while windows were open (D216), or a game
+           shows bands in full screen (D223). Shown on every tab, like the
+           update banner: reopening restarts the games and logs the accounts
+           out, so it waits for this button. -->
       <Border DockPanel.Dock="Top" Padding="12,7"
               Background="{StaticResource BrushedPanelBrush}"
               BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,0,0,1"
-              Visibility="{Binding ReopenPending, Converter={StaticResource BoolToVisibility}}">
+              Visibility="{Binding ShowsReopenBanner, Converter={StaticResource BoolToVisibility}}">
         <Grid>
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
@@ -139,7 +140,14 @@
           </Grid.ColumnDefinitions>
 
           <TextBlock Grid.Column="0" VerticalAlignment="Center" TextWrapping="Wrap"
-                     FontSize="{StaticResource FontBody}" Text="{loc:T ReopenPendingNotice}" />
+                     FontSize="{StaticResource FontBody}" Text="{loc:T ReopenPendingNotice}"
+                     Visibility="{Binding ReopenPending, Converter={StaticResource BoolToVisibility}}" />
+
+          <!-- Same reopen, other cause: a game opened windowed keeps its
+               window's format in full screen (D223). -->
+          <TextBlock Grid.Column="0" VerticalAlignment="Center" TextWrapping="Wrap"
+                     FontSize="{StaticResource FontBody}" Text="{loc:T FullscreenBandsNotice}"
+                     Visibility="{Binding ShowsFullscreenBands, Converter={StaticResource BoolToVisibility}}" />
 
           <Button Grid.Column="1" Content="{loc:T ReopenNow}" Style="{StaticResource QuietButton}"
                   Padding="8,3" Margin="8,0,0,0" VerticalAlignment="Center"

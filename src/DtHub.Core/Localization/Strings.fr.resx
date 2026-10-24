@@ -2836,6 +2836,9 @@ Pour l'éviter : {1}  ›  « Verrouillage auto. Dossier sécurisé » › l'opt
   <data name="ReopenPendingNotice" xml:space="preserve">
     <value>Ce réglage s'appliquera à la prochaine ouverture des fenêtres.</value>
   </data>
+  <data name="FullscreenBandsNotice" xml:space="preserve">
+    <value>Le plein écran garde des bandes noires jusqu'à la réouverture des fenêtres.</value>
+  </data>
   <data name="ReopenNow" xml:space="preserve">
     <value>Rouvrir maintenant</value>
   </data>

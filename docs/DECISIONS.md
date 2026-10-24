@@ -11893,3 +11893,58 @@ d'écritures acceptées par le site, que le lot n'a pas pu vérifier, et dit que
 le suivi est relu. « Annuler » agit dans la pause entre deux appels : l'écriture
 en cours va au bout, sinon une écriture appliquée par le site serait comptée
 comme non faite. Délier le suivi ou fermer DT Hub annule aussi le lot.
+
+## D223 - Un jeu ouvert en fenêtré propose de se rouvrir pour un plein écran sans bandes
+
+**2026-10-24 - Acceptée, complète D209**
+
+Une joueuse, sur PC portable avec un second écran : en passant en plein écran,
+le jeu gardait des bandes noires en haut, en bas et sur les côtés ; quitter puis
+relancer DT Hub l'a réparé. C'est la limite écrite dans D209 : ouvert en
+fenêtré, l'afficheur prend le format de la zone client (1904x1008 sur un écran
+1920x1080 par exemple), et sa hauteur reste fixe pendant la partie (D16, D17).
+Relancé en plein écran, il prend le format de l'écran.
+
+Deux remèdes écartés. Revenir au format de l'écran pour tous ferait revenir la
+bande de bureau que D209 a corrigée en fenêtré. Rouvrir le compte de lui-même
+au passage en plein écran relancerait le jeu sur le téléphone (D202, D216), donc
+déconnecterait le compte, même en combat.
+
+Décision : le plein écran se fait aussitôt, et tant qu'un jeu en plein écran a
+un format qui s'écarte de plus de 1 % de celui de son écran, le bandeau de D216
+dit « Le plein écran garde des bandes noires jusqu'à la réouverture des
+fenêtres. » avec le même bouton « Rouvrir maintenant ». Le joueur choisit le
+moment. Les jeux en onglets comptent, le cadre en plein écran montre les mêmes
+bandes. Un réglage en attente garde sa phrase, la même réouverture règle les
+deux. Le bandeau disparaît de lui-même en sortant du plein écran ou une fois
+les jeux rouverts, puisqu'il est recalculé à chaque changement de taille, de
+session ou de réglages.
+
+La mesure est `WindowManagerService.FullscreenMisfits`, éprouvée par les tests ;
+l'affichage (`ConfiguratorViewModel.ShowsFullscreenBands`) est vérifié à la
+lecture. Le seuil de 1 % laisse passer l'arrondi pair de la définition, alors que
+le cas signalé s'écarte de 6 %.
+
+Vérifié en réel le 24/10/2026 sur le 13T Pro, écran 3840x2160 : jeu né en
+1976x1040, bandes et bandeau en plein écran, bandeau parti à la sortie, puis
+après « Rouvrir maintenant » afficheur en 1920x1080 et écran rempli, en fenêtre
+libre comme en onglets. L'essai a révélé un défaut plus ancien : un cadre à
+onglets créé pendant le plein écran (démarrage ou réouverture) s'ouvrait en
+fenêtré alors que DT Hub restait en plein écran. La seconde passe de
+`WindowPlacements.Restore`, différée à la priorité Loaded, défaisait le plein
+écran ; le cadre y entre maintenant à ContextIdle, après elle.
+
+Pistes écartées le même jour, sur demande d'une correction directe. Mesuré avec
+scrcpy 5.0.1 officiel en `--flex-display` sur le 13T Pro, jeu lancé à froid en
+1976x1040 : passer l'afficheur à 1848x1040 en cours de partie refait bien
+l'écran de connexion, mais **l'interface en jeu reste calée sur la taille du
+lancement de l'appli, largeur comprise** (panneau de droite coupé à 1848 alors
+qu'il est créé à la connexion, déjà en 1848 ; entier de nouveau à 1976). D16
+disait la largeur libre : c'est vrai de l'écran de connexion, pas du jeu. Aucun
+redimensionnement ne peut donc remplacer la relance ; scrcpy ne sait d'ailleurs
+pas garder la hauteur fixe en mode souple (`Size.constrain` borne chaque côté).
+Étirer l'image (`--render-fit=stretched`, environ 7 %) a été refusé, rogner
+couperait la carte et le panneau. La relance automatique au Ctrl+5 a été
+refusée (15 s, retour à l'écran de connexion, même en combat) : le joueur garde
+le bouton. Le cas ne se produit qu'une fois, DT Hub retenant le plein écran
+pour les ouvertures suivantes.
