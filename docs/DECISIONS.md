@@ -10992,7 +10992,10 @@ Pas fait : revenir à la valeur d'origine ne fait pas disparaître le bandeau.
 Le lanceur ne retient que la distance de chaque fenêtre (D149), pas les autres
 réglages ; le savoir aurait demandé de les relever tous à l'ouverture. Le
 réordonnancement des comptes, qui rouvre aussi les fenêtres pour l'ordre des
-vignettes de la barre des tâches, n'est pas un réglage et reste inchangé.
+vignettes de la barre des tâches, n'est pas un réglage et ne montre pas le
+bandeau ; il passe par la même réouverture, donc depuis le 2026-10-24 ses
+fenêtres d'outils reviennent elles aussi, après les jeux, et leurs vignettes
+avec elles.
 
 Coût : un joueur qui change la qualité ne voit plus l'effet sans cliquer ;
 c'est le bandeau qui empêche le réglage de paraître mort.
