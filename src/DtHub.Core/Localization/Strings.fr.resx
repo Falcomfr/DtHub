@@ -3056,6 +3056,9 @@ Pas de donjon en équipe.
   <data name="RewardWholeQuest" xml:space="preserve">
     <value>Récompense totale, {0} étapes</value>
   </data>
+  <data name="QuestUncertain" xml:space="preserve">
+    <value>Quête en cours : DT Hub ne sait pas quelles étapes sont déjà faites, gains et temps sont des maximums.</value>
+  </data>
   <data name="RewardItem" xml:space="preserve">
     <value>objet</value>
   </data>

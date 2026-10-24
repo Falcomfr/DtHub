@@ -483,7 +483,8 @@ public class QuestProfitTests
         var catalog = new[] { Quest(1), Quest(2), Quest(3), Quest(4), Quest(5, "S", 1), Quest(6, "S", 2) with { Prerequisites = ["Q5"] } };
         var facts = new Dictionary<int, TouchQuestFacts>
         {
-            [1] = new([Step(10, 2f, 1f)], [Said("Sortie du Donjon Fungus"), Obj(1)]),
+            // In progress with one objective: DT Hub knows what is left.
+            [1] = new([Step(10, 2f, 1f)], [Said("Sortie du Donjon Fungus")]),
             [2] = new([Step(10, 1f)], [Said("Serre du Royalmouth")]),
             [3] = Xp(1f),
             // Done: not listable, so it adds nothing.
@@ -642,7 +643,57 @@ public class QuestProfitTests
     private static IReadOnlyList<ProfitEntry> Recommendable(QuestSummary[] catalog, TrackerProgress progress, Dictionary<int, TouchQuestFacts> facts)
     {
         var scores = QuestProfit.Score(catalog, facts, progress, 10, 0);
-        return QuestProfit.Recommendable(QuestProfit.Entries(catalog, scores, progress, facts, 10, 0), scores, facts, 10, 0);
+        return QuestProfit.Recommendable(QuestProfit.Entries(catalog, scores, progress, facts, 10, 0), scores, progress, facts, 10, 0);
+    }
+
+    // Two steps, or one step with two objectives: in progress, DT Hub cannot tell what is left.
+    private static TouchQuestFacts TwoSteps(float xp) => new([Step(10, xp), Step(10, xp)], [Obj(1)]);
+
+    private static TouchQuestFacts TwoObjectives(float xp) => new([Step(10, xp)], [Obj(1), Obj(1)]);
+
+    [Fact]
+    public void A_quest_in_progress_with_more_than_one_step_or_objective_is_uncertain()
+    {
+        var going = Progress([], new() { [1] = QuestStatus.InProgress });
+
+        Assert.True(QuestProfit.IsUncertain(1, going, TwoSteps(1f)));
+        Assert.True(QuestProfit.IsUncertain(1, going, TwoObjectives(1f)));
+        Assert.False(QuestProfit.IsUncertain(1, going, Xp(1f)));
+        Assert.False(QuestProfit.IsUncertain(1, Progress([1]), TwoSteps(1f)));
+        Assert.False(QuestProfit.IsUncertain(1, null, TwoSteps(1f)));
+    }
+
+    [Fact]
+    public void Recommended_leaves_out_an_uncertain_quest_and_keeps_a_one_objective_one_in_progress()
+    {
+        var catalog = new[] { Quest(1), Quest(2), Quest(3) };
+        var facts = new Dictionary<int, TouchQuestFacts> { [1] = TwoSteps(5f), [2] = Xp(1f), [3] = TwoObjectives(3f) };
+        var going = new Dictionary<int, QuestStatus> { [1] = QuestStatus.InProgress, [2] = QuestStatus.InProgress };
+
+        Assert.Equal([2, 3], Recommendable(catalog, Progress([3], going), facts).Select(e => e.Quests[0].Id).Order());
+    }
+
+    [Fact]
+    public void A_series_run_starting_on_an_uncertain_quest_is_left_out()
+    {
+        var catalog = Series(3);
+        var facts = new Dictionary<int, TouchQuestFacts> { [1] = TwoSteps(1f), [2] = Xp(2f), [3] = Xp(3f) };
+
+        Assert.Empty(Runs(catalog, Progress([], new() { [1] = QuestStatus.InProgress }), facts));
+        Assert.Equal([1, 2, 3], RunIds(catalog, Progress([1]), facts));
+    }
+
+    [Fact]
+    public void An_uncertain_quest_never_counts_toward_a_dungeon()
+    {
+        var catalog = new[] { Quest(1), Quest(2) };
+        var only = new TouchQuestFacts([Step(10, 2f)], [Said("Sortie du Donjon Fungus"), Boss()]);
+        var facts = new Dictionary<int, TouchQuestFacts> { [1] = only, [2] = only };
+        var names = new Dictionary<int, string> { [70] = "Donjon Fungus" };
+
+        var values = DungeonValues(catalog, Progress([2], new() { [1] = QuestStatus.InProgress }), facts, names);
+
+        Assert.Equal(2, Assert.Single(values[7].Advances).Quests.Single().Id);
     }
 
     [Fact]

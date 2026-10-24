@@ -33,6 +33,7 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 - La barre du suivi de la fenêtre des guides passe sous le personnage quand la fenêtre est étroite, et chaque quête recommandée affiche sa zone et, dans une série, sa place (3/11).
 - « À faire » et « Accessibles » deviennent un seul bouton, « Faisables » : il ne garde que les quêtes que votre personnage peut faire maintenant, pas terminées ni ignorées (les bloquées restent affichées), et chaque zone affiche alors le nombre de ses quêtes faisables au lieu de faites sur le total, sans le nombre de quêtes en cours, déjà compté dedans.
 - Avec le suivi Papycha relié, le cadenas des prérequis n'apparaît plus que s'il en manque un à votre personnage (en jaune, avec une coche ou une croix devant chaque quête au survol), jamais dans « Recommandées », et « Recommandées » dit en une ligne comment il classe (le détail au survol du « i ») et a un bouton « Donjons inclus », actif par défaut ; il n'affiche jamais une quête à condition que DT Hub ne peut pas vérifier (créneau horaire, alignement, objet…), ni ne la compte dans un donjon ou la suite d'une série.
+- Une quête en cours de plusieurs étapes ou objectifs affiche « ≤ » devant ses gains et son temps, des maximums, puisque DT Hub ne sait pas ce qui est déjà fait ; « Recommandées » ne la propose plus et elle ne compte plus pour un donjon.
 
 ### Corrigé
 

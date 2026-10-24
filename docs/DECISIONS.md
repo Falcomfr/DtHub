@@ -11231,7 +11231,8 @@ d'XP ; le cadenas, bouton d'icône de 24 px de haut, grandissait la ligne. Les
 gains gardent leurs colonnes alignées à droite, en chiffres tabulaires, 4 px entre
 elles. Largeurs, en Segoe UI à 11 px (chiffre environ 6 px, M 9,4, k 5,4, espace
 2,9, virgule 2,5, glyphe 10 + 2) : XP 54 pour « 999,9 M » (51), kamas 46 pour « 12,5 M » d'une suite de série
-(45). Une ligne sans gain garde les colonnes vides (cachées, pas repliées), donc
+(45), passé à 48 le même jour pour « ≤ 999 k » d'une quête en cours (48, plus
+bas) ; « ≤ 99,9 M » tient dans les 54 de l'XP (54). Une ligne sans gain garde les colonnes vides (cachées, pas repliées), donc
 ses temps et signes finissent au même endroit que les autres. À 440 px de
 fenêtre, la partie fixe de droite fait au plus environ 250 px (temps 40, cinq
 signes 90, gains 107), le titre garde le reste.
@@ -11374,6 +11375,23 @@ classe, une ligne pour les deux côtés : « ✦ 1,2 M XP/min · ◎ 2,8 k kamas
 gain de la ligne divisé par son temps estimé, écrit comme les colonnes mais avec une
 décimale en milliers (2 800 donne « 2,8 k », pour lire 2,8 et 2,4 à part). Sans temps connu, la ligne n'est pas ajoutée. Rien de plus
 sur la ligne elle-même (`QuestGainText.Rate`, testée).
+
+**Quêtes en cours : des maximums.** Demande du 24/10/2026 : « possiblement j'en
+ai déjà fait dedans mais tu le sais pas... affiche quelque chose de juste ».
+Papycha ne donne qu'un statut par quête, jamais l'étape : pour une quête en
+cours, DT Hub compte toutes ses étapes et tous ses objectifs, déjà faits ou non.
+Une quête est incertaine pour un personnage quand elle est en cours chez lui et a
+plus d'une étape ou plus d'un objectif en tout (`QuestProfit.IsUncertain`,
+testée) ; en cours avec un seul objectif, ce qui reste est connu. Dans toutes les
+listes, ses colonnes d'XP et de kamas et son temps commencent par « ≤ »
+(« ≤ 13,3 M », « ≤ 34 min », le « ≈ » du temps remplacé), l'infobulle du gain
+commence par « Quête en cours : DT Hub ne sait pas quelles étapes sont déjà
+faites, gains et temps sont des maximums. », et elle n'a pas de marque de
+priorité. « Recommandées » l'écarte : en mode « Quêtes » ; en vue d'équipe dès
+qu'elle est incertaine pour l'un des personnages ; en mode « Succès », une série
+dont la première quête de la suite l'est n'a pas de ligne ; et elle ne compte
+jamais pour un donjon. La bulle d'info n'en dit rien : « faisables maintenant »
+reste vrai, ces quêtes sont seulement retirées.
 
 **Filtre « Faisables ».** Demande du 24/10/2026 : « possible tu mets un seul
 bouton qui regroupe tout qui met juste les quêtes faisables ». Les deux filtres de

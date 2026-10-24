@@ -3056,6 +3056,9 @@ Equipo: misiones realizables por al menos 2 personajes marcados.</value>
   <data name="RewardWholeQuest" xml:space="preserve">
     <value>Recompensa total, {0} etapas</value>
   </data>
+  <data name="QuestUncertain" xml:space="preserve">
+    <value>Misión en curso: DT Hub no sabe qué etapas ya están hechas, las ganancias y el tiempo son máximos.</value>
+  </data>
   <data name="RewardItem" xml:space="preserve">
     <value>objeto</value>
   </data>

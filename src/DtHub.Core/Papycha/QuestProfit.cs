@@ -319,6 +319,8 @@ public static class QuestProfit
                 if (run.Count == 0)
                 {
                     if (!known || !IsDoable(q, progress, f!, level, chain)) continue;
+                    // Its gain and time would be guesses: the series has no row, as its quest has none in "Quêtes".
+                    if (IsUncertain(q.Id, progress, f!)) break;
                 }
                 else if (QuestTracking.StatusOf(progress, q.Id) is QuestStatus.Completed or QuestStatus.Ignored) continue;
                 else if (!known || !Continuable(q, progress, f!, level)) break;
@@ -359,11 +361,23 @@ public static class QuestProfit
             && Keyring.Any(word => text.Contains(word, StringComparison.OrdinalIgnoreCase)));
 
     /// <summary>
+    /// True when the quest is in progress and has more than one step or objective: Papycha gives no step, so its gain
+    /// and time are only maximums ("possiblement j'en ai déjà fait dedans mais tu le sais pas", 2026-10-24).
+    /// </summary>
+    public static bool IsUncertain(int questId, TrackerProgress? progress, TouchQuestFacts facts)
+    {
+        ArgumentNullException.ThrowIfNull(facts);
+
+        return QuestTracking.StatusOf(progress, questId) == QuestStatus.InProgress
+            && (facts.Steps.Length > 1 || facts.Objectives.Length > 1);
+    }
+
+    /// <summary>
     /// The entries fit for the short lists, single quests only: a run gives its first quest, the series' next doable
-    /// one, alone; a very long quest is dropped.
+    /// one, alone; a very long quest or an uncertain one (<see cref="IsUncertain"/>) is dropped.
     /// </summary>
     public static IReadOnlyList<ProfitEntry> Recommendable(
-        IReadOnlyList<ProfitEntry> entries, IReadOnlyDictionary<int, QuestScore> scores,
+        IReadOnlyList<ProfitEntry> entries, IReadOnlyDictionary<int, QuestScore> scores, TrackerProgress? progress,
         IReadOnlyDictionary<int, TouchQuestFacts> facts, int level, int bonusPercent)
     {
         ArgumentNullException.ThrowIfNull(entries);
@@ -375,7 +389,7 @@ public static class QuestProfit
         {
             // A run of four quests could pass for an hour's work and take an evening.
             var first = entry.Quests[0];
-            if (IsVeryLong(facts[first.Id])) continue;
+            if (IsVeryLong(facts[first.Id]) || IsUncertain(first.Id, progress, facts[first.Id])) continue;
             kept.Add(entry.Quests.Count == 1 ? entry : Build(first.Title, [first], scores, facts, level, bonusPercent, best, entry.Started).Item1);
         }
 
@@ -499,7 +513,8 @@ public static class QuestProfit
         var best = Maxima(scores.Values.Select(s => (s.Gain, s.Effort.Minutes)));
         var names = NormalisedNames(dungeonNames);
         // Doable now only: a run's later quests cannot be started yet, so a dungeon they name has nothing to do there.
-        var named = entries.SelectMany(e => e.Quests).Where(q => scores.ContainsKey(q.Id)).DistinctBy(q => q.Id)
+        var named = entries.SelectMany(e => e.Quests).Where(q => scores.ContainsKey(q.Id) && !IsUncertain(q.Id, progress, facts[q.Id]))
+            .DistinctBy(q => q.Id)
             .Select(q => (Quest: q, Named: Named(facts[q.Id], names).ToList()))
             .Where(q => q.Named.Count > 0).ToList();
         var result = new Dictionary<int, DungeonValue>();

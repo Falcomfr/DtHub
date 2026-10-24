@@ -3056,6 +3056,9 @@ Team: quests at least 2 ticked characters can do.</value>
   <data name="RewardWholeQuest" xml:space="preserve">
     <value>Whole quest reward, {0} steps</value>
   </data>
+  <data name="QuestUncertain" xml:space="preserve">
+    <value>Quest in progress: DT Hub does not know which steps are already done, gains and time are maximums.</value>
+  </data>
   <data name="RewardItem" xml:space="preserve">
     <value>item</value>
   </data>

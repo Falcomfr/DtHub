@@ -39,6 +39,7 @@ belongs in the commits and in `docs/DECISIONS.md`.
 - The tracker bar of the guides window wraps under the character on a narrow window, and each recommended quest shows its zone and, in a series, its place in it (3/11).
 - "To do" and "Available" become a single toggle, "Doable": it keeps only the quests your character can do now, not finished nor ignored (blocked ones stay shown), and each zone then shows how many of its quests are doable instead of done over total, without the in-progress count, already part of it.
 - With the Papycha tracker linked, the prerequisites lock only shows when your character misses one (in yellow, with a check or a cross before each quest in its hover), never in Recommended, and Recommended says in one line how it ranks (the detail on hovering the "i") and has a "Dungeons included" toggle, on by default; it never shows a quest with a condition DT Hub cannot check (time slot, alignment, item...), nor counts one in a dungeon or a series run.
+- A quest in progress with several steps or objectives shows "≤" before its gains and time, maximums, since DT Hub cannot tell what is already done; Recommended no longer offers it and it no longer counts for a dungeon.
 
 ### Fixed
 

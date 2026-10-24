@@ -103,7 +103,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             ? []
             : QuestProfit.Recommendable(
                 QuestProfit.Entries(_catalog.Catalog.Quests, Scores, Tracker.Progress, _facts, Tracker.RewardLevel, Tracker.RewardXpBonus),
-                Scores, _facts, Tracker.RewardLevel, Tracker.RewardXpBonus);
+                Scores, Tracker.Progress, _facts, Tracker.RewardLevel, Tracker.RewardXpBonus);
 
     /// <summary>The game's dungeon names by game dungeon id, read with the facts.</summary>
     private IReadOnlyDictionary<int, string> _dungeonNames = new Dictionary<int, string>();
@@ -285,9 +285,12 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             return node;
         }
 
-        // The time does not depend on the level: it shows even when the gain cannot.
+        // The time does not depend on the level: it shows even when the gain cannot. In progress over several steps or
+        // objectives, what is already done is unknown: time and gains are maximums, and no mark.
         var effort = QuestProfit.EffortOf(facts, quest);
-        node = node with { Duration = QuestTime.Text(effort.Minutes) };
+        var uncertain = QuestProfit.IsUncertain(quest.Id, Tracker.Progress, facts);
+        string AtMost(string text) => !uncertain || text.Length == 0 ? text : text[0] == '≈' ? "≤" + text[1..] : "≤ " + text;
+        node = node with { Duration = AtMost(QuestTime.Text(effort.Minutes)) };
 
         // Unknown data hides the gain and the mark, as it hides the reward line.
         if (level <= 0 || QuestProfit.RewardOf(facts, level, Tracker.RewardXpBonus) is not { } reward)
@@ -298,16 +301,17 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         var gain = new QuestGain(reward.Experience, reward.Kamas);
 
         var score = Scores.GetValueOrDefault(quest.Id);
-        var tier = score?.Tier ?? 0;
+        var tier = uncertain ? 0 : score?.Tier ?? 0;
 
         var (xp, kamas) = QuestGainText.Columns(gain);
 
         return node with
         {
-            GainXp = xp,
-            GainKamas = kamas,
+            GainXp = AtMost(xp),
+            GainKamas = kamas is null ? null : AtMost(kamas),
             Tier = tier,
-            ProfitTip = QuestGainText.Tip(gain, tier, score?.ByKamas ?? false, effort, facts.Steps.Length),
+            ProfitTip = (uncertain ? Strings.Get("QuestUncertain") + "\n" : string.Empty)
+                + QuestGainText.Tip(gain, tier, score?.ByKamas ?? false, effort, facts.Steps.Length),
             OtherRewards = QuestRewardText.Others(reward, _itemNames),
         };
     }

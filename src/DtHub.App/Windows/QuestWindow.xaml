@@ -1727,8 +1727,9 @@
 
                     <!-- What the quest gives the chosen character: XP then
                          kamas, last on the right in two fixed columns, wide
-                         enough for a glyph and "999,9 M" in XP, "12,5 M" for
-                         a series' kamas, so the numbers line up on their
+                         enough for a glyph and "999,9 M" or "≤ 99,9 M" (a
+                         quest in progress) in XP, "12,5 M" for a series'
+                         kamas or "≤ 999 k", so the numbers line up on their
                          right edge; tabular figures, so "314" and "780"
                          are as wide. A glyph says
                          which is which, the words come on hover: a blue
@@ -1767,7 +1768,7 @@
                                    FontSize="{StaticResource FontSmall}" />
                       </StackPanel>
                     </Border>
-                    <Border x:Name="GainKamas" Width="46" Margin="4,0,0,0"
+                    <Border x:Name="GainKamas" Width="48" Margin="4,0,0,0"
                             Background="Transparent" VerticalAlignment="Center"
                             ToolTipService.InitialShowDelay="200"
                             ToolTipService.ShowDuration="30000"

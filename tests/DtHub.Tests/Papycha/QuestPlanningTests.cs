@@ -21,6 +21,21 @@ public class QuestPlanningTests
         new("Q" + id, [Quest(id)], new QuestGain(xp, kamas), new QuestEffort(effort, []), 0, false, false, 0);
 
     [Fact]
+    public void Team_leaves_out_a_quest_uncertain_for_any_of_its_characters()
+    {
+        var catalog = new[] { Quest(1), Quest(2) };
+        // Two steps: in progress, DT Hub cannot tell what is left.
+        var facts = new Dictionary<int, TouchQuestFacts> { [1] = new([Step(10, 1f), Step(10, 1f)], []), [2] = Xp(1f) };
+        var going = new TrackerProgress(
+            new Dictionary<int, QuestStatus> { [1] = QuestStatus.InProgress }, new HashSet<int>(), new HashSet<int> { 2 }, []);
+
+        var team = QuestPlanning.Team(
+            catalog, facts, [Character("A", 10, Progress([1, 2])), Character("B", 10, Progress([1, 2])), Character("C", 10, going)], 0);
+
+        Assert.Equal([2], team.Select(t => t.Entry.Quests[0].Id));
+    }
+
+    [Fact]
     public void Team_with_one_character_is_empty()
     {
         var catalog = new[] { Quest(1) };
