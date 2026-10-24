@@ -1528,15 +1528,19 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
                         header = null;
                     }
 
-                    // The count follows the filters; so do the columns, the
-                    // quests kept instead of how far the character got.
+                    // The count follows the filters. Linked, it is said once (D219): unfiltered by "done/total"
+                    // on the right, the label's own count dropped (it counted repeatables, the right does not); under
+                    // the filter by the label, the right column hidden. A zone of repeatables only keeps its label's.
+                    var tally = QuestTracking.ZoneProgress(
+                        Tracker.Progress, [.. quests.DistinctBy(q => q.Id)], FilterDoable, Startable);
                     Nodes.Add(branch with
                     {
                         MarksAll = IsSelecting,
-                        Label = filtering ? $"{_tree.NameOf(branch.Id)} ({QuestTree.Text(shown)})" : branch.Label,
+                        Label = filtering ? $"{_tree.NameOf(branch.Id)} ({QuestTree.Text(shown)})"
+                            : tally is { Total: > 0 } ? _tree.NameOf(branch.Id)
+                            : branch.Label,
                         Detail = filtering ? QuestLevelRange.Of(quests.Where(Passes)) : branch.Detail,
-                        Tally = QuestTracking.ZoneProgress(
-                            Tracker.Progress, [.. quests.DistinctBy(q => q.Id)], FilterDoable, Startable),
+                        Tally = tally,
                     });
                 }
             }

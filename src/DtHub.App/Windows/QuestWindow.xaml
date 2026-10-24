@@ -1494,50 +1494,49 @@
                          filters, the quests they keep. Each part
                          is hidden, not collapsed, when it has nothing to
                          say, so the other stays in its column. Under
-                         "Faisables" the hourglass column goes: the doable
-                         count already holds the quests in progress. -->
+                         "Faisables" the count column goes, without leaving a
+                         gap: the label already says how many are doable. -->
                     <Grid VerticalAlignment="Center" Margin="12,0,0,0"
                           Visibility="{Binding Tally,
                                                Converter={StaticResource EmptyToVisibility},
                                                ConverterParameter=inverse}">
                       <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="34" />
                         <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="46" />
                       </Grid.ColumnDefinitions>
 
-                      <Border x:Name="ZoneEnCoursCase" Grid.Column="0" Width="34">
-                        <StackPanel x:Name="ZoneEnCours" Orientation="Horizontal"
-                                    HorizontalAlignment="Right" VerticalAlignment="Center"
-                                    Background="Transparent"
-                                    ToolTip="{Binding Tally.StartedTip}"
-                                    ToolTipService.InitialShowDelay="200">
-                          <Path Width="12" Height="12" Margin="0,0,3,0" VerticalAlignment="Center"
-                                Stretch="None" Stroke="{DynamicResource AccentBrush}"
-                                StrokeThickness="1.5" StrokeStartLineCap="Round"
-                                StrokeEndLineCap="Round" StrokeLineJoin="Round"
-                                Data="M 2.5,1.5 H 9.5 M 2.5,10.5 H 9.5
-                                      M 3.5,1.5 L 6,6 L 3.5,10.5 M 8.5,1.5 L 6,6 L 8.5,10.5" />
-                          <TextBlock Text="{Binding Tally.Started}" VerticalAlignment="Center"
-                                     Foreground="{DynamicResource AccentBrush}"
-                                     FontSize="{StaticResource FontSmall}" />
-                        </StackPanel>
-                      </Border>
-
-                      <TextBlock x:Name="ZoneFait" Grid.Column="1" Text="{Binding Tally.Count}"
-                                 ToolTip="{Binding Tally.PassingTip}" ToolTipService.InitialShowDelay="200"
-                                 HorizontalAlignment="Right" VerticalAlignment="Center"
-                                 Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}" />
-
-                      <Border x:Name="ZoneFinie" Grid.Column="1" Width="12" Height="12"
-                              HorizontalAlignment="Right" VerticalAlignment="Center"
-                              Background="Transparent" Visibility="Collapsed"
-                              ToolTip="{Binding Tally.Count}"
-                              ToolTipService.InitialShowDelay="200">
-                        <Path Stretch="None" Stroke="{DynamicResource AccentBrush}"
+                      <StackPanel x:Name="ZoneEnCours" Grid.Column="0" Orientation="Horizontal"
+                                  HorizontalAlignment="Right" VerticalAlignment="Center"
+                                  Background="Transparent"
+                                  ToolTip="{Binding Tally.StartedTip}"
+                                  ToolTipService.InitialShowDelay="200">
+                        <Path Width="12" Height="12" Margin="0,0,3,0" VerticalAlignment="Center"
+                              Stretch="None" Stroke="{DynamicResource AccentBrush}"
                               StrokeThickness="1.5" StrokeStartLineCap="Round"
                               StrokeEndLineCap="Round" StrokeLineJoin="Round"
-                              Data="M 2,6.5 L 5,9.5 L 10.5,3" />
-                      </Border>
+                              Data="M 2.5,1.5 H 9.5 M 2.5,10.5 H 9.5
+                                    M 3.5,1.5 L 6,6 L 3.5,10.5 M 8.5,1.5 L 6,6 L 8.5,10.5" />
+                        <TextBlock Text="{Binding Tally.Started}" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource AccentBrush}"
+                                   FontSize="{StaticResource FontSmall}" />
+                      </StackPanel>
+
+                      <Grid x:Name="ZoneFaitCase" Grid.Column="1" Width="46">
+                        <TextBlock x:Name="ZoneFait" Text="{Binding Tally.Count}"
+                                   HorizontalAlignment="Right" VerticalAlignment="Center"
+                                   Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}" />
+
+                        <Border x:Name="ZoneFinie" Width="12" Height="12"
+                                HorizontalAlignment="Right" VerticalAlignment="Center"
+                                Background="Transparent" Visibility="Collapsed"
+                                ToolTip="{Binding Tally.Count}"
+                                ToolTipService.InitialShowDelay="200">
+                          <Path Stretch="None" Stroke="{DynamicResource AccentBrush}"
+                                StrokeThickness="1.5" StrokeStartLineCap="Round"
+                                StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                Data="M 2,6.5 L 5,9.5 L 10.5,3" />
+                        </Border>
+                      </Grid>
                     </Grid>
 
                     <!-- The right-hand icons of a quest row: gift, priority,
@@ -2285,12 +2284,13 @@
                   </DataTrigger>
 
                   <!-- "quand Faisables est activé, enlève carrément le nombre ici, ça fait
-                       doublon" (24/10/2026): a tally of doable quests has a tip. -->
+                       doublon" (24/10/2026): the label says the doable count, the
+                       right one goes; only a tally of doable quests has this tip. -->
                   <DataTrigger Binding="{Binding Tally.PassingTip,
                                                  Converter={StaticResource EmptyToVisibility},
                                                  ConverterParameter=inverse}"
                                Value="Visible">
-                    <Setter TargetName="ZoneEnCoursCase" Property="Visibility" Value="Collapsed" />
+                    <Setter TargetName="ZoneFaitCase" Property="Visibility" Value="Collapsed" />
                   </DataTrigger>
 
                   <!-- A zone of repeatables only has nothing to count. -->
