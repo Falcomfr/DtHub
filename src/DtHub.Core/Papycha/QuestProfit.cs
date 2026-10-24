@@ -102,11 +102,12 @@ public static class QuestProfit
         progress is not null && Continuable(quest, progress, facts, level) && Startable(quest, progress, chain);
 
     /// <summary>
-    /// Whether the character can start the quest now: in progress, or by the site's <c>Available</c>, which it fills
-    /// for its active character only. Listed: at least one previous quest done, or none named (some previous quests
-    /// are alternatives, one per alignment, as in "La fatalité"); not listed while others are: no; nothing listed (the
-    /// other characters): every previous quest done. Previous quests are the prerequisites naming another quest
-    /// (<see cref="QuestChainIndex.Resolve"/>); the others (alignment, free text) are not checked.
+    /// Whether the character can start the quest now: in progress, or not ruled out (<see cref="IsRuledOut"/>) and by
+    /// the site's <c>Available</c>, which it fills for its active character only. Listed: at least one previous quest
+    /// done, or none named (some previous quests are alternatives, one per alignment, as in "La fatalité"); not listed
+    /// while others are: no; nothing listed (the other characters): every previous quest done. Previous quests are the
+    /// prerequisites naming another quest (<see cref="QuestChainIndex.Resolve"/>), met as <see cref="IsMet"/> says; the
+    /// others (alignment, free text) are not checked.
     /// </summary>
     public static bool Startable(QuestSummary quest, TrackerProgress progress, QuestChainIndex chain)
     {
@@ -115,18 +116,50 @@ public static class QuestProfit
         ArgumentNullException.ThrowIfNull(chain);
 
         if (QuestTracking.StatusOf(progress, quest.Id) == QuestStatus.InProgress) return true;
-        var previous = Previous(quest, chain);
-        bool Done(QuestSummary p) => QuestTracking.StatusOf(progress, p.Id) == QuestStatus.Completed;
+        if (IsRuledOut(quest, progress)) return false;
+        var needs = QuestNeeds(quest, chain);
+        bool Met(string need) => IsMet(need, quest, chain, p => IsDone(p, quest, progress));
         return progress.Available.Count == 0
-            ? previous.All(Done)
-            : progress.Available.Contains(quest.Id) && (previous.Count == 0 || previous.Any(Done));
+            ? needs.All(Met)
+            : progress.Available.Contains(quest.Id) && (needs.Count == 0 || needs.Any(Met));
     }
+
+    /// <summary>
+    /// Rule A (2026-10-24, "une suite de quêtes ou l'autre mais pas les 2"): one of the quests the game takes in its
+    /// place (<see cref="QuestSummary.Alternatives"/>) is done or started, so this one is off the character's way.
+    /// </summary>
+    public static bool IsRuledOut(QuestSummary quest, TrackerProgress? progress)
+    {
+        ArgumentNullException.ThrowIfNull(quest);
+
+        return quest.Alternatives.Any(id => QuestTracking.StatusOf(progress, id) is QuestStatus.Completed or QuestStatus.InProgress);
+    }
+
+    /// <summary>
+    /// Rule B: <paramref name="previous"/> is done, or one of its alternatives is when <paramref name="quest"/>, which
+    /// needs it, is on no way of its own: "Malédiction" follows any alignment's prologue, but the alchemy way's second
+    /// quest still needs the first, not the farming way's.
+    /// </summary>
+    internal static bool IsDone(QuestSummary previous, QuestSummary quest, TrackerProgress? progress) =>
+        QuestTracking.StatusOf(progress, previous.Id) == QuestStatus.Completed
+        || (quest.Alternatives.Count == 0 && previous.Alternatives.Any(id => QuestTracking.StatusOf(progress, id) == QuestStatus.Completed));
+
+    /// <summary>
+    /// Whether a need naming a quest is met, <paramref name="done"/> judging each quest it requires: the one it names,
+    /// or every end of an achievement's series (rule E, <see cref="QuestChainIndex.Required"/>), the quest itself left out.
+    /// </summary>
+    internal static bool IsMet(string need, QuestSummary quest, QuestChainIndex chain, Func<QuestSummary, bool> done) =>
+        chain.Required(need).Where(p => p.Id != quest.Id).All(done);
+
+    /// <summary>The prerequisites naming another quest, the quest itself left out ("L'Ascension" names itself).</summary>
+    internal static List<string> QuestNeeds(QuestSummary quest, QuestChainIndex chain) =>
+        [.. quest.Prerequisites.Where(need => chain.Resolve(need) is { } p && p.Id != quest.Id)];
 
     /// <summary>
     /// Whether the quest has a prerequisite, which keeps it out of "Recommandées": a need that is not a quest
     /// every character in <paramref name="progress"/> has completed (a time slot, an alignment, an item, or a previous
-    /// quest still to do). A need naming the quest itself is ignored, as in <see cref="Previous"/>. A quest every one of
-    /// them has in progress has none.
+    /// quest still to do; done as <see cref="IsMet"/> says). A need naming the quest itself is ignored, as in
+    /// <see cref="Previous"/>. A quest every one of them has in progress has none.
     /// </summary>
     /// <param name="met">Quests counted as done for everyone: a series run's own earlier quests.</param>
     public static bool HasPrerequisite(
@@ -142,16 +175,19 @@ public static class QuestProfit
             return false;
         }
 
+        // A run's quest stands for done, and by rule B one of its alternatives.
+        bool Done(QuestSummary p) =>
+            (met is not null && (met.Contains(p.Id) || (quest.Alternatives.Count == 0 && p.Alternatives.Any(met.Contains))))
+            || progress.All(c => IsDone(p, quest, c));
         return quest.Prerequisites.Any(need => chain.Resolve(need) is not { } p
-            || (p.Id != quest.Id && met?.Contains(p.Id) != true
-                && !progress.All(c => QuestTracking.StatusOf(c, p.Id) == QuestStatus.Completed)));
+            || (p.Id != quest.Id && !IsMet(need, quest, chain, Done)));
     }
 
     /// <summary>The quests the prerequisites name, the quest itself left out ("L'Ascension" names itself).</summary>
     public static IReadOnlyList<QuestSummary> Previous(QuestSummary quest, QuestChainIndex chain) =>
         [.. quest.Prerequisites.Select(chain.Resolve).OfType<QuestSummary>().Where(p => p.Id != quest.Id)];
 
-    // Every doable rule except being startable now (Available, in progress, previous quests done).
+    // Every doable rule except being startable now (Available, in progress, previous quests done), rule A included.
     private static bool Continuable(QuestSummary quest, TrackerProgress progress, TouchQuestFacts facts, int level)
     {
         ArgumentNullException.ThrowIfNull(quest);
@@ -159,7 +195,7 @@ public static class QuestProfit
 
         return facts.Steps.Length > 0 && facts.Steps[0] is { } first && first.OptimalLevel <= level
             && QuestTracking.StatusOf(progress, quest.Id) is not (QuestStatus.Completed or QuestStatus.Blocked or QuestStatus.Ignored)
-            && !QuestRecurrenceLabel.IsRepeatable(quest);
+            && !QuestRecurrenceLabel.IsRepeatable(quest) && !IsRuledOut(quest, progress);
     }
 
     public static IReadOnlyDictionary<int, QuestScore> Score(

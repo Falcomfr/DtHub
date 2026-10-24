@@ -109,6 +109,27 @@ public class QuestTrackingTests
     }
 
     [Fact]
+    public void NextQuests_leave_out_a_ruled_out_way_and_follow_either_alternative()
+    {
+        // Two ways: 4 (done) then 35, or 30 then 31. 32, on no way, follows 33, the alternative of done 4.
+        var catalog = new[]
+        {
+            Named(4) with { Alternatives = [30] }, Named(30) with { Alternatives = [4] }, Named(31, 0, "Q30") with { Alternatives = [35] },
+            Named(35, 0, "Q4") with { Alternatives = [31] }, Named(32, 0, "Q33"), Named(33) with { Alternatives = [4] }, Named(34, 0, "Q4"),
+        };
+        var chain = new QuestChainIndex(catalog);
+        QuestNode Node(QuestSummary q) => new(QuestNodeKind.Quest, q.Title, Quest: q, Needs: [.. q.Prerequisites.Select(n => new QuestNeed(n, chain.Find(n)))]);
+
+        Assert.Equal([32, 34, 35], QuestTracking.NextQuests(Progress, catalog).Select(q => q.Id).Order());
+        // From the site's own list too.
+        Assert.Equal([34], QuestTracking.NextQuests(Progress with { Next = [30, 34], Available = new HashSet<int> { 30, 34 } }, catalog).Select(q => q.Id));
+        // The lock: met, the need checked through its alternative.
+        var locked = QuestTracking.Locked(Node(catalog[4]), Progress with { Available = new HashSet<int>() }, chain);
+        Assert.True(locked.NeedsMet);
+        Assert.True(Assert.Single(locked.Needs!).Met);
+    }
+
+    [Fact]
     public void NextQuests_come_in_play_order()
     {
         var catalog = new[] { Named(4), Named(20, 3, "Q4"), Named(21, 1, "Q4"), Named(22, 2, "Q4") };

@@ -57,7 +57,7 @@ public static class QuestTracking
         {
             NeedsMet = met,
             Needs = [.. needs.Select(n => chain.Resolve(n.Text) is { } p && p.Id != quest.Id
-                ? n with { Met = StatusOf(progress, p.Id) == QuestStatus.Completed ? true : met ? null : false }
+                ? n with { Met = QuestProfit.IsMet(n.Text, quest, chain, p => QuestProfit.IsDone(p, quest, progress)) ? true : met ? null : false }
                 : n)],
         };
     }
@@ -170,7 +170,8 @@ public static class QuestTracking
     /// The quests to suggest next. The site's own list, in its order, when
     /// it gives one, less what is not startable (<see cref="QuestProfit.Startable"/>);
     /// it does for its active character only, so otherwise
-    /// the quests not done whose previous quests are all completed, in play
+    /// the quests not done nor ruled out whose previous quests are all done
+    /// (<see cref="QuestProfit.IsMet"/>), in play
     /// order. A quest naming no previous quest is no one's follow-up and
     /// stays out, as do ignored, blocked and repeatable ones, and, as under
     /// "Faisables", one whose first step is above <paramref name="level"/>
@@ -200,8 +201,9 @@ public static class QuestTracking
             !QuestRecurrenceLabel.IsRepeatable(q)
             && StatusOf(progress, q.Id) is not (QuestStatus.Completed or QuestStatus.Ignored or QuestStatus.Blocked)
             && !(level > 0 && facts?.GetValueOrDefault(q.Id)?.Steps.FirstOrDefault() is { } first && first.OptimalLevel > level)
-            && QuestProfit.Previous(q, chain) is { Count: > 0 } previous
-            && previous.All(p => StatusOf(progress, p.Id) == QuestStatus.Completed)));
+            && !QuestProfit.IsRuledOut(q, progress)
+            && QuestProfit.QuestNeeds(q, chain) is { Count: > 0 } needs
+            && needs.All(n => QuestProfit.IsMet(n, q, chain, p => QuestProfit.IsDone(p, q, progress)))));
     }
 
     /// <summary>

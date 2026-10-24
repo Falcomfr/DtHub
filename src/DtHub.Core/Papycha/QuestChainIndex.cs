@@ -33,6 +33,7 @@ public sealed class QuestChainIndex
     private readonly Dictionary<string, List<QuestSummary>> _followers;
     private readonly Dictionary<string, IReadOnlyList<QuestSummary>> _bySuccess;
     private readonly Dictionary<string, QuestSummary> _lastOfSuccess;
+    private readonly Dictionary<string, IReadOnlyList<QuestSummary>> _endsOfSuccess = [];
 
     public QuestChainIndex(IEnumerable<QuestSummary> quests)
     {
@@ -101,6 +102,36 @@ public sealed class QuestChainIndex
                 list.Add(quest);
             }
         }
+
+        // The quests no other quest of their achievement follows: the
+        // game's achievement asks them all (rule E, 2026-10-24).
+        foreach (var (name, group) in _bySuccess)
+        {
+            _endsOfSuccess[QuestSearch.Normalize(name)] = [.. group.Where(m =>
+                !_followers.GetValueOrDefault(QuestSearch.Normalize(m.Title), []).Any(f => f.SuccessName == name && f.Id != m.Id))];
+        }
+    }
+
+    /// <summary>
+    /// The quests a prerequisite needs done: the one it names, or for an
+    /// achievement every end of its series, where <see cref="Resolve"/>
+    /// gives one ("Succès Un Chemin semé de bûches réalisé" asks its four
+    /// branches, not the last quest in play order). Empty when it names
+    /// no quest.
+    /// </summary>
+    public IReadOnlyList<QuestSummary> Required(string? need)
+    {
+        if (Resolve(need) is not { } found)
+        {
+            return [];
+        }
+
+        var target = PrerequisiteLabel.Of(need);
+
+        return target.IsSuccess
+            && _endsOfSuccess.GetValueOrDefault(QuestSearch.Normalize(target.Name)) is { Count: > 0 } ends
+            ? ends
+            : [found];
     }
 
     /// <summary>

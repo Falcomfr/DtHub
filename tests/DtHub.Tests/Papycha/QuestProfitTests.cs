@@ -179,6 +179,66 @@ public class QuestProfitTests
         Assert.True(Has(3, started, done));
     }
 
+    [Fact]
+    public void Doing_or_starting_one_alternative_rules_out_the_others()
+    {
+        // "Agriculture ou alchimie": 1 and 2 are the two ways' first quests, 3 is no one's alternative.
+        var catalog = new[] { Quest(1) with { Alternatives = [2] }, Quest(2) with { Alternatives = [1] }, Quest(3) };
+        var chain = new QuestChainIndex(catalog);
+        var facts = catalog.ToDictionary(q => q.Id, _ => Facts());
+
+        Assert.Equal([1, 2, 3], QuestProfit.Score(catalog, facts, Progress([]), 10, 0).Keys.Order());
+        Assert.Equal([3], QuestProfit.Score(catalog, facts, Progress([], completed: [1]), 10, 0).Keys.Order());
+        Assert.Equal([1, 3], QuestProfit.Score(catalog, facts, Progress([], new() { [1] = QuestStatus.InProgress }), 10, 0).Keys.Order());
+        Assert.False(QuestProfit.Startable(catalog[1], Progress([2], completed: [1]), chain));
+        Assert.False(QuestProfit.IsDoable(catalog[1], Progress([], new() { [1] = QuestStatus.InProgress }), facts[2], 10, chain));
+    }
+
+    [Fact]
+    public void A_previous_quest_is_done_when_one_of_its_alternatives_is()
+    {
+        // "Malédiction" names "La destinée" alone, one of the three alignment prologues the game takes alike.
+        var catalog = new[]
+        {
+            Quest(1) with { Alternatives = [2, 3] }, Quest(2) with { Alternatives = [1, 3] }, Quest(3) with { Alternatives = [1, 2] },
+            Quest(4) with { Prerequisites = ["Q1"] },
+            // On a way of its own, a quest still needs its own way's previous quest.
+            Quest(5) with { Prerequisites = ["Q1"], Alternatives = [6] }, Quest(6) with { Alternatives = [5] },
+        };
+        var chain = new QuestChainIndex(catalog);
+        var rivalry = Progress([], completed: [3]);
+
+        Assert.True(QuestProfit.Startable(catalog[3], rivalry, chain));
+        Assert.True(QuestProfit.Startable(catalog[3], Progress([4], completed: [3]), chain));
+        Assert.False(QuestProfit.Startable(catalog[3], Progress([]), chain));
+        Assert.False(QuestProfit.HasPrerequisite(catalog[3], chain, [rivalry]));
+        Assert.False(QuestProfit.HasPrerequisite(catalog[3], chain, [Progress([])], met: [2]));
+        Assert.True(QuestProfit.HasPrerequisite(catalog[3], chain, [Progress([])]));
+        Assert.False(QuestProfit.Startable(catalog[4], rivalry, chain));
+        Assert.True(QuestProfit.HasPrerequisite(catalog[4], chain, [Progress([])], met: [2]));
+    }
+
+    [Fact]
+    public void An_achievement_need_is_met_once_every_end_of_its_series_is()
+    {
+        // S: 1, then 2 and 3 on two branches, both in the game's achievement ("Un Chemin semé de bûches"); 9 asks S.
+        QuestSummary[] Catalog(bool alternatives) =>
+        [
+            Quest(1, "S", 1), Quest(2, "S", 2) with { Prerequisites = ["Q1"], Alternatives = alternatives ? [3] : [] },
+            Quest(3, "S", 3) with { Prerequisites = ["Q1"], Alternatives = alternatives ? [2] : [] },
+            Quest(9) with { Prerequisites = ["Succès S réalisé"] },
+        ];
+        bool Startable(QuestSummary[] catalog, params int[] done) =>
+            QuestProfit.Startable(catalog[3], Progress([], completed: done), new QuestChainIndex(catalog));
+
+        Assert.False(Startable(Catalog(false), 1, 3));
+        Assert.False(Startable(Catalog(false), 1, 2));
+        Assert.True(Startable(Catalog(false), 1, 2, 3));
+        Assert.False(QuestProfit.HasPrerequisite(Catalog(false)[3], new QuestChainIndex(Catalog(false)), [Progress([], completed: [1, 2])], met: [3]));
+        // Ways the game takes one for the other: the end of the way not taken does not count.
+        Assert.True(Startable(Catalog(true), 1, 2));
+    }
+
     private static (List<QuestSummary> Catalog, Dictionary<int, TouchQuestFacts> Facts) Twenty()
     {
         var catalog = Enumerable.Range(1, 20).Select(i => Quest(i)).ToList();
