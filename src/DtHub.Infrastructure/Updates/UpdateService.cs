@@ -312,7 +312,16 @@ public sealed partial class UpdateService(
             // old one must come back, or nothing would be left to start.
             catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
             {
-                File.Move(retired, current);
+                try
+                {
+                    File.Move(retired, current);
+                }
+                // Refused twice: a copy back still leaves something to start,
+                // the Sweep that would mend it only runs at startup.
+                catch (Exception again) when (again is IOException or UnauthorizedAccessException)
+                {
+                    File.Copy(retired, current);
+                }
 
                 throw;
             }
