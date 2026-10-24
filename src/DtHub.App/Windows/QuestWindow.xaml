@@ -1382,16 +1382,16 @@
                                                Converter={StaticResource EmptyToVisibility},
                                                ConverterParameter=inverse}">
                       <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="60" />
-                        <ColumnDefinition Width="19" />
-                        <ColumnDefinition Width="28" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
                       </Grid.ColumnDefinitions>
 
                       <!-- The one place a fixed pitch earns its keep: in
                            the proportional face, [7,-25] and [-63,-75]
                            do not begin at the same offset, so the
                            brackets never form a column. -->
-                      <TextBlock Grid.Column="0" Text="{Binding Facts.Position}"
+                      <TextBlock Grid.Column="0" Text="{Binding Facts.Position}" Width="60"
                                  TextWrapping="NoWrap" VerticalAlignment="Center"
                                  Style="{StaticResource Muted}"
                                  FontFamily="{StaticResource MonoFont}"
@@ -1403,14 +1403,15 @@
                            itself, and the column stays so nothing shifts.
                            Its name is too long for the column and comes on
                            hover. -->
-                      <Border Grid.Column="1" Background="Transparent"
+                      <Border x:Name="CleCase" Grid.Column="1" Background="Transparent"
                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                              Width="{Binding DataContext.KeyColumnWidth, RelativeSource={RelativeSource AncestorType=Window}}"
                               ToolTip="{Binding Dungeon.Key}"
-                              ToolTipService.InitialShowDelay="200"
+                              ToolTipService.InitialShowDelay="200">
+                        <Path HorizontalAlignment="Right" Style="{StaticResource ListGlyph}"
                               Visibility="{Binding Dungeon.NeedsKey,
                                                    Converter={StaticResource BoolToVisibility},
-                                                   FallbackValue=Collapsed}">
-                        <Path Style="{StaticResource ListGlyph}"
+                                                   FallbackValue=Collapsed}"
                               Stroke="{DynamicResource GlyphDungeonBrush}"
                               Data="M 5.2,7.5 m -2.6,0 a 2.6,2.6 0 1 0 5.2,0
                                     a 2.6,2.6 0 1 0 -5.2,0
@@ -1421,6 +1422,7 @@
                            character: a check and their count, their titles
                            on hover. Hidden, not collapsed, when none. -->
                       <StackPanel x:Name="Termine" Grid.Column="2" Orientation="Horizontal"
+                                  Width="{Binding DataContext.FinishColumnWidth, RelativeSource={RelativeSource AncestorType=Window}}"
                                   HorizontalAlignment="Right" VerticalAlignment="Center"
                                   Background="Transparent"
                                   ToolTip="{Binding ProfitTip}"
@@ -2275,6 +2277,15 @@
 
                   <DataTrigger Binding="{Binding Tally.Started}" Value="0">
                     <Setter TargetName="ZoneEnCours" Property="Visibility" Value="Hidden" />
+                  </DataTrigger>
+
+                  <DataTrigger Binding="{Binding DataContext.KeyColumnWidth,
+                                                 RelativeSource={RelativeSource AncestorType=Window}}" Value="0">
+                    <Setter TargetName="CleCase" Property="Visibility" Value="Collapsed" />
+                  </DataTrigger>
+                  <DataTrigger Binding="{Binding DataContext.FinishColumnWidth,
+                                                 RelativeSource={RelativeSource AncestorType=Window}}" Value="0">
+                    <Setter TargetName="Termine" Property="Visibility" Value="Collapsed" />
                   </DataTrigger>
 
                   <DataTrigger Binding="{Binding DataContext.StartedColumnWidth,

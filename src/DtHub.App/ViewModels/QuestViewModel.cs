@@ -107,6 +107,13 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private double _countColumnWidth;
 
+    /// <summary>A dungeon row's key and "✓ n" slots: 19 and 28 px when a dungeon of the list uses them, else 0.</summary>
+    [ObservableProperty]
+    private double _keyColumnWidth;
+
+    [ObservableProperty]
+    private double _finishColumnWidth;
+
     private readonly Dictionary<string, double> _textWidths = [];
 
     // Added rows can only widen a column; any other change measures the whole list again.
@@ -115,9 +122,20 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         var adding = action == System.Collections.Specialized.NotifyCollectionChangedAction.Add;
         var (time, xp, kamas) = adding ? (TimeColumnWidth, XpColumnWidth, KamasColumnWidth) : (0.0, 0.0, 0.0);
         var (started, count) = adding ? (StartedColumnWidth, CountColumnWidth) : (0.0, 0.0);
+        var (key, finish) = adding ? (KeyColumnWidth, FinishColumnWidth) : (0.0, 0.0);
         foreach (var node in rows.OfType<QuestNode>())
         {
             time = Math.Max(time, TextWidth(node.Duration));
+            if (node.Dungeon is { NeedsKey: true })
+            {
+                key = 19;
+            }
+
+            if (node.Finishes > 0)
+            {
+                finish = 28;
+            }
+
             xp = Math.Max(xp, Glyphed(node.GainXp));
             kamas = Math.Max(kamas, Glyphed(node.GainKamas));
             if (node.Tally is { } tally)
@@ -132,6 +150,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
 
         (TimeColumnWidth, XpColumnWidth, KamasColumnWidth) = (time, xp, kamas);
         (StartedColumnWidth, CountColumnWidth) = (started, count);
+        (KeyColumnWidth, FinishColumnWidth) = (key, finish);
 
         double Glyphed(string? text) => string.IsNullOrEmpty(text) ? 0 : TextWidth(text) + 12;
     }
