@@ -199,7 +199,7 @@
                          Margin="0,0,6,0" />
               <TextBox Width="44" Padding="4,2" MaxLength="3" VerticalAlignment="Center"
                        Text="{Binding RewardLevel, Mode=OneWay}"
-                       KeyDown="OnRewardLevelKey" LostFocus="OnRewardLevelApply">
+                       KeyDown="OnRewardLevelKey" LostKeyboardFocus="OnRewardLevelApply">
                 <TextBox.Style>
                   <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
                     <Setter Property="ToolTip" Value="{loc:T RewardLevelTipLocal}" />

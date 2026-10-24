@@ -1024,6 +1024,12 @@ public partial class QuestWindow : Window
         {
             _viewModel.Pick(node, (Keyboard.Modifiers & ModifierKeys.Shift) != 0);
         }
+
+        // The box flipped itself before the click; a pick refused (batch running, row redrawn) left it ticked alone.
+        if (sender is CheckBox { DataContext: QuestNode current } box)
+        {
+            box.SetCurrentValue(System.Windows.Controls.Primitives.ToggleButton.IsCheckedProperty, current.Checked);
+        }
     }
 
     // The batch methods never throw: the tracker turns every failure into a result.
