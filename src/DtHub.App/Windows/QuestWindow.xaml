@@ -950,8 +950,10 @@
 
             <!-- "Moi / Équipe" in "Recommandées", once there are characters to
                  add up. OneWay, the click asks the view model, which tells the
-                 value again so a toggle clicked while on comes back on. -->
-            <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="6,0,0,0"
+                 value again so a toggle clicked while on comes back on. Six more
+                 on the right, so "Équipe" ends with the rows and the bar above
+                 (the line's own margin, 4, is the close cross's). -->
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="6,0,6,0"
                         Visibility="{Binding ShowsRecommended, Converter={StaticResource BoolToVisibility}}">
               <StackPanel Orientation="Horizontal"
                           Visibility="{Binding Tracker.HasSeveralCharacters,
