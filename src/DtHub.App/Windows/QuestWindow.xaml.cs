@@ -74,6 +74,14 @@ public partial class QuestWindow : Window
         Show();
         Activate();
 
+        // A guide that was being read comes back as it was left: players
+        // hide it to see the game, then need their spot in the quest again.
+        if (_viewModel.HasQuest && !_viewModel.IsListOpen)
+        {
+            View.Focus();
+            return;
+        }
+
         // The cursor in the search box, and the list expanded: this
         // window is opened to find a quest, never to look at emptiness.
         SearchBox.Focus();
