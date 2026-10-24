@@ -3054,7 +3054,7 @@ Team: quests at least 2 ticked characters can do.</value>
     <value>{0} quests ({1}-{2}/{3})</value>
   </data>
   <data name="ProfitRunLine" xml:space="preserve">
-    <value>{0}: {1} XP · {2} kamas · {3}</value>
+    <value>{0} · {1} XP · {2} kamas · {3}</value>
   </data>
   <data name="ProfitRate" xml:space="preserve">
     <value>✦ {0} XP/min · ◎ {1} kamas/min</value>

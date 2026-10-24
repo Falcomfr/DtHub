@@ -1759,16 +1759,19 @@
                          icons come before it (with a gift it used to sit 18 px further left).
                          46 px holds "≈ 12 h 34", 44.8 measured in this face; a longer time
                          widens its row rather than being cut. Collapsed when the game's
-                         objectives are not read yet. -->
-                    <TextBlock x:Name="Duree" MinWidth="46" Margin="4,0,0,0" VerticalAlignment="Center"
-                               Text="{Binding Duration}" TextWrapping="NoWrap" TextAlignment="Right"
-                               Style="{StaticResource Muted}"
-                               FontSize="{StaticResource FontSmall}"
-                               ToolTip="{Binding ProfitTip}"
-                               ToolTipService.InitialShowDelay="200"
-                               Visibility="{Binding Duration,
-                                                    Converter={StaticResource EmptyToVisibility},
-                                                    ConverterParameter=inverse}" />
+                         objectives are not read yet. Right-aligned by its slot, not by
+                         TextAlignment, which its hover would inherit. -->
+                    <Border MinWidth="46" Margin="4,0,0,0" VerticalAlignment="Center"
+                            Visibility="{Binding Duration,
+                                                 Converter={StaticResource EmptyToVisibility},
+                                                 ConverterParameter=inverse}">
+                      <TextBlock x:Name="Duree" HorizontalAlignment="Right"
+                                 Text="{Binding Duration}" TextWrapping="NoWrap"
+                                 Style="{StaticResource Muted}"
+                                 FontSize="{StaticResource FontSmall}"
+                                 ToolTip="{Binding ProfitTip}"
+                                 ToolTipService.InitialShowDelay="200" />
+                    </Border>
 
                     <!-- What the quest gives the chosen character: XP then
                          kamas, last on the right in two fixed columns, each
