@@ -8,17 +8,18 @@ namespace DtHub.Tests.Papycha;
 public sealed class ProfitWaitTests
 {
     [Theory]
-    [InlineData(TrackerLink.Unknown, false, null, false, false, ProfitWait.ReadingTracker)]
-    [InlineData(TrackerLink.NotLinked, true, null, false, false, ProfitWait.ReadingTracker)]
-    [InlineData(TrackerLink.Unreadable, false, null, false, false, ProfitWait.TrackerDown)]
-    [InlineData(TrackerLink.NotLinked, false, null, false, false, ProfitWait.NeedsLink)]
-    [InlineData(TrackerLink.Lost, false, null, false, false, ProfitWait.NeedsLink)]
-    [InlineData(TrackerLink.Linked, false, null, false, false, ProfitWait.ReadingGame)]
-    [InlineData(TrackerLink.Linked, false, 0, false, false, ProfitWait.ReadingGame)]
-    [InlineData(TrackerLink.Linked, false, 0, true, true, ProfitWait.GameDown)]
-    [InlineData(TrackerLink.Linked, false, 12, true, false, "")]
-    public void Chaque_etat_a_sa_carte(TrackerLink link, bool reading, int? facts, bool factsDone, bool gameFailed, string attendu) =>
-        Assert.Equal(attendu, ProfitWait.Of(link, reading, facts, factsDone, gameFailed));
+    [InlineData(TrackerLink.Unknown, false, null, false, ProfitWait.ReadingTracker)]
+    [InlineData(TrackerLink.NotLinked, true, null, false, ProfitWait.ReadingTracker)]
+    [InlineData(TrackerLink.Unreadable, false, null, false, ProfitWait.TrackerDown)]
+    [InlineData(TrackerLink.NotLinked, false, null, false, ProfitWait.NeedsLink)]
+    [InlineData(TrackerLink.Lost, false, null, false, ProfitWait.NeedsLink)]
+    [InlineData(TrackerLink.Linked, false, null, false, ProfitWait.ReadingGame)]
+    [InlineData(TrackerLink.Linked, false, 0, false, ProfitWait.ReadingGame)]
+    // A guide's steps read since may have cleared the service's last failure: no facts after a read is "down" still.
+    [InlineData(TrackerLink.Linked, false, 0, true, ProfitWait.GameDown)]
+    [InlineData(TrackerLink.Linked, false, 12, true, "")]
+    public void Chaque_etat_a_sa_carte(TrackerLink link, bool reading, int? facts, bool factsDone, string attendu) =>
+        Assert.Equal(attendu, ProfitWait.Of(link, reading, facts, factsDone));
 
     [Fact]
     public void Seules_les_lectures_tournent_et_seul_le_suivi_se_relance()

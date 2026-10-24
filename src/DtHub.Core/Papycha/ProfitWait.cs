@@ -15,12 +15,12 @@ public static class ProfitWait
     /// <param name="link">Where the tracker link stands.</param>
     /// <param name="reading">A tracker read is under way.</param>
     /// <param name="facts">The game's quest facts read so far, null before any.</param>
-    /// <param name="factsDone">The facts' read has ended.</param>
-    /// <param name="gameFailed">The game's last read failed.</param>
-    public static string Of(TrackerLink link, bool reading, int? facts, bool factsDone, bool gameFailed) =>
+    /// <param name="factsDone">The facts' read has ended: none then means the data is missing, whatever the cause (a
+    /// later read of a guide's steps clears the service's last failure).</param>
+    public static string Of(TrackerLink link, bool reading, int? facts, bool factsDone) =>
         link == TrackerLink.Linked
             ? facts is null || (facts == 0 && !factsDone) ? ReadingGame
-                : facts == 0 && gameFailed ? GameDown
+                : facts == 0 ? GameDown
                 : string.Empty
             : reading || link == TrackerLink.Unknown ? ReadingTracker
             : link == TrackerLink.Unreadable ? TrackerDown
