@@ -72,8 +72,9 @@ public class QuestGainTextTests : IDisposable
     [Fact]
     public void Le_rythme_par_minute_donne_les_deux_cotes_et_rien_sans_temps()
     {
-        // The columns' own rounding: 2 800 is "3 k".
-        Assert.Equal("✦ 1,2 M XP/min · ◎ 3 k kamas/min", QuestGainText.Rate(new QuestGain(12_000_000, 28_000), 10));
+        // One decimal in k, unlike the columns: 2,8 and 2,4 must read apart (the user compared them).
+        Assert.Equal("✦ 1,2 M XP/min · ◎ 2,8 k kamas/min", QuestGainText.Rate(new QuestGain(12_000_000, 28_000), 10));
+        Assert.Equal("✦ 950 k XP/min · ◎ 12 k kamas/min", QuestGainText.Rate(new QuestGain(9_500_000, 120_000), 10));
         Assert.Equal("✦ 3 XP/min · ◎ 0 kamas/min", QuestGainText.Rate(new QuestGain(10, 0), 3));
         Assert.Null(QuestGainText.Rate(new QuestGain(10, 35), 0));
     }

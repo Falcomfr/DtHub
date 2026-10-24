@@ -11321,9 +11321,9 @@ faisable, gains et temps additionnés. »
 **Rythme au survol.** Demande du 24/10/2026, acceptée : sur chaque ligne de
 « Recommandées » (modes « Quêtes » et « Succès », vue d'équipe et lignes de
 donjon comprises), l'infobulle du gain finit par le rythme sur lequel la liste
-classe, une ligne pour les deux côtés : « ✦ 1,2 M XP/min · ◎ 3 k kamas/min »,
-gain de la ligne divisé par son temps estimé, arrondi et écrit comme les colonnes
-(2 800 donne « 3 k »). Sans temps connu, la ligne n'est pas ajoutée. Rien de plus
+classe, une ligne pour les deux côtés : « ✦ 1,2 M XP/min · ◎ 2,8 k kamas/min »,
+gain de la ligne divisé par son temps estimé, écrit comme les colonnes mais avec une
+décimale en milliers (2 800 donne « 2,8 k », pour lire 2,8 et 2,4 à part). Sans temps connu, la ligne n'est pas ajoutée. Rien de plus
 sur la ligne elle-même (`QuestGainText.Rate`, testée).
 
 **Filtre « Faisables ».** Demande du 24/10/2026 : « possible tu mets un seul
