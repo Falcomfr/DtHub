@@ -1839,22 +1839,30 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task Les_filtres_de_quetes_se_relisent()
+    public async Task Le_filtre_faisables_se_relit()
     {
-        await _service.SetQuestFiltersAsync(toDo: true, available: true);
+        Assert.False((await _service.GetAsync()).QuestFilterDoable);
 
-        var document = await _service.GetAsync();
+        await _service.SetQuestFilterAsync(doable: true);
 
-        Assert.True(document.QuestFilterToDo);
-        Assert.True(document.QuestFilterAvailable);
-
-        await _service.SetQuestFiltersAsync(toDo: false, available: true);
-
-        document = await _service.GetAsync();
-
-        Assert.False(document.QuestFilterToDo);
-        Assert.True(document.QuestFilterAvailable);
+        Assert.True((await _service.GetAsync()).QuestFilterDoable);
     }
+
+    [Theory]
+    [InlineData("""{ "questFilterToDo": true, "questFilterAvailable": true }""", true)]
+    [InlineData("""{ "questFilterToDo": false, "questFilterAvailable": true }""", true)]
+    [InlineData("""{ "questFilterToDo": true, "questFilterAvailable": false }""", false)]
+    [InlineData("""{ "questFilterToDo": true, "questFilterAvailable": false, "questFilterDoable": true }""", true)]
+    public async Task Faisables_reprend_l_ancien_filtre_accessibles(string json, bool doable)
+    {
+        Directory.CreateDirectory(_directory);
+        await File.WriteAllTextAsync(_store.FilePath, json, CancellationToken.None);
+
+        _service.Invalidate();
+
+        Assert.Equal(doable, (await _service.GetAsync(CancellationToken.None)).QuestFilterDoable);
+    }
+
     [Fact]
     public async Task Recommandees_s_ouvre_sur_l_xp_avec_donjons_sans_prerequis_puis_se_relit()
     {

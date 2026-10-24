@@ -1900,23 +1900,11 @@ En attendant, le bouton du bas ouvre la page dans votre navigateur.</value>
   <data name="ZoneInProgress" xml:space="preserve">
     <value>{0} en cours</value>
   </data>
-  <data name="ZonePassingToDo" xml:space="preserve">
-    <value>{0} quêtes à faire</value>
+  <data name="ZonePassing" xml:space="preserve">
+    <value>{0} quêtes faisables</value>
   </data>
-  <data name="ZonePassingToDoOne" xml:space="preserve">
-    <value>{0} quête à faire</value>
-  </data>
-  <data name="ZonePassingAvailable" xml:space="preserve">
-    <value>{0} quêtes accessibles</value>
-  </data>
-  <data name="ZonePassingAvailableOne" xml:space="preserve">
-    <value>{0} quête accessible</value>
-  </data>
-  <data name="ZonePassingBoth" xml:space="preserve">
-    <value>{0} quêtes accessibles à faire</value>
-  </data>
-  <data name="ZonePassingBothOne" xml:space="preserve">
-    <value>{0} quête accessible à faire</value>
+  <data name="ZonePassingOne" xml:space="preserve">
+    <value>{0} quête faisable</value>
   </data>
   <data name="ProfitPickTwo" xml:space="preserve">
     <value>Cochez au moins deux personnages pour l’équipe.</value>
@@ -2661,17 +2649,11 @@ Pour l'éviter : {1}  ›  « Verrouillage auto. Dossier sécurisé » › l'opt
   <data name="MuteBatteryAlertHeader" xml:space="preserve">
     <value>Ce réglage n'existe pas sur votre appareil ?</value>
   </data>
-  <data name="FilterToDo" xml:space="preserve">
-    <value>À faire</value>
+  <data name="FilterDoable" xml:space="preserve">
+    <value>Faisables</value>
   </data>
-  <data name="FilterAvailable" xml:space="preserve">
-    <value>Accessibles</value>
-  </data>
-  <data name="FilterToDoTip" xml:space="preserve">
-    <value>Cache les quêtes terminées ou ignorées. Restent celles à faire ou en cours, même pas encore lançables.</value>
-  </data>
-  <data name="FilterAvailableTip" xml:space="preserve">
-    <value>Ne garde que les quêtes que votre personnage peut lancer maintenant : niveau et quêtes précédentes faites, d’après votre suivi. Avec « À faire », ce que vous pouvez faire tout de suite.</value>
+  <data name="FilterDoableTip" xml:space="preserve">
+    <value>Ne garde que les quêtes que votre personnage peut faire maintenant : pas terminées ni ignorées (les bloquées restent affichées), niveau atteint, quêtes précédentes faites d'après votre suivi, ou déjà en cours.</value>
   </data>
   <data name="NextQuests" xml:space="preserve">
     <value>Suivantes</value>

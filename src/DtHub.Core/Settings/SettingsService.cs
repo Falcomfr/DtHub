@@ -1675,18 +1675,17 @@ public sealed class SettingsService : IDisposable
             },
             cancellationToken);
 
-    /// <summary>Remembers the "to do" and "available" quest list filters.</summary>
-    public Task SetQuestFiltersAsync(bool toDo, bool available, CancellationToken cancellationToken = default) =>
+    /// <summary>Remembers the list's "Faisables" filter.</summary>
+    public Task SetQuestFilterAsync(bool doable, CancellationToken cancellationToken = default) =>
         UpdateIfChangedAsync(
             settings =>
             {
-                if (settings.QuestFilterToDo == toDo && settings.QuestFilterAvailable == available)
+                if (settings.QuestFilterDoable == doable)
                 {
                     return false;
                 }
 
-                settings.QuestFilterToDo = toDo;
-                settings.QuestFilterAvailable = available;
+                settings.QuestFilterDoable = doable;
                 return true;
             },
             cancellationToken);

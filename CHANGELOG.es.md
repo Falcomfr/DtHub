@@ -18,7 +18,7 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 - Una casilla de nivel en la ventana de guías: al cambiarla también se actualiza el nivel de tu personaje en Papycha.
 - Cada lista de misiones muestra lo que da cada misión a tu personaje, XP y kamas lado a lado.
 - Con el seguimiento de Papycha vinculado, una pequeña marca de prioridad en las misiones que puedes hacer ahora, del punto a la llama, para las que más valen la pena, por la XP o por los kamas.
-- Un botón «Recomendadas» junto a «Por hacer» y «Accesibles» muestra con el seguimiento de Papycha vinculado dos listas cortas en pestañas, «XP» y «Kamas», las mejores misiones que hacer ahora (de una serie, solo su siguiente misión), 20 como máximo cada una, ordenadas por ganancia por minuto.
+- Un botón «Recomendadas» junto a «Realizables» muestra con el seguimiento de Papycha vinculado dos listas cortas en pestañas, «XP» y «Kamas», las mejores misiones que hacer ahora (de una serie, solo su siguiente misión), 20 como máximo cada una, ordenadas por ganancia por minuto.
 - Las casillas de nivel y de Bonus Pack están ahora en todas las vistas de la ventana de guías.
 - Cada misión muestra un tiempo estimado, por ejemplo ≈ 25 min, calculado por DT Hub a partir de los objetivos y los mapas del juego; «Recomendadas» ordena por XP y kamas por minuto y deja fuera lo que dura más de dos horas, salvo para completar una lista de menos de 10.
 - Marcar muchas misiones como terminadas de una vez: el botón de selección de la lista de guías marca misiones (Mayús+clic para un rango), y los títulos de logro y de zona ofrecen «Marcar todo terminado»; DT Hub las escribe una a una, comprueba lo que Papycha guardó y vuelve a escribir lo que se perdió.
@@ -26,9 +26,9 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 - Las mazmorras que hacen avanzar al menos dos misiones recomendadas aparecen en «Recomendadas», y en las listas de mazmorras con la recompensa de las etapas de misión que pasan por ellas; cada mazmorra muestra el tiempo estimado de una partida.
 - Un icono de regalo en una fila de misión lista los objetos y otras recompensas que da a tu nivel.
 - Pasa el cursor sobre una misión para ver dónde encontrar los objetos que pide: monstruos que los sueltan, recolección, fabricación, arquimonstruos y sus zonas.
-- «Accesibles» y las misiones siguientes funcionan ahora para los personajes distintos del activo en Papycha, a partir de las misiones que han terminado.
+- «Realizables» y las misiones siguientes funcionan ahora para los personajes distintos del activo en Papycha, a partir de las misiones que han terminado.
 - La barra del seguimiento de la ventana de guías pasa bajo el personaje cuando la ventana es estrecha, y cada misión recomendada muestra su zona y, en una serie, su lugar (3/11).
-- Con «Por hacer» o «Accesibles», cada zona muestra cuántas de sus misiones conservan los filtros en lugar de hechas sobre el total.
+- «Por hacer» y «Accesibles» pasan a ser un solo botón, «Realizables»: solo deja las misiones que tu personaje puede hacer ahora, ni terminadas ni ignoradas (las bloqueadas siguen visibles), y cada zona muestra entonces cuántas de sus misiones son realizables en lugar de hechas sobre el total.
 - Con el seguimiento de Papycha vinculado, el candado de requisitos indica si se cumplen para tu personaje (abierto y gris, o cerrado en amarillo, con una marca o una cruz delante de cada misión al pasar el ratón), y «Recomendadas» dice en una línea cómo ordena (el detalle al pasar el ratón sobre la «i») y tiene dos botones: «Mazmorras incluidas», activo por defecto, y «Con requisitos», que muestra también las misiones con una condición que DT Hub no puede comprobar (franja horaria, alineamiento, objeto…), ocultas por defecto.
 
 ## [0.10.5] - 2026-10-22

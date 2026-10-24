@@ -66,15 +66,9 @@
               <ToggleButton Style="{StaticResource OutlineToggle}" Padding="8,3"
                             Background="Transparent"
                             BorderBrush="{DynamicResource BorderBrush}"
-                            Content="{loc:T FilterToDo}"
-                            ToolTip="{loc:T FilterToDoTip}"
-                            IsChecked="{Binding FilterToDo, Mode=TwoWay}" />
-              <ToggleButton Style="{StaticResource OutlineToggle}" Padding="8,3" Margin="4,0,0,0"
-                            Background="Transparent"
-                            BorderBrush="{DynamicResource BorderBrush}"
-                            Content="{loc:T FilterAvailable}"
-                            ToolTip="{loc:T FilterAvailableTip}"
-                            IsChecked="{Binding FilterAvailable, Mode=TwoWay}" />
+                            Content="{loc:T FilterDoable}"
+                            ToolTip="{loc:T FilterDoableTip}"
+                            IsChecked="{Binding FilterDoable, Mode=TwoWay}" />
             </StackPanel>
 
             <!-- The one way into the recommended quests, from anywhere:

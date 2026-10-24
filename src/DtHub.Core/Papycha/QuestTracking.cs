@@ -67,13 +67,13 @@ public static class QuestTracking
     /// all that are done, and how many quests are started. A quest done again
     /// (daily, weekly, repeatable, seasonal) stays out of the count, or a zone
     /// would never read as finished. Null without a linked tracker, the
-    /// columns then stay empty. Under the list's filters, the quests they
-    /// keep are counted instead (by the same <see cref="Passes"/>, repeatables
+    /// columns then stay empty. Under "Faisables", the quests it keeps are
+    /// counted instead (by the same <see cref="Passes"/>, repeatables
     /// included, as the label): none of them is done, so "done over total"
     /// would say nothing.
     /// </summary>
     public static ZoneTally? ZoneProgress(
-        TrackerProgress? progress, IReadOnlyCollection<QuestSummary> quests, bool toDo = false, bool available = false,
+        TrackerProgress? progress, IReadOnlyCollection<QuestSummary> quests, bool doable = false,
         Func<QuestSummary, bool>? startable = null)
     {
         ArgumentNullException.ThrowIfNull(quests);
@@ -90,15 +90,14 @@ public static class QuestTracking
             once.Count(q => StatusOf(progress, q.Id) == QuestStatus.Completed),
             once.Count,
             quests.Count(q => StatusOf(progress, q.Id) == QuestStatus.InProgress));
-        if (!toDo && !available)
+        if (!doable)
         {
             return tally;
         }
 
-        // All the zone's quests, repeatables included, as its label counts them under the same filters.
-        var passing = quests.Count(q => Passes(progress, q.Id, toDo, available, startable?.Invoke(q) ?? false));
-        var key = "ZonePassing" + (toDo && available ? "Both" : toDo ? "ToDo" : "Available") + (passing == 1 ? "One" : "");
-        return tally with { Passing = passing, PassingTip = Strings.Format(key, passing) };
+        // All the zone's quests, repeatables included, as its label counts them under the same filter.
+        var passing = quests.Count(q => Passes(progress, q.Id, doable, startable?.Invoke(q) ?? false));
+        return tally with { Passing = passing, PassingTip = Strings.Format(passing == 1 ? "ZonePassingOne" : "ZonePassing", passing) };
     }
 
     /// <summary>
@@ -119,27 +118,48 @@ public static class QuestTracking
     }
 
     /// <summary>
-    /// Whether a quest stays in the list under the two filters. Without a
-    /// linked tracker nothing is filtered: the list must read as before.
-    /// <paramref name="startable"/> is DT Hub's own reading
-    /// (<see cref="QuestProfit.Startable"/>): when the site lists available
-    /// quests (it does for its active character only), a quest must be listed
-    /// and startable; otherwise startable alone decides.
+    /// Whether a quest stays in the list under "Faisables" (<paramref name="doable"/>): not completed nor ignored, a
+    /// blocked one stays (asked 2026-10-24), and startable. Without a linked tracker nothing is filtered: the list must
+    /// read as before. <paramref name="startable"/> is DT Hub's own reading (<see cref="Doable"/>): when the site lists
+    /// available quests (it does for its active character only), a quest must be listed and startable; otherwise
+    /// startable alone decides.
     /// </summary>
-    public static bool Passes(TrackerProgress? progress, int questId, bool toDo, bool available, bool startable)
+    public static bool Passes(TrackerProgress? progress, int questId, bool doable, bool startable)
     {
-        if (progress is null)
+        if (progress is null || !doable)
         {
             return true;
         }
 
-        if (toDo && StatusOf(progress, questId) is QuestStatus.Completed or QuestStatus.Ignored)
+        if (StatusOf(progress, questId) is QuestStatus.Completed or QuestStatus.Ignored)
         {
             return false;
         }
 
         // The site's list, when it gives one, bounds what its active character can start.
-        return !available || ((progress.Available.Count == 0 || progress.Available.Contains(questId)) && startable);
+        return (progress.Available.Count == 0 || progress.Available.Contains(questId)) && startable;
+    }
+
+    /// <summary>
+    /// Whether "Faisables" reads the quest as startable now. The site's list leaves the level to the site
+    /// (<see cref="QuestProfit.Startable"/>); without one, every doable rule but the gain applies
+    /// (<see cref="QuestProfit.IsDoable"/>), unknown without the quest's facts, except that a blocked quest is read as
+    /// not started: the player still wants to see it.
+    /// </summary>
+    public static bool Doable(QuestSummary quest, TrackerProgress progress, TouchQuestFacts? facts, int level, QuestChainIndex chain)
+    {
+        ArgumentNullException.ThrowIfNull(quest);
+        ArgumentNullException.ThrowIfNull(progress);
+
+        if (progress.Available.Count > 0)
+        {
+            return QuestProfit.Startable(quest, progress, chain);
+        }
+
+        var unblocked = StatusOf(progress, quest.Id) == QuestStatus.Blocked
+            ? progress with { Statuses = progress.Statuses.Where(s => s.Key != quest.Id).ToDictionary() }
+            : progress;
+        return facts is not null && QuestProfit.IsDoable(quest, unblocked, facts, level, chain);
     }
 
     /// <summary>
@@ -149,7 +169,7 @@ public static class QuestTracking
     /// the quests not done whose previous quests are all completed, in play
     /// order. A quest naming no previous quest is no one's follow-up and
     /// stays out, as do ignored, blocked and repeatable ones, and, as under
-    /// "Accessibles", one whose first step is above <paramref name="level"/>
+    /// "Faisables", one whose first step is above <paramref name="level"/>
     /// (zero: not known, nothing left out on it).
     /// </summary>
     public static IReadOnlyList<QuestSummary> NextQuests(

@@ -121,32 +121,44 @@ public class QuestTrackingTests
         Assert.Empty(QuestTracking.NextQuests(null, [Named(1)]));
 
     [Fact]
-    public void Passes_to_do_drops_completed_and_ignored() =>
-        Assert.Equal([1, 2, 6], Enumerable.Range(1, 6).Where(i => QuestTracking.Passes(Progress, i, true, false, false)));
+    public void Passes_doable_drops_completed_and_ignored_and_keeps_blocked() =>
+        Assert.Equal([2, 6], Enumerable.Range(1, 6).Where(i => QuestTracking.Passes(
+            Progress with { Available = new HashSet<int>() }, i, true, i is 2 or 3 or 4 or 6)));
 
     [Fact]
-    public void Passes_available_keeps_available_only() =>
-        Assert.Equal([1, 6], Enumerable.Range(1, 6).Where(i => QuestTracking.Passes(Progress, i, false, true, true)));
+    public void Passes_doable_drops_a_listed_quest_that_is_not_startable() =>
+        Assert.Equal([6], Enumerable.Range(1, 6).Where(i => QuestTracking.Passes(Progress, i, true, i != 1)));
 
     [Fact]
-    public void Passes_available_drops_a_listed_quest_that_is_not_startable() =>
-        Assert.Equal([6], Enumerable.Range(1, 6).Where(i => QuestTracking.Passes(Progress, i, false, true, i != 1)));
+    public void Passes_doable_trusts_the_site_s_list_for_its_active_character() =>
+        Assert.Equal([1, 6], Enumerable.Range(1, 6).Where(i => QuestTracking.Passes(Progress, i, true, i is 1 or 2 or 3 or 6)));
 
     [Fact]
-    public void Passes_both_filters_combine() =>
-        Assert.Equal([1, 6], Enumerable.Range(1, 6).Where(i => QuestTracking.Passes(Progress, i, true, true, true)));
-
-    [Fact]
-    public void Passes_available_keeps_what_is_startable_when_the_site_lists_none() =>
-        Assert.Equal([3], Enumerable.Range(1, 6).Where(i => QuestTracking.Passes(Progress with { Available = new HashSet<int>() }, i, false, true, i == 3)));
-
-    [Fact]
-    public void Passes_available_trusts_the_site_s_list_for_its_active_character() =>
-        Assert.Equal([1, 6], Enumerable.Range(1, 6).Where(i => QuestTracking.Passes(Progress, i, false, true, i is 1 or 3 or 6)));
+    public void Passes_keeps_everything_with_the_filter_off() =>
+        Assert.Equal([1, 2, 3, 4, 5, 6], Enumerable.Range(1, 6).Where(i => QuestTracking.Passes(Progress, i, false, false)));
 
     [Fact]
     public void Passes_is_always_true_without_progress() =>
-        Assert.True(QuestTracking.Passes(null, 1, true, true, false));
+        Assert.True(QuestTracking.Passes(null, 1, true, false));
+
+    [Fact]
+    public void Doable_keeps_a_blocked_quest_that_is_otherwise_startable()
+    {
+        var catalog = new[] { Named(1), Named(2, 0, "Q1") };
+        var chain = new QuestChainIndex(catalog);
+        var facts = new TouchQuestFacts([new TouchStepReward(10, 1f, 1f, 0f, false, [])], []);
+        var blocked = new TrackerProgress(
+            new Dictionary<int, QuestStatus> { [2] = QuestStatus.Blocked }, new HashSet<int> { 1 }, new HashSet<int>(), []);
+
+        Assert.True(QuestTracking.Doable(catalog[1], blocked, facts, 10, chain));
+        // Still the other rules: level, previous quests.
+        Assert.False(QuestTracking.Doable(catalog[1], blocked, facts, 9, chain));
+        Assert.False(QuestTracking.Doable(catalog[1], blocked with { Completed = new HashSet<int>() }, facts, 10, chain));
+        // Facts not read: unknown, not doable.
+        Assert.False(QuestTracking.Doable(catalog[1], blocked, null, 10, chain));
+        // The site's list decides for its active character.
+        Assert.True(QuestTracking.Doable(catalog[1], blocked with { Available = new HashSet<int> { 2 } }, null, 10, chain));
+    }
 
     [Theory]
     [InlineData(QuestStatus.NotStarted, 5, 1, 0, true)]
@@ -278,28 +290,17 @@ public class QuestTrackingTests
     private static readonly QuestSummary[] Six = [Q(1), Q(2), Q(3), Q(4), Q(5), Q(6), Q(7, QuestRecurrence.Daily)];
 
     [Fact]
-    public void ZoneProgress_under_to_do_counts_what_the_filter_keeps_as_the_label_does()
+    public void ZoneProgress_under_doable_counts_what_the_filter_keeps_as_the_label_does()
     {
-        var tally = QuestTracking.ZoneProgress(Zone, Six, toDo: true);
+        // 3 is ignored: left out though startable; the daily 7 counts, as in the zone's label.
+        var tally = QuestTracking.ZoneProgress(Zone, Six, doable: true, startable: q => q.Id is 1 or 3 or 6 or 7);
+        var one = QuestTracking.ZoneProgress(Zone, Six, doable: true, startable: q => q.Id == 6);
 
-        // 1, 2 and 6 are not done nor ignored, and the daily 7 passes too: the zone's label counts it.
-        Assert.Equal("4", tally?.Count);
-        Assert.Equal("4 quêtes à faire", tally?.PassingTip);
+        Assert.Equal("3", tally?.Count);
+        Assert.Equal("3 quêtes faisables", tally?.PassingTip);
         Assert.Equal(2, tally?.Started);
         Assert.False(tally?.IsComplete);
-    }
-
-    [Fact]
-    public void ZoneProgress_under_available_counts_what_is_startable()
-    {
-        var available = QuestTracking.ZoneProgress(Zone, Six, available: true, startable: q => q.Id is 1 or 6);
-        var both = QuestTracking.ZoneProgress(Zone, Six, toDo: true, available: true, startable: q => q.Id is 3 or 6);
-
-        Assert.Equal("2", available?.Count);
-        Assert.Equal("2 quêtes accessibles", available?.PassingTip);
-        // 3 is ignored: "to do" leaves it out.
-        Assert.Equal("1", both?.Count);
-        Assert.Equal("1 quête accessible à faire", both?.PassingTip);
+        Assert.Equal("1 quête faisable", one?.PassingTip);
     }
 
     [Fact]

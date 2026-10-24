@@ -25,7 +25,7 @@ belongs in the commits and in `docs/DECISIONS.md`.
 - A level box in the guides window: changing it updates your character's level on Papycha too.
 - Every quest list shows what each quest gives your character, XP and kamas side by side.
 - With the Papycha tracker linked, a small priority mark on the quests you can do now, from a dot to a flame, for the ones most worth doing, for XP or for kamas.
-- A "Recommended" button next to "To do" and "Available" shows with the Papycha tracker linked two short lists in tabs, "XP" and "Kamas", the best quests to do now (from a series, only its next quest), at most 20 each, ranked by gain per minute.
+- A "Recommended" button next to "Doable" shows with the Papycha tracker linked two short lists in tabs, "XP" and "Kamas", the best quests to do now (from a series, only its next quest), at most 20 each, ranked by gain per minute.
 - The level and Bonus Pack boxes are now in every view of the guides window.
 - Each quest shows an estimated time, about 25 min for example, worked out by DT Hub from the game's objectives and maps; Recommended ranks on XP and kamas per minute and leaves out what takes over two hours, unless a list would hold fewer than 10.
 - Mark many quests done at once: the selection button in the guides list ticks quests (Shift+click for a range), and achievement and zone headings offer "Mark all done"; DT Hub writes them one by one, checks what Papycha kept and writes again what was lost.
@@ -33,9 +33,9 @@ belongs in the commits and in `docs/DECISIONS.md`.
 - Dungeons that advance at least two recommended quests appear in "Recommended", and in the dungeon lists with the reward of the quest steps that go through them; every dungeon shows the estimated time of a run.
 - A gift icon on a quest row lists the items and other rewards it gives at your level.
 - Hover a quest to see where to find the items it asks for: which monsters drop them, harvesting, crafting, archimonsters and their areas.
-- "Available" and the next quests now work for characters other than the one active on Papycha, from the quests they have finished.
+- "Doable" and the next quests now work for characters other than the one active on Papycha, from the quests they have finished.
 - The tracker bar of the guides window wraps under the character on a narrow window, and each recommended quest shows its zone and, in a series, its place in it (3/11).
-- With "To do" or "Available" on, each zone shows how many of its quests the filters keep instead of done over total.
+- "To do" and "Available" become a single toggle, "Doable": it keeps only the quests your character can do now, not finished nor ignored (blocked ones stay shown), and each zone then shows how many of its quests are doable instead of done over total.
 - With the Papycha tracker linked, the prerequisites lock tells whether they are met for your character (open and grey, or closed in yellow, with a check or a cross before each quest in its hover), and Recommended says in one line how it ranks (the detail on hovering the "i") and has two toggles: "Dungeons included", on by default, and "With prerequisites", which also shows the quests with a condition DT Hub cannot check (time slot, alignment, item...), hidden by default.
 
 ## [0.10.5] - 2026-10-22

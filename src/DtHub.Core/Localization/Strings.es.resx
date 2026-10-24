@@ -1900,23 +1900,11 @@ Mientras tanto, el botón de abajo abre la página en tu navegador.</value>
   <data name="ZoneInProgress" xml:space="preserve">
     <value>{0} en curso</value>
   </data>
-  <data name="ZonePassingToDo" xml:space="preserve">
-    <value>{0} misiones por hacer</value>
+  <data name="ZonePassing" xml:space="preserve">
+    <value>{0} misiones realizables</value>
   </data>
-  <data name="ZonePassingToDoOne" xml:space="preserve">
-    <value>{0} misión por hacer</value>
-  </data>
-  <data name="ZonePassingAvailable" xml:space="preserve">
-    <value>{0} misiones accesibles</value>
-  </data>
-  <data name="ZonePassingAvailableOne" xml:space="preserve">
-    <value>{0} misión accesible</value>
-  </data>
-  <data name="ZonePassingBoth" xml:space="preserve">
-    <value>{0} misiones accesibles por hacer</value>
-  </data>
-  <data name="ZonePassingBothOne" xml:space="preserve">
-    <value>{0} misión accesible por hacer</value>
+  <data name="ZonePassingOne" xml:space="preserve">
+    <value>{0} misión realizable</value>
   </data>
   <data name="ProfitPickTwo" xml:space="preserve">
     <value>Marca al menos dos personajes para el equipo.</value>
@@ -2661,17 +2649,11 @@ Para evitarlo: {1}  ›  «Bloqueo automático de Carpeta segura» › la opció
   <data name="MuteBatteryAlertHeader" xml:space="preserve">
     <value>¿Este ajuste no existe en tu dispositivo?</value>
   </data>
-  <data name="FilterToDo" xml:space="preserve">
-    <value>Por hacer</value>
+  <data name="FilterDoable" xml:space="preserve">
+    <value>Realizables</value>
   </data>
-  <data name="FilterAvailable" xml:space="preserve">
-    <value>Accesibles</value>
-  </data>
-  <data name="FilterToDoTip" xml:space="preserve">
-    <value>Oculta las misiones terminadas o ignoradas. Quedan las pendientes o en curso, aunque aún no se puedan empezar.</value>
-  </data>
-  <data name="FilterAvailableTip" xml:space="preserve">
-    <value>Solo deja las misiones que tu personaje puede lanzar ahora: nivel y misiones anteriores hechas, según tu seguimiento. Con «Por hacer», lo que puedes hacer ya.</value>
+  <data name="FilterDoableTip" xml:space="preserve">
+    <value>Solo deja las misiones que tu personaje puede hacer ahora: ni terminadas ni ignoradas (las bloqueadas siguen visibles), nivel alcanzado, misiones anteriores hechas según tu seguimiento, o ya en curso.</value>
   </data>
   <data name="NextQuests" xml:space="preserve">
     <value>Siguientes</value>

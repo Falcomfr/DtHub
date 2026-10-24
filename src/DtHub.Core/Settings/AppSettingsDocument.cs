@@ -139,16 +139,25 @@ public sealed class AppSettingsDocument
     public int RewardXpBonus { get; set; }
 
     /// <summary>
-    /// True when the quest list is filtered to the quests still "to do",
-    /// so the choice survives closing the window.
+    /// True when the quest list keeps only the quests doable now
+    /// ("Faisables"), so the choice survives closing the window.
     /// </summary>
-    public bool QuestFilterToDo { get; set; }
+    public bool QuestFilterDoable { get; set; }
 
     /// <summary>
-    /// True when the quest list is filtered to the quests "available" now,
-    /// so the choice survives closing the window.
+    /// Read only, from a file written before "Faisables" replaced "À faire"
+    /// and "Accessibles": "Accessibles" on turns it on. Never written back.
     /// </summary>
-    public bool QuestFilterAvailable { get; set; }
+    public bool QuestFilterAvailable
+    {
+        set
+        {
+            if (value)
+            {
+                QuestFilterDoable = true;
+            }
+        }
+    }
 
     /// <summary>"Recommandées" shows its "Kamas" tab rather than its "XP" one.</summary>
     public bool ProfitKamas { get; set; }

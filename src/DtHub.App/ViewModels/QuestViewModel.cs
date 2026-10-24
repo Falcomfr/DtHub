@@ -604,27 +604,17 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
     public void CancelBatch() => _batch?.Cancel();
 
     private bool Passes(QuestSummary quest) =>
-        QuestTracking.Passes(Tracker.Progress, quest.Id, FilterToDo, FilterAvailable, Startable(quest));
+        QuestTracking.Passes(Tracker.Progress, quest.Id, FilterDoable, Startable(quest));
 
-    // The site's list leaves the level to the site; without one, every doable rule but the gain applies.
     private bool Startable(QuestSummary quest) =>
-        FilterAvailable && Tracker.Progress is { } progress && _tree.Chain is { } chain
-        && (progress.Available.Count > 0
-            ? QuestProfit.Startable(quest, progress, chain)
-            : _facts is not null && _facts.TryGetValue(quest.Id, out var facts)
-                && QuestProfit.IsDoable(quest, progress, facts, Tracker.RewardLevel, chain));
+        FilterDoable && Tracker.Progress is { } progress && _tree.Chain is { } chain
+        && QuestTracking.Doable(quest, progress, _facts?.GetValueOrDefault(quest.Id), Tracker.RewardLevel, chain);
 
-    /// <summary>The "to do" filter of the list, remembered.</summary>
+    /// <summary>The list's "Faisables" filter, remembered.</summary>
     [ObservableProperty]
-    private bool _filterToDo;
+    private bool _filterDoable;
 
-    /// <summary>The "available" filter of the list, remembered.</summary>
-    [ObservableProperty]
-    private bool _filterAvailable;
-
-    partial void OnFilterToDoChanged(bool value) => FiltersChanged();
-
-    partial void OnFilterAvailableChanged(bool value) => FiltersChanged();
+    partial void OnFilterDoableChanged(bool value) => FiltersChanged();
 
     /// <summary>True while the remembered filters are put back: nothing to redraw or save.</summary>
     private bool _loadingFilters;
@@ -637,7 +627,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         }
 
         Redraw();
-        _ = _settings.SetQuestFiltersAsync(FilterToDo, FilterAvailable);
+        _ = _settings.SetQuestFilterAsync(FilterDoable);
     }
 
     /// <summary>
@@ -1141,8 +1131,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
 
         var saved = await _settings.GetAsync(cancellationToken).ConfigureAwait(true);
         _loadingFilters = true;
-        FilterToDo = saved.QuestFilterToDo;
-        FilterAvailable = saved.QuestFilterAvailable;
+        FilterDoable = saved.QuestFilterDoable;
         ProfitKamas = saved.ProfitKamas;
         ProfitDungeons = saved.ProfitDungeons;
         ProfitWithPrerequisites = saved.ProfitWithPrerequisites;
@@ -1460,7 +1449,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
 
             // With a filter on, a zone with nothing left to show would open
             // onto an empty list.
-            var filtering = Tracker.Progress is not null && (FilterToDo || FilterAvailable);
+            var filtering = Tracker.Progress is not null && FilterDoable;
             var next = NextQuests().ToList();
 
             if (next.Count > 0 && (!filtering || next.Any(Passes)))
@@ -1517,7 +1506,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
                         Label = filtering ? $"{_tree.NameOf(branch.Id)} ({QuestTree.Text(shown)})" : branch.Label,
                         Detail = filtering ? QuestLevelRange.Of(quests.Where(Passes)) : branch.Detail,
                         Tally = QuestTracking.ZoneProgress(
-                            Tracker.Progress, [.. quests.DistinctBy(q => q.Id)], FilterToDo, FilterAvailable, Startable),
+                            Tracker.Progress, [.. quests.DistinctBy(q => q.Id)], FilterDoable, Startable),
                     });
                 }
             }

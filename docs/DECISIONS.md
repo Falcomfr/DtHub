@@ -11098,7 +11098,7 @@ site :
   refusée même si le site la donne ;
 - le site ne donne rien (les autres personnages) : toutes ses quêtes
   précédentes terminées. Sans cette voie « Recommandées » et « Accessibles »
-  restaient vides pour eux ;
+  (aujourd'hui « Faisables ») restaient vides pour eux ;
 - le site en donne d'autres mais pas elle : pas démarrable, même si ses
   précédentes sont faites (revue finale du 23/10/2026).
 
@@ -11106,7 +11106,7 @@ Les quêtes précédentes sont résolues par `QuestChainIndex`
 (titre, « ... atteint », succès = dernière quête du succès), la quête elle-même exclue (« L'Ascension »
 se nomme elle-même) ; un prérequis qui ne désigne aucune quête (alignement, texte
 libre) n'est pas vérifié. La règle est une seule fonction (`QuestProfit.Startable`),
-lue aussi par le cadenas (voir plus bas), par « Accessibles » (une quête que le
+lue aussi par le cadenas (voir plus bas), par « Faisables » (une quête que le
 site donne n'y reste que si elle est démarrable) et par les « Suivantes », celles
 du site comprises. Pour les « Suivantes » calculées, en plus : répétables, bloquées et
 quêtes au-dessus du niveau du personnage exclues (une quête dont les objectifs ne
@@ -11200,7 +11200,7 @@ dans l'ordre de jeu (« · Agriculture et Alchimie 3/11 ») (le regroupement « 
 zone » prévu n'existe pas : il aurait cassé l'ordre des deux listes), une marque à
 trois paliers (flamme pleine, flamme creuse, point), une vue « Quêtes
 recommandées » (deux listes courtes en onglets, voir plus haut) ouverte par un bouton « Recommandées » de la barre du haut, à côté
-de « À faire » et « Accessibles » (seule entrée : la branche des zones est
+de « Faisables » (seule entrée : la branche des zones est
 retirée ; pressé de nouveau, il rend la section ou le guide quitté, Retour
 rend la section quittée, liste ouverte ; non relié, une ligne dit de relier le suivi Papycha), et les cases de niveau et de Bonus Pack dans toutes
 les vues de la fenêtre des guides, juste après le personnage, sur sa ligne quand
@@ -11278,6 +11278,21 @@ quand la fenêtre est trop étroite (440 px au plus juste), rien n'est coupé. L
 boutons agissent avant les listes courtes : la liste garde ses 20 lignes.
 L'onglet et les deux boutons sont retenus dans les réglages ; les clés des quatre
 anciens filtres sont simplement ignorées à la lecture d'un ancien fichier.
+
+**Filtre « Faisables ».** Demande du 24/10/2026 : « possible tu mets un seul
+bouton qui regroupe tout qui met juste les quêtes faisables ». Les deux filtres de
+la barre de la liste, « À faire » (sans les terminées ni les ignorées) et
+« Accessibles » (démarrables maintenant), deviennent un seul bouton, « Faisables »,
+qui fait les deux à la fois : ni terminée ni ignorée, et démarrable (la liste du
+site pour son personnage actif, `QuestProfit.Startable` ; sans elle, toutes les
+règles de quête faisable sauf le gain, `QuestProfit.IsDoable`), ou en cours. Une
+quête bloquée reste affichée (précision du même jour : le joueur veut encore la
+voir) : pour ces règles elle compte comme non commencée (`QuestTracking.Doable`,
+testée). Non relié, rien n'est filtré, comme avant. Chaque zone compte alors ses
+quêtes faisables (« 3 quêtes faisables » au survol) au lieu de faites sur le
+total. Un seul réglage est retenu ; un ancien fichier qui avait « Accessibles »
+actif rallume « Faisables » (la clé est encore lue, jamais réécrite), « À faire »
+seul ne le rallume pas : il gardait des quêtes pas encore démarrables.
 
 ## D220 - Les outils des guides : valeur des donjons, équipe, où trouver
 
@@ -11481,8 +11496,8 @@ autre, et le choix du personnage est coupé pendant un lot. « Marquer
 terminées (n) » écrit les quêtes cochées sauf celles déjà terminées : cochée à
 la main, une quête ignorée ou répétable est voulue. En mode sélection, les
 titres de succès et les zones proposent « Tout marquer terminé » : les quêtes
-listées sous le succès, ou celles de la zone que les filtres « À faire » et
-« Accessibles » laissent (le nombre que sa ligne affiche), sans les terminées,
+listées sous le succès, ou celles de la zone que le filtre « Faisables »
+laisse (le nombre que sa ligne affiche), sans les terminées,
 ignorées, bloquées et répétables (`QuestBatch.ToMarkDone`). Dans les deux cas
 le joueur marque ce que la liste lui montre. Au-delà de 20 quêtes, DT Hub
 demande confirmation. Pendant le lot, une ligne « 42 / 140 » (puis « · passe
