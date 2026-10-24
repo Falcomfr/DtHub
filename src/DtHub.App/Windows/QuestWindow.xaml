@@ -1244,7 +1244,7 @@
                 <Grid x:Name="Ligne" Margin="0,3" Background="Transparent"
                       IsEnabled="{Binding IsReachable}">
                   <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="19" />
+                    <ColumnDefinition x:Name="Gouttiere" Width="19" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                   </Grid.ColumnDefinitions>
@@ -2277,6 +2277,13 @@
 
                   <DataTrigger Binding="{Binding Tally.Started}" Value="0">
                     <Setter TargetName="ZoneEnCours" Property="Visibility" Value="Hidden" />
+                  </DataTrigger>
+
+                  <!-- Recommended has no tree: its rows start at the list's edge, level first
+                       (asked 2026-10-24: "espace pour rien à gauche"). -->
+                  <DataTrigger Binding="{Binding DataContext.ShowsRecommended,
+                                                 RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                    <Setter TargetName="Gouttiere" Property="Width" Value="0" />
                   </DataTrigger>
 
                   <DataTrigger Binding="{Binding DataContext.KeyColumnWidth,
