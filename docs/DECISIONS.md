@@ -11046,7 +11046,10 @@ Formule, par étape, avec `L` le niveau, `opt` le niveau optimal, `d` la durée,
 
 `d`, les ratios et 0,7 sont des float32 élargis en double, donc `1 - 0,7`
 n'est pas exactement 0,3. Le plafond est un niveau entier (85 * 1,5 compte pour
-127). La récompense d'une quête est la somme de ses étapes.
+127). La récompense d'une quête est la somme de ses étapes. Une page Papycha
+appariée à plusieurs quêtes du jeu prend les étapes de la première seule (revue
+du 24/10/2026) : « L'Ascension » est appariée à « L'Ascension. » et
+« L'Ascension », et la somme des deux doublait son gain et son temps.
 
 Vérifiée sur le journal du jeu le 2026-10-23, Bonus Pack (+150 %) : Cra niveau
 191 sur Gare au Kailleu (11 512 kamas, 1 976 445 XP), Ça rend aimable. (4 780

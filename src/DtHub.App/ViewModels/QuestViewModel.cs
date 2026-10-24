@@ -977,7 +977,10 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         }
 
         var level = Tracker.RewardLevel;
-        var total = names is null || level <= 0 ? null : QuestRewards.For(steps, level, Tracker.RewardXpBonus);
+        // The facts hold one game quest, as the lists do; the guide's steps may show two paired ones ("L'Ascension").
+        var total = names is null || level <= 0 ? null
+            : _facts?.GetValueOrDefault(quest.Id) is { } facts ? QuestProfit.RewardOf(facts, level, Tracker.RewardXpBonus)
+            : QuestRewards.For(steps, level, Tracker.RewardXpBonus);
 
         RewardText = total is null ? string.Empty : QuestRewardText.Format(total, level, Tracker.RewardXpBonus, names!);
     }

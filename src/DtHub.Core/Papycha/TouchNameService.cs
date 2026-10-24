@@ -258,13 +258,13 @@ public sealed class TouchNameService(
     private async Task<Dictionary<int, TouchQuestFacts>> ReadFactsAsync(
         TouchLanguageNames known, string language, CancellationToken ct)
     {
-        // The first game quest of each distinct name, as StepsAsync does.
+        // The first game quest only: "L'Ascension." and "L'Ascension" on one page summed two quests' rewards and time.
         var stepIdsOf = Table.Quests.ToDictionary(
             q => q.Key,
             q => q.Value
                 .Where(known.Quests.ContainsKey)
-                .GroupBy(id => known.Quests[id].Name)
-                .SelectMany(g => known.Quests[g.First()].StepIds)
+                .Take(1)
+                .SelectMany(id => known.Quests[id].StepIds)
                 .ToArray());
 
         async Task<T> Locked<T>(Func<Task<T>> read)

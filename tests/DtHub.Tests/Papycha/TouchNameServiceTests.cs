@@ -368,6 +368,12 @@ public class TouchNameServiceTests
 
     private void SeedFacts()
     {
+        // Papycha quest 1 pairs with game quests 10 and 11: 10 holds both steps, 11 is Papycha quest 2's.
+        _client.Rows["Quests"] = new()
+        {
+            [10] = """{"nameId":"Ten","stepIds":[10,11]}""",
+            [11] = """{"nameId":"Eleven","stepIds":[11]}""",
+        };
         _client.Rows["QuestSteps"] = new()
         {
             [10] = FactsStepA,
@@ -406,6 +412,28 @@ public class TouchNameServiceTests
         _ = await service.FactsAsync("en");
 
         Assert.Empty(_client.Requested);
+    }
+
+    [Fact]
+    public async Task Une_page_appariee_a_deux_quetes_du_jeu_ne_prend_que_les_faits_de_la_premiere()
+    {
+        // "L'Ascension" (Papycha 4272) pairs with "L'Ascension." and "L'Ascension": two names, the same quest twice.
+        SeedFacts();
+        _client.Rows["Quests"] = new()
+        {
+            [10] = """{"nameId":"L'Ascension.","stepIds":[10]}""",
+            [11] = """{"nameId":"L'Ascension","stepIds":[11]}""",
+        };
+        _client.Rows["QuestSteps"][11] = FactsStepA.Replace("\"id\":10", "\"id\":11", StringComparison.Ordinal).Replace("[70,71]", "[72]", StringComparison.Ordinal);
+        using var service = new TouchNameService(_client, _store, new FakeTable()) { FactsPause = TimeSpan.Zero };
+
+        var facts = await service.FactsAsync("en");
+
+        Assert.Single(facts[1].Steps);
+        Assert.Equal([3, 1], facts[1].Objectives.Select(o => o.TypeId));
+        Assert.Equal(
+            QuestRewards.Experience(facts[1].Steps[0]!, 50, 0),
+            QuestProfit.GainOf(facts[1], 50, 0)!.Xp);
     }
 
     [Fact]
