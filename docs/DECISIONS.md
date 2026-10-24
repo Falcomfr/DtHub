@@ -11210,7 +11210,7 @@ Papycha puis affiché dans la liste des personnages.
 
 **Icônes serrées.** Sur une ligne de quête, les icônes de droite (priorité, rythme,
 statut, cadenas) ne gardent plus de place vide : absentes, elles sont repliées et
-les présentes se serrent à droite, 4 px d'écart. L'utilisateur préfère une ligne
+les présentes se serrent à droite, 3 px d'écart (4 avant le 24/10/2026, plus bas). L'utilisateur préfère une ligne
 sans trous à des colonnes d'icônes droites. Le cadenas vient en dernier : il est
 sur la plupart des quêtes, la marque de statut à côté de lui s'aligne donc en
 pratique. Seuls les gains gardent des colonnes fixes, des nombres doivent
@@ -11221,6 +11221,20 @@ de la virtualisation, sont réduites à leur contenu (18, 60 et 19 px au lieu de
 mot de l'infobulle, et les pierres attendent les quatre mots tels que l'API les
 écrit (« Petite », « Moyenne », « Grande », « Gigantesque ») ; une autre casse
 n'affichait aucune pierre.
+
+**Droite des lignes revue.** Demande du 24/10/2026, sur une capture de la liste des
+guides : « on peut réduire les espaces que ce soit plus clean ici ? revois un peu
+ces lignes ». Chaque signe (cadeau, priorité, rythme, statut, cadenas) occupe un
+carré de 15 px, la taille de dessin du rythme et du cadenas (les autres, dessinés
+sur 12, y sont centrés), à 3 px les uns des autres, du temps et de la colonne
+d'XP ; le cadenas, bouton d'icône de 24 px de haut, grandissait la ligne. Les
+gains gardent leurs colonnes alignées à droite, en chiffres tabulaires, 4 px entre
+elles. Largeurs, en Segoe UI à 11 px (chiffre environ 6 px, M 9,4, k 5,4, espace
+2,9, virgule 2,5, glyphe 10 + 2) : XP 54 pour « 999,9 M » (51), kamas 46 pour « 12,5 M » d'une suite de série
+(45). Une ligne sans gain garde les colonnes vides (cachées, pas repliées), donc
+ses temps et signes finissent au même endroit que les autres. À 440 px de
+fenêtre, la partie fixe de droite fait au plus environ 250 px (temps 40, cinq
+signes 90, gains 107), le titre garde le reste.
 
 **Cadenas.** Revue du 23/10/2026 : « Terre à terre », recommandée, portait le
 cadenas avec « Tour de l'île » au survol, et l'utilisateur l'a crue non faisable ;

@@ -42,7 +42,7 @@ belongs in the commits and in `docs/DECISIONS.md`.
 
 ### Fixed
 
-- A quest row with the prerequisites lock is no longer taller than the others.
+- A quest row with the prerequisites lock is no longer taller than the others, and the right of the rows is tighter: signs of one size, evenly spaced, gain figures lined up.
 
 ## [0.10.5] - 2026-10-22
 

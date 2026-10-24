@@ -36,7 +36,7 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
 ### Corrigé
 
-- Une ligne de quête avec le cadenas des prérequis n'est plus plus haute que les autres.
+- Une ligne de quête avec le cadenas des prérequis n'est plus plus haute que les autres, et la droite des lignes est plus serrée : signes de même taille et régulièrement espacés, chiffres des gains alignés.
 
 ## [0.10.5] - 2026-10-22
 

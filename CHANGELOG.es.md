@@ -35,7 +35,7 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 
 ### Corregido
 
-- Una fila de misión con el candado de requisitos ya no es más alta que las demás.
+- Una fila de misión con el candado de requisitos ya no es más alta que las demás, y la derecha de las filas es más compacta: signos del mismo tamaño y espaciados por igual, cifras de las ganancias alineadas.
 
 ## [0.10.5] - 2026-10-22
 

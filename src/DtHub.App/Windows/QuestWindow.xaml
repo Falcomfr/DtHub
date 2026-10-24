@@ -1524,7 +1524,9 @@
                     <!-- The right-hand icons of a quest row: priority,
                          rhythm, status, lock, then the two gains. Each icon
                          is collapsed when it has nothing to say, so the
-                         ones present pack to the right four pixels apart:
+                         ones present, each in a 15 px square (the rhythm's
+                         and the lock's drawing size), pack to the right
+                         three pixels apart:
                          the user prefers no gaps to straight icon columns.
                          The lock comes last as it is on most quests, so the
                          status mark beside it lines up in practice. Only the
@@ -1547,15 +1549,16 @@
                                                     ConverterParameter=inverse}" />
                     <!-- A gift: the quest gives more than XP and kamas, what
                          comes on hover. Collapsed otherwise, like the others. -->
-                    <Border x:Name="Cadeau" Width="12" Height="12"
-                            Margin="4,0,0,0" VerticalAlignment="Center"
+                    <Border x:Name="Cadeau" Width="15" Height="15"
+                            Margin="3,0,0,0" VerticalAlignment="Center"
                             Background="Transparent"
                             ToolTip="{Binding OtherRewards}"
                             ToolTipService.InitialShowDelay="200"
                             Visibility="{Binding OtherRewards,
                                                  Converter={StaticResource EmptyToVisibility},
                                                  ConverterParameter=inverse}">
-                      <Path Stretch="None" Stroke="{DynamicResource GlyphSuccessBrush}"
+                      <Path Width="12" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Stretch="None" Stroke="{DynamicResource GlyphSuccessBrush}"
                             StrokeThickness="1.2" StrokeLineJoin="Round"
                             StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                             Data="M 1.5,4.5 H 10.5 V 6.5 H 1.5 Z M 2.5,6.5 V 11 H 9.5 V 6.5 M 6,4.5 V 11
@@ -1567,12 +1570,13 @@
                          a dot. Hidden by default and collapsed on rows
                          without a dungeon: a dungeon row without a mark keeps
                          its square, so its facts stay in their column. -->
-                    <Border x:Name="Priorite" Width="12" Height="12"
-                            Margin="4,0,0,0" VerticalAlignment="Center"
+                    <Border x:Name="Priorite" Width="15" Height="15"
+                            Margin="3,0,0,0" VerticalAlignment="Center"
                             Background="Transparent" Visibility="Hidden"
                             ToolTip="{Binding ProfitTip}"
                             ToolTipService.InitialShowDelay="200">
-                      <Path x:Name="PrioriteTrait" Stretch="None"
+                      <Path x:Name="PrioriteTrait" Width="12" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Stretch="None"
                             Fill="{DynamicResource GlyphPriorityBrush}"
                             Stroke="{DynamicResource GlyphPriorityBrush}" StrokeThickness="0"
                             StrokeLineJoin="Round" />
@@ -1580,7 +1584,7 @@
 
                     <!-- A quest's rhythm; a quest done once has none. The
                          word comes on hover. -->
-                    <Border x:Name="Rythme" Width="15" Margin="4,0,0,0"
+                    <Border x:Name="Rythme" Width="15" Height="15" Margin="3,0,0,0"
                             Background="Transparent" VerticalAlignment="Center"
                             ToolTip="{Binding RecurrenceLabel}"
                             ToolTipService.InitialShowDelay="200"
@@ -1594,11 +1598,12 @@
                          word comes on hover. At the left of the name it
                          kept a gap between the level and the name on every
                          unmarked row. -->
-                    <Border x:Name="Marque" Width="12" Height="12"
-                            Margin="4,0,0,0" VerticalAlignment="Center"
+                    <Border x:Name="Marque" Width="15" Height="15"
+                            Margin="3,0,0,0" VerticalAlignment="Center"
                             Background="Transparent" Visibility="Collapsed"
                             ToolTipService.InitialShowDelay="200">
-                      <Path x:Name="MarqueTrait" Stretch="None"
+                      <Path x:Name="MarqueTrait" Width="12" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Stretch="None"
                             Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.5"
                             StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                             StrokeLineJoin="Round" />
@@ -1631,10 +1636,11 @@
                          list of prerequisites reads more slowly than a
                          button's single word.
 
-                         16 px high, not the icon button's 24: a row with
-                         the lock grew taller than its neighbours. -->
+                         15 px square like the other signs, not the icon
+                         button's 24 high: a row with the lock grew taller
+                         than its neighbours. -->
                     <Button x:Name="Cadenas" Style="{StaticResource IconButton}"
-                            Width="16" Height="16" VerticalAlignment="Center" Margin="4,0,0,0"
+                            Width="15" Height="15" VerticalAlignment="Center" Margin="3,0,0,0"
                             Click="OnShowNeeds"
                             ToolTipService.InitialShowDelay="200"
                             ToolTipService.ShowDuration="30000"
@@ -1723,7 +1729,8 @@
                          kamas, last on the right in two fixed columns, wide
                          enough for a glyph and "999,9 M" in XP, "12,5 M" for
                          a series' kamas, so the numbers line up on their
-                         right edge. A glyph says
+                         right edge; tabular figures, so "314" and "780"
+                         are as wide. A glyph says
                          which is which, the words come on hover: a blue
                          four-point sparkle for XP, a gold coin for kamas.
                          The kamas column stays empty when there are none.
@@ -1734,7 +1741,7 @@
                          when it closes, filled in place once read. Rich: the
                          plain tooltip shows its content as text, and a panel
                          as text is empty. -->
-                    <Border x:Name="GainXp" Width="54" Margin="4,0,0,0"
+                    <Border x:Name="GainXp" Width="54" Margin="3,0,0,0"
                             Background="Transparent" VerticalAlignment="Center"
                             ToolTipService.InitialShowDelay="200"
                             ToolTipService.ShowDuration="30000"
@@ -1754,7 +1761,7 @@
                               Stretch="None" Fill="{DynamicResource GainXpBrush}"
                               Data="M 5,0.5 C 5.4,3.6 6.4,4.6 9.5,5 C 6.4,5.4 5.4,6.4 5,9.5
                                     C 4.6,6.4 3.6,5.4 0.5,5 C 3.6,4.6 4.6,3.6 5,0.5 Z" />
-                        <TextBlock Text="{Binding GainXp}" TextWrapping="NoWrap"
+                        <TextBlock Text="{Binding GainXp}" TextWrapping="NoWrap" Typography.NumeralAlignment="Tabular"
                                    VerticalAlignment="Center" Style="{StaticResource Muted}"
                                    Foreground="{DynamicResource GainXpBrush}"
                                    FontSize="{StaticResource FontSmall}" />
@@ -1782,7 +1789,7 @@
                               StrokeThickness="1.2"
                               Data="M 0.9,5 A 4.1,4.1 0 1 0 9.1,5 A 4.1,4.1 0 1 0 0.9,5 Z
                                     M 3.2,5 A 1.8,1.8 0 1 0 6.8,5 A 1.8,1.8 0 1 0 3.2,5 Z" />
-                        <TextBlock Text="{Binding GainKamas}" TextWrapping="NoWrap"
+                        <TextBlock Text="{Binding GainKamas}" TextWrapping="NoWrap" Typography.NumeralAlignment="Tabular"
                                    VerticalAlignment="Center" Style="{StaticResource Muted}"
                                    Foreground="{DynamicResource GainKamasBrush}"
                                    FontSize="{StaticResource FontSmall}" />
