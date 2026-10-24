@@ -168,6 +168,9 @@ public sealed class AppSettingsDocument
     /// <summary>"Recommandées" keeps the quests with a prerequisite DT Hub cannot check ("Avec prérequis").</summary>
     public bool ProfitWithPrerequisites { get; set; }
 
+    /// <summary>"Recommandées" lists series runs ("Succès") rather than single quests ("Quêtes").</summary>
+    public bool ProfitSeries { get; set; }
+
     /// <summary>
     /// True when the application updates itself: it downloads the release
     /// in the background and installs it on exit, never in the middle of

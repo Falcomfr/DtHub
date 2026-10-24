@@ -132,4 +132,35 @@ public class QuestPlanningTests
 
         Assert.Equal([2], team.Select(t => t.Entry.Quests.Single().Id));
     }
+
+    [Fact]
+    public void Team_runs_keep_a_series_two_characters_can_run_sum_their_gains_and_take_the_longest_time()
+    {
+        var catalog = new[] { Quest(1, "S", 1), Quest(2, "S", 2), Quest(3, "S", 3), Quest(4, "T", 1), Quest(5, "T", 2) };
+        var facts = catalog.ToDictionary(q => q.Id, q => Xp(q.Id));
+        // A runs S 1-3 and T 4-5; B runs S 2-3 at level 30; C has only T's 5 left, a run of one.
+        var team = QuestPlanning.TeamRuns(
+            catalog, facts,
+            [Character("A", 10, Progress([1, 4])), Character("B", 30, Progress([2], completed: [1])), Character("C", 10, Progress([5], completed: [4]))],
+            0, withPrerequisites: false, dungeons: true, new Dictionary<int, string>());
+
+        var s = Assert.Single(team);
+        Assert.Equal("S", s.Entry.Title);
+        Assert.Equal([1, 2, 3], s.Entry.Quests.Select(q => q.Id));
+        Assert.Equal(["A", "B"], s.Characters.Select(c => c.Name));
+        long Xp10(int id) => QuestProfit.GainOf(facts[id], 10, 0)!.Xp;
+        long Xp30(int id) => QuestProfit.GainOf(facts[id], 30, 0)!.Xp;
+        Assert.Equal(Xp10(1) + Xp10(2) + Xp10(3) + Xp30(2) + Xp30(3), s.Gain.Xp);
+        // The longest run: three quests of 3 minutes.
+        Assert.Equal(9, s.Entry.Effort.Minutes);
+    }
+
+    [Fact]
+    public void Team_runs_need_two_characters()
+    {
+        var catalog = new[] { Quest(1, "S", 1), Quest(2, "S", 2) };
+        var facts = catalog.ToDictionary(q => q.Id, q => Xp(q.Id));
+
+        Assert.Empty(QuestPlanning.TeamRuns(catalog, facts, [Character("A", 10, Progress([1]))], 0, false, true, new Dictionary<int, string>()));
+    }
 }

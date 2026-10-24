@@ -754,4 +754,147 @@ public class QuestProfitTests
         Assert.NotEmpty(team);
         Assert.All(team, t => Assert.All(t.Characters, c => Assert.NotEqual(false, Lock(t.Entry.Quests[0], characters.Single(x => x.Item1 == c).Item2))));
     }
+
+    private static QuestSummary[] Series(int n, string name = "S") => [.. Enumerable.Range(1, n).Select(i => Quest(i, name, i))];
+
+    private static IReadOnlyList<ProfitEntry> Runs(
+        QuestSummary[] catalog, TrackerProgress progress, Dictionary<int, TouchQuestFacts> facts, bool withPrerequisites = false,
+        bool dungeons = true, Dictionary<int, string>? dungeonNames = null) =>
+        QuestProfit.Runs(catalog, facts, progress, 10, 0, withPrerequisites, dungeons, dungeonNames ?? []);
+
+    private static int[] RunIds(QuestSummary[] catalog, TrackerProgress progress, Dictionary<int, TouchQuestFacts> facts, bool withPrerequisites = false,
+        bool dungeons = true, Dictionary<int, string>? dungeonNames = null) =>
+        [.. Runs(catalog, progress, facts, withPrerequisites, dungeons, dungeonNames).SelectMany(r => r.Quests).Select(q => q.Id)];
+
+    [Fact]
+    public void A_run_is_the_series_from_its_next_doable_quest_past_done_and_ignored_ones_gains_and_minutes_summed()
+    {
+        var catalog = Series(5);
+        var facts = catalog.ToDictionary(q => q.Id, q => Xp(q.Id));
+        var progress = Progress([2], new() { [1] = QuestStatus.Completed, [3] = QuestStatus.Completed, [4] = QuestStatus.Ignored });
+
+        var run = Assert.Single(Runs(catalog, progress, facts));
+
+        Assert.Equal("S", run.Title);
+        Assert.Equal([2, 5], run.Quests.Select(q => q.Id));
+        Assert.Equal(XpOf(facts[2]) + XpOf(facts[5]), run.Gain.Xp);
+        // Two quests of 180 + 30 s, 4 minutes each.
+        Assert.Equal(8, run.Effort.Minutes);
+        Assert.True(run.Started);
+    }
+
+    [Fact]
+    public void A_run_starts_at_the_quest_in_progress()
+    {
+        var catalog = Series(4);
+        var facts = catalog.ToDictionary(q => q.Id, q => Xp(q.Id));
+
+        // The site lists another quest: 1 cannot start, 2 is under way.
+        Assert.Equal([2, 3, 4], RunIds(catalog, Progress([9], new() { [2] = QuestStatus.InProgress }), facts));
+    }
+
+    [Fact]
+    public void A_run_stops_before_a_quest_it_cannot_count_on()
+    {
+        int[] With(Action<QuestSummary[], Dictionary<int, TouchQuestFacts>> change, Dictionary<int, QuestStatus>? statuses = null)
+        {
+            var catalog = Series(4);
+            var facts = catalog.ToDictionary(q => q.Id, q => Xp(q.Id));
+            change(catalog, facts);
+            return RunIds(catalog, Progress([1], statuses), facts);
+        }
+
+        Assert.Equal([1, 2, 3, 4], With((_, _) => { }));
+        // Repeatable.
+        Assert.Equal([1, 2], With((c, _) => c[2] = c[2] with { Recurrence = QuestRecurrence.Daily }));
+        // No facts, or a step without its formula: the gain is unknown.
+        Assert.Equal([1, 2], With((_, f) => f.Remove(3)));
+        Assert.Equal([1, 2], With((_, f) => f[3] = new([null], [Obj(1)])));
+        // Above the character's level.
+        Assert.Equal([1, 2], With((_, f) => f[3] = new([Step(20, 1f)], [Obj(1)])));
+        // The short lists' exclusions: the keyring, more than five souls.
+        Assert.Equal([1, 2], With((_, f) => f[3] = new([Step(10, 1f)], [new TouchObjective(0, [1], 10, "Vider le trousseau")])));
+        Assert.Equal([1, 2], With((_, f) => f[3] = new([Step(10, 1f)], [.. Enumerable.Repeat(Obj(12), 6)])));
+        // Blocked.
+        Assert.Equal([1, 2], With((_, _) => { }, new() { [3] = QuestStatus.Blocked }));
+    }
+
+    [Fact]
+    public void A_run_of_one_quest_is_left_to_the_quests_mode()
+    {
+        var catalog = Series(3);
+        var facts = catalog.ToDictionary(q => q.Id, q => Xp(q.Id));
+        facts[2] = new([Step(20, 1f)], [Obj(1)]);
+
+        Assert.Empty(Runs(catalog, Progress([1]), facts));
+    }
+
+    [Fact]
+    public void Off_prerequisites_cut_a_run_unless_the_need_is_a_quest_of_the_run()
+    {
+        var catalog = Series(4);
+        // 3 follows 2, inside the run; 4 asks a time slot.
+        catalog[2] = catalog[2] with { Prerequisites = ["Q2"] };
+        catalog[3] = catalog[3] with { Prerequisites = ["Être dans les créneaux horaires"] };
+        var facts = catalog.ToDictionary(q => q.Id, q => Xp(q.Id));
+
+        Assert.Equal([1, 2, 3], RunIds(catalog, Progress([1]), facts));
+        Assert.Equal([1, 2, 3, 4], RunIds(catalog, Progress([1]), facts, withPrerequisites: true));
+
+        // A quest outside the run, not done, is a prerequisite.
+        QuestSummary[] outside = [.. Series(3), Quest(9)];
+        outside[2] = outside[2] with { Prerequisites = ["Q9"] };
+        Assert.Equal([1, 2], RunIds(outside, Progress([1]), facts));
+
+        // The first quest's own need hides the run, as it hides its row in the quests mode.
+        var first = Series(3);
+        first[0] = first[0] with { Prerequisites = ["Être dans les créneaux horaires"] };
+        Assert.Empty(RunIds(first, Progress([1]), facts));
+        Assert.Equal([1, 2, 3], RunIds(first, Progress([1]), facts, withPrerequisites: true));
+    }
+
+    [Fact]
+    public void Off_dungeons_cut_a_run_before_a_quest_with_a_dungeon()
+    {
+        var catalog = Series(4);
+        var facts = catalog.ToDictionary(q => q.Id, q => Xp(q.Id));
+        // 4 runs a dungeon (a lone fight beside its exit), 3 names one.
+        facts[4] = new([Step(10, 1f)], [new TouchObjective(6, [1, 1], 10, Step: 0), new TouchObjective(4, [], 10, "Sortie du donjon", Step: 0)]);
+        Dictionary<int, string> names = new() { [7] = "Donjon des Bouftous" };
+
+        Assert.Equal([1, 2, 3, 4], RunIds(catalog, Progress([1]), facts, dungeonNames: names));
+        Assert.Equal([1, 2, 3], RunIds(catalog, Progress([1]), facts, dungeons: false));
+        facts[3] = new([Step(10, 1f)], [new TouchObjective(0, [1], 10, "Braver le Donjon des Bouftous")]);
+        Assert.Equal([1, 2], RunIds(catalog, Progress([1]), facts, dungeons: false, dungeonNames: names));
+    }
+
+    [Fact]
+    public void Runs_rank_on_the_tab_s_side_per_minute_with_no_two_hour_limit()
+    {
+        var catalog = Enumerable.Range(1, 12).Select(i => Quest(i)).ToArray();
+        // Ten rows within two hours, two far longer ones better per minute in XP only.
+        List<ProfitEntry> rows = [.. catalog.Take(10).Select(q => Row(q, 10, 20, 100)), Row(catalog[10], 1000, 0, 300), Row(catalog[11], 2000, 0, 300)];
+
+        IEnumerable<int> Ranked(bool kamas) =>
+            QuestProfit.Shortlist(rows, e => e.Gain, e => e.Effort.Minutes, e => e.Quests[0], catalog, kamas, maxMinutes: int.MaxValue)
+                .Select(e => e.Quests[0].Id);
+
+        Assert.Equal([12, 11, .. Enumerable.Range(1, 10)], Ranked(kamas: false));
+        Assert.Equal(Enumerable.Range(1, 10), Ranked(kamas: true));
+    }
+
+    [Fact]
+    public void Equal_runs_follow_the_catalog_whatever_the_order_they_come_in()
+    {
+        QuestSummary[] catalog = [Quest(3, "B", 1), Quest(4, "B", 2), Quest(1, "A", 1), Quest(2, "A", 2)];
+        var facts = catalog.ToDictionary(q => q.Id, _ => Xp(1f));
+        var runs = Runs(catalog, Progress([1, 3]), facts);
+
+        IEnumerable<string> Ranked(IEnumerable<ProfitEntry> rows) =>
+            QuestProfit.Shortlist(rows, e => e.Gain, e => e.Effort.Minutes, e => e.Quests[0], catalog, false, maxMinutes: int.MaxValue)
+                .Select(e => e.Title);
+
+        Assert.Equal(["B", "A"], Ranked(runs));
+        Assert.Equal(["B", "A"], Ranked(runs.Reverse()));
+    }
 }

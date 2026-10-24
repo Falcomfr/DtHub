@@ -127,7 +127,9 @@ public static class QuestProfit
     /// quest still to do). A need naming the quest itself is ignored, as in <see cref="Previous"/>. A quest every one of
     /// them has in progress has none.
     /// </summary>
-    public static bool HasPrerequisite(QuestSummary quest, QuestChainIndex chain, IReadOnlyCollection<TrackerProgress> progress)
+    /// <param name="met">Quests counted as done for everyone: a series run's own earlier quests.</param>
+    public static bool HasPrerequisite(
+        QuestSummary quest, QuestChainIndex chain, IReadOnlyCollection<TrackerProgress> progress, IReadOnlyCollection<int>? met = null)
     {
         ArgumentNullException.ThrowIfNull(quest);
         ArgumentNullException.ThrowIfNull(chain);
@@ -140,7 +142,8 @@ public static class QuestProfit
         }
 
         return quest.Prerequisites.Any(need => chain.Resolve(need) is not { } p
-            || (p.Id != quest.Id && !progress.All(c => QuestTracking.StatusOf(c, p.Id) == QuestStatus.Completed)));
+            || (p.Id != quest.Id && met?.Contains(p.Id) != true
+                && !progress.All(c => QuestTracking.StatusOf(c, p.Id) == QuestStatus.Completed)));
     }
 
     /// <summary>The quests the prerequisites name, the quest itself left out ("L'Ascension" names itself).</summary>
@@ -287,6 +290,60 @@ public static class QuestProfit
         return (new ProfitEntry(title, quests, gain, effort, tier, started, side.ByKamas, side.Score), side.Score);
     }
 
+    /// <summary>
+    /// The "Succès" mode: per series, the run from its next doable quest (as <see cref="Entries"/> starts one) through
+    /// its later quests not done or ignored, in play order, stopping before the first that is repeatable, blocked, above
+    /// the level, of unknown gain, very long (keyring, souls), with a dungeon when <paramref name="dungeons"/> is off, or
+    /// with a prerequisite (<see cref="HasPrerequisite"/>, the run's own quests counting as done) when
+    /// <paramref name="withPrerequisites"/> is off; the first quest failing one gives no run. Runs of two quests or more,
+    /// titled by the series, gains and minutes summed.
+    /// </summary>
+    public static IReadOnlyList<ProfitEntry> Runs(
+        IEnumerable<QuestSummary> catalog, IReadOnlyDictionary<int, TouchQuestFacts> facts, TrackerProgress progress,
+        int level, int bonusPercent, bool withPrerequisites, bool dungeons, IReadOnlyDictionary<int, string> dungeonNames)
+    {
+        ArgumentNullException.ThrowIfNull(catalog);
+        ArgumentNullException.ThrowIfNull(facts);
+        ArgumentNullException.ThrowIfNull(progress);
+
+        var all = catalog.ToList();
+        var chain = new QuestChainIndex(all);
+        var names = NormalisedNames(dungeonNames);
+        var runs = new List<ProfitEntry>();
+        foreach (var group in all.Where(q => q.SuccessName.Length > 0).GroupBy(q => q.SuccessName))
+        {
+            var run = new List<QuestSummary>();
+            foreach (var q in QuestPlayOrder.Sorted(group))
+            {
+                var known = facts.TryGetValue(q.Id, out var f);
+                if (run.Count == 0)
+                {
+                    if (!known || !IsDoable(q, progress, f!, level, chain)) continue;
+                }
+                else if (QuestTracking.StatusOf(progress, q.Id) is QuestStatus.Completed or QuestStatus.Ignored) continue;
+                else if (!known || !Continuable(q, progress, f!, level)) break;
+
+                if (GainOf(f!, level, bonusPercent) is null || IsVeryLong(f!)
+                    || (!dungeons && (QuestTime.HasDungeonRun(f!) || Named(f!, names).Any()))
+                    || (!withPrerequisites && HasPrerequisite(q, chain, [progress], [.. run.Select(r => r.Id)])))
+                {
+                    break;
+                }
+
+                run.Add(q);
+            }
+
+            if (run.Count < 2) continue;
+            var gains = run.Select(q => GainOf(facts[q.Id], level, bonusPercent)!).ToList();
+            var started = group.Any(q => QuestTracking.StatusOf(progress, q.Id) is QuestStatus.Completed or QuestStatus.InProgress);
+            runs.Add(new ProfitEntry(
+                group.Key, run, new QuestGain(gains.Sum(g => g.Xp), gains.Sum(g => g.Kamas)),
+                EffortOf([.. run.Select(q => (q, facts[q.Id]))]), 0, started, false, 0));
+        }
+
+        return runs;
+    }
+
     /// <summary>Past this many minutes a row only tops up a short list holding fewer than <see cref="ShortFloor"/>.</summary>
     public const int ShortMinutes = 120;
 
@@ -333,7 +390,7 @@ public static class QuestProfit
     /// </summary>
     public static IReadOnlyList<T> Shortlist<T>(
         IEnumerable<T> rows, Func<T, QuestGain> gainOf, Func<T, int> minutesOf, Func<T, QuestSummary> firstOf,
-        IReadOnlyList<QuestSummary> catalog, bool kamas, int count = 20)
+        IReadOnlyList<QuestSummary> catalog, bool kamas, int count = 20, int maxMinutes = ShortMinutes)
     {
         ArgumentNullException.ThrowIfNull(catalog);
 
@@ -347,8 +404,8 @@ public static class QuestProfit
             .ThenBy(r => rank.GetValueOrDefault(r.First.Id, int.MaxValue))
             .ThenBy(r => r.First.Id)
             .ToList();
-        var within = ranked.Where(r => r.Minutes <= ShortMinutes).Take(count).ToList();
-        var above = ranked.Where(r => r.Minutes > ShortMinutes).Take(Math.Max(0, ShortFloor - within.Count));
+        var within = ranked.Where(r => r.Minutes <= maxMinutes).Take(count).ToList();
+        var above = ranked.Where(r => r.Minutes > maxMinutes).Take(Math.Max(0, ShortFloor - within.Count));
         return [.. within.Concat(above).Select(r => r.Row)];
     }
 

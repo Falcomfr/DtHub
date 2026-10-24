@@ -1135,6 +1135,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         ProfitKamas = saved.ProfitKamas;
         ProfitDungeons = saved.ProfitDungeons;
         ProfitWithPrerequisites = saved.ProfitWithPrerequisites;
+        ProfitSeries = saved.ProfitSeries;
         _loadingFilters = false;
 
         IsBusy = true;
@@ -1609,6 +1610,10 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private bool _profitWithPrerequisites;
 
+    /// <summary>"Recommandées" lists series runs ("Succès") rather than single quests ("Quêtes"), remembered.</summary>
+    [ObservableProperty]
+    private bool _profitSeries;
+
     /// <summary>The line under "Quêtes recommandées" saying how the list is ranked, for one character or the team.</summary>
     [ObservableProperty]
     private string _profitHow = string.Empty;
@@ -1622,6 +1627,15 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
     partial void OnProfitDungeonsChanged(bool value) => ProfitFiltersChanged();
 
     partial void OnProfitWithPrerequisitesChanged(bool value) => ProfitFiltersChanged();
+
+    partial void OnProfitSeriesChanged(bool value) => ProfitFiltersChanged();
+
+    /// <summary>Picks the "Quêtes" or "Succès" mode; told again so a mode clicked while already on comes back on.</summary>
+    public void ShowSeries(bool series)
+    {
+        ProfitSeries = series;
+        OnPropertyChanged(nameof(ProfitSeries));
+    }
 
     /// <summary>Picks the "XP" or "Kamas" tab; told again so a tab clicked while already on comes back on.</summary>
     public void ShowKamas(bool kamas)
@@ -1638,7 +1652,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         }
 
         Redraw();
-        _ = _settings.SetProfitFiltersAsync(ProfitKamas, ProfitDungeons, ProfitWithPrerequisites);
+        _ = _settings.SetProfitFiltersAsync(ProfitKamas, ProfitDungeons, ProfitWithPrerequisites, ProfitSeries);
     }
 
     private bool Kept(ProfitRow row) => (ProfitDungeons || !row.Dungeon) && (ProfitWithPrerequisites || !row.Prerequisite);
@@ -1674,7 +1688,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
 
         // The toggle hides with a single character left: the team view must not stay on, empty.
         var team = ProfitTeam && Tracker.HasSeveralCharacters;
-        ProfitHow = Strings.Get(team ? "ProfitHowTeam" : "ProfitHow");
+        ProfitHow = Strings.Get((team ? "ProfitHowTeam" : "ProfitHow") + (ProfitKamas ? "Kamas" : "Xp"));
         ProfitHowTip = Strings.Get(team ? "ProfitHowTeamTip" : "ProfitHowTip");
 
         if (!Tracker.IsLinked)
@@ -1692,8 +1706,11 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         }
 
         var tooFew = team && Tracker.TeamProgress().Count < 2;
-        var rows = (team ? TeamRows() : MyRows()).Where(Kept).ToList();
-        var shown = QuestProfit.Shortlist(rows, r => r.Gain, r => r.Minutes, r => r.First, _catalog.Catalog.Quests, ProfitKamas);
+        // A run has no time limit: a series takes the evening it takes, the row says how long.
+        var rows = (ProfitSeries ? team ? TeamRunRows() : MyRunRows() : team ? TeamRows() : MyRows()).Where(Kept).ToList();
+        var shown = QuestProfit.Shortlist(
+            rows, r => r.Gain, r => r.Minutes, r => r.First, _catalog.Catalog.Quests, ProfitKamas,
+            maxMinutes: ProfitSeries ? int.MaxValue : QuestProfit.ShortMinutes);
 
         // No priority mark here: the order and the tab say it, and the combined-score tiers contradicted the order.
         foreach (var row in shown)
@@ -1768,6 +1785,79 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
                 }, progress);
             }),
         ];
+    }
+
+    /// <summary>The chosen character's series runs ("Succès"); the runs apply the two toggles themselves.</summary>
+    private List<ProfitRow> MyRunRows() =>
+        Tracker.Progress is not { } progress || _facts is null
+            ? []
+            : [.. QuestProfit.Runs(_catalog.Catalog.Quests, _facts, progress, Tracker.RewardLevel, Tracker.RewardXpBonus,
+                    ProfitWithPrerequisites, ProfitDungeons, _dungeonNames)
+                .Select(r => RunRow(r, r.Gain, QuestGainText.Tip(r.Gain, effort: r.Effort) + "\n"
+                    + string.Join("\n", r.Quests.Select(RunLine))))];
+
+    /// <summary>
+    /// The account's series runs, gains summed, the longest run's time and quests; the lock as in <see cref="TeamRows"/>.
+    /// Each quest's own gains differ by character, so the hover gives its time only.
+    /// </summary>
+    private List<ProfitRow> TeamRunRows() =>
+        _facts is null
+            ? []
+            : [.. QuestPlanning.TeamRuns(_catalog.Catalog.Quests, _facts, Tracker.TeamProgress(), Tracker.RewardXpBonus,
+                    ProfitWithPrerequisites, ProfitDungeons, _dungeonNames)
+                .Select(t =>
+                {
+                    var tip = QuestGainText.Tip(t.Gain, effort: t.Entry.Effort) + "\n"
+                        + string.Join("\n", t.Entry.Quests.Select(q => $"{q.Title} · {QuestTime.Text(QuestProfit.EffortOf(_facts[q.Id], q).Minutes)}"))
+                        + "\n" + string.Join(", ", t.Characters.Select(c => c.Name));
+                    var row = RunRow(t.Entry, t.Gain, tip);
+                    var node = row.Node;
+                    if (!t.Characters.Any(c => c.Id == Tracker.SelectedCharacter?.Id))
+                    {
+                        node = node with { NeedsMet = null, Needs = node.Needs is { } needs ? [.. needs.Select(n => n with { Met = null })] : null };
+                    }
+
+                    var count = Strings.Format("ProfitCharacters", t.Characters.Count);
+                    return row with { Node = node with { Detail = node.Detail is { Length: > 0 } detail ? $"{detail} · {count}" : count } };
+                })];
+
+    /// <summary>
+    /// A series run as a row: the series' name, then "· Zone · 3 quêtes (2-4/11)", the run's time and gains, the gift
+    /// when one of its quests gives more; a click opens its first quest.
+    /// </summary>
+    private ProfitRow RunRow(ProfitEntry run, QuestGain gain, string tip)
+    {
+        var first = run.Quests[0];
+        var node = Marked(_tree.NodeOf(first));
+        var zone = first.SectionId == 0 ? string.Empty : " · " + _tree.NameOf(first.SectionId);
+        var series = QuestPlayOrder.Sorted(_catalog.Catalog.Quests.Where(q => q.SuccessName == first.SuccessName)).Select(q => q.Id).ToList();
+        var place = Strings.Format("ProfitRunQuests", run.Quests.Count, series.IndexOf(first.Id) + 1, series.IndexOf(run.Quests[^1].Id) + 1, series.Count);
+        var others = run.Quests
+            .Select(q => _facts?.GetValueOrDefault(q.Id) is { } f && QuestProfit.RewardOf(f, Tracker.RewardLevel, Tracker.RewardXpBonus) is { } r
+                ? QuestRewardText.Others(r, _itemNames) : null)
+            .OfType<string>().ToList();
+        var (xp, kamas) = QuestGainText.Columns(gain);
+        node = node with
+        {
+            Label = run.Title,
+            Suffix = $"{zone} · {place}",
+            Duration = QuestTime.Text(run.Effort.Minutes),
+            GainXp = xp,
+            GainKamas = kamas,
+            Tier = 0,
+            ProfitTip = tip,
+            OtherRewards = others.Count > 0 ? string.Join("\n", others) : null,
+        };
+        return new ProfitRow(gain, run.Effort.Minutes, first, node, Dungeon: false, Prerequisite: false, run);
+    }
+
+    /// <summary>A run's quest in its hover: its own XP, kamas and time.</summary>
+    private string RunLine(QuestSummary quest)
+    {
+        var facts = _facts![quest.Id];
+        var gain = QuestProfit.GainOf(facts, Tracker.RewardLevel, Tracker.RewardXpBonus)!;
+        return Strings.Format("ProfitRunLine", quest.Title, QuestGainText.Compact(gain.Xp), QuestGainText.Compact(gain.Kamas),
+            QuestTime.Text(QuestProfit.EffortOf(facts, quest).Minutes));
     }
 
     /// <summary>A recommended quest as a row: its zone, then its series and place in it ("· Agriculture et Alchimie 3/11").</summary>

@@ -1124,6 +1124,10 @@ public partial class QuestWindow : Window
 
     private void OnProfitKamas(object sender, RoutedEventArgs e) => _viewModel.ShowKamas(true);
 
+    private void OnProfitQuests(object sender, RoutedEventArgs e) => _viewModel.ShowSeries(false);
+
+    private void OnProfitSeries(object sender, RoutedEventArgs e) => _viewModel.ShowSeries(true);
+
     /// <summary>Goes back to the quest we came from.</summary>
     private void OnGoBackPage(object sender, RoutedEventArgs e)
     {

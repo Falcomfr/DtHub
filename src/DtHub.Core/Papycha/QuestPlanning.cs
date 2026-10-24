@@ -46,6 +46,35 @@ public static class QuestPlanning
             s.Entry, s.Characters, new QuestGain(s.Xp, s.Kamas), s.Score, i < t3 ? 3 : i < t2 ? 2 : i < t1 ? 1 : 0))];
     }
 
+    /// <summary>
+    /// The "Succès" mode for the team: each character's own run of a series (<see cref="QuestProfit.Runs"/>) at its
+    /// level, kept when two characters or more have one; gains summed, <c>Entry</c> the longest run (the first
+    /// character's on a tie), so its minutes are the team's.
+    /// </summary>
+    public static IReadOnlyList<TeamEntry> TeamRuns(
+        IEnumerable<QuestSummary> catalog, IReadOnlyDictionary<int, TouchQuestFacts> facts,
+        IReadOnlyList<(TrackerCharacter Character, TrackerProgress Progress)> characters, int bonusPercent,
+        bool withPrerequisites, bool dungeons, IReadOnlyDictionary<int, string> dungeonNames)
+    {
+        ArgumentNullException.ThrowIfNull(characters);
+
+        var all = catalog.ToList();
+        var shared = new Dictionary<string, (ProfitEntry Entry, List<TrackerCharacter> Characters, long Xp, long Kamas)>();
+        foreach (var (character, progress) in characters)
+        {
+            foreach (var run in QuestProfit.Runs(all, facts, progress, character.Level, bonusPercent, withPrerequisites, dungeons, dungeonNames))
+            {
+                var s = shared.TryGetValue(run.Title, out var found) ? found : (run, [], 0, 0);
+                s.Characters.Add(character);
+                var longest = run.Effort.Minutes > s.Entry.Effort.Minutes ? run : s.Entry;
+                shared[run.Title] = (longest, s.Characters, s.Xp + run.Gain.Xp, s.Kamas + run.Gain.Kamas);
+            }
+        }
+
+        return [.. shared.Values.Where(s => s.Characters.Count >= 2)
+            .Select(s => new TeamEntry(s.Entry, s.Characters, new QuestGain(s.Xp, s.Kamas), 0, 0))];
+    }
+
     private static int Share(int n, double part) => (int)Math.Round(n * part, MidpointRounding.AwayFromZero);
 
     /// <summary>

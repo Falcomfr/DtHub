@@ -11279,6 +11279,45 @@ boutons agissent avant les listes courtes : la liste garde ses 20 lignes.
 L'onglet et les deux boutons sont retenus dans les réglages ; les clés des quatre
 anciens filtres sont simplement ignorées à la lecture d'un ancien fichier.
 
+**Mode « Succès ».** Demande du 24/10/2026 : « tu n'affiches plus quand il y a
+plusieurs quêtes ? genre un succès, rajoute un autre mode qui serait succès, genre
+suite de quêtes rentable xp ou kamas ». En tête de la rangée de la barre, deux
+boutons « Quêtes » / « Succès », du style de « Moi » / « Équipe », retenus dans les
+réglages, « Quêtes » par défaut : c'est la liste décrite plus haut, une quête par
+série. « Succès » liste les séries (les quêtes d'un même succès, dans l'ordre de
+jeu de `QuestPlayOrder`), une ligne par série. Sa suite part de la prochaine
+quête faisable de la série pour le personnage (la même règle que la quête seule :
+démarrable ou en cours), puis prend les quêtes suivantes ni terminées ni ignorées,
+dans l'ordre de jeu, et s'arrête avant la première qui est répétable, bloquée,
+sans données ou sans gain calculable, au-dessus du niveau du personnage (niveau
+optimal de sa première étape), écartée des listes courtes (trousseau, plus de 5
+âmes), avec un donjon quand « Donjons inclus » est éteint (même règle que le
+filtre : course de donjon ou donjon nommé ; on coupe la suite avant cette quête,
+plus simple à lire que de retirer la série), ou avec un prérequis
+(`QuestProfit.HasPrerequisite`) quand « Avec prérequis » est éteint, une quête
+précédente de la suite comptant comme faite. Si la première quête échoue l'une de
+ces règles, la série n'a pas de ligne, comme sa quête seule dans « Quêtes ». Seules
+les suites d'au moins 2 quêtes restent (une suite d'une quête est déjà dans
+« Quêtes »). Gain : la somme des quêtes de la suite au niveau du personnage, Bonus
+Pack compris ; temps : la somme de leurs temps estimés (D221). Classement sur le
+côté de l'onglet par minute, égalités comme ailleurs (ordre du catalogue, puis
+identifiant), 20 lignes au plus, sans la limite de 2 h ni de complément : une
+suite prend la soirée qu'elle prend, son temps le dit. Pas de ligne de donjon dans
+ce mode. La ligne porte le nom du succès, en suffixe gris « · Zone · 3 quêtes
+(2-4/11) » (places dans la série, puis sa taille), le temps, le cadeau si une des
+quêtes donne d'autres récompenses, et les deux colonnes de gain ; le survol du gain
+donne chaque quête avec son XP, ses kamas et son temps. Le clic ouvre le guide de
+la première quête de la suite. En vue « Équipe » : la suite de chaque personnage
+coché, à son niveau ; une série reste si au moins 2 personnages en ont une suite
+d'au moins 2 quêtes ; gains additionnés, temps de la plus longue suite (dont la
+ligne montre les quêtes), « n persos » comme les autres lignes d'équipe ; le
+survol donne les quêtes avec leur seul temps, leurs gains différant d'un
+personnage à l'autre (`QuestProfit.Runs`, `QuestPlanning.TeamRuns`, testées). La
+ligne d'explication dit désormais le côté de l'onglet (« Classées par XP gagnée
+par minute estimée » ou « par kamas gagnés par minute estimée »), et son
+infobulle ajoute « Succès : la suite d'une série à partir de la prochaine quête
+faisable, gains et temps additionnés. »
+
 **Filtre « Faisables ».** Demande du 24/10/2026 : « possible tu mets un seul
 bouton qui regroupe tout qui met juste les quêtes faisables ». Les deux filtres de
 la barre de la liste, « À faire » (sans les terminées ni les ignorées) et

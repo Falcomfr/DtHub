@@ -2998,16 +2998,23 @@ Pour l'éviter : {1}  ›  « Verrouillage auto. Dossier sécurisé » › l'opt
   <data name="ProfitWithPrerequisitesTip" xml:space="preserve">
     <value>Affiche aussi les quêtes qui demandent une condition que DT Hub ne peut pas vérifier : créneau horaire, alignement, objet, succès…</value>
   </data>
-  <data name="ProfitHow" xml:space="preserve">
-    <value>Classées par gain par minute estimé, à votre niveau.</value>
+  <data name="ProfitHowXp" xml:space="preserve">
+    <value>Classées par XP gagnée par minute estimée, à votre niveau.</value>
   </data>
-  <data name="ProfitHowTeam" xml:space="preserve">
-    <value>Classées par gain par minute estimé, additionné sur l'équipe.</value>
+  <data name="ProfitHowKamas" xml:space="preserve">
+    <value>Classées par kamas gagnés par minute estimée, à votre niveau.</value>
+  </data>
+  <data name="ProfitHowTeamXp" xml:space="preserve">
+    <value>Classées par XP gagnée par minute estimée, additionnée sur l'équipe.</value>
+  </data>
+  <data name="ProfitHowTeamKamas" xml:space="preserve">
+    <value>Classées par kamas gagnés par minute estimée, additionnés sur l'équipe.</value>
   </data>
   <data name="ProfitHowTip" xml:space="preserve">
     <value>Quêtes que votre personnage peut lancer maintenant : niveau atteint, quêtes précédentes faites d'après votre suivi, ou déjà en cours.
 Classement : XP ou kamas gagnés par minute, selon l'onglet. Le temps est une estimation de DT Hub d'après les objectifs du jeu (dialogues, combats, objets, trajets).
 Une seule quête par série : la prochaine à faire. Pas de quête qui demande tout le trousseau ou plus de 5 âmes ; une quête de plus de 2 h ne vient que pour compléter une liste de moins de 10.
+Succès : la suite d'une série à partir de la prochaine quête faisable, gains et temps additionnés.
 Un donjon apparaît s'il fait avancer au moins 2 de ces quêtes.
 Gains calculés à votre niveau, Bonus Pack compris s'il est coché.</value>
   </data>
@@ -3016,10 +3023,29 @@ Gains calculés à votre niveau, Bonus Pack compris s'il est coché.</value>
 Équipe : quêtes faisables par au moins 2 personnages cochés, gains additionnés.
 Classement : XP ou kamas gagnés par minute, selon l'onglet. Le temps est une estimation de DT Hub d'après les objectifs du jeu (dialogues, combats, objets, trajets).
 Une seule quête par série : la prochaine à faire. Pas de quête qui demande tout le trousseau ou plus de 5 âmes ; une quête de plus de 2 h ne vient que pour compléter une liste de moins de 10. Pas de donjon.
+Succès : la suite d'une série à partir de la prochaine quête faisable, gains et temps additionnés.
 Gains calculés au niveau de chaque personnage, Bonus Pack compris s'il est coché.</value>
   </data>
   <data name="ProfitCharacters" xml:space="preserve">
     <value>{0} persos</value>
+  </data>
+  <data name="ProfitModeQuests" xml:space="preserve">
+    <value>Quêtes</value>
+  </data>
+  <data name="ProfitModeQuestsTip" xml:space="preserve">
+    <value>Une quête par ligne : la prochaine de chaque série</value>
+  </data>
+  <data name="ProfitModeSeries" xml:space="preserve">
+    <value>Succès</value>
+  </data>
+  <data name="ProfitModeSeriesTip" xml:space="preserve">
+    <value>Une série par ligne : sa suite à partir de la prochaine quête faisable, gains et temps additionnés</value>
+  </data>
+  <data name="ProfitRunQuests" xml:space="preserve">
+    <value>{0} quêtes ({1}-{2}/{3})</value>
+  </data>
+  <data name="ProfitRunLine" xml:space="preserve">
+    <value>{0} : {1} XP · {2} kamas · {3}</value>
   </data>
   <data name="ProfitWholeLevel" xml:space="preserve">
     <value>Ces {0} quêtes valent un niveau entier ({1} → {2})</value>

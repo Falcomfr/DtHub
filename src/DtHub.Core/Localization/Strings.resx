@@ -2998,16 +2998,23 @@ To avoid it: {1}  ›  "Auto lock Secure Folder" › the longest option.</value>
   <data name="ProfitWithPrerequisitesTip" xml:space="preserve">
     <value>Also shows the quests asking for a condition DT Hub cannot check: time slot, alignment, item, achievement…</value>
   </data>
-  <data name="ProfitHow" xml:space="preserve">
-    <value>Ranked by estimated gain per minute, at your level.</value>
+  <data name="ProfitHowXp" xml:space="preserve">
+    <value>Ranked by XP gained per estimated minute, at your level.</value>
   </data>
-  <data name="ProfitHowTeam" xml:space="preserve">
-    <value>Ranked by estimated gain per minute, summed over the team.</value>
+  <data name="ProfitHowKamas" xml:space="preserve">
+    <value>Ranked by kamas gained per estimated minute, at your level.</value>
+  </data>
+  <data name="ProfitHowTeamXp" xml:space="preserve">
+    <value>Ranked by XP gained per estimated minute, summed over the team.</value>
+  </data>
+  <data name="ProfitHowTeamKamas" xml:space="preserve">
+    <value>Ranked by kamas gained per estimated minute, summed over the team.</value>
   </data>
   <data name="ProfitHowTip" xml:space="preserve">
     <value>Quests your character can start now: level reached, previous quests done according to your tracker, or already in progress.
 Ranking: XP or kamas earned per minute, depending on the tab. The time is DT Hub's estimate from the game's objectives (dialogues, fights, items, travel).
 One quest per series: the next one to do. No quest asking for the whole keyring or more than 5 souls; a quest over 2 h only tops up a list of fewer than 10.
+Achievements: what follows in a series from its next doable quest, gains and times added up.
 A dungeon shows when it advances at least 2 of these quests.
 Gains computed at your level, Bonus Pack included if ticked.</value>
   </data>
@@ -3016,10 +3023,29 @@ Gains computed at your level, Bonus Pack included if ticked.</value>
 Team: quests at least 2 ticked characters can do, gains added up.
 Ranking: XP or kamas earned per minute, depending on the tab. The time is DT Hub's estimate from the game's objectives (dialogues, fights, items, travel).
 One quest per series: the next one to do. No quest asking for the whole keyring or more than 5 souls; a quest over 2 h only tops up a list of fewer than 10. No dungeons.
+Achievements: what follows in a series from its next doable quest, gains and times added up.
 Gains computed at each character's level, Bonus Pack included if ticked.</value>
   </data>
   <data name="ProfitCharacters" xml:space="preserve">
     <value>{0} characters</value>
+  </data>
+  <data name="ProfitModeQuests" xml:space="preserve">
+    <value>Quests</value>
+  </data>
+  <data name="ProfitModeQuestsTip" xml:space="preserve">
+    <value>One quest per row: each series' next one</value>
+  </data>
+  <data name="ProfitModeSeries" xml:space="preserve">
+    <value>Achievements</value>
+  </data>
+  <data name="ProfitModeSeriesTip" xml:space="preserve">
+    <value>One series per row: what follows from its next doable quest, gains and times added up</value>
+  </data>
+  <data name="ProfitRunQuests" xml:space="preserve">
+    <value>{0} quests ({1}-{2}/{3})</value>
+  </data>
+  <data name="ProfitRunLine" xml:space="preserve">
+    <value>{0}: {1} XP · {2} kamas · {3}</value>
   </data>
   <data name="ProfitWholeLevel" xml:space="preserve">
     <value>These {0} quests are worth a whole level ({1} → {2})</value>

@@ -972,12 +972,25 @@
                          TextWrapping="Wrap" Text="{Binding ProfitHow}" />
             </DockPanel>
 
-            <!-- The tab, XP or kamas, with the gain columns' glyphs, then
-                 the two toggles. OneWay tabs: the click asks the view model,
-                 which tells the value again so a tab clicked while on stays
-                 on. A wrap panel, since the window goes down to 440 px. -->
+            <!-- The mode, quests or series, then the tab, XP or kamas, with
+                 the gain columns' glyphs, then the two toggles. OneWay pairs:
+                 the click asks the view model, which tells the value again so
+                 a button clicked while on stays on. A wrap panel, since the
+                 window goes down to 440 px. -->
             <WrapPanel Margin="0,0,0,4"
                        Visibility="{Binding Tracker.IsLinked, Converter={StaticResource BoolToVisibility}}">
+              <ToggleButton Style="{StaticResource OutlineToggle}" Padding="8,1"
+                            Background="Transparent"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            Content="{loc:T ProfitModeQuests}" ToolTip="{loc:T ProfitModeQuestsTip}"
+                            IsChecked="{Binding ProfitSeries, Mode=OneWay, Converter={StaticResource InverseBool}}"
+                            Click="OnProfitQuests" />
+              <ToggleButton Style="{StaticResource OutlineToggle}" Padding="8,1" Margin="4,0,12,0"
+                            Background="Transparent"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            Content="{loc:T ProfitModeSeries}" ToolTip="{loc:T ProfitModeSeriesTip}"
+                            IsChecked="{Binding ProfitSeries, Mode=OneWay}"
+                            Click="OnProfitSeries" />
               <ToggleButton Style="{StaticResource OutlineToggle}" Padding="8,1"
                             Background="Transparent"
                             BorderBrush="{DynamicResource BorderBrush}"

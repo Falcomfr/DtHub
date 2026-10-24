@@ -1871,19 +1871,21 @@ public sealed class SettingsServiceTests : IDisposable
         Assert.False(document.ProfitKamas);
         Assert.True(document.ProfitDungeons);
         Assert.False(document.ProfitWithPrerequisites);
+        Assert.False(document.ProfitSeries);
 
-        await _service.SetProfitFiltersAsync(kamas: true, dungeons: false, withPrerequisites: true);
+        await _service.SetProfitFiltersAsync(kamas: true, dungeons: false, withPrerequisites: true, series: true);
 
         document = await _service.GetAsync();
 
         Assert.True(document.ProfitKamas);
         Assert.False(document.ProfitDungeons);
         Assert.True(document.ProfitWithPrerequisites);
+        Assert.True(document.ProfitSeries);
 
         var writes = 0;
         _service.Changed += (_, _) => writes++;
 
-        await _service.SetProfitFiltersAsync(kamas: true, dungeons: false, withPrerequisites: true);
+        await _service.SetProfitFiltersAsync(kamas: true, dungeons: false, withPrerequisites: true, series: true);
 
         Assert.Equal(0, writes);
     }
