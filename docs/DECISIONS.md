@@ -11016,3 +11016,34 @@ chargement compris.
 
 Non vérifié : la bande grise d'environ 95 pixels que DTStuff laisse en bas de
 son afficheur, vue en paysage, n'a pas été comparée au portrait.
+
+## D223 - Un jeu ouvert en fenêtré propose de se rouvrir pour un plein écran sans bandes
+
+**2026-10-24 - Acceptée, complète D209**
+
+Une joueuse, sur PC portable avec un second écran : en passant en plein écran,
+le jeu gardait des bandes noires en haut, en bas et sur les côtés ; quitter puis
+relancer DT Hub l'a réparé. C'est la limite écrite dans D209 : ouvert en
+fenêtré, l'afficheur prend le format de la zone client (1904x1008 sur un écran
+1920x1080 par exemple), et sa hauteur reste fixe pendant la partie (D16, D17).
+Relancé en plein écran, il prend le format de l'écran.
+
+Deux remèdes écartés. Revenir au format de l'écran pour tous ferait revenir la
+bande de bureau que D209 a corrigée en fenêtré. Rouvrir le compte de lui-même
+au passage en plein écran relancerait le jeu sur le téléphone (D202, D216), donc
+déconnecterait le compte, même en combat.
+
+Décision : le plein écran se fait aussitôt, et tant qu'un jeu en plein écran a
+un format qui s'écarte de plus de 1 % de celui de son écran, le bandeau de D216
+dit « Le plein écran garde des bandes noires jusqu'à la réouverture des
+fenêtres. » avec le même bouton « Rouvrir maintenant ». Le joueur choisit le
+moment. Les jeux en onglets comptent, le cadre en plein écran montre les mêmes
+bandes. Un réglage en attente garde sa phrase, la même réouverture règle les
+deux. Le bandeau disparaît de lui-même en sortant du plein écran ou une fois
+les jeux rouverts, puisqu'il est recalculé à chaque changement de taille, de
+session ou de réglages.
+
+La mesure est `WindowManagerService.FullscreenMisfits`, éprouvée par les tests ;
+l'affichage (`ConfiguratorViewModel.ShowsFullscreenBands`) est vérifié à la
+lecture. Le seuil de 1 % laisse passer l'arrondi pair de la définition, alors que
+le cas signalé s'écarte de 6 %.

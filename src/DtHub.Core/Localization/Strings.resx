@@ -2815,6 +2815,9 @@ To avoid it: {1}  ›  "Auto lock Secure Folder" › the longest option.</value>
   <data name="ReopenPendingNotice" xml:space="preserve">
     <value>This setting will apply the next time the windows open.</value>
   </data>
+  <data name="FullscreenBandsNotice" xml:space="preserve">
+    <value>Full screen keeps black bands until the windows reopen.</value>
+  </data>
   <data name="ReopenNow" xml:space="preserve">
     <value>Reopen now</value>
   </data>

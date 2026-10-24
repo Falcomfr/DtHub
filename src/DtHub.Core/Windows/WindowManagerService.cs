@@ -447,6 +447,36 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
+    /// The games shown in full screen with bands: born windowed, their
+    /// display took the window's format (D209) and keeps it until they
+    /// reopen, since the game fixes its layout height at start (D16).
+    /// </summary>
+    public IReadOnlyList<ScrcpySession> FullscreenMisfits(IReadOnlyList<ScrcpySession> sessions)
+    {
+        ArgumentNullException.ThrowIfNull(sessions);
+
+        var monitors = _controller.GetMonitors();
+
+        if (!IsFullscreen || monitors.Count == 0)
+        {
+            return [];
+        }
+
+        // One percent: the display's even rounding is below it, the
+        // bands seen on 2026-10-24 (1904x1008 on 16:9) are six.
+        return
+        [
+            .. sessions.Where(s => s.IsAlive
+                && s.WindowHandle != 0
+                && s.SourceAspectRatio > 0
+                && _controller.GetWindowRect(s.WindowHandle) is { IsEmpty: false } rect
+                && Math.Abs(s.SourceAspectRatio
+                    / WindowLayoutCalculator.ChooseMonitor(monitors, rect.CenterX, rect.CenterY).Bounds.AspectRatio
+                    - 1) > 0.01),
+        ];
+    }
+
+    /// <summary>
     /// Difference between the outer rectangle of a window and its
     /// client area. Zero if the measurement fails, in which case the
     /// calculation falls back to the previous behavior.

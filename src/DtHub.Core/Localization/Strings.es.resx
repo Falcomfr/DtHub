@@ -2815,6 +2815,9 @@ Para evitarlo: {1}  ›  «Bloqueo automático de Carpeta segura» › la opció
   <data name="ReopenPendingNotice" xml:space="preserve">
     <value>Este ajuste se aplicará la próxima vez que se abran las ventanas.</value>
   </data>
+  <data name="FullscreenBandsNotice" xml:space="preserve">
+    <value>La pantalla completa mantiene franjas negras hasta que se reabran las ventanas.</value>
+  </data>
   <data name="ReopenNow" xml:space="preserve">
     <value>Reabrir ahora</value>
   </data>

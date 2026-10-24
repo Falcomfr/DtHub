@@ -272,6 +272,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             OnPropertyChanged(nameof(CanArrange));
             OnPropertyChanged(nameof(CanGrid));
             OnPropertyChanged(nameof(CanFullscreen));
+            RefreshFullscreenBands();
         });
 
     /// <summary>
@@ -297,6 +298,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
 
             _pendingReopen.SessionsChanged(OpenSessions());
             ReopenPending = _pendingReopen.IsPending;
+            RefreshFullscreenBands();
         });
 
     /// <summary>
@@ -328,6 +330,9 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         // for.
         dispatcher.InvokeAsync(() =>
         {
+            // Leaving full screen saves its size here, after the windows moved.
+            RefreshFullscreenBands();
+
             if (_loading || _movingWindows)
             {
                 return;
@@ -941,7 +946,22 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     /// without it: the panel then offers "Reopen now" (D216).
     /// </summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsFullscreenBands), nameof(ShowsReopenBanner))]
     private bool _reopenPending;
+
+    /// <summary>
+    /// A game in full screen shows bands until it reopens (D223). A pending
+    /// setting's line wins: the same reopen settles both.
+    /// </summary>
+    public bool ShowsFullscreenBands => !ReopenPending && _launcher.HasFullscreenBands;
+
+    public bool ShowsReopenBanner => ReopenPending || ShowsFullscreenBands;
+
+    private void RefreshFullscreenBands()
+    {
+        OnPropertyChanged(nameof(ShowsFullscreenBands));
+        OnPropertyChanged(nameof(ShowsReopenBanner));
+    }
 
     /// <summary>
     /// Send the phone's sound out to the PC.

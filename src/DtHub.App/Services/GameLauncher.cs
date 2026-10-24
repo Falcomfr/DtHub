@@ -952,6 +952,16 @@ public sealed partial class GameLauncher : IAsyncDisposable
             s => !_unmanaged.Contains(s.Target.Key) && !_tabbed.Contains(s.Target.Key) && !s.Target.IsTransient)];
 
     /// <summary>
+    /// A game in full screen shows bands: opened windowed, it took its
+    /// window's format, and only a reopen gives it the screen's (D223).
+    /// Tabbed games count, the frame's full screen shows the same bands.
+    /// </summary>
+    public bool HasFullscreenBands =>
+        _windows.FullscreenMisfits(
+            [.. _sessions.ActiveSessions.Where(s => !_unmanaged.Contains(s.Target.Key) && !s.Target.IsTransient)])
+            .Count > 0;
+
+    /// <summary>
     /// Accounts actually housed in the tabbed frame.
     ///
     /// Counted from the open sessions and not from the setting: an
@@ -4840,6 +4850,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
         await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
 
         await ArmEscapeAsync().ConfigureAwait(false);
+
+        // The panel rereads HasFullscreenBands: no session moved.
+        ArrangeableChanged?.Invoke(this, EventArgs.Empty);
 
         return moved;
     }
