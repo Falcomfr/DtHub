@@ -911,9 +911,16 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         _ = Task.Run(
             async () =>
             {
-                await using (lease)
+                try
                 {
-                    _ = await AwaitLineAsync(keeper, ServerLine, CancellationToken.None).ConfigureAwait(false);
+                    await using (lease)
+                    {
+                        _ = await AwaitLineAsync(keeper, ServerLine, CancellationToken.None).ConfigureAwait(false);
+                    }
+                }
+                catch (ObjectDisposedException)
+                {
+                    // The manager closed meanwhile, its phone queues with it.
                 }
 
                 _ = await DrainAsync(keeper).ConfigureAwait(false);
