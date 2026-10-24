@@ -671,12 +671,20 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// </summary>
     private async Task ChooseStartupProfileAsync(string name)
     {
-        await (name == LaunchProfiles.OpenNothingChoice
-            ? _settings.SetOpenNothingAtStartupAsync()
-            : _settings.SetDefaultLaunchProfileAsync(name.Length == 0 ? null : name))
-            .ConfigureAwait(true);
+        // Fire and forget from the setter: a write that threw said nothing.
+        try
+        {
+            await (name == LaunchProfiles.OpenNothingChoice
+                ? _settings.SetOpenNothingAtStartupAsync()
+                : _settings.SetDefaultLaunchProfileAsync(name.Length == 0 ? null : name))
+                .ConfigureAwait(true);
 
-        await SyncProfilesAsync().ConfigureAwait(true);
+            await SyncProfilesAsync().ConfigureAwait(true);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            ShowBanner(exception.Message);
+        }
     }
 
     /// <summary>Deletes a profile, after confirmation.</summary>
