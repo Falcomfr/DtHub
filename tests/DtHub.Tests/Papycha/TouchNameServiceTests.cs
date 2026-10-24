@@ -109,6 +109,19 @@ public class TouchNameServiceTests
     }
 
     [Fact]
+    public async Task Un_echec_des_noms_ne_retient_que_quelques_minutes()
+    {
+        // A network down at the first launch must not leave the whole session without names for the bulk read's 6 h.
+        Assert.Equal(TimeSpan.FromMinutes(10), new TouchNameService(_client, _store, new FakeTable()).NamesRetry);
+        using var service = new TouchNameService(_client, _store, new FakeTable()) { NamesRetry = TimeSpan.Zero };
+        _client.Failure = new HttpRequestException("refus");
+        _ = await service.RefreshAsync("en");
+        _client.Failure = null;
+
+        Assert.NotNull(await service.RefreshAsync("en"));
+    }
+
+    [Fact]
     public async Task La_lecture_en_masse_attend_la_pause_apres_la_lecture_des_noms()
     {
         // The weekly names and the facts expire together: QuestSteps must not follow the five names requests at once.

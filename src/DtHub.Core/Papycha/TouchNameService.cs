@@ -27,6 +27,9 @@ public sealed class TouchNameService(
     /// <summary>The last refusal of a names or bulk read: neither is retried before <see cref="FactsRetry"/>.</summary>
     private DateTimeOffset? _refusedUtc;
 
+    /// <summary>The last failed names read: not retried before <see cref="NamesRetry"/>.</summary>
+    private DateTimeOffset? _namesFailedUtc;
+
     /// <summary>When the last names read went out: the bulk read keeps <see cref="FactsPause"/> from it.</summary>
     private DateTimeOffset? _namesAskedUtc;
 
@@ -80,7 +83,7 @@ public sealed class TouchNameService(
             previous = await CachedAsync(language, ct).ConfigureAwait(false);
 
             // A server that just refused is spared, as by the bulk read: each show of the window asked again.
-            if (IsFresh(previous) || IsRefusing())
+            if (IsFresh(previous) || IsRefusing() || (_namesFailedUtc is { } failed && DateTimeOffset.UtcNow - failed < NamesRetry))
             {
                 return previous;
             }
@@ -101,7 +104,7 @@ public sealed class TouchNameService(
             catch (Exception exception) when (exception is not OutOfMemoryException)
             {
                 // Network down, server closed, unreadable answer: the caller reads LastFailure.
-                _refusedUtc = DateTimeOffset.UtcNow;
+                _namesFailedUtc = DateTimeOffset.UtcNow;
                 LastFailure = exception;
 
                 return previous;
@@ -202,6 +205,9 @@ public sealed class TouchNameService(
 
     /// <summary>After a refused bulk or names read, none is retried before this.</summary>
     public TimeSpan FactsRetry { get; init; } = TimeSpan.FromHours(6);
+
+    /// <summary>After a failed names read, none is retried before this: short, a network down at launch is common.</summary>
+    public TimeSpan NamesRetry { get; init; } = TimeSpan.FromMinutes(10);
 
     /// <summary>Spacing between the bulk reads, so the game's server is never hammered.</summary>
     public TimeSpan FactsPause { get; init; } = TimeSpan.FromSeconds(60);

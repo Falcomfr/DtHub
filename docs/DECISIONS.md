@@ -11195,9 +11195,10 @@ une seule lecture à la fois, et gardés 7 jours avec les noms, par langue. La
 première attend aussi 60 s après une lecture des noms : les deux expirent
 ensemble, et `QuestSteps` partait dans la même seconde que leurs cinq requêtes
 (revue du 24/10/2026). Après un
-refus du serveur, aucune nouvelle tentative pendant 6 h dans la session (le délai
-est gardé en mémoire), ni de la lecture en masse ni des noms, que chaque
-affichage de la fenêtre redemandait, et on garde les données de
+refus du serveur, aucune nouvelle lecture en masse pendant 6 h dans la session (le
+délai est gardé en mémoire), et aucune lecture des noms, que chaque affichage de la
+fenêtre redemandait, pendant 10 min : un réseau coupé au lancement ne doit pas
+priver toute la session des noms. On garde les données de
 la semaine précédente plutôt que rien. Ce qui n'est pas lu : la progression dans
 une quête (étape en cours, objectifs faits), que seul le jeu montre, et les
 monstres (environ 30 Ko chacun, trop lourd pour toutes les quêtes).
