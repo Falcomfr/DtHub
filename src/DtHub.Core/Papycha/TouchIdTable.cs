@@ -24,6 +24,12 @@ public sealed record TouchIdTable
     /// Papycha files under no series.
     /// </summary>
     public Dictionary<int, int> Links { get; init; } = [];
+
+    /// <summary>
+    /// Groups of Papycha quest ids the game takes one for another in an
+    /// achievement objective ("Qf=556|Qf=566", "Agriculture ou alchimie").
+    /// </summary>
+    public int[][] Alternatives { get; init; } = [];
 }
 
 /// <summary>

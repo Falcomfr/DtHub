@@ -22,6 +22,7 @@
 /// - a quest the game links to an achievement while Papycha files it under
 ///   none gets that achievement and a step after the highest of its series,
 ///   in Papycha-id order, and the name joins the order if missing;
+/// - each quest carries the other quests of its game alternative groups;
 /// - with <c>translateNames</c>, a paired dungeon takes the joined game
 ///   dungeon names (or its boss name), and a non-empty key the key item name;
 /// - what the game does not name stays as Papycha wrote it. Sections and
@@ -101,6 +102,7 @@ public static class TouchLocalization
                     ? quest.SearchKey
                     : QuestSearch.Normalize(shown + " " + quest.Title),
                 SuccessName = Series(quest.SuccessName, table, names),
+                Alternatives = [.. table.Alternatives.Where(g => g.Contains(quest.Id)).SelectMany(g => g).Where(id => id != quest.Id).Distinct()],
             });
         }
 

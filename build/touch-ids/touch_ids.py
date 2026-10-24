@@ -59,6 +59,25 @@ def load_game(dumps):
     return g
 
 
+def alternatives(objectives, quests, achievements):
+    """Each objective of the table's achievements met by one quest among several ("Qf=556|Qf=566"): the Papycha
+    pages of those quests, when they are two or more. Doing one rules the others out (rules A and B in the app)."""
+    pages = collections.defaultdict(set)
+    for page, ids in quests.items():
+        for qid in ids:
+            pages[qid].add(page)
+    groups = set()
+    for o in objectives.values():
+        terms = (o["criterion"] or "").split("|")
+        found = [re.fullmatch(r"Q[fF]=(\d+)", t.strip()) for t in terms]
+        if o["achievementId"] not in achievements or len(terms) < 2 or not all(found):
+            continue
+        group = sorted({p for m in found for p in pages.get(int(m.group(1)), ())})
+        if len(group) >= 2:
+            groups.add(tuple(group))
+    return [list(g) for g in sorted(groups)]
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dumps")
@@ -146,12 +165,14 @@ def main():
         "dungeons": dict(sorted(dungeons.items())),
         "series": series,
         "links": dict(sorted(links.items())),
+        "alternatives": alternatives(g["AchievementObjectives"], quests, set(series.values()) | set(links.values())),
     }
     with open(args.out, "w", encoding="utf-8", newline="\n") as f:
         json.dump(table, f, ensure_ascii=False, indent=1)
         f.write("\n")
 
-    print(f"{len(quests)} quests, {len(dungeons)} dungeons, {len(series)} series, {len(links)} links")
+    print(f"{len(quests)} quests, {len(dungeons)} dungeons, {len(series)} series, {len(links)} links, "
+          f"{len(table['alternatives'])} alternative groups")
     print("Unpaired quests:", missing_q)
     print("Unpaired dungeons:", missing_d)
     print("Unpaired series:", missing_s)
@@ -159,4 +180,5 @@ def main():
     print("Series paired by fuzzy match:", fuzzy)
 
 
-main()
+if __name__ == "__main__":
+    main()

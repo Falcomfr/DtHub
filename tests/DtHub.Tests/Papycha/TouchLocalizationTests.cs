@@ -238,4 +238,14 @@ public class TouchLocalizationTests
         Assert.Equal("Golden City", Q(doc, 1).SuccessName);
         Assert.Equal(3, Q(doc, 1).ChainStep);
     }
+
+    [Fact]
+    public void Une_quete_porte_les_autres_quetes_de_son_groupe_d_alternatives()
+    {
+        var doc = TouchLocalization.Apply(Catalog(), Table with { Alternatives = [[1, 3]] }, Names(), true);
+
+        Assert.Equal([3], Q(doc, 1).Alternatives);
+        Assert.Equal([1], Q(doc, 3).Alternatives);
+        Assert.Empty(Q(doc, 2).Alternatives);
+    }
 }

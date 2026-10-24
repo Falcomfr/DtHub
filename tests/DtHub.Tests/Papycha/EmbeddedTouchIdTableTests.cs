@@ -43,4 +43,20 @@ public class EmbeddedTouchIdTableTests
         Assert.Empty(moon.Dungeons);
         Assert.Equal(226, moon.Monster);
     }
+
+    /// <summary>
+    /// The game's "one quest or another" objectives (D219, 2026-10-24): ten pairs in "Agriculture ou alchimie", six in
+    /// Allister's achievement, the three alignment prologues of "L'âme de glace" and the fifteen devotions.
+    /// </summary>
+    [Fact]
+    public void La_table_embarquee_porte_les_18_groupes_d_alternatives_du_jeu()
+    {
+        var groups = Load().Alternatives;
+
+        Assert.Equal(18, groups.Length);
+        Assert.Equal(16, groups.Count(g => g.Length == 2));
+        Assert.Contains(groups, g => g.SequenceEqual([11038, 11056]));
+        Assert.Contains(groups, g => g.SequenceEqual([1551, 36740, 36750]));
+        Assert.Contains(groups, g => g.Length == 15);
+    }
 }

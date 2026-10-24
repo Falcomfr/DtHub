@@ -1,4 +1,6 @@
-﻿namespace DtHub.Core.Papycha;
+﻿using System.Text.Json.Serialization;
+
+namespace DtHub.Core.Papycha;
 
 /// <summary>
 /// A quest, as the catalog keeps it.
@@ -124,6 +126,15 @@ public sealed record QuestSummary
     /// seasonal, out of 762.
     /// </summary>
     public QuestRecurrence Recurrence { get; init; }
+
+    /// <summary>
+    /// The other quests the game takes in place of this one in its
+    /// achievement (<see cref="TouchIdTable.Alternatives"/>): done or
+    /// started, one of them rules this one out. Set on the localized view
+    /// only, never stored.
+    /// </summary>
+    [JsonIgnore]
+    public IReadOnlyList<int> Alternatives { get; init; } = [];
 }
 
 /// <summary>
