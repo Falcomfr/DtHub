@@ -133,6 +133,13 @@ public sealed partial class QuestTrackerViewModel(
     [ObservableProperty]
     private bool _isBusy;
 
+    /// <summary>A tracker read is under way: up to the client's thirty seconds when the site is down.</summary>
+    [ObservableProperty]
+    private bool _isReading;
+
+    /// <summary>Reads under way: a show and a write's follow-up can overlap.</summary>
+    private int _reads;
+
     public bool IsLinked => Link == TrackerLink.Linked;
 
     /// <summary>The level kept in the settings, used when no character is linked (0 = unknown).</summary>
@@ -179,6 +186,20 @@ public sealed partial class QuestTrackerViewModel(
     /// True when the read was put on screen, false when a write made it stale.
     /// </summary>
     public async Task<bool> RefreshAsync()
+    {
+        IsReading = ++_reads > 0;
+
+        try
+        {
+            return await ReadAsync();
+        }
+        finally
+        {
+            IsReading = --_reads > 0;
+        }
+    }
+
+    private async Task<bool> ReadAsync()
     {
         var version = _writeVersion;
         var held = await settings.GetAsync();

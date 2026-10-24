@@ -2926,8 +2926,17 @@ Para evitarlo: {1}  ›  «Bloqueo automático de Carpeta segura» › la opció
   <data name="ProfitQuests" xml:space="preserve">
     <value>Misiones recomendadas</value>
   </data>
-  <data name="ProfitComputing" xml:space="preserve">
-    <value>Calculando…</value>
+  <data name="ProfitReadingTracker" xml:space="preserve">
+    <value>Leyendo tu seguimiento de Papycha…</value>
+  </data>
+  <data name="ProfitReadingGame" xml:space="preserve">
+    <value>Leyendo los datos del juego (recompensas, objetivos)…</value>
+  </data>
+  <data name="ProfitTrackerDown" xml:space="preserve">
+    <value>Papycha no responde: no se puede leer tu seguimiento por ahora.</value>
+  </data>
+  <data name="ProfitGameDown" xml:space="preserve">
+    <value>El servidor del juego no responde: recompensas no disponibles, nuevo intento más tarde.</value>
   </data>
   <data name="ProfitTier1" xml:space="preserve">
     <value>Rentable</value>

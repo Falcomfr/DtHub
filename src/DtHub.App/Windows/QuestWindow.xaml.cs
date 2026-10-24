@@ -1134,6 +1134,15 @@ public partial class QuestWindow : Window
 
     private void OnProfitSeries(object sender, RoutedEventArgs e) => _viewModel.ShowSeries(true);
 
+    /// <summary>One read of the tracker, none while one runs: the button hides then, but its redraw is queued.</summary>
+    private void OnRetryTracker(object sender, RoutedEventArgs e)
+    {
+        if (!_viewModel.Tracker.IsReading)
+        {
+            _ = _viewModel.Tracker.RefreshAsync();
+        }
+    }
+
     /// <summary>Goes back to the quest we came from.</summary>
     private void OnGoBackPage(object sender, RoutedEventArgs e)
     {

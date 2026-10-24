@@ -60,6 +60,12 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
                 Selecting = false;
             }
 
+            // "Recommandées" says a read is under way rather than "Reliez le suivi" or "ne répond pas".
+            if (e.PropertyName == nameof(QuestTrackerViewModel.IsReading) && !tracker.IsLinked && ShowsRecommended)
+            {
+                Rescore();
+            }
+
             if (e.PropertyName is nameof(QuestTrackerViewModel.RewardLevel) or nameof(QuestTrackerViewModel.RewardXpBonus))
             {
                 _ = RefreshRewardsAsync();
@@ -1653,6 +1659,23 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private string _profitHowTip = string.Empty;
 
+    /// <summary>The key of what "Recommandées" waits for or lacks in place of its rows; empty when they show.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ProfitWaitText))]
+    [NotifyPropertyChangedFor(nameof(ShowsProfitWait))]
+    [NotifyPropertyChangedFor(nameof(ProfitWaitSpins))]
+    [NotifyPropertyChangedFor(nameof(ProfitCanRetry))]
+    private string _profitWait = string.Empty;
+
+    public string ProfitWaitText => ProfitWait.Length > 0 ? Strings.Get(ProfitWait) : string.Empty;
+
+    public bool ShowsProfitWait => ProfitWait.Length > 0;
+
+    public bool ProfitWaitSpins => ProfitWait is "ProfitReadingTracker" or "ProfitReadingGame";
+
+    /// <summary>Only the tracker is read again on demand: the game's server keeps its own back-off.</summary>
+    public bool ProfitCanRetry => ProfitWait == "ProfitTrackerDown";
+
     partial void OnProfitKamasChanged(bool value) => ProfitFiltersChanged();
 
     partial void OnProfitDungeonsChanged(bool value) => ProfitFiltersChanged();
@@ -1724,17 +1747,18 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         ProfitHow = Strings.Get((team ? "ProfitHowTeam" : "ProfitHow") + (ProfitKamas ? "Kamas" : "Xp"));
         ProfitHowTip = Strings.Get(team ? "ProfitHowTeamTip" : "ProfitHowTip");
 
-        if (!Tracker.IsLinked)
+        // The waits are long and normal: the site may take its thirty seconds, the game's first read some minutes.
+        // The ranking itself measured under 25 ms (2026-10-24), so it gets no line of its own.
+        ProfitWait = Tracker.IsLinked
+            ? _facts is null || (_facts.Count == 0 && !_factsRead.IsCompleted) ? "ProfitReadingGame"
+                : _facts.Count == 0 && _touchNames.LastFailure is not null ? "ProfitGameDown"
+                : string.Empty
+            : Tracker.IsReading || Tracker.Link == TrackerLink.Unknown ? "ProfitReadingTracker"
+            : Tracker.Link == TrackerLink.Unreadable ? "ProfitTrackerDown"
+            : "ProfitNeedsLink";
+
+        if (ProfitWait.Length > 0)
         {
-            Nodes.Add(new QuestNode(QuestNodeKind.Pending, Strings.Get("ProfitNeedsLink")));
-
-            return;
-        }
-
-        if (_facts is null)
-        {
-            Nodes.Add(new QuestNode(QuestNodeKind.Pending, Strings.Get("ProfitComputing")));
-
             return;
         }
 

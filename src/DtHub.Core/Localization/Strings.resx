@@ -2926,8 +2926,17 @@ To avoid it: {1}  ›  "Auto lock Secure Folder" › the longest option.</value>
   <data name="ProfitQuests" xml:space="preserve">
     <value>Recommended quests</value>
   </data>
-  <data name="ProfitComputing" xml:space="preserve">
-    <value>Working it out…</value>
+  <data name="ProfitReadingTracker" xml:space="preserve">
+    <value>Reading your Papycha tracker…</value>
+  </data>
+  <data name="ProfitReadingGame" xml:space="preserve">
+    <value>Reading the game's data (rewards, objectives)…</value>
+  </data>
+  <data name="ProfitTrackerDown" xml:space="preserve">
+    <value>Papycha is not responding: your tracker cannot be read for now.</value>
+  </data>
+  <data name="ProfitGameDown" xml:space="preserve">
+    <value>The game's server is not responding: rewards unavailable, will try again later.</value>
   </data>
   <data name="ProfitTier1" xml:space="preserve">
     <value>Worth doing</value>

@@ -34,6 +34,7 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 - « À faire » et « Accessibles » deviennent un seul bouton, « Faisables » : il ne garde que les quêtes que votre personnage peut faire maintenant, pas terminées ni ignorées (les bloquées restent affichées), et chaque zone affiche alors entre parenthèses le nombre de ses quêtes faisables ; filtre éteint, avec le suivi relié, une zone ne donne plus que ses quêtes faites sur le total, à droite.
 - Avec le suivi Papycha relié, le cadenas des prérequis n'apparaît plus que s'il en manque un à votre personnage (en jaune, avec une coche ou une croix devant chaque quête au survol), jamais dans « Recommandées », et « Recommandées » dit en une ligne comment il classe (le détail au survol du « i ») et a un bouton « Donjons inclus », actif par défaut ; il n'affiche jamais une quête à condition que DT Hub ne peut pas vérifier (créneau horaire, alignement, objet…), ni ne la compte dans un donjon ou la suite d'une série.
 - Une quête en cours de plusieurs étapes ou objectifs affiche « ≤ » devant ses gains et son temps, des maximums, puisque DT Hub ne sait pas ce qui est déjà fait ; « Recommandées » ne la propose plus et elle ne compte plus pour un donjon.
+- Pendant que « Recommandées » attend le suivi Papycha ou les données du jeu, une ligne avec une roue dit ce qui se lit ; si Papycha ne répond pas, elle le dit, avec un bouton « Réessayer » qui relit le suivi.
 
 ### Corrigé
 

@@ -1090,6 +1090,28 @@
             </StackPanel>
           </Button>
 
+          <!-- What "Recommandées" waits for or lacks, in place of its rows:
+               the site may take thirty seconds, the game's first read some
+               minutes. A spinner while it reads, so the wait does not look
+               empty; "Réessayer" reads the tracker once, hidden meanwhile. -->
+          <Border DockPanel.Dock="Top" Style="{StaticResource Card}" Padding="10,8" Margin="10,4,4,4">
+            <Border.Visibility>
+              <MultiBinding Converter="{StaticResource AllTrue}">
+                <Binding Path="ShowsRecommended" />
+                <Binding Path="ShowsProfitWait" />
+              </MultiBinding>
+            </Border.Visibility>
+            <DockPanel>
+              <Control DockPanel.Dock="Left" Style="{StaticResource Spinner}" VerticalAlignment="Center" Margin="0,0,9,0"
+                       Visibility="{Binding ProfitWaitSpins, Converter={StaticResource BoolToVisibility}}" />
+              <Button DockPanel.Dock="Right" Content="{loc:T PreparationRetry}" Click="OnRetryTracker"
+                      VerticalAlignment="Center" Margin="9,0,0,0"
+                      Visibility="{Binding ProfitCanRetry, Converter={StaticResource BoolToVisibility}}" />
+              <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" VerticalAlignment="Center"
+                         Text="{Binding ProfitWaitText}" />
+            </DockPanel>
+          </Border>
+
           <TextBlock DockPanel.Dock="Bottom" Style="{StaticResource Muted}" Margin="12,6,12,8"
                      Text="{loc:T OfficialNamesCredit}"
                      Visibility="{Binding ShowsOfficialNamesCredit, Converter={StaticResource BoolToVisibility}}" />
