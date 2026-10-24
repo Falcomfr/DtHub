@@ -174,4 +174,13 @@ public sealed class QuestPlayOrderTests
         // Avant l'embranchement, la voie n'est pas choisie : toute la série.
         Assert.Equal((1, 7), QuestPlayOrder.Position(catalogue, catalogue[0]));
     }
+
+    [Fact]
+    public void Une_suite_qui_part_de_la_racine_ne_compte_pas_l_autre_voie()
+    {
+        var catalogue = DeuxVoies();
+
+        // R, A1, A2, A3 : « (1-4/4) », pas « (1-7/7) ».
+        Assert.Equal(["R", "A1", "A2", "A3"], Titres(QuestPlayOrder.Way(catalogue, [catalogue[0], catalogue[1], catalogue[3], catalogue[5]])));
+    }
 }

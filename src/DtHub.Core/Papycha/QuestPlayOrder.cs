@@ -144,6 +144,8 @@ public static class QuestPlayOrder
         var chain = new QuestChainIndex(series);
         var edges = series.SelectMany(q => QuestProfit.Previous(q, chain).Select(p => (Before: p.Id, After: q.Id))).ToList();
         HashSet<int> along = [.. on.Select(q => q.Id)];
+        // The other ways of these quests: walking from a root shared by both ways must not enter them.
+        HashSet<int> others = [.. on.SelectMany(q => q.Alternatives)];
         foreach (var forward in new[] { true, false })
         {
             var reached = new Stack<int>(on.Select(q => q.Id));
@@ -153,7 +155,7 @@ public static class QuestPlayOrder
                 foreach (var (before, after) in edges)
                 {
                     var next = forward ? (before == at ? after : 0) : (after == at ? before : 0);
-                    if (next != 0 && seen.Add(next))
+                    if (next != 0 && !others.Contains(next) && seen.Add(next))
                     {
                         reached.Push(next);
                         along.Add(next);
