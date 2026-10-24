@@ -11229,13 +11229,20 @@ les vues de la fenêtre des guides, juste après le personnage, sur sa ligne qua
 la place le permet et dessous sinon : son niveau se change là où on le lit, et relié, il est enregistré sur
 Papycha puis affiché dans la liste des personnages.
 
-**Icônes serrées.** Sur une ligne de quête, les icônes de droite (priorité, rythme,
-statut, cadenas) ne gardent plus de place vide : absentes, elles sont repliées et
+**Icônes serrées.** Sur une ligne de quête, les icônes de droite (rythme, statut,
+priorité, cadenas, cadeau) ne gardent plus de place vide : absentes, elles sont repliées et
 les présentes se serrent à droite, 3 px d'écart (4 avant le 24/10/2026, plus bas). L'utilisateur préfère une ligne
-sans trous à des colonnes d'icônes droites. Le cadenas vient en dernier : il est
-sur la plupart des quêtes, la marque de statut à côté de lui s'aligne donc en
-pratique. Seuls les gains gardent des colonnes fixes, des nombres doivent
-s'aligner. Même règle sur les donjons, raids et antres : la pierre d'âme seule dit
+sans trous à des colonnes d'icônes droites. Ordre du 24/10/2026 (« c'est pas mieux
+de mettre à droite celles qui sont toujours ou le plus présentes dans les listes ? ») :
+la plus fréquente contre le temps, la plus rare à gauche. Le cadeau d'abord
+(386 quêtes sur 787 dans le cache du joueur, dans toutes les listes), puis le
+cadenas (623 quêtes ont des prérequis, mais relié il ne se montre que s'ils
+manquent, et jamais dans « Recommandées »), la marque de priorité, le statut et le
+rythme. Le temps, l'XP et les kamas gardent des colonnes, des nombres doivent
+s'aligner ; depuis le même jour (« plus fit en largeur »), chacune n'est large que
+de la plus longue valeur de la liste affichée (mesurée dans la police de la liste,
+chiffres comptés comme des zéros, partagée par toutes les lignes), 6 px entre
+elles, et une colonne que personne ne remplit ne prend pas de place. Même règle sur les donjons, raids et antres : la pierre d'âme seule dit
 la taille (le mot passe dans l'infobulle), et les colonnes fixes, gardées à cause
 de la virtualisation, sont réduites à leur contenu (18, 60 et 19 px au lieu de
 90, 66 et 26). La taille garde la majuscule de l'API (« Gigantesque ») : c'est le
