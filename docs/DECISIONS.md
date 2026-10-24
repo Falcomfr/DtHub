@@ -11455,6 +11455,10 @@ n'est dit qu'une fois.
   (177) » contre « 51/128 ») : les quêtes répétables sont dans l'un et pas dans
   l'autre. Une zone de répétables seules, qui n'a rien à droite, garde le sien
   (« Quêtes répétables (128) »).
+- Dans une zone, sous « Faisables » allumé, l'en-tête d'un succès compte de même
+  les quêtes affichées dessous (audit visuel du 24/10/2026 : « Médiation
+  expéditive (6) » sur deux lignes devient « (2) »), une suite de série gardant
+  son libellé (`QuestTree.Keep`).
 
 Sans suivi relié, rien ne change : le nombre entre parenthèses, pas de colonne à
 droite. Un seul réglage est retenu ; un ancien fichier qui avait « Accessibles »

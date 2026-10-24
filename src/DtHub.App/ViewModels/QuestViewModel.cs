@@ -268,7 +268,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
     {
         // Ordered on the whole section, filtered afterwards: a filter removes
         // rows, it never moves the ones left.
-        foreach (var node in QuestTree.Keep(_tree.BySuccess([.. quests]), Passes))
+        foreach (var node in QuestTree.Keep(_tree.BySuccess([.. quests]), Passes, Tracker.Progress is not null && FilterDoable))
         {
             Nodes.Add(Marked(node));
         }

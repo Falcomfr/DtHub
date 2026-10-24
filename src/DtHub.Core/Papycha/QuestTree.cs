@@ -380,14 +380,19 @@ public sealed class QuestTree
     /// The filter comes after the plan, never before: the plan orders a
     /// section from the quests it is given, and a section filtered first came
     /// out in another order. A filter only removes rows. An achievement
-    /// heading stays only when one of its quests does.
+    /// heading stays only when one of its quests does; with
+    /// <paramref name="count"/> (a filter on), it counts the quests kept under
+    /// it, as a zone does ("Médiation expéditive (2)", not "(6)"), a
+    /// continued one keeping its label.
     /// </summary>
-    public static IEnumerable<QuestNode> Keep(IEnumerable<QuestNode> rows, Func<QuestSummary, bool> keep)
+    public static IEnumerable<QuestNode> Keep(IEnumerable<QuestNode> rows, Func<QuestSummary, bool> keep, bool count = false)
     {
         ArgumentNullException.ThrowIfNull(rows);
         ArgumentNullException.ThrowIfNull(keep);
 
+        List<QuestNode> kept = [];
         QuestNode? heading = null;
+        var at = -1;
 
         foreach (var row in rows)
         {
@@ -404,13 +409,21 @@ public sealed class QuestTree
 
             if (heading is not null && row.InSuccess)
             {
-                yield return heading;
+                at = kept.Count;
+                kept.Add(heading);
             }
 
             heading = null;
+            kept.Add(row);
 
-            yield return row;
+            if (count && at >= 0 && row.InSuccess && row.Quest is { } shown
+                && kept[at].Label != $"{shown.SuccessName} ({Strings.Get("SeriesContinued")})")
+            {
+                kept[at] = kept[at] with { Label = $"{shown.SuccessName} ({Text(kept.Count - at - 1)})" };
+            }
         }
+
+        return kept;
     }
 
     /// <summary>

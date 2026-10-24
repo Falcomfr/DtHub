@@ -445,6 +445,18 @@ public class QuestTreeTests
     }
 
     [Fact]
+    public void Sous_le_filtre_l_entete_compte_les_quetes_gardees()
+    {
+        // « Médiation expéditive (6) » sur deux lignes : « (2) », comme une zone.
+        static QuestNode Dans(int id, string succes) =>
+            Row(id, true) with { Quest = new QuestSummary { Id = id, Title = $"q{id}", SuccessName = succes } };
+        QuestNode[] lignes = [Heading("A (3)"), Dans(1, "A"), Dans(2, "A"), Dans(3, "A"), Heading("B (1)"), Dans(4, "B")];
+
+        Assert.Equal(["A (2)", "q1", "q3", "B (1)", "q4"], QuestTree.Keep(lignes, q => q.Id != 2, count: true).Select(n => n.Label));
+        Assert.Equal(["A (3)", "q1", "q3", "B (1)", "q4"], QuestTree.Keep(lignes, q => q.Id != 2).Select(n => n.Label));
+    }
+
+    [Fact]
     public void Sans_filtre_la_liste_reste_identique()
     {
         var kept = QuestTree.Keep(Planned, _ => true);
