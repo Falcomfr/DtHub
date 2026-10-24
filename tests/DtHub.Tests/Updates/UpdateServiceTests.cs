@@ -396,4 +396,22 @@ public sealed class UpdateServiceTests : IDisposable
         Assert.False(File.Exists(incoming));
         Assert.Empty(Directory.GetFiles(_paths.UpdatesDirectory, "DtHub-*.exe"));
     }
+
+    [Fact]
+    public void Balaie_un_telechargement_abandonne()
+    {
+        // Quit mid-download, then a newer release came out: that part was
+        // never overwritten, and sixty megabytes stayed for good. Sweep runs
+        // at startup, before any download.
+        var part = UpdatePaths.Staged(_paths.UpdatesDirectory, new Version(0, 3, 0)) + ".part";
+        File.WriteAllText(part, "moitié");
+
+        new UpdateService(
+            new FakeReleaseSource(),
+            _paths,
+            new UpdateTarget(new Version(0, 1, 0), _executable),
+            NullLogger<UpdateService>.Instance).Sweep();
+
+        Assert.False(File.Exists(part));
+    }
 }

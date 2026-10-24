@@ -402,6 +402,12 @@ public sealed partial class UpdateService(
                     Delete(file);
                 }
             }
+
+            // A download cut short: Sweep runs at startup, before any other.
+            foreach (var file in Directory.EnumerateFiles(_paths.UpdatesDirectory, "DtHub-*.part"))
+            {
+                Delete(file);
+            }
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
