@@ -2120,6 +2120,13 @@
                             Value="{DynamicResource TextMutedBrush}" />
                   </DataTrigger>
 
+                  <!-- A team row's "2 persos" before its time: kept apart as
+                       the title is from its detail, not glued to "≈ 33 min". -->
+                  <DataTrigger Binding="{Binding Duration, Converter={StaticResource EmptyToVisibility},
+                                                 ConverterParameter=inverse}" Value="Visible">
+                    <Setter TargetName="Detail" Property="Margin" Value="8,0,4,0" />
+                  </DataTrigger>
+
                   <!-- Before the quest trigger below, which must win on
                        rows that are not quests. -->
                   <DataTrigger Binding="{Binding GainKamas}" Value="{x:Null}">
