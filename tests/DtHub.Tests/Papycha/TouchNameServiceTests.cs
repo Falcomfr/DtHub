@@ -230,6 +230,24 @@ public class TouchNameServiceTests
     }
 
     [Fact]
+    public async Task Les_etapes_lues_ne_modifient_pas_les_dictionnaires_deja_servis()
+    {
+        // The window reads them without a lock, and a facts save serializes them: they are replaced, never changed.
+        GiveRewardStep(RewardStep);
+        using var service = Service();
+        var served = (await service.RefreshAsync("fr"))!;
+        var items = served.Items.Count;
+
+        _ = await service.StepsAsync(2, "fr");
+
+        Assert.Equal(items, served.Items.Count);
+        Assert.Empty(served.ObjectiveTypes);
+        var live = (await service.CachedAsync("fr"))!;
+        Assert.Equal("nom 361 fr", live.Items[361]);
+        Assert.NotEmpty(live.ObjectiveTypes);
+    }
+
+    [Fact]
     public async Task Les_noms_d_objets_vont_dans_le_record_vivant_apres_un_rafraichissement_concurrent()
     {
         GiveRewardStep(RewardStep);

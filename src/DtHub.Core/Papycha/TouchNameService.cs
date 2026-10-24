@@ -153,9 +153,22 @@ public sealed class TouchNameService(
             try
             {
                 LastFailure = null;
-                var steps = await ReadStepsAsync(known, stepIds, language, ct).ConfigureAwait(false);
+                var (steps, types, items) = await ReadStepsAsync(known, stepIds, language, ct).ConfigureAwait(false);
                 _rewardsReread.Add(papychaQuestId);
-                await SaveAsync(_ => known.Steps[papychaQuestId] = steps, ct).ConfigureAwait(false);
+                await SaveAsync(
+                    document =>
+                    {
+                        var live = document.Languages.GetValueOrDefault(language, known);
+                        live.Steps[papychaQuestId] = steps;
+
+                        // New dictionaries swapped under the gate: the window and a facts save may be reading the old ones.
+                        document.Languages[language] = live with
+                        {
+                            ObjectiveTypes = Merged(live.ObjectiveTypes, types),
+                            Items = Merged(live.Items, items),
+                        };
+                    },
+                    ct).ConfigureAwait(false);
 
                 return steps;
             }
@@ -355,7 +368,25 @@ public sealed class TouchNameService(
         }
     }
 
-    private async Task<TouchStep[]> ReadStepsAsync(
+    private static Dictionary<int, string> Merged(Dictionary<int, string> old, Dictionary<int, string> added)
+    {
+        if (added.Count == 0)
+        {
+            return old;
+        }
+
+        var merged = new Dictionary<int, string>(old);
+
+        foreach (var (id, name) in added)
+        {
+            merged[id] = name;
+        }
+
+        return merged;
+    }
+
+    /// <summary>The steps, with the objective types read (none when the cache had them) and the reward items' names.</summary>
+    private async Task<(TouchStep[] Steps, Dictionary<int, string> Types, Dictionary<int, string> Items)> ReadStepsAsync(
         TouchLanguageNames known, int[] stepIds, string language, CancellationToken ct)
     {
         var rows = await GetAsync("QuestSteps", stepIds, language, ct).ConfigureAwait(false);
@@ -370,18 +401,23 @@ public sealed class TouchNameService(
         var objectives = await GetAsync(
             "QuestObjectives", [.. steps.SelectMany(step => Ints(step, "objectiveIds"))], language, ct).ConfigureAwait(false);
 
+        var types = new Dictionary<int, string>();
+
         if (known.ObjectiveTypes.Count == 0)
         {
             // The whole class, 35 rows: the only read without ids.
-            var types = await client.GetAsync("QuestObjectiveTypes", null, language, ct).ConfigureAwait(false);
-
-            foreach (var type in types.Where(t => Name(t.Value) is not null))
+            foreach (var type in await client.GetAsync("QuestObjectiveTypes", null, language, ct).ConfigureAwait(false))
             {
-                known.ObjectiveTypes[type.Key] = Name(type.Value)!;
+                if (Name(type.Value) is { } name)
+                {
+                    types[type.Key] = name;
+                }
             }
         }
 
-        if (known.ObjectiveTypes.Count == 0)
+        var templates = types.Count > 0 ? types : known.ObjectiveTypes;
+
+        if (templates.Count == 0)
         {
             throw new InvalidOperationException("The game's server returned no objective type.");
         }
@@ -419,7 +455,7 @@ public sealed class TouchNameService(
         TouchObjectiveLine Line(JsonElement objective)
         {
             var type = Int(objective, "typeId");
-            var template = known.ObjectiveTypes.GetValueOrDefault(type, "");
+            var template = templates.GetValueOrDefault(type, "");
 
             return new(
                 TouchObjectiveText.Fill(template, type, Ints(objective, "parameters"), NameOf),
@@ -427,6 +463,7 @@ public sealed class TouchNameService(
         }
 
         Dictionary<int, TouchRewardRow>? rewardRows;
+        var items = new Dictionary<int, string>();
 
         try
         {
@@ -438,7 +475,7 @@ public sealed class TouchNameService(
 
             foreach (var item in rewardItems.Where(i => Name(i.Value) is not null))
             {
-                known.Items[item.Key] = Name(item.Value)!;
+                items[item.Key] = Name(item.Value)!;
             }
         }
         catch (Exception exception) when (exception is not OperationCanceledException and not OutOfMemoryException)
@@ -448,11 +485,13 @@ public sealed class TouchNameService(
             rewardRows = null;
         }
 
-        return [.. steps.Select(step => new TouchStep(
+        TouchStep[] read = [.. steps.Select(step => new TouchStep(
             Name(step) ?? "",
             Text(step, "descriptionId"),
             [.. Ints(step, "objectiveIds").Where(objectives.ContainsKey).Select(id => Line(objectives[id]))],
             BuildReward(step, rewardRows)))];
+
+        return (read, types, items);
     }
 
     private static bool HasFormula(JsonElement step) =>
