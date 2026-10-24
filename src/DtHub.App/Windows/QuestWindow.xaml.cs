@@ -1134,15 +1134,31 @@ public partial class QuestWindow : Window
 
     private void OnProfitSeries(object sender, RoutedEventArgs e) => _viewModel.ShowSeries(true);
 
-    /// <summary>One read of the tracker, none while one runs: the button hides then, but its redraw is queued.</summary>
-    private void OnRetryTracker(object sender, RoutedEventArgs e)
+    /// <summary>
+    /// One attempt at a time, preparation and read together: the button hides then, but its redraw is queued, and the
+    /// engine's preparation is no read (two clicks sent two reads to the site).
+    /// </summary>
+    private async void OnRetryTracker(object sender, RoutedEventArgs e)
     {
-        // Through the engine's preparation: after it failed, the cookie can only come from a new attempt.
-        if (!_viewModel.Tracker.IsReading)
+        if (_retrying || _viewModel.Tracker.IsReading)
         {
-            _ = PrepareOnShowAsync();
+            return;
+        }
+
+        _retrying = true;
+        try
+        {
+            // Through the engine's preparation: after it failed, the cookie can only come from a new attempt.
+            _viewModel.RetryView();
+            await PrepareOnShowAsync().ConfigureAwait(true);
+        }
+        finally
+        {
+            _retrying = false;
         }
     }
+
+    private bool _retrying;
 
     /// <summary>Goes back to the quest we came from.</summary>
     private void OnGoBackPage(object sender, RoutedEventArgs e)

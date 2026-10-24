@@ -2825,6 +2825,13 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
 
     private bool _viewFailed;
 
+    /// <summary>"Réessayer" prepares the engine again: the card spins and its button hides until that ends.</summary>
+    public void RetryView()
+    {
+        _viewFailed = false;
+        Rescore();
+    }
+
     /// <summary>The site's home page.</summary>
     private const string HomeUrl = "https://papycha.fr/";
 
