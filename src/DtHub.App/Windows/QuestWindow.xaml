@@ -1757,17 +1757,16 @@
                                   M 6,4.5 C 5,1.8 2.6,2.2 3.8,4.5 M 6,4.5 C 7,1.8 9.4,2.2 8.2,4.5" />
                     </Border>
 
-                    <!-- The estimated time, in a slot of fixed width just left of the gains, the
-                         words right-aligned: it stands at the same place on every row whatever
-                         icons come before it (with a gift it used to sit 18 px further left).
-                         46 px holds "≈ 12 h 34", 44.8 measured in this face; a longer time
-                         widens its row rather than being cut. Collapsed when the game's
-                         objectives are not read yet. Right-aligned by its slot, not by
-                         TextAlignment, which its hover would inherit. -->
-                    <Border MinWidth="46" Margin="4,0,0,0" VerticalAlignment="Center"
-                            Visibility="{Binding Duration,
-                                                 Converter={StaticResource EmptyToVisibility},
-                                                 ConverterParameter=inverse}">
+                    <!-- The estimated time, in a slot just left of the gains, the words
+                         right-aligned: it stands at the same place on every row whatever
+                         icons come before it. The slot is as wide as the list's widest time
+                         (TimeColumnWidth, measured by the view model, asked 2026-10-24: "plus
+                         fit en largeur"), shared by every row; hidden on a quest or dungeon
+                         row without one, so its icons stay in their column, collapsed on the
+                         other rows and in a list without times (triggers). Right-aligned by
+                         its slot, not by TextAlignment, which its hover would inherit. -->
+                    <Border x:Name="DureeCase" Margin="3,0,0,0" VerticalAlignment="Center"
+                            Width="{Binding DataContext.TimeColumnWidth, RelativeSource={RelativeSource AncestorType=Window}}">
                       <TextBlock x:Name="Duree" HorizontalAlignment="Right"
                                  Text="{Binding Duration}" TextWrapping="NoWrap"
                                  Style="{StaticResource Muted}"
@@ -1777,15 +1776,15 @@
                     </Border>
 
                     <!-- What the quest gives the chosen character: XP then
-                         kamas, last on the right in two fixed columns, each
+                         kamas, last on the right in two columns 6 px apart, each
                          glyph right before its number and both on the right
                          edge, so the numbers line up there (a glyph at the
                          column's left edge read as the previous value's);
-                         tabular figures, so "314" and "780" are as wide. Widths
-                         measured in this face at 11 px, glyph and gap 12: XP
-                         58 for "≤ 99,9 M" (43.6, a quest in progress) or a
-                         team's "1234,5 M" (43.2); kamas 50 for "≤ 9,9 M"
-                         (37.7) or "≤ 999 k" (36.8). A glyph says
+                         tabular figures, so "314" and "780" are as wide. Each
+                         column is as wide as the list's widest value, glyph and
+                         gap 12 included (XpColumnWidth, KamasColumnWidth): a
+                         list of "970 k" and "3 k" does not keep room for
+                         "≤ 99,9 M". A glyph says
                          which is which, the words come on hover: a blue
                          four-point sparkle for XP, a gold coin for kamas.
                          The kamas column stays empty when there are none.
@@ -1796,7 +1795,8 @@
                          when it closes, filled in place once read. Rich: the
                          plain tooltip shows its content as text, and a panel
                          as text is empty. -->
-                    <Border x:Name="GainXp" Width="58" Margin="3,0,0,0"
+                    <Border x:Name="GainXp" Margin="6,0,0,0"
+                            Width="{Binding DataContext.XpColumnWidth, RelativeSource={RelativeSource AncestorType=Window}}"
                             Background="Transparent" VerticalAlignment="Center"
                             ToolTipService.InitialShowDelay="200"
                             ToolTipService.ShowDuration="30000"
@@ -1822,7 +1822,8 @@
                                    FontSize="{StaticResource FontSmall}" />
                       </StackPanel>
                     </Border>
-                    <Border x:Name="GainKamas" Width="50" Margin="4,0,0,0"
+                    <Border x:Name="GainKamas" Margin="6,0,0,0"
+                            Width="{Binding DataContext.KamasColumnWidth, RelativeSource={RelativeSource AncestorType=Window}}"
                             Background="Transparent" VerticalAlignment="Center"
                             ToolTipService.InitialShowDelay="200"
                             ToolTipService.ShowDuration="30000"
@@ -2178,6 +2179,11 @@
                             Value="M 4,7 A 2,2 0 1 0 8,7 A 2,2 0 1 0 4,7 Z" />
                   </DataTrigger>
 
+                  <!-- No time on a quest or dungeon row: its slot kept, so its icons stay in their column. -->
+                  <DataTrigger Binding="{Binding Duration, Converter={StaticResource EmptyToVisibility}}" Value="Visible">
+                    <Setter TargetName="DureeCase" Property="Visibility" Value="Hidden" />
+                  </DataTrigger>
+
                   <!-- Keyed on the quest and not on the kind: dungeon, raid,
                        lair and path rows are of the quest kind too, and kept
                        the two empty columns on their right. -->
@@ -2198,9 +2204,20 @@
                       <Condition Binding="{Binding Dungeon}" Value="{x:Null}" />
                     </MultiDataTrigger.Conditions>
                     <Setter TargetName="Priorite" Property="Visibility" Value="Collapsed" />
+                    <Setter TargetName="DureeCase" Property="Visibility" Value="Collapsed" />
                     <Setter TargetName="GainXp" Property="Visibility" Value="Collapsed" />
                     <Setter TargetName="GainKamas" Property="Visibility" Value="Collapsed" />
                   </MultiDataTrigger>
+
+                  <!-- A column no row of the list fills takes no room, its gap included. -->
+                  <DataTrigger Binding="{Binding DataContext.TimeColumnWidth,
+                                                 RelativeSource={RelativeSource AncestorType=Window}}" Value="0">
+                    <Setter TargetName="DureeCase" Property="Visibility" Value="Collapsed" />
+                  </DataTrigger>
+                  <DataTrigger Binding="{Binding DataContext.KamasColumnWidth,
+                                                 RelativeSource={RelativeSource AncestorType=Window}}" Value="0">
+                    <Setter TargetName="GainKamas" Property="Visibility" Value="Collapsed" />
+                  </DataTrigger>
 
                   <DataTrigger Binding="{Binding DataContext.ListHasQuestGains,
                                                  RelativeSource={RelativeSource AncestorType=Window}}"

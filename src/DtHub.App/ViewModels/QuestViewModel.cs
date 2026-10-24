@@ -75,11 +75,74 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         _catalog = catalog;
         _tree = new QuestTree(catalog, _sectionCounts);
         _dialogs = dialogs;
-        Nodes.CollectionChanged += (_, _) =>
+        Nodes.CollectionChanged += (_, e) =>
         {
             ListHasQuestLevels = QuestListColumns.HasQuestLevels(Nodes);
             ListHasQuestGains = QuestListColumns.HasQuestGains(Nodes);
+            FitColumns(e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add ? e.NewItems! : Nodes, e.Action);
         };
+    }
+
+    /// <summary>
+    /// The time, XP and kamas columns, each as wide as its widest value in the list on screen (asked 2026-10-24:
+    /// "plus fit en largeur"), shared by every row so they line up; 0 when no row fills it. An XP or kamas column adds
+    /// its glyph, 10 px and a gap of 2.
+    /// </summary>
+    [ObservableProperty]
+    private double _timeColumnWidth;
+
+    [ObservableProperty]
+    private double _xpColumnWidth;
+
+    [ObservableProperty]
+    private double _kamasColumnWidth;
+
+    private readonly Dictionary<string, double> _textWidths = [];
+
+    // Added rows can only widen a column; any other change measures the whole list again.
+    private void FitColumns(System.Collections.IList rows, System.Collections.Specialized.NotifyCollectionChangedAction action)
+    {
+        var (time, xp, kamas) = action == System.Collections.Specialized.NotifyCollectionChangedAction.Add
+            ? (TimeColumnWidth, XpColumnWidth, KamasColumnWidth)
+            : (0.0, 0.0, 0.0);
+        foreach (var node in rows.OfType<QuestNode>())
+        {
+            time = Math.Max(time, TextWidth(node.Duration));
+            xp = Math.Max(xp, Glyphed(node.GainXp));
+            kamas = Math.Max(kamas, Glyphed(node.GainKamas));
+        }
+
+        (TimeColumnWidth, XpColumnWidth, KamasColumnWidth) = (time, xp, kamas);
+
+        double Glyphed(string? text) => string.IsNullOrEmpty(text) ? 0 : TextWidth(text) + 12;
+    }
+
+    /// <summary>The text's width in the list's small face, digits measured as zeros: the columns use tabular figures.</summary>
+    private double TextWidth(string? text)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            return 0;
+        }
+
+        if (!_textWidths.TryGetValue(text, out var width))
+        {
+            var app = System.Windows.Application.Current;
+            var face = app?.TryFindResource("UiFont") as System.Windows.Media.FontFamily;
+            var size = app?.TryFindResource("FontSmall") is double small ? small : 11;
+            var shown = string.Concat(text.Select(c => char.IsAsciiDigit(c) ? '0' : c));
+            // shortcut: an estimate without the application's face (never on screen), measure it if one ever shows.
+            width = face is null
+                ? shown.Length * size * 0.6
+                : Math.Ceiling(new System.Windows.Media.FormattedText(
+                    shown, System.Globalization.CultureInfo.CurrentCulture, System.Windows.FlowDirection.LeftToRight,
+                    new System.Windows.Media.Typeface(face, System.Windows.FontStyles.Normal, System.Windows.FontWeights.Normal,
+                        System.Windows.FontStretches.Normal),
+                    size, System.Windows.Media.Brushes.Black, 1.0).WidthIncludingTrailingWhitespace) + 1;
+            _textWidths[text] = width;
+        }
+
+        return width;
     }
 
     /// <summary>True when a quest row of the displayed list shows a gain: the column is kept only then.</summary>
