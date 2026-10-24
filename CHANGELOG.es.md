@@ -10,6 +10,12 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.11.1] - 2026-10-24
+
+### Corregido
+
+- La lista «Al iniciar» vuelve a mostrar tu elección y ya no se cierra sola cuando está abierta.
+
 ## [0.11.0] - 2026-10-24
 
 ### Añadido

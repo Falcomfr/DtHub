@@ -11,6 +11,12 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.11.1] - 2026-10-24
+
+### Corrigé
+
+- La liste « Au démarrage » affiche de nouveau votre choix, et ne se referme plus toute seule quand elle est ouverte.
+
 ## [0.11.0] - 2026-10-24
 
 ### Ajouté

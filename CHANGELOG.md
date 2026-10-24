@@ -17,6 +17,12 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.11.1] - 2026-10-24
+
+### Fixed
+
+- The "At startup" list shows your choice again, and no longer closes by itself while open.
+
 ## [0.11.0] - 2026-10-24
 
 ### Added
