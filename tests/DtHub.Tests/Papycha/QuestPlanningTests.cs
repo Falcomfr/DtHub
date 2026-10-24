@@ -21,18 +21,27 @@ public class QuestPlanningTests
         new("Q" + id, [Quest(id)], new QuestGain(xp, kamas), new QuestEffort(effort, []), 0, false, false, 0);
 
     [Fact]
-    public void Team_leaves_out_a_quest_uncertain_for_any_of_its_characters()
+    public void Team_sums_a_quest_only_for_the_characters_it_is_certain_for()
     {
         var catalog = new[] { Quest(1), Quest(2) };
         // Two steps: in progress, DT Hub cannot tell what is left.
         var facts = new Dictionary<int, TouchQuestFacts> { [1] = new([Step(10, 1f), Step(10, 1f)], []), [2] = Xp(1f) };
         var going = new TrackerProgress(
             new Dictionary<int, QuestStatus> { [1] = QuestStatus.InProgress }, new HashSet<int>(), new HashSet<int> { 2 }, []);
+        var a = Character("A", 10, Progress([1, 2]));
+        var b = Character("B", 10, Progress([1, 2]));
+        var c = Character("C", 10, going);
 
-        var team = QuestPlanning.Team(
-            catalog, facts, [Character("A", 10, Progress([1, 2])), Character("B", 10, Progress([1, 2])), Character("C", 10, going)], 0);
+        var team = QuestPlanning.Team(catalog, facts, [a, b, c], 0);
 
-        Assert.Equal([2], team.Select(t => t.Entry.Quests[0].Id));
+        // C has quest 1 in progress: the row is A's and B's, C's maximum left out of the sum.
+        var first = team.Single(t => t.Entry.Quests[0].Id == 1);
+        Assert.Equal(["A", "B"], first.Characters.Select(x => x.Name));
+        Assert.Equal(2 * QuestProfit.GainOf(facts[1], 10, 0)!.Xp, first.Gain.Xp);
+        Assert.Equal(["A", "B", "C"], team.Single(t => t.Entry.Quests[0].Id == 2).Characters.Select(x => x.Name));
+
+        // Only A and C: C is out, A alone is no team row.
+        Assert.DoesNotContain(QuestPlanning.Team(catalog, facts, [a, c], 0), t => t.Entry.Quests[0].Id == 1);
     }
 
     [Fact]

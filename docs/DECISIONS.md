@@ -11387,8 +11387,11 @@ listes, ses colonnes d'XP et de kamas et son temps commencent par « ≤ »
 (« ≤ 13,3 M », « ≤ 34 min », le « ≈ » du temps remplacé), l'infobulle du gain
 commence par « Quête en cours : DT Hub ne sait pas quelles étapes sont déjà
 faites, gains et temps sont des maximums. », et elle n'a pas de marque de
-priorité. « Recommandées » l'écarte : en mode « Quêtes » ; en vue d'équipe dès
-qu'elle est incertaine pour l'un des personnages ; en mode « Succès », une série
+priorité. « Recommandées » l'écarte : en mode « Quêtes » ; en vue d'équipe pour
+le personnage chez qui elle est incertaine, qui sort de la ligne et de sa somme
+(la ligne reste si deux autres personnages la partagent ; décision du même jour,
+la première version la retirait dès qu'un personnage du compte l'avait en
+cours) ; en mode « Succès », une série
 dont la première quête de la suite l'est n'a pas de ligne ; et elle ne compte
 jamais pour un donjon. La bulle d'info n'en dit rien : « faisables maintenant »
 reste vrai, ces quêtes sont seulement retirées.

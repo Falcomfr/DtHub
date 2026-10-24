@@ -37,11 +37,8 @@ public static class QuestPlanning
         }
 
         // OrderBy is stable: ties keep the first character's order.
-        // Uncertain for one character, the summed gain would be a guess: the row goes.
-        var ordered = shared.Values
-            .Where(s => s.Characters.Count >= 2
-                && !characters.Any(c => QuestProfit.IsUncertain(s.Entry.Quests[0].Id, c.Progress, facts[s.Entry.Quests[0].Id])))
-            .OrderByDescending(s => s.Score).ToList();
+        // A character with the quest uncertain is not in its row (Recommendable dropped it there), nor in its sum.
+        var ordered = shared.Values.Where(s => s.Characters.Count >= 2).OrderByDescending(s => s.Score).ToList();
         var n = ordered.Count;
         var t3 = Math.Max(1, Share(n, 0.10));
         var t2 = t3 + Share(n, 0.15);
