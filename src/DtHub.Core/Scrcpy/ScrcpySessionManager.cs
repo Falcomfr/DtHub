@@ -1390,7 +1390,11 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     {
         foreach (var session in _sessions.Values.Where(s => !s.IsAlive).ToList())
         {
-            _sessions.TryRemove(session.Id, out _);
+            // StopAsync and the read loop end a session without releasing its process.
+            if (_sessions.TryRemove(session.Id, out var gone))
+            {
+                _ = gone.Process.DisposeAsync().AsTask();
+            }
         }
     }
 

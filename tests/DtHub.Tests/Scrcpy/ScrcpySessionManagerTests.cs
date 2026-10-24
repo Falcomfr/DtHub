@@ -845,7 +845,8 @@ public class ScrcpySessionManagerTests
     [Fact]
     public async Task Les_sessions_terminees_peuvent_etre_retirees_de_la_liste()
     {
-        var launcher = new FakeProcessLauncher().Prepare(new FakeProcessSession().Emit(NewDisplayLine));
+        var process = new FakeProcessSession().Emit(NewDisplayLine);
+        var launcher = new FakeProcessLauncher().Prepare(process);
 
         await using var manager = Manager(launcher, new FakeAppLauncher());
 
@@ -856,6 +857,7 @@ public class ScrcpySessionManagerTests
         manager.PruneFinished();
 
         Assert.Empty(manager.Sessions);
+        Assert.True(process.WasDisposed);
     }
 
     [Fact]
