@@ -207,6 +207,21 @@ public class QuestProfitTests
     }
 
     [Fact]
+    public void An_uncertain_quest_gets_no_mark_and_takes_no_tier_place()
+    {
+        // Quest 21, the best, is in progress over two steps: its gains are maximums, shown without a mark (D219).
+        var (catalog, facts) = Twenty();
+        catalog.Add(Quest(21));
+        facts[21] = new([Step(10, 30f), Step(10, 0f)], []);
+        var progress = Progress(catalog.Select(q => q.Id), new() { [21] = QuestStatus.InProgress });
+
+        var scores = QuestProfit.Score(catalog, facts, progress, 10, 0);
+
+        Assert.Equal(0, scores[21].Tier);
+        Assert.All([20, 19], id => Assert.Equal(3, scores[id].Tier));
+    }
+
+    [Fact]
     public void A_quest_the_short_lists_leave_out_gets_no_mark_but_stays_scored()
     {
         // The best gains, but six souls, over two hours of items, or the keyring; quest 4 is the only one left.

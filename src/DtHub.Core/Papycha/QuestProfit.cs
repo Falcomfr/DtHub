@@ -182,9 +182,10 @@ public static class QuestProfit
         var ordered = raw.Select(r => (r.Id, r.Gain, r.Effort, Side: Combined(r.Gain, r.Effort.Minutes, best)))
             .OrderByDescending(s => s.Side.Score).ToList();
 
-        // What the short lists leave out gets no mark ("L'éternelle moisson", 579 souls, wore a flame); still scored,
-        // so it can top up a short list.
-        bool Markable(int id, QuestEffort effort) => effort.Minutes <= ShortMinutes && !IsVeryLong(facts[id]);
+        // What the short lists leave out gets no mark ("L'éternelle moisson", 579 souls, wore a flame), nor does an
+        // uncertain quest, whose mark the lists hide; still scored, so it can top up a short list.
+        bool Markable(int id, QuestEffort effort) =>
+            effort.Minutes <= ShortMinutes && !IsVeryLong(facts[id]) && !IsUncertain(id, progress, facts[id]);
         var n = ordered.Count(s => Markable(s.Id, s.Effort));
         var t3 = Math.Max(1, Share(n, 0.10));
         var t2 = t3 + Share(n, 0.15);

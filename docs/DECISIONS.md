@@ -11152,7 +11152,9 @@ reste sans marque, sur le score combiné : la meilleure quête en XP et la meill
 en kamas valent toutes deux 1. Une quête que les listes courtes écartent (plus de
 120 minutes, trousseau, plus de 5 âmes) ne porte pas de marque et ne compte pas
 dans les parts : « L'éternelle moisson », 579 âmes, portait une flamme (revue
-du 23/10/2026). Ces marques sont celles des autres listes ; les
+du 23/10/2026). Une quête incertaine (en cours, plus bas) non plus : elle prenait
+une place de palier sans montrer de marque (revue du 24/10/2026). Ces marques
+sont celles des autres listes ; les
 lignes de « Recommandées » n'en portent pas (voir plus bas).
 
 **Deux listes courtes.** « Recommandées » n'est plus une liste unique sur le
