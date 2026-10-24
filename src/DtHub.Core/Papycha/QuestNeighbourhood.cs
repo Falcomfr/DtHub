@@ -82,9 +82,12 @@ public static class QuestNeighbourhood
 
         // A series with ways the game takes one for another ("Agriculture ou
         // alchimie"): its list zigzags between them, so the graph decides,
-        // and the rank counts along the quest's way.
+        // and the rank counts along the quest's way. Ways the graph cannot
+        // tell (devotions, Allister without the game's names) keep the list.
         if (chain is not null && quest.SuccessName.Length > 0 && quests is not null
-            && quests.Any(q => q.SuccessName == quest.SuccessName && q.Alternatives.Count > 0))
+            && QuestPlayOrder.HasWays(
+                [.. quests.Where(q => q.SuccessName == quest.SuccessName)],
+                new QuestChainIndex(quests.Where(q => q.SuccessName == quest.SuccessName))))
         {
             var (at, size) = QuestPlayOrder.Position(quests, quest) ?? (0, 0);
 

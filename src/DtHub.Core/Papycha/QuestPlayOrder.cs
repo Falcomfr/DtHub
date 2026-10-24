@@ -129,8 +129,8 @@ public static class QuestPlayOrder
     /// <summary>
     /// The achievement of <paramref name="on"/> in play order, along the way these quests take: less every quest that
     /// is an alternative (<see cref="QuestSummary.Alternatives"/>) of one of them, of one before them or of one after
-    /// them, so a way of "Agriculture ou alchimie" counts 11 quests, not 21. Without alternatives, the whole
-    /// achievement; before the ways part, too.
+    /// them, so a way of "Agriculture ou alchimie" counts 11 quests, not 21. Without alternatives, or without a graph
+    /// to tell the ways (<see cref="HasWays"/>), the whole achievement; before the ways part, too.
     /// </summary>
     public static IReadOnlyList<QuestSummary> Way(IEnumerable<QuestSummary> catalog, IReadOnlyCollection<QuestSummary> on)
     {
@@ -139,9 +139,9 @@ public static class QuestPlayOrder
 
         var name = on.First().SuccessName;
         var series = Sorted(catalog.Where(q => string.Equals(q.SuccessName, name, StringComparison.Ordinal)));
-        if (!series.Any(q => q.Alternatives.Count > 0)) return series;
-
         var chain = new QuestChainIndex(series);
+        if (!HasWays(series, chain)) return series;
+
         var edges = series.SelectMany(q => QuestProfit.Previous(q, chain).Select(p => (Before: p.Id, After: q.Id))).ToList();
         HashSet<int> along = [.. on.Select(q => q.Id)];
         // The other ways of these quests: walking from a root shared by both ways must not enter them.
@@ -166,6 +166,15 @@ public static class QuestPlayOrder
 
         return [.. series.Where(q => along.Contains(q.Id) || !q.Alternatives.Any(along.Contains))];
     }
+
+    /// <summary>
+    /// Whether the series' alternatives hang off its prerequisite graph: each has a previous quest in the series, as
+    /// in "Agriculture ou alchimie". The devotions, or Allister's quests whose needs are free text, have none: their
+    /// way cannot be told, and the series reads as its list.
+    /// </summary>
+    internal static bool HasWays(IReadOnlyList<QuestSummary> series, QuestChainIndex chain) =>
+        series.Any(q => q.Alternatives.Count > 0)
+        && series.Where(q => q.Alternatives.Count > 0).All(q => QuestProfit.Previous(q, chain).Count > 0);
 
     /// <summary>
     /// The topological sort, with a fallback on cycles: we then take

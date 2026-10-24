@@ -183,4 +183,24 @@ public sealed class QuestPlayOrderTests
         // R, A1, A2, A3 : « (1-4/4) », pas « (1-7/7) ».
         Assert.Equal(["R", "A1", "A2", "A3"], Titres(QuestPlayOrder.Way(catalogue, [catalogue[0], catalogue[1], catalogue[3], catalogue[5]])));
     }
+
+    /// <summary>
+    /// Des alternatives sans prérequis dans la série (les dévotions, les quêtes
+    /// d'Allister sans noms du jeu) : pas de graphe pour dire la voie.
+    /// </summary>
+    internal static QuestSummary[] AlternativesSansGraphe() =>
+    [
+        Quete("R", 1) with { Id = 1 },
+        Quete("A1", 2) with { Id = 11, Alternatives = [21] },
+        Quete("B1", 3) with { Id = 21, Alternatives = [11] },
+    ];
+
+    [Fact]
+    public void Sans_graphe_pour_ses_voies_la_place_reste_celle_de_la_liste()
+    {
+        var catalogue = AlternativesSansGraphe();
+
+        Assert.Equal((2, 3), QuestPlayOrder.Position(catalogue, catalogue[1]));
+        Assert.Equal((3, 3), QuestPlayOrder.Position(catalogue, catalogue[2]));
+    }
 }

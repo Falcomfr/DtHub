@@ -213,4 +213,16 @@ public sealed class QuestNeighbourhoodTests
         // R ouvre les deux voies : aucune suivante plutôt qu'une au hasard.
         Assert.Null(QuestNeighbourhood.Of(tout[0], tout, chain).Next);
     }
+
+    [Fact]
+    public void Sans_graphe_pour_ses_voies_les_voisines_restent_celles_de_la_liste()
+    {
+        var tout = QuestPlayOrderTests.AlternativesSansGraphe();
+
+        var a1 = QuestNeighbourhood.Of(tout[1], tout, new QuestChainIndex(tout));
+
+        Assert.Equal("R", a1.Previous?.Title);
+        Assert.Equal("B1", a1.Next?.Title);
+        Assert.Equal((2, 3), (a1.Rank, a1.Count));
+    }
 }

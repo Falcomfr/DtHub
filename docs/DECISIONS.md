@@ -11514,7 +11514,13 @@ est cette première quête. La vue d'équipe regroupe par série et voie. Les pl
 quête avant l'embranchement garde la série entière (« Développement durable. »
 1/21). Dans une série à voies, la précédente et la suivante du guide suivent le
 graphe des prérequis (aucune suivante sur « Développement durable. », qui ouvre
-les deux voies) ; ailleurs, la liste du succès, comme avant.
+les deux voies) ; ailleurs, la liste du succès, comme avant. Revue du même jour :
+une série dont les alternatives n'ont pas de précédente dans la série (les
+dévotions d'« Un nouveau départ », les quêtes d'Allister dont les prérequis sont
+du texte) n'a pas de graphe pour dire la voie ; ses places et ses voisines restent
+celles de la liste (« La découverte d'un destin » 1/18 et une dévotion 4/4 se
+contredisaient), et une suite qui part de la racine ne compte pas l'autre voie
+(« (1-11/11) », non « (1-21/21) »).
 
 *Règle E.* « Succès X réalisé » demande toutes les fins de la série (les quêtes
 qu'aucune autre de la série ne suit), une fin de la voie écartée comptant comme
