@@ -3047,6 +3047,9 @@ Gains computed at each character's level, Bonus Pack included if ticked.</value>
   <data name="ProfitRunLine" xml:space="preserve">
     <value>{0}: {1} XP · {2} kamas · {3}</value>
   </data>
+  <data name="ProfitRate" xml:space="preserve">
+    <value>✦ {0} XP/min · ◎ {1} kamas/min</value>
+  </data>
   <data name="ProfitWholeLevel" xml:space="preserve">
     <value>These {0} quests are worth a whole level ({1} → {2})</value>
   </data>

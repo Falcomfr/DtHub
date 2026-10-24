@@ -3047,6 +3047,9 @@ Gains calculés au niveau de chaque personnage, Bonus Pack compris s'il est coch
   <data name="ProfitRunLine" xml:space="preserve">
     <value>{0} : {1} XP · {2} kamas · {3}</value>
   </data>
+  <data name="ProfitRate" xml:space="preserve">
+    <value>✦ {0} XP/min · ◎ {1} kamas/min</value>
+  </data>
   <data name="ProfitWholeLevel" xml:space="preserve">
     <value>Ces {0} quêtes valent un niveau entier ({1} → {2})</value>
   </data>

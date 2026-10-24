@@ -70,6 +70,15 @@ public class QuestGainTextTests : IDisposable
             QuestGainText.Tip(new QuestGain(10, 35), 0, false, new QuestEffort(25, []), steps: 7));
 
     [Fact]
+    public void Le_rythme_par_minute_donne_les_deux_cotes_et_rien_sans_temps()
+    {
+        // The columns' own rounding: 2 800 is "3 k".
+        Assert.Equal("✦ 1,2 M XP/min · ◎ 3 k kamas/min", QuestGainText.Rate(new QuestGain(12_000_000, 28_000), 10));
+        Assert.Equal("✦ 3 XP/min · ◎ 0 kamas/min", QuestGainText.Rate(new QuestGain(10, 0), 3));
+        Assert.Null(QuestGainText.Rate(new QuestGain(10, 35), 0));
+    }
+
+    [Fact]
     public void Sans_rang_ni_raison_l_infobulle_reste_au_gain() =>
         Assert.Equal("10 XP · 0 kamas", QuestGainText.Tip(new QuestGain(10, 0), 0, false, null));
 }

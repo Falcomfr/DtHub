@@ -24,6 +24,7 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 - Marcar muchas misiones como terminadas de una vez: el botón de selección de la lista de guías marca misiones (Mayús+clic para un rango), y los títulos de logro y de zona ofrecen «Marcar todo terminado»; DT Hub las escribe una a una, comprueba lo que Papycha guardó y vuelve a escribir lo que se perdió.
 - Con varios personajes vinculados, «Recomendadas» tiene un botón «Yo» y «Equipo»: las misiones que varios de tus personajes pueden hacer, con las ganancias sumadas; marca qué personajes cuentan.
 - «Recomendadas» tiene un modo «Logros» junto a «Misiones»: una línea por serie, su continuación desde la siguiente misión realizable, ganancias y tiempos sumados, sin límite de tiempo; en la vista «Equipo», la continuación de cada personaje, cuando al menos dos tienen una.
+- En «Recomendadas», al pasar el ratón sobre la ganancia de una línea se ven también la XP y los kamas por minuto con los que se ordena la lista («✦ 1,2 M XP/min · ◎ 3 k kamas/min»).
 - Las mazmorras que hacen avanzar al menos dos misiones recomendadas aparecen en «Recomendadas», y en las listas de mazmorras con la recompensa de las etapas de misión que pasan por ellas; cada mazmorra muestra el tiempo estimado de una partida.
 - Un icono de regalo en una fila de misión lista los objetos y otras recompensas que da a tu nivel.
 - Pasa el cursor sobre una misión para ver dónde encontrar los objetos que pide: monstruos que los sueltan, recolección, fabricación, arquimonstruos y sus zonas.

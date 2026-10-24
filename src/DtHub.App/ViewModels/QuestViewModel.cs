@@ -1713,9 +1713,11 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             maxMinutes: ProfitSeries ? int.MaxValue : QuestProfit.ShortMinutes);
 
         // No priority mark here: the order and the tab say it, and the combined-score tiers contradicted the order.
+        // The hover gives the rates the list ranks on.
         foreach (var row in shown)
         {
-            Nodes.Add(row.Node with { Tier = 0 });
+            var (tip, rate) = (row.Node.ProfitTip, QuestGainText.Rate(row.Gain, row.Minutes));
+            Nodes.Add(row.Node with { Tier = 0, ProfitTip = rate is null ? tip : tip is null ? rate : $"{tip}\n{rate}" });
         }
 
         if (shown.Count == 0)

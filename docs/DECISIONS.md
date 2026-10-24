@@ -11318,6 +11318,14 @@ par minute estimée » ou « par kamas gagnés par minute estimée »), et son
 infobulle ajoute « Succès : la suite d'une série à partir de la prochaine quête
 faisable, gains et temps additionnés. »
 
+**Rythme au survol.** Demande du 24/10/2026, acceptée : sur chaque ligne de
+« Recommandées » (modes « Quêtes » et « Succès », vue d'équipe et lignes de
+donjon comprises), l'infobulle du gain finit par le rythme sur lequel la liste
+classe, une ligne pour les deux côtés : « ✦ 1,2 M XP/min · ◎ 3 k kamas/min »,
+gain de la ligne divisé par son temps estimé, arrondi et écrit comme les colonnes
+(2 800 donne « 3 k »). Sans temps connu, la ligne n'est pas ajoutée. Rien de plus
+sur la ligne elle-même (`QuestGainText.Rate`, testée).
+
 **Filtre « Faisables ».** Demande du 24/10/2026 : « possible tu mets un seul
 bouton qui regroupe tout qui met juste les quêtes faisables ». Les deux filtres de
 la barre de la liste, « À faire » (sans les terminées ni les ignorées) et

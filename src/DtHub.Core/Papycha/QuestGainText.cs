@@ -27,6 +27,15 @@ public static class QuestGainText
         return (gain.Xp > 0 ? Compact(gain.Xp) : string.Empty, gain.Kamas > 0 ? Compact(gain.Kamas) : null);
     }
 
+    /// <summary>"✦ 1,2 M XP/min · ◎ 3 k kamas/min", the rates the short lists rank on; null without a time.</summary>
+    public static string? Rate(QuestGain gain, int minutes)
+    {
+        ArgumentNullException.ThrowIfNull(gain);
+
+        return minutes <= 0 ? null
+            : Strings.Format("ProfitRate", Compact((long)Math.Round((double)gain.Xp / minutes)), Compact((long)Math.Round((double)gain.Kamas / minutes)));
+    }
+
     /// <summary>
     /// XP and kamas, said to be the whole quest's past one step (DT Hub does not know the step reached); then, for a
     /// doable quest, its tier with the side it is worth it for; then its time and what it asks for.
