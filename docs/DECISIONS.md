@@ -11504,7 +11504,11 @@ seules (D219), rapprochées par leur identifiant : une quête de série n'est
 partagée que si elle est la prochaine quête faisable de chacun ; ses gains, au
 niveau de chaque personnage, sont additionnés. Seules les quêtes partagées par
 au moins deux personnages restent ; la ligne dit « 3 persos » et
-l'infobulle nomme les personnages. Le Bonus Pack est un réglage unique pour le
+l'infobulle nomme les personnages. Une ligne d'équipe ne porte ni le statut, ni
+le « ≤ » du temps, ni l'icône cadeau du personnage choisi (revue du 24/10/2026 :
+une quête que le principal avait terminée s'affichait cochée, ou à demi effacée
+s'il l'avait ignorée) ; les autres récompenses dépendent du niveau de chacun,
+leur union n'est pas décidée. Le Bonus Pack est un réglage unique pour le
 compte. Pas de donjons dans la vue d'équipe. Sous « Moi » / « Équipe », une case
 par personnage du suivi (non archivé) choisit qui compte (demande du
 23/10/2026) : tous cochés par défaut, le réglage garde ceux qu'on décoche, donc

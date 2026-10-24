@@ -1773,8 +1773,12 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
                 var (xp, kamas) = QuestGainText.Columns(t.Gain);
                 var count = Strings.Format("ProfitCharacters", t.Characters.Count);
 
+                // The node was marked for the chosen character: his status, his "≤" and his level's gift are not the team's.
                 return QuestRow(t.Gain, t.Entry, node with
                 {
+                    Status = QuestStatus.NotStarted,
+                    Duration = QuestTime.Text(t.Entry.Effort.Minutes),
+                    OtherRewards = null,
                     GainXp = xp,
                     GainKamas = kamas,
                     Tier = t.Tier,
@@ -1812,7 +1816,16 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
                     var row = RunRow(t.Entry, t.Gain, tip);
                     var node = row.Node;
                     var count = Strings.Format("ProfitCharacters", t.Characters.Count);
-                    return row with { Node = node with { Detail = node.Detail is { Length: > 0 } detail ? $"{detail} · {count}" : count } };
+                    // As in TeamRows: the chosen character's status and level's gift are not the team's.
+                    return row with
+                    {
+                        Node = node with
+                        {
+                            Status = QuestStatus.NotStarted,
+                            OtherRewards = null,
+                            Detail = node.Detail is { Length: > 0 } detail ? $"{detail} · {count}" : count,
+                        },
+                    };
                 })];
 
     /// <summary>
