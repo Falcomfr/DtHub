@@ -37,7 +37,7 @@ public sealed record TouchLanguageNames
     public DateTimeOffset FactsReadUtc { get; init; }
 }
 
-/// <summary>Steps in game order; a null step lacks a formula field.</summary>
+/// <summary>Steps in game order; a null step lacks a formula field, and all are null when the server left one out.</summary>
 public sealed record TouchQuestFacts(TouchStepReward?[] Steps, TouchObjective[] Objectives);
 
 /// <summary>

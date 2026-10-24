@@ -450,6 +450,18 @@ public class TouchNameServiceTests
     }
 
     [Fact]
+    public async Task Une_etape_absente_de_la_reponse_masque_la_recompense()
+    {
+        SeedFacts();
+        _client.Rows["QuestSteps"].Remove(11);
+        using var service = new TouchNameService(_client, _store, new FakeTable()) { FactsPause = TimeSpan.Zero };
+
+        var facts = await service.FactsAsync("en");
+
+        Assert.Null(QuestProfit.GainOf(facts[1], 50, 0));
+    }
+
+    [Fact]
     public async Task Un_refus_des_objectifs_garde_le_cache_precedent()
     {
         SeedFacts();

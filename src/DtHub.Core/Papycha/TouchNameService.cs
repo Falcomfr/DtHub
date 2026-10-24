@@ -316,9 +316,11 @@ public sealed class TouchNameService(
                 q =>
                 {
                     var own = q.Value.Where(steps.ContainsKey).Select(id => steps[id]).ToArray();
+                    // A step the server left out hides the reward: the others alone would be a partial sum (D218).
+                    var whole = own.Length == q.Value.Length;
 
                     return new TouchQuestFacts(
-                        [.. own.Select(step => BuildReward(step, rewardRows))],
+                        [.. own.Select(step => whole ? BuildReward(step, rewardRows) : null)],
                         [.. own.SelectMany((step, index) => Ints(step, "objectiveIds")
                             .Where(objectives.ContainsKey)
                             .Select(id =>
