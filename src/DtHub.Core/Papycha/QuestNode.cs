@@ -135,6 +135,7 @@ public enum QuestNodeGlyph
 /// For the chosen character, whether the prerequisites are met (see <see cref="QuestTracking.Locked"/>); <c>null</c>
 /// without a tracker.
 /// </param>
+/// <param name="Finishes">On a dungeon row, how many of the character's quests the dungeon finishes; 0 for none.</param>
 public sealed record QuestNode(
     QuestNodeKind Kind,
     string Label,
@@ -161,7 +162,8 @@ public sealed record QuestNode(
     string? Duration = null,
     bool? Checked = null,
     bool MarksAll = false,
-    bool? NeedsMet = null)
+    bool? NeedsMet = null,
+    int Finishes = 0)
 {
     /// <summary>
     /// Neither unmade branches nor subheadings are clickable.

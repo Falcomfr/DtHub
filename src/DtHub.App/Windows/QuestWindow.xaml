@@ -1352,135 +1352,58 @@
                             Content="{loc:T BatchMarkAll}" ToolTip="{loc:T BatchMarkAllTip}"
                             Click="OnMarkAllClick"
                             Visibility="{Binding MarksAll, Converter={StaticResource BoolToVisibility}}" />
-                    <!-- A dungeon's soul stone, position and key, each in
-                         its own fixed column so that eighty-three rows line
-                         up, each column only as wide as its content and
-                         four pixels apart: the user prefers tight rows.
+                    <!-- A dungeon's position, key and the quests it finishes,
+                         each in its own fixed column so that every dungeon
+                         row lines up: nothing after them on a dungeon row
+                         changes width from one row to the next (no time, no
+                         priority mark, gains hidden and not collapsed in a
+                         list that has some). Asked 2026-10-24: "pas de
+                         décalage comme ça", and "tanière : enlève pierre
+                         d'âme et minutes": the soul stone and the run's time
+                         are gone, the gains too, for a "✓ 2" naming on hover
+                         the quests the dungeon finishes.
 
                          **Fixed widths and not a shared size scope.**
                          Under virtualization, containers join and leave
                          the scope as you scroll, so a shared width is
                          computed from whatever happens to be realized
-                         and shifts while you move. Fixed widths also
-                         align the Raids and Lairs branches and the
-                         search results, none of which have bands to
-                         anchor the eye.
+                         and shifts while you move.
 
-                         The widths come from the catalogue rather than
-                         from a guess: the longest position it holds is
-                         nine characters, about sixty pixels in the mono
-                         face; the stone is fourteen, the key fifteen.
+                         The position's width comes from the catalogue:
+                         its longest is nine characters, about sixty pixels
+                         in the mono face, left-aligned so the brackets
+                         open in a column. The key is fifteen; the count
+                         holds a check and two digits.
 
                          Collapsed whole for every row that is not a
-                         dungeon, which is six kinds out of seven. A
-                         collapsed grid short-circuits measure, so the
-                         fixed columns cost a quest row nothing. -->
+                         dungeon. A collapsed grid short-circuits measure,
+                         so the fixed columns cost a quest row nothing. -->
                     <Grid Visibility="{Binding Facts,
                                                Converter={StaticResource EmptyToVisibility},
                                                ConverterParameter=inverse}">
                       <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="18" />
                         <ColumnDefinition Width="60" />
                         <ColumnDefinition Width="19" />
+                        <ColumnDefinition Width="28" />
                       </Grid.ColumnDefinitions>
-
-                      <!-- The stone alone, coloured by its size as in the
-                           game: it says the size, so the word only comes on
-                           hover. Drawn rather than taken from the game's
-                           artwork, which the project does not embed.
-                           Collapsed for a size the site has not used,
-                           rather than drawn in a wrong colour.
-                           The words are the API's, capital included.
-                           shortcut: a new size word would show nothing,
-                           give it a stone colour when the site adds one. -->
-                      <StackPanel Grid.Column="0" Orientation="Horizontal"
-                                  HorizontalAlignment="Left" Margin="0,0,4,0">
-                        <Viewbox Width="14" Height="14"
-                                 VerticalAlignment="Center"
-                                 ToolTip="{Binding Facts.Size}"
-                                 ToolTipService.InitialShowDelay="200">
-                          <Viewbox.Style>
-                            <Style TargetType="Viewbox">
-                              <Setter Property="Visibility" Value="Collapsed" />
-                              <Style.Triggers>
-                                <DataTrigger Binding="{Binding Facts.Size}" Value="Petite">
-                                  <Setter Property="Visibility" Value="Visible" />
-                                  <Setter Property="Tag" Value="{DynamicResource SoulStoneSmallBrush}" />
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding Facts.Size}" Value="Moyenne">
-                                  <Setter Property="Visibility" Value="Visible" />
-                                  <Setter Property="Tag" Value="{DynamicResource SoulStoneMediumBrush}" />
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding Facts.Size}" Value="Grande">
-                                  <Setter Property="Visibility" Value="Visible" />
-                                  <Setter Property="Tag" Value="{DynamicResource SoulStoneLargeBrush}" />
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding Facts.Size}" Value="Gigantesque">
-                                  <Setter Property="Visibility" Value="Visible" />
-                                  <Setter Property="Tag" Value="{DynamicResource SoulStoneHugeBrush}" />
-                                </DataTrigger>
-                              </Style.Triggers>
-                            </Style>
-                          </Viewbox.Style>
-
-                          <!-- The game's icon, traced on a 16 unit square:
-                               a plum cluster of two shards behind, its
-                               left shard lit and a glint on the right;
-                               in front, a dark left shard, a tall pale
-                               central one whose right half catches the
-                               light, and a right shard in half shadow,
-                               every piece parted by a dark edge. -->
-                          <Canvas Width="16" Height="16">
-                            <Path Fill="{DynamicResource SoulStoneTipBrush}"
-                                  Stroke="{DynamicResource SoulStoneEdgeBrush}"
-                                  StrokeThickness="0.28" StrokeLineJoin="Round"
-                                  Data="M 5.1,6 L 7,1.4 L 7.6,1.4 L 8,1 L 9,1.8 L 10.3,6 L 9.2,8.6 L 6,7 Z" />
-                            <Path Fill="{DynamicResource SoulStoneShadeBrush}"
-                                  Data="M 6.6,6 L 7.6,2.2 L 8.4,1.8 L 9.8,5.8 L 9.2,8.4 Z" />
-                            <Path Fill="{DynamicResource SoulStoneLightBrush}"
-                                  Data="M 5.1,6 L 7,1.4 L 7.6,1.4 L 6.6,6 Z" />
-                            <Path Fill="{DynamicResource SoulStoneGlintBrush}"
-                                  Data="M 8.6,5.2 A 0.6,0.6 0 1 0 9.8,5.2 A 0.6,0.6 0 1 0 8.6,5.2 Z" />
-                            <Path Fill="{Binding Tag, RelativeSource={RelativeSource AncestorType=Viewbox}}"
-                                  Stroke="{DynamicResource SoulStoneEdgeBrush}"
-                                  StrokeThickness="0.28" StrokeLineJoin="Round"
-                                  Data="M 5,5.8 L 6.6,6.6 L 7.4,5.2 L 8.6,7 L 9.9,5.9 L 10.7,6.6 L 11.3,9.2 L 10.6,11.7 L 8.6,13.9 L 8,14.9 L 5.8,14 L 4.2,11.5 L 4.3,9 Z" />
-                            <Path Fill="{DynamicResource SoulStoneDeepBrush}"
-                                  Data="M 5,5.8 L 6.6,6.6 L 5.4,11.1 L 6.5,13.4 L 5.8,14 L 4.2,11.5 L 4.3,9 Z" />
-                            <Path Fill="{DynamicResource SoulStoneSheenBrush}"
-                                  Data="M 7.4,5.2 L 9.2,8.6 L 8.6,13.9 L 8,14.9 L 6.9,14.1 L 5.4,11.1 Z" />
-                            <Path Fill="{DynamicResource SoulStoneGlintBrush}"
-                                  Data="M 7.4,5.2 L 9.2,8.6 L 8.6,13.9 L 8,14.9 Z" />
-                            <Path Fill="{DynamicResource SoulStoneShadeBrush}"
-                                  Data="M 9.9,5.9 L 10.7,6.6 L 11.3,9.2 L 10.6,11.7 L 9.2,8.6 Z" />
-                            <Path Fill="{DynamicResource SoulStoneSheenBrush}"
-                                  Data="M 9.2,8.6 L 10.6,11.7 L 8.6,13.9 Z" />
-                            <Path Stroke="{DynamicResource SoulStoneEdgeBrush}"
-                                  StrokeThickness="0.28" StrokeLineJoin="Round"
-                                  Data="M 7.4,5.2 L 9.2,8.6 L 8.6,13.9 M 9.2,8.6 L 10.6,11.7 M 6.6,6.6 L 5.4,11.1 L 6.5,13.4" />
-                          </Canvas>
-                        </Viewbox>
-                      </StackPanel>
 
                       <!-- The one place a fixed pitch earns its keep: in
                            the proportional face, [7,-25] and [-63,-75]
                            do not begin at the same offset, so the
                            brackets never form a column. -->
-                      <TextBlock Grid.Column="1" Text="{Binding Facts.Position}"
-                                 TextAlignment="Right"
+                      <TextBlock Grid.Column="0" Text="{Binding Facts.Position}"
                                  TextWrapping="NoWrap" VerticalAlignment="Center"
                                  Style="{StaticResource Muted}"
                                  FontFamily="{StaticResource MonoFont}"
                                  FontSize="{StaticResource FontSmall}" />
 
-                      <!-- The key required at a dungeon's entrance, last
-                           on the right. Nine out of eighty-three don't
-                           require one, and therefore have no icon: the
-                           absence is information in itself, and the
-                           column stays so the positions do not shift. Its
-                           name is too long for the column and comes on
+                      <!-- The key required at a dungeon's entrance. Nine out
+                           of eighty-three don't require one, and therefore
+                           have no icon: the absence is information in
+                           itself, and the column stays so nothing shifts.
+                           Its name is too long for the column and comes on
                            hover. -->
-                      <Border Grid.Column="2" Background="Transparent"
+                      <Border Grid.Column="1" Background="Transparent"
                               HorizontalAlignment="Right" VerticalAlignment="Center"
                               ToolTip="{Binding Dungeon.Key}"
                               ToolTipService.InitialShowDelay="200"
@@ -1493,6 +1416,25 @@
                                     a 2.6,2.6 0 1 0 -5.2,0
                                     M 7.8,7.5 H 12.8 M 10.3,7.5 V 9.8 M 12.4,7.5 V 9.3" />
                       </Border>
+
+                      <!-- The quests the dungeon finishes for the chosen
+                           character: a check and their count, their titles
+                           on hover. Hidden, not collapsed, when none. -->
+                      <StackPanel x:Name="Termine" Grid.Column="2" Orientation="Horizontal"
+                                  HorizontalAlignment="Right" VerticalAlignment="Center"
+                                  Background="Transparent"
+                                  ToolTip="{Binding ProfitTip}"
+                                  ToolTipService.InitialShowDelay="200">
+                        <Path Width="12" Height="12" Margin="0,0,2,0" VerticalAlignment="Center"
+                              Stretch="None" Stroke="{DynamicResource AccentBrush}"
+                              StrokeThickness="1.5" StrokeStartLineCap="Round"
+                              StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                              Data="M 2,6.5 L 5,9.5 L 10.5,3" />
+                        <TextBlock Text="{Binding Finishes}" VerticalAlignment="Center"
+                                   Typography.NumeralAlignment="Tabular"
+                                   Foreground="{DynamicResource AccentBrush}"
+                                   FontSize="{StaticResource FontSmall}" />
+                      </StackPanel>
                     </Grid>
 
                     <!-- Still the right-hand text of every other kind of
@@ -1608,12 +1550,10 @@
 
                     <!-- The priority mark of a quest doable now, among the
                          character's doable quests: a flame, a hollow flame,
-                         a dot. Hidden by default and collapsed on rows
-                         without a dungeon: a dungeon row without a mark keeps
-                         its square, so its facts stay in their column. -->
+                         a dot. Collapsed by default; a dungeon row has none. -->
                     <Border x:Name="Priorite" Width="15" Height="15"
                             Margin="3,0,0,0" VerticalAlignment="Center"
-                            Background="Transparent" Visibility="Hidden"
+                            Background="Transparent" Visibility="Collapsed"
                             ToolTip="{Binding ProfitTip}"
                             ToolTipService.InitialShowDelay="200">
                       <Path x:Name="PrioriteTrait" Width="12" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center"
@@ -2147,9 +2087,8 @@
                     <Setter TargetName="GainKamas" Property="Visibility" Value="Hidden" />
                   </DataTrigger>
 
-                  <!-- Before the marks below, which must win on quest rows. -->
-                  <DataTrigger Binding="{Binding Dungeon}" Value="{x:Null}">
-                    <Setter TargetName="Priorite" Property="Visibility" Value="Collapsed" />
+                  <DataTrigger Binding="{Binding Finishes}" Value="0">
+                    <Setter TargetName="Termine" Property="Visibility" Value="Hidden" />
                   </DataTrigger>
 
                   <!-- The priority marks, on a twelve unit square: a flame
@@ -2193,11 +2132,10 @@
                     <Setter TargetName="Cadenas" Property="Visibility" Value="Collapsed" />
                   </DataTrigger>
 
-                  <!-- A dungeon row keeps the gain columns: it is worth the
-                       quests it advances, and its mark and gains say so. A
-                       dungeon worth nothing keeps the gains and the mark's
-                       square hidden, not collapsed, so the facts on its left
-                       stay in their column. -->
+                  <!-- A dungeon row keeps the time and gain columns hidden,
+                       not collapsed: in a list with quest rows (Recommended)
+                       its facts then end in a column with the other
+                       dungeons'. Other rows that are not quests drop them. -->
                   <MultiDataTrigger>
                     <MultiDataTrigger.Conditions>
                       <Condition Binding="{Binding Quest}" Value="{x:Null}" />

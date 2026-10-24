@@ -3026,7 +3026,7 @@ To avoid it: {1}  ›  "Auto lock Secure Folder" › the longest option.</value>
     <value>Quests doable now, ranked by gain per minute.
 Time estimated by DT Hub, gains at your level.
 Quests: the next one of each chain in a series. Achievements: what follows in the series, one per path.
-Dungeon: offered when it completes at least 2 quests.</value>
+Dungeon: offered when it completes at least 2 quests, ranked by their gain (✓ 2: how many).</value>
   </data>
   <data name="ProfitHowTeamTip" xml:space="preserve">
     <value>Quests doable now, ranked by gain per minute.

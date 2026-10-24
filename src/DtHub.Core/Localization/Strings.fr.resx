@@ -3026,7 +3026,7 @@ Pour l'éviter : {1}  ›  « Verrouillage auto. Dossier sécurisé » › l'opt
     <value>Quêtes faisables maintenant, classées par gain par minute.
 Temps estimé par DT Hub, gains à votre niveau.
 Quêtes : la prochaine de chaque chaîne d'une série. Succès : la suite de la série, une par voie.
-Donjon : proposé s'il termine au moins 2 quêtes.</value>
+Donjon : proposé s'il termine au moins 2 quêtes, classé par leur gain (✓ 2 : leur nombre).</value>
   </data>
   <data name="ProfitHowTeamTip" xml:space="preserve">
     <value>Quêtes faisables maintenant, classées par gain par minute.

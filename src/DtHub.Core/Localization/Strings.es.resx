@@ -3026,7 +3026,7 @@ Para evitarlo: {1}  ›  «Bloqueo automático de Carpeta segura» › la opció
     <value>Misiones realizables ahora, ordenadas por ganancia por minuto.
 Tiempo estimado por DT Hub, ganancias a tu nivel.
 Misiones: la siguiente de cada cadena de una serie. Logros: la continuación de la serie, una por vía.
-Mazmorra: propuesta si completa al menos 2 misiones.</value>
+Mazmorra: propuesta si completa al menos 2 misiones, ordenada por su ganancia (✓ 2: cuántas).</value>
   </data>
   <data name="ProfitHowTeamTip" xml:space="preserve">
     <value>Misiones realizables ahora, ordenadas por ganancia por minuto.

@@ -349,14 +349,9 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             return node with { MarksAll = IsSelecting };
         }
 
+        // A dungeon row says only that it finishes quests, not their gains nor its time (asked 2026-10-24).
         if (node.Dungeon is { } dungeon)
         {
-            // Its run's time shows on every dungeon the game's table knows; the gains only with quests it advances.
-            if (_touchNames.Table.Dungeons.TryGetValue(dungeon.Id, out var ids))
-            {
-                node = node with { Duration = QuestTime.Text(QuestTime.DungeonMinutes(ids.Dungeons, _dungeonRooms)) };
-            }
-
             return DungeonValues.TryGetValue(dungeon.Id, out var value) ? Valued(node, value) : node;
         }
 
@@ -459,21 +454,16 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
     private static string? JoinSources(List<ItemSource> sources) =>
         sources.Count == 0 ? null : string.Join("\n\n", sources.Select(ItemSourceText.Of));
 
-    /// <summary>A dungeon row with what it is worth: the quests it finishes, their whole gains and its mark.</summary>
-    private static QuestNode Valued(QuestNode node, DungeonValue value)
+    /// <summary>
+    /// A dungeon row with the quests it finishes, counted on the row ("✓ 2") and named on hover; their gains and its
+    /// time stay off the row, narrower (asked 2026-10-24: "juste tu indiques que c'est bénéfique pour une quête").
+    /// </summary>
+    private static QuestNode Valued(QuestNode node, DungeonValue value) => node with
     {
-        var (xp, kamas) = QuestGainText.Columns(value.Gain);
-        var quests = string.Join(", ", value.Advances.Select(a => a.Title));
-
-        return node with
-        {
-            GainXp = xp,
-            GainKamas = kamas,
-            Tier = value.Tier,
-            ProfitTip = QuestGainText.Tip(value.Gain, effort: new QuestEffort(value.Minutes, [])) + "\n"
-                + Strings.Format(value.Advances.Count == 1 ? "DungeonFinishesOne" : "DungeonFinishes", value.Advances.Count, quests),
-        };
-    }
+        Finishes = value.Advances.Count,
+        ProfitTip = Strings.Format(value.Advances.Count == 1 ? "DungeonFinishesOne" : "DungeonFinishes", value.Advances.Count,
+            string.Join(", ", value.Advances.Select(a => a.Title))),
+    };
 
     /// <summary>Past this many quests, a batch asks first: it takes minutes and writes on the player's account.</summary>
     private const int ConfirmAbove = 20;
@@ -1859,7 +1849,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             {
                 var node = QuestTree.NodeOf(dungeon) with { Glyph = QuestTree.GlyphOf(dungeon.Kind) };
                 rows.Add(new ProfitRow(
-                    value.Gain, value.Minutes, value.Advances[0].Quests[0], Valued(node, value) with { Duration = QuestTime.Text(value.Minutes) },
+                    value.Gain, value.Minutes, value.Advances[0].Quests[0], Valued(node, value),
                     Dungeon: true, Prerequisite: false));
             }
         }

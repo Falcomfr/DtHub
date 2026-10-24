@@ -11242,7 +11242,9 @@ rythme. Le temps, l'XP et les kamas gardent des colonnes, des nombres doivent
 s'aligner ; depuis le même jour (« plus fit en largeur »), chacune n'est large que
 de la plus longue valeur de la liste affichée (mesurée dans la police de la liste,
 chiffres comptés comme des zéros, partagée par toutes les lignes), 6 px entre
-elles, et une colonne que personne ne remplit ne prend pas de place. Même règle sur les donjons, raids et antres : la pierre d'âme seule dit
+elles, et une colonne que personne ne remplit ne prend pas de place. Même règle
+sur les donjons, raids et antres jusqu'au 24/10/2026 (voir « Ligne de donjon
+réduite » dans D220) : la pierre d'âme seule dit
 la taille (le mot passe dans l'infobulle), et les colonnes fixes, gardées à cause
 de la virtualisation, sont réduites à leur contenu (18, 60 et 19 px au lieu de
 90, 66 et 26). La taille garde la majuscule de l'API (« Gigantesque ») : c'est le
@@ -11616,9 +11618,9 @@ et de chaque voie y entre (24/10/2026, elle n'y entrait que pour la première
 chaîne d'une série). Son temps est celui du donjon lui-même (D221), pas la
 somme des temps de ces quêtes : la première version les additionnait et donnait
 des durées énormes (revue du 23/10/2026). Son score se compare à celui des quêtes
-seules. Chaque ligne de donjon que la table du jeu connaît montre ce temps, même
+seules. Chaque ligne de donjon que la table du jeu connaît montrait ce temps, même
 sans quête faisable ; ses gains et sa marque, seulement avec des quêtes
-faisables, dans ses listes, et
+faisables, dans ses listes (jusqu'au 24/10/2026, voir « Ligne de donjon réduite »), et
 l'infobulle dit « Termine n quêtes : quête, ... » (avant le 24/10/2026,
 « Récompense des étapes de quête qui passent par ce donjon : ... »), jamais rien qui ressemble à l'XP des combats du donjon,
 que le jeu ne publie pas. Sur une ligne de quête de plusieurs étapes,
@@ -11626,6 +11628,21 @@ l'infobulle du gain précise « Récompense totale, n étapes » : DT Hub ne sai
 pas à quelle étape en est le personnage. Dans les deux listes courtes
 de D219, un donjon n'entre que s'il fait avancer au moins deux quêtes faisables :
 avec une seule, il doublait la ligne de cette quête.
+
+**Ligne de donjon réduite (24/10/2026).** Demande de l'utilisateur : « les
+donjons, si c'est que des quêtes, n'affiche pas les récompenses XP et kamas,
+juste tu indiques que c'est bénéfique pour une quête, que ça prenne moins de
+place en largeur ; tanière : enlève pierre d'âme et minutes », puis « pas de
+décalage comme ça ». Une ligne de donjon, de raid ou de tanière n'affiche plus
+ni la pierre d'âme, ni le temps d'un passage, ni les gains, ni la marque de
+priorité : sa position (police à chasse fixe, alignée à gauche), sa clé (place
+gardée sans clé) et « ✓ 2 », le nombre de quêtes qu'il termine, leurs titres
+au survol (« Termine n quêtes : ... »), chacun dans une colonne fixe ; rien
+après eux ne change de largeur d'une ligne à l'autre, donc les colonnes ne
+bougent plus. Dans « Recommandées », le donjon garde son rang, calculé comme
+avant sur la récompense de ces quêtes et le temps du donjon (D221), et ses
+colonnes de temps et de gains restent réservées, vides, pour s'aligner sur les
+lignes de quête ; la bulle du « i » le dit en une ligne.
 
 **Seulement les quêtes où il n'y a que le donjon.** Demande du 24/10/2026 : « donjon
 avec quêtes, ça doit être que les quêtes où il y a juste le donjon à faire ». La
