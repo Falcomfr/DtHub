@@ -169,6 +169,10 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             var face = app?.TryFindResource("UiFont") as System.Windows.Media.FontFamily;
             var size = app?.TryFindResource("FontSmall") is double small ? small : 11;
             var shown = string.Concat(text.Select(c => char.IsAsciiDigit(c) ? '0' : c));
+            // The list renders in Display mode, each glyph's advance rounded to the device pixel: measured the same way.
+            // shortcut: the main window's scale, wrong by a pixel or so on a second monitor of another scale; read the
+            // quest window's if a column ever clips there.
+            var dpi = app?.MainWindow is { } window ? System.Windows.Media.VisualTreeHelper.GetDpi(window).PixelsPerDip : 1.0;
             // shortcut: an estimate without the application's face (never on screen), measure it if one ever shows.
             width = face is null
                 ? shown.Length * size * 0.6
@@ -176,7 +180,8 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
                     shown, System.Globalization.CultureInfo.CurrentCulture, System.Windows.FlowDirection.LeftToRight,
                     new System.Windows.Media.Typeface(face, System.Windows.FontStyles.Normal, System.Windows.FontWeights.Normal,
                         System.Windows.FontStretches.Normal),
-                    size, System.Windows.Media.Brushes.Black, 1.0).WidthIncludingTrailingWhitespace) + 1;
+                    size, System.Windows.Media.Brushes.Black, null, System.Windows.Media.TextFormattingMode.Display, dpi)
+                    .WidthIncludingTrailingWhitespace) + 1;
             _textWidths[text] = width;
         }
 
