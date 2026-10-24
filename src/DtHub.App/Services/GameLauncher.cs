@@ -1393,26 +1393,26 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// other way: a display's size is fixed when scrcpy creates it. Closing
     /// stops the app, so it starts again in the new window.
     /// </summary>
-    /// <returns>True when it is now in landscape.</returns>
+    /// <returns>False when one of its open windows did not reopen.</returns>
     public async Task<bool> TurnDtStuffAsync(CancellationToken cancellationToken = default)
     {
-        var landscape = false;
-
-        await _settings.UpdateAsync(s => landscape = s.DtStuffLandscape = !s.DtStuffLandscape, cancellationToken)
+        await _settings.UpdateAsync(s => s.DtStuffLandscape = !s.DtStuffLandscape, cancellationToken)
             .ConfigureAwait(false);
 
         var open = _sessions.ActiveSessions
             .Where(s => s.Target.IsTransient && PartnerApps.CanTurn(s.Target.PackageName))
             .ToList();
 
+        var reopened = true;
+
         foreach (var session in open)
         {
             await StopSessionAsync(session, cancellationToken).ConfigureAwait(false);
-            _ = await OpenPartnerAppAsync(session.Target.DeviceId, session.Target.PackageName, cancellationToken)
-                .ConfigureAwait(false);
+            reopened &= await OpenPartnerAppAsync(session.Target.DeviceId, session.Target.PackageName, cancellationToken)
+                .ConfigureAwait(false) != PartnerOpening.Failed;
         }
 
-        return landscape;
+        return reopened;
     }
 
     /// <summary>

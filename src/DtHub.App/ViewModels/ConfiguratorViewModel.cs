@@ -127,7 +127,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
                         _launcher.PartnerDeviceNames.GetValueOrDefault(deviceId, deviceId),
                         new AsyncRelayCommand(() => ActOnPartnerAsync(app, installed, deviceId))))])
             {
-                Turn = app.CanTurn && installed ? new AsyncRelayCommand(TurnDtStuffAsync) : null,
+                Turn = app.CanTurn && installed ? new AsyncRelayCommand(() => TurnDtStuffAsync(app)) : null,
                 TurnTip = Strings.Get(_dtStuffLandscape ? "PartnerTurnPortrait" : "PartnerTurnLandscape"),
             });
         }
@@ -187,17 +187,26 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     private bool _dtStuffLandscape;
 
     /// <summary>Turns DTStuff, its open windows included, then redraws its tile.</summary>
-    private async Task TurnDtStuffAsync()
+    private async Task TurnDtStuffAsync(PartnerApp app)
     {
         try
         {
-            _dtStuffLandscape = await _launcher.TurnDtStuffAsync().ConfigureAwait(true);
+            if (!await _launcher.TurnDtStuffAsync().ConfigureAwait(true))
+            {
+                Instances.ShowBanner(Strings.Format("PartnerFailed", app.Name));
+            }
         }
         catch (AdbException exception)
         {
             Instances.ShowBanner(exception.UserMessage);
         }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            Instances.ShowBanner(exception.Message);
+        }
 
+        // Read back: the setting may be written even when a reopen failed after.
+        _dtStuffLandscape = (await _settings.GetAsync().ConfigureAwait(true)).DtStuffLandscape;
         RebuildPartnerTiles();
     }
 
