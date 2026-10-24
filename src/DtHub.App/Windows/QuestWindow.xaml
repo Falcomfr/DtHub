@@ -1451,26 +1451,28 @@
                                                     Converter={StaticResource EmptyToVisibility},
                                                     ConverterParameter=inverse}" />
 
-                    <!-- A zone's progress, in two columns of fixed width
-                         (fixed and not shared, for the virtualization
-                         reason given above): an hourglass and the quests
-                         in progress, then the quests done once over all of
-                         them, or a check once they are all done; under the
-                         filters, the quests they keep. Each part
-                         is hidden, not collapsed, when it has nothing to
-                         say, so the other stays in its column. Under
-                         "Faisables" the count column goes, without leaving a
-                         gap: the label already says how many are doable. -->
-                    <Grid VerticalAlignment="Center" Margin="12,0,0,0"
-                          Visibility="{Binding Tally,
-                                               Converter={StaticResource EmptyToVisibility},
-                                               ConverterParameter=inverse}">
-                      <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="34" />
-                        <ColumnDefinition Width="Auto" />
-                      </Grid.ColumnDefinitions>
-
-                      <StackPanel x:Name="ZoneEnCours" Grid.Column="0" Orientation="Horizontal"
+                    <!-- A zone's progress, in two columns: an hourglass and
+                         the quests in progress, then the quests done once
+                         over all of them, or a check once they are all done;
+                         under the filters, the quests they keep. Each column
+                         is as wide as its widest content in the list
+                         (StartedColumnWidth, CountColumnWidth, measured by the
+                         view model and shared by every row, so they line up
+                         under virtualization too), 8 px before each; the
+                         hourglass column goes when no zone of the list has a
+                         quest in progress (asked 2026-10-24: "je veux pas
+                         d'espace pas utile comme ça"). Each part is hidden,
+                         not collapsed, when it has nothing to say, so the
+                         other stays in its column. Under "Faisables" the
+                         count column goes, without leaving a gap: the label
+                         already says how many are doable. -->
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
+                                Visibility="{Binding Tally,
+                                                     Converter={StaticResource EmptyToVisibility},
+                                                     ConverterParameter=inverse}">
+                      <Border x:Name="ZoneEnCoursCase" Margin="8,0,0,0"
+                              Width="{Binding DataContext.StartedColumnWidth, RelativeSource={RelativeSource AncestorType=Window}}">
+                      <StackPanel x:Name="ZoneEnCours" Orientation="Horizontal"
                                   HorizontalAlignment="Right" VerticalAlignment="Center"
                                   Background="Transparent"
                                   ToolTip="{Binding Tally.StartedTip}"
@@ -1485,8 +1487,10 @@
                                    Foreground="{DynamicResource AccentBrush}"
                                    FontSize="{StaticResource FontSmall}" />
                       </StackPanel>
+                      </Border>
 
-                      <Grid x:Name="ZoneFaitCase" Grid.Column="1" Width="46">
+                      <Grid x:Name="ZoneFaitCase" Margin="8,0,0,0"
+                            Width="{Binding DataContext.CountColumnWidth, RelativeSource={RelativeSource AncestorType=Window}}">
                         <TextBlock x:Name="ZoneFait" Text="{Binding Tally.Count}"
                                    HorizontalAlignment="Right" VerticalAlignment="Center"
                                    Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}" />
@@ -1502,7 +1506,7 @@
                                 Data="M 2,6.5 L 5,9.5 L 10.5,3" />
                         </Border>
                       </Grid>
-                    </Grid>
+                    </StackPanel>
 
                     <!-- The right-hand icons of a quest row: rhythm, status,
                          priority, lock, gift, then the time and the two gains.
@@ -2271,6 +2275,11 @@
 
                   <DataTrigger Binding="{Binding Tally.Started}" Value="0">
                     <Setter TargetName="ZoneEnCours" Property="Visibility" Value="Hidden" />
+                  </DataTrigger>
+
+                  <DataTrigger Binding="{Binding DataContext.StartedColumnWidth,
+                                                 RelativeSource={RelativeSource AncestorType=Window}}" Value="0">
+                    <Setter TargetName="ZoneEnCoursCase" Property="Visibility" Value="Collapsed" />
                   </DataTrigger>
 
                   <!-- "quand Faisables est activé, enlève carrément le nombre ici, ça fait

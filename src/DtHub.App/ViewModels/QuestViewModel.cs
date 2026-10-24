@@ -97,22 +97,41 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private double _kamasColumnWidth;
 
+    /// <summary>
+    /// A zone's two tally columns, as wide as the list's widest: the hourglass and its count (0 when no zone of the
+    /// list has a quest in progress), then the count done or kept, or the check of a finished zone.
+    /// </summary>
+    [ObservableProperty]
+    private double _startedColumnWidth;
+
+    [ObservableProperty]
+    private double _countColumnWidth;
+
     private readonly Dictionary<string, double> _textWidths = [];
 
     // Added rows can only widen a column; any other change measures the whole list again.
     private void FitColumns(System.Collections.IList rows, System.Collections.Specialized.NotifyCollectionChangedAction action)
     {
-        var (time, xp, kamas) = action == System.Collections.Specialized.NotifyCollectionChangedAction.Add
-            ? (TimeColumnWidth, XpColumnWidth, KamasColumnWidth)
-            : (0.0, 0.0, 0.0);
+        var adding = action == System.Collections.Specialized.NotifyCollectionChangedAction.Add;
+        var (time, xp, kamas) = adding ? (TimeColumnWidth, XpColumnWidth, KamasColumnWidth) : (0.0, 0.0, 0.0);
+        var (started, count) = adding ? (StartedColumnWidth, CountColumnWidth) : (0.0, 0.0);
         foreach (var node in rows.OfType<QuestNode>())
         {
             time = Math.Max(time, TextWidth(node.Duration));
             xp = Math.Max(xp, Glyphed(node.GainXp));
             kamas = Math.Max(kamas, Glyphed(node.GainKamas));
+            if (node.Tally is { } tally)
+            {
+                // The hourglass is 12 px and 3 before its number; a finished zone's check is 12.
+                started = tally.Started > 0
+                    ? Math.Max(started, TextWidth(tally.Started.ToString(System.Globalization.CultureInfo.CurrentCulture)) + 15)
+                    : started;
+                count = Math.Max(count, tally.IsComplete ? 12 : TextWidth(tally.Count));
+            }
         }
 
         (TimeColumnWidth, XpColumnWidth, KamasColumnWidth) = (time, xp, kamas);
+        (StartedColumnWidth, CountColumnWidth) = (started, count);
 
         double Glyphed(string? text) => string.IsNullOrEmpty(text) ? 0 : TextWidth(text) + 12;
     }

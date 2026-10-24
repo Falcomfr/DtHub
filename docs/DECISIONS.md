@@ -11468,6 +11468,11 @@ n'est dit qu'une fois.
   les quêtes affichées dessous (audit visuel du 24/10/2026 : « Médiation
   expéditive (6) » sur deux lignes devient « (2) »), une suite de série gardant
   son libellé (`QuestTree.Keep`).
+- Liste des zones, 24/10/2026 : « je veux pas d'espace pas utile comme ça ». La
+  colonne du sablier (quêtes en cours) n'est large que de son plus long contenu
+  dans la liste, et disparaît pour toutes les lignes quand aucune zone n'a de
+  quête en cours ; la colonne du compte aussi n'est large que du plus long
+  compte ; 8 px avant chacune.
 
 Sans suivi relié, rien ne change : le nombre entre parenthèses, pas de colonne à
 droite. Un seul réglage est retenu ; un ancien fichier qui avait « Accessibles »
