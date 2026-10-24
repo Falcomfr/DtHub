@@ -179,6 +179,45 @@ public class QuestProfitTests
         Assert.True(Has(3, started, done));
     }
 
+    [Theory]
+    [InlineData("Contraintes horaires : être un mercredi de 21h à 22h ou un vendredi de 17h à 18h (présence du PNJ Djauns)")]
+    [InlineData("Entre 19h et 20h59")]
+    [InlineData("Être dans le créneau horaire")]
+    [InlineData("Être dans les créneaux horaires (tableau ci-dessous),")]
+    [InlineData("Être le 3 Août")]
+    [InlineData("Être dans la période de la Saint Ballotin.")]
+    [InlineData("période de Pwak")]
+    [InlineData("cette quête est généralement temporairement disponible durant la période estivale (dans le cadre de l'anniversaire de DOFUS Touch et/ou d'Ankama).")]
+    public void A_time_slot_or_a_date_is_time_bound(string need) => Assert.True(QuestProfit.IsTimeBound(need));
+
+    [Theory]
+    [InlineData("Accès à Astrub atteint")]
+    [InlineData("Avoir accès à Frigost 3.")]
+    [InlineData("Boulanger level 100.")]
+    [InlineData("être minimum niveau 80")]
+    [InlineData("Alignement bontarien 40 minimum.")]
+    [InlineData("Succès Route 1 réalisé")]
+    [InlineData("Avoir visité l'ile de Nowel au moins une fois cette année.")]
+    [InlineData("La machine à démonter le temps")]
+    [InlineData("Heureux qui, comme les lys.")]
+    public void Other_needs_are_not_time_bound(string need) => Assert.False(QuestProfit.IsTimeBound(need));
+
+    [Fact]
+    public void Only_a_time_bound_need_that_names_no_quest_is_a_prerequisite()
+    {
+        // "Dévotion à Iop" asks "Accès à Astrub atteint": Recommandées keeps it, the lock tells the need.
+        var catalog = new List<QuestSummary>
+        {
+            Quest(1) with { Prerequisites = ["Accès à Astrub atteint"] }, Quest(2) with { Prerequisites = ["Quête La Grafioze"] },
+            Quest(3) with { Prerequisites = ["Entre 19h et 20h59"] },
+        };
+        var chain = new QuestChainIndex(catalog);
+
+        Assert.False(QuestProfit.HasPrerequisite(catalog[0], chain, [Progress([])]));
+        Assert.False(QuestProfit.HasPrerequisite(catalog[1], chain, [Progress([2])]));
+        Assert.True(QuestProfit.HasPrerequisite(catalog[2], chain, [Progress([3])]));
+    }
+
     [Fact]
     public void Doing_or_starting_one_alternative_rules_out_the_others()
     {

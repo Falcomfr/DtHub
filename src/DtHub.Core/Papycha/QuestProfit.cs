@@ -1,4 +1,5 @@
-﻿using DtHub.Core.Localization;
+﻿using System.Text.RegularExpressions;
+using DtHub.Core.Localization;
 
 namespace DtHub.Core.Papycha;
 
@@ -29,7 +30,7 @@ public sealed record ProfitEntry(
 public sealed record DungeonValue(int PapychaDungeonId, IReadOnlyList<ProfitEntry> Advances, QuestGain Gain, double Score, int Tier, int Minutes);
 
 /// <summary>What a quest gives per minute it takes, from the game's own objectives. Pure.</summary>
-public static class QuestProfit
+public static partial class QuestProfit
 {
     private enum Kind { Boss, Items, Fights, Souls, Crafting, Travel, Dialogues, Vague }
 
@@ -159,10 +160,11 @@ public static class QuestProfit
         [.. quest.Prerequisites.Where(need => chain.Resolve(need) is { } p && p.Id != quest.Id)];
 
     /// <summary>
-    /// Whether the quest has a prerequisite, which keeps it out of "Recommandées": a need that is not a quest
-    /// every character in <paramref name="progress"/> has completed (a time slot, an alignment, an item, or a previous
-    /// quest still to do; done as <see cref="IsMet"/> says, or as <see cref="Startable"/> for a quest the site lists for
-    /// its one character). A need naming the quest itself is ignored, as in
+    /// Whether the quest has a prerequisite, which keeps it out of "Recommandées" and "Faisables": a time slot or a date
+    /// (<see cref="IsTimeBound"/>), or a previous quest not every character in <paramref name="progress"/> has completed
+    /// (done as <see cref="IsMet"/> says, or as <see cref="Startable"/> for a quest the site lists for its one
+    /// character). Any other need naming no quest (a zone's access, a job, an alignment, a quest the catalog lacks) is
+    /// left to the lock (asked 2026-10-24). A need naming the quest itself is ignored, as in
     /// <see cref="Previous"/>. A quest every one of them has in progress has none.
     /// </summary>
     /// <param name="met">Quests counted as done for everyone: a series run's own earlier quests.</param>
@@ -183,7 +185,7 @@ public static class QuestProfit
         bool Done(QuestSummary p) =>
             (met is not null && (met.Contains(p.Id) || (quest.Alternatives.Count == 0 && p.Alternatives.Any(met.Contains))))
             || progress.All(c => IsDone(p, quest, c));
-        if (quest.Prerequisites.Any(need => chain.Resolve(need) is null))
+        if (quest.Prerequisites.Any(need => chain.Resolve(need) is null && IsTimeBound(need)))
         {
             return true;
         }
@@ -195,6 +197,16 @@ public static class QuestProfit
             ? needs.Count > 0 && !needs.Any(need => chain.Required(need).Any(p => p.Id != quest.Id && Done(p)))
             : needs.Any(need => !IsMet(need, quest, chain, Done));
     }
+
+    /// <summary>
+    /// Whether a need asks a time slot or a date ("Être dans les créneaux horaires", "Entre 19h et 20h59", "Être le 8 Mai",
+    /// "période de Pwak"): the only kind of need that hides a quest (asked 2026-10-24), read on the catalog's French text.
+    /// </summary>
+    public static bool IsTimeBound(string need) => TimeBound().IsMatch(QuestSearch.Normalize(need));
+
+    // Eleven texts across the catalog, 13 quests (2026-10-24); "\d+h" is an hour, "temps" alone is a quest title.
+    [GeneratedRegex(@"\b(horaires?|periode|\d+h|etre le \d+)\b")]
+    private static partial Regex TimeBound();
 
     /// <summary>The quests the prerequisites name, the quest itself left out ("L'Ascension" names itself).</summary>
     public static IReadOnlyList<QuestSummary> Previous(QuestSummary quest, QuestChainIndex chain) =>

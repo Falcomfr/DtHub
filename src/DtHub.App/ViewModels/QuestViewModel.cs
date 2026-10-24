@@ -1725,7 +1725,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
 
     /// <summary>
     /// A row of the short lists: what it gains, in how many minutes, where ties put it, and what its toggles read: a
-    /// dungeon run or not, a prerequisite DT Hub cannot check or not (<see cref="QuestProfit.HasPrerequisite"/>), never shown.
+    /// dungeon run or not, a time slot, a date or a previous quest still to do or not (<see cref="QuestProfit.HasPrerequisite"/>), never shown.
     /// </summary>
     private sealed record ProfitRow(
         QuestGain Gain, int Minutes, QuestSummary First, QuestNode Node, bool Dungeon, bool Prerequisite, ProfitEntry? Entry = null);

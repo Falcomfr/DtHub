@@ -2656,7 +2656,7 @@ Pour l'éviter : {1}  ›  « Verrouillage auto. Dossier sécurisé » › l'opt
     <value>Faisables</value>
   </data>
   <data name="FilterDoableTip" xml:space="preserve">
-    <value>Ne garde que les quêtes que votre personnage peut faire maintenant : pas terminées ni ignorées (les bloquées restent affichées), niveau atteint, quêtes précédentes faites d'après votre suivi, sans autre condition (créneau horaire, alignement, objet), ou déjà en cours.</value>
+    <value>Ne garde que les quêtes que votre personnage peut faire maintenant : pas terminées ni ignorées (les bloquées restent affichées), niveau atteint, quêtes précédentes faites d'après votre suivi, sans créneau horaire ni date imposés, ou déjà en cours. L'accès à une zone, un métier ou un alignement ne cache pas une quête : le cadenas le signale.</value>
   </data>
   <data name="NextQuests" xml:space="preserve">
     <value>Suivantes</value>

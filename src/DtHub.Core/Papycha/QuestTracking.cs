@@ -161,9 +161,9 @@ public static class QuestTracking
     /// Whether "Faisables" reads the quest as startable now. The site's list leaves the level to the site
     /// (<see cref="QuestProfit.Startable"/>); without one, every doable rule but the gain applies
     /// (<see cref="QuestProfit.IsDoable"/>), unknown without the quest's facts, except that a blocked quest is read as
-    /// not started: the player still wants to see it. Either way, a quest with a prerequisite DT Hub cannot check
-    /// (<see cref="QuestProfit.HasPrerequisite"/>: a time slot, an alignment, an item) is left out, as in "Recommandées"
-    /// (asked 2026-10-24: only what can be done right now).
+    /// not started: the player still wants to see it. Either way, a quest bound to a time slot or a date
+    /// (<see cref="QuestProfit.HasPrerequisite"/>) is left out, as in "Recommandées" (asked 2026-10-24: only what can be
+    /// done right now; a zone, a job, an alignment stay, the lock tells them).
     /// </summary>
     public static bool Doable(QuestSummary quest, TrackerProgress progress, TouchQuestFacts? facts, int level, QuestChainIndex chain)
     {

@@ -209,19 +209,28 @@ public class QuestTrackingTests
         Assert.True(QuestTracking.Doable(catalog[1], blocked with { Available = new HashSet<int> { 2 } }, null, 10, chain));
     }
 
-    [Fact]
-    public void Doable_leaves_out_a_quest_with_a_prerequisite_DT_Hub_cannot_check()
+    [Theory]
+    [InlineData("Être dans les créneaux horaires", false)]
+    [InlineData("Être le 8 Mai", false)]
+    [InlineData("Accès à Astrub atteint", true)]
+    [InlineData("Boulanger level 100.", true)]
+    [InlineData("Alignement bontarien 40 minimum.", true)]
+    [InlineData("Quête La Grafioze", true)]
+    [InlineData("Succès Route 1 réalisé", true)]
+    public void Doable_leaves_out_only_a_quest_bound_to_a_time_slot_or_a_date(string need, bool shown)
     {
-        // "L'heure c'est l'heure": a time slot, as Recommandées leaves it out; in progress, it stays.
-        var catalog = new[] { Named(1, 0, "Être dans les créneaux horaires") };
+        // Asked 2026-10-24: a zone, a job, an alignment or a quest the catalog lacks stays, the lock tells it.
+        var catalog = new[] { Named(1, 0, need) };
         var chain = new QuestChainIndex(catalog);
         var facts = new TouchQuestFacts([new TouchStepReward(10, 1f, 1f, 0f, false, [])], []);
         var none = new TrackerProgress(new Dictionary<int, QuestStatus>(), new HashSet<int>(), new HashSet<int>(), []);
 
-        Assert.False(QuestTracking.Doable(catalog[0], none, facts, 10, chain));
-        Assert.False(QuestTracking.Doable(catalog[0], none with { Available = new HashSet<int> { 1 } }, facts, 10, chain));
-        Assert.True(QuestTracking.Passes(
-            none with { Statuses = new Dictionary<int, QuestStatus> { [1] = QuestStatus.InProgress } }, 1, true, false));
+        Assert.Equal(shown, QuestTracking.Doable(catalog[0], none, facts, 10, chain));
+        Assert.Equal(shown, QuestTracking.Doable(catalog[0], none with { Available = new HashSet<int> { 1 } }, facts, 10, chain));
+        // In progress: its conditions were met, never hidden.
+        var started = none with { Statuses = new Dictionary<int, QuestStatus> { [1] = QuestStatus.InProgress } };
+        Assert.True(QuestTracking.Doable(catalog[0], started with { Available = new HashSet<int> { 1 } }, facts, 10, chain));
+        Assert.True(QuestTracking.Passes(started, 1, true, QuestTracking.Doable(catalog[0], started, facts, 10, chain)));
     }
 
     [Theory]

@@ -11446,9 +11446,32 @@ voir) : pour ces règles elle compte comme non commencée (`QuestTracking.Doable
 testée). Audit visuel du même jour : « Manuscrit de Terra Cogita », « L'éternelle
 moisson » ou « L'heure c'est l'heure » (« Être dans les créneaux horaires »)
 restaient listées ; l'utilisateur ne veut que ce qui se fait tout de suite. Une
-quête à prérequis que DT Hub ne vérifie pas (`QuestProfit.HasPrerequisite` :
-créneau horaire, alignement, objet, comme dans « Recommandées ») sort donc aussi
-de « Faisables », sauf en cours ; la bulle du bouton le dit. Non relié, rien n'est filtré, comme avant. Chaque zone compte alors ses
+quête liée à un créneau horaire ou à une date (`QuestProfit.HasPrerequisite`,
+comme dans « Recommandées ») sort donc aussi de « Faisables », sauf en cours ; la
+bulle du bouton le dit. Non relié, rien n'est filtré, comme avant.
+
+**Seuls l'horaire et la date cachent une quête.** Revue du 24/10/2026 : le premier
+filtre écartait toute quête dont un prérequis ne désigne aucune quête, soit 158
+quêtes sur 787 du cache du joueur, les 15 « Dévotion à … » (« Accès à Astrub
+atteint ») comprises, alors que le site les donne faisables. Décision de
+l'utilisateur, le même jour : « Faisables » et « Recommandées » ne cachent qu'une
+quête dont une condition est un créneau horaire ou une date. L'accès à une zone
+(Astrub, Pandala, Frigost 3…), un métier, un niveau, un alignement, un objet, une
+quête ou un succès absent du catalogue ne cachent rien : la quête reste, et le
+cadenas le signale comme avant. La règle (`QuestProfit.IsTimeBound`, testée) lit
+le texte français normalisé : « horaire(s) », « période », une heure (« 19h ») ou
+« être le » suivi d'un jour. Elle prend exactement les onze textes du catalogue et
+du cache du 24/10/2026, sur 13 quêtes : les créneaux (« Être dans les créneaux
+horaires » et ses variantes, « Être dans le créneau horaire », « Entre 19h et
+20h59 », « Contraintes horaires : être un mercredi de 21h à 22h… »), les dates
+(« Être le 3 Août », « Être le 8 Mai ») et les périodes (« Être dans la période de
+la Saint Ballotin. », « période de Pwak », la « période estivale » de
+l'anniversaire). « Avoir visité l'ile de Nowel au moins une fois cette année. »
+n'en est pas : c'est une visite. Une quête précédente pas encore faite reste un
+prérequis de « Recommandées » (sa suite de série en dépend) ; sous « Faisables »,
+`Startable` en décide déjà. La même fonction sert aux deux listes, aux modes
+« Quêtes » et « Succès », à la vue d'équipe, aux lignes de donjon, aux comptes des
+zones et aux « Suivantes ». Chaque zone compte alors ses
 quêtes faisables au lieu de faites sur le total. Demande du 24/10/2026 : « quand
 Faisables est activé, enlève carrément le nombre ici, ça fait doublon ». Une
 première lecture avait retiré le sablier et le nombre de quêtes en cours ; le

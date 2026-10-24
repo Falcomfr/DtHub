@@ -2656,7 +2656,7 @@ Para evitarlo: {1}  ›  «Bloqueo automático de Carpeta segura» › la opció
     <value>Realizables</value>
   </data>
   <data name="FilterDoableTip" xml:space="preserve">
-    <value>Solo deja las misiones que tu personaje puede hacer ahora: ni terminadas ni ignoradas (las bloqueadas siguen visibles), nivel alcanzado, misiones anteriores hechas según tu seguimiento, sin otra condición (franja horaria, alineamiento, objeto), o ya en curso.</value>
+    <value>Solo deja las misiones que tu personaje puede hacer ahora: ni terminadas ni ignoradas (las bloqueadas siguen visibles), nivel alcanzado, misiones anteriores hechas según tu seguimiento, sin franja horaria ni fecha impuestas, o ya en curso. El acceso a una zona, un oficio o un alineamiento no oculta una misión: el candado lo indica.</value>
   </data>
   <data name="NextQuests" xml:space="preserve">
     <value>Siguientes</value>
