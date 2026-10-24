@@ -19,12 +19,12 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 - Une case de niveau dans la fenêtre des guides : la changer met aussi à jour le niveau de votre personnage sur Papycha.
 - Chaque liste de quêtes affiche ce que rapporte chaque quête à votre personnage, XP et kamas côte à côte.
 - Avec le suivi Papycha relié, une petite marque de priorité sur les quêtes faisables maintenant, du point à la flamme, pour celles qui valent le plus la peine, pour l'XP ou pour les kamas.
-- Un bouton « Recommandées » à côté de « Faisables » montre avec le suivi Papycha relié deux listes courtes en onglets, « XP » et « Kamas », les meilleures quêtes à faire maintenant (d'une série, seulement sa prochaine quête), 20 au plus chacune, classées par gain à la minute.
+- Un bouton « Recommandées » à côté de « Faisables » montre avec le suivi Papycha relié deux listes courtes en onglets, « XP » et « Kamas », les meilleures quêtes à faire maintenant (d'une série, la prochaine quête de chacune de ses chaînes, et de chaque voie tant que vous n'en avez pris aucune), 20 au plus chacune, classées par gain à la minute.
 - Les cases de niveau et de Bonus Pack sont maintenant dans toutes les vues de la fenêtre des guides.
 - Chaque quête affiche un temps estimé, par exemple ≈ 25 min, calculé par DT Hub à partir des objectifs et des cartes du jeu ; « Recommandées » classe sur l'XP et les kamas par minute et écarte ce qui prend plus de deux heures, sauf pour compléter une liste de moins de 10.
 - Marquer beaucoup de quêtes terminées d'un coup : le bouton de sélection de la liste des guides coche des quêtes (Maj+clic pour une plage), et les titres de succès et de zone proposent « Tout marquer terminé » ; DT Hub les écrit une à une, vérifie ce que Papycha a gardé et réécrit ce qui s'est perdu.
 - Avec plusieurs personnages reliés, « Recommandées » a un bouton « Moi » et « Équipe » : les quêtes que plusieurs de vos personnages peuvent faire, gains additionnés ; cochez les personnages qui comptent.
-- « Recommandées » a un mode « Succès » à côté de « Quêtes » : une ligne par série, sa suite à partir de la prochaine quête faisable, gains et temps additionnés, sans limite de temps ; en vue « Équipe », la suite de chaque personnage, quand au moins deux en ont une.
+- « Recommandées » a un mode « Succès » à côté de « Quêtes » : une ligne par série, sa suite à partir de la prochaine quête faisable en suivant les prérequis de la série, gains et temps additionnés, sans limite de temps ; une série où le jeu prend une quête ou une autre (« Agriculture ou alchimie ») a une ligne par voie, nommée par sa première quête, jusqu'à ce que vous en preniez une ; en vue « Équipe », la suite de chaque personnage dans la série et la voie, quand au moins deux en ont une.
 - Dans « Recommandées », le survol du gain d'une ligne donne aussi l'XP et les kamas par minute sur lesquels la liste classe (« ✦ 1,2 M XP/min · ◎ 2,8 k kamas/min »).
 - Les donjons qui terminent au moins deux quêtes recommandées, des quêtes où il n'y a que le donjon à faire (dialogues et trajets à part), apparaissent dans « Recommandées », et dans les listes de donjons avec la récompense entière de ces quêtes ; chaque donjon affiche le temps estimé d'un passage.
 - Une icône cadeau sur une ligne de quête liste les objets et autres récompenses qu'elle donne à votre niveau.
@@ -37,6 +37,7 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
 ### Corrigé
 
+- Dans une série où le jeu prend une quête ou une autre (« Agriculture ou alchimie », le succès d'Allister), les quêtes précédente et suivante du guide suivent votre voie au lieu d'alterner entre les deux, les places se comptent le long de la voie (2/11, et non 3/21), la voie non prise n'est plus faisable ni suivante dès que vous avez commencé l'autre, et une quête qui demande un succès entier attend toutes les quêtes qu'il demande.
 - Une ligne de quête avec le cadenas des prérequis n'est plus plus haute que les autres, et la droite des lignes est plus serrée : signes de même taille et régulièrement espacés, chiffres des gains alignés.
 
 ## [0.10.5] - 2026-10-22

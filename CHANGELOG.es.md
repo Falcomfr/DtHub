@@ -18,12 +18,12 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 - Una casilla de nivel en la ventana de guías: al cambiarla también se actualiza el nivel de tu personaje en Papycha.
 - Cada lista de misiones muestra lo que da cada misión a tu personaje, XP y kamas lado a lado.
 - Con el seguimiento de Papycha vinculado, una pequeña marca de prioridad en las misiones que puedes hacer ahora, del punto a la llama, para las que más valen la pena, por la XP o por los kamas.
-- Un botón «Recomendadas» junto a «Realizables» muestra con el seguimiento de Papycha vinculado dos listas cortas en pestañas, «XP» y «Kamas», las mejores misiones que hacer ahora (de una serie, solo su siguiente misión), 20 como máximo cada una, ordenadas por ganancia por minuto.
+- Un botón «Recomendadas» junto a «Realizables» muestra con el seguimiento de Papycha vinculado dos listas cortas en pestañas, «XP» y «Kamas», las mejores misiones que hacer ahora (de una serie, la siguiente misión de cada una de sus cadenas, y de cada vía mientras no hayas elegido ninguna), 20 como máximo cada una, ordenadas por ganancia por minuto.
 - Las casillas de nivel y de Bonus Pack están ahora en todas las vistas de la ventana de guías.
 - Cada misión muestra un tiempo estimado, por ejemplo ≈ 25 min, calculado por DT Hub a partir de los objetivos y los mapas del juego; «Recomendadas» ordena por XP y kamas por minuto y deja fuera lo que dura más de dos horas, salvo para completar una lista de menos de 10.
 - Marcar muchas misiones como terminadas de una vez: el botón de selección de la lista de guías marca misiones (Mayús+clic para un rango), y los títulos de logro y de zona ofrecen «Marcar todo terminado»; DT Hub las escribe una a una, comprueba lo que Papycha guardó y vuelve a escribir lo que se perdió.
 - Con varios personajes vinculados, «Recomendadas» tiene un botón «Yo» y «Equipo»: las misiones que varios de tus personajes pueden hacer, con las ganancias sumadas; marca qué personajes cuentan.
-- «Recomendadas» tiene un modo «Logros» junto a «Misiones»: una línea por serie, su continuación desde la siguiente misión realizable, ganancias y tiempos sumados, sin límite de tiempo; en la vista «Equipo», la continuación de cada personaje, cuando al menos dos tienen una.
+- «Recomendadas» tiene un modo «Logros» junto a «Misiones»: una línea por serie, su continuación desde la siguiente misión realizable siguiendo los requisitos de la serie, ganancias y tiempos sumados, sin límite de tiempo; una serie en la que el juego acepta una misión u otra («Agriculture ou alchimie») tiene una línea por vía, nombrada por su primera misión, hasta que elijas una; en la vista «Equipo», la continuación de cada personaje en la serie y la vía, cuando al menos dos tienen una.
 - En «Recomendadas», al pasar el ratón sobre la ganancia de una línea se ven también la XP y los kamas por minuto con los que se ordena la lista («✦ 1,2 M XP/min · ◎ 2,8 k kamas/min»).
 - Las mazmorras que completan al menos dos misiones recomendadas, misiones en las que solo hay que hacer la mazmorra (diálogos y trayectos aparte), aparecen en «Recomendadas», y en las listas de mazmorras con la recompensa completa de esas misiones; cada mazmorra muestra el tiempo estimado de una partida.
 - Un icono de regalo en una fila de misión lista los objetos y otras recompensas que da a tu nivel.
@@ -36,6 +36,7 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 
 ### Corregido
 
+- En una serie en la que el juego acepta una misión u otra («Agriculture ou alchimie», el logro de Allister), las misiones anterior y siguiente de la guía siguen tu vía en lugar de alternar entre las dos, los lugares se cuentan a lo largo de la vía (2/11, no 3/21), la vía no elegida ya no es realizable ni siguiente en cuanto empiezas la otra, y una misión que pide un logro entero espera todas las misiones que este pide.
 - Una fila de misión con el candado de requisitos ya no es más alta que las demás, y la derecha de las filas es más compacta: signos del mismo tamaño y espaciados por igual, cifras de las ganancias alineadas.
 
 ## [0.10.5] - 2026-10-22

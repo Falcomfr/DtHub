@@ -3010,13 +3010,13 @@ To avoid it: {1}  ›  "Auto lock Secure Folder" › the longest option.</value>
   <data name="ProfitHowTip" xml:space="preserve">
     <value>Quests doable now, ranked by gain per minute.
 Time estimated by DT Hub, gains at your level.
-Quests: each series' next one. Achievements: what follows in the series.
+Quests: the next one of each chain in a series. Achievements: what follows in the series, one per path.
 Dungeon: offered when it completes at least 2 quests.</value>
   </data>
   <data name="ProfitHowTeamTip" xml:space="preserve">
     <value>Quests doable now, ranked by gain per minute.
 Time estimated by DT Hub, gains added up over the ticked characters.
-Quests: each series' next one. Achievements: what follows in the series.
+Quests: the next one of each chain in a series. Achievements: what follows in the series, one per path.
 No dungeons in the team view.
 Team: quests at least 2 ticked characters can do.</value>
   </data>
@@ -3027,13 +3027,13 @@ Team: quests at least 2 ticked characters can do.</value>
     <value>Quests</value>
   </data>
   <data name="ProfitModeQuestsTip" xml:space="preserve">
-    <value>One quest per row: each series' next one</value>
+    <value>One quest per row: the next one of each chain in a series, and of each path</value>
   </data>
   <data name="ProfitModeSeries" xml:space="preserve">
     <value>Achievements</value>
   </data>
   <data name="ProfitModeSeriesTip" xml:space="preserve">
-    <value>One series per row: what follows from its next doable quest, gains and times added up</value>
+    <value>One series per row, one per path until one is taken: what follows from its next doable quest, gains and times added up</value>
   </data>
   <data name="ProfitRunWay" xml:space="preserve">
     <value>path {0}</value>

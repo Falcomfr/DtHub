@@ -3010,13 +3010,13 @@ Para evitarlo: {1}  ›  «Bloqueo automático de Carpeta segura» › la opció
   <data name="ProfitHowTip" xml:space="preserve">
     <value>Misiones realizables ahora, ordenadas por ganancia por minuto.
 Tiempo estimado por DT Hub, ganancias a tu nivel.
-Misiones: la siguiente de cada serie. Logros: la continuación de la serie.
+Misiones: la siguiente de cada cadena de una serie. Logros: la continuación de la serie, una por vía.
 Mazmorra: propuesta si completa al menos 2 misiones.</value>
   </data>
   <data name="ProfitHowTeamTip" xml:space="preserve">
     <value>Misiones realizables ahora, ordenadas por ganancia por minuto.
 Tiempo estimado por DT Hub, ganancias sumadas en los personajes marcados.
-Misiones: la siguiente de cada serie. Logros: la continuación de la serie.
+Misiones: la siguiente de cada cadena de una serie. Logros: la continuación de la serie, una por vía.
 Sin mazmorras en equipo.
 Equipo: misiones realizables por al menos 2 personajes marcados.</value>
   </data>
@@ -3027,13 +3027,13 @@ Equipo: misiones realizables por al menos 2 personajes marcados.</value>
     <value>Misiones</value>
   </data>
   <data name="ProfitModeQuestsTip" xml:space="preserve">
-    <value>Una misión por línea: la siguiente de cada serie</value>
+    <value>Una misión por línea: la siguiente de cada cadena de una serie, y de cada vía</value>
   </data>
   <data name="ProfitModeSeries" xml:space="preserve">
     <value>Logros</value>
   </data>
   <data name="ProfitModeSeriesTip" xml:space="preserve">
-    <value>Una serie por línea: su continuación desde la siguiente misión realizable, ganancias y tiempos sumados</value>
+    <value>Una serie por línea, una por vía mientras no se elija ninguna: su continuación desde la siguiente misión realizable, ganancias y tiempos sumados</value>
   </data>
   <data name="ProfitRunWay" xml:space="preserve">
     <value>vía {0}</value>

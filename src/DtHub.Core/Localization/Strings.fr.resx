@@ -3010,13 +3010,13 @@ Pour l'éviter : {1}  ›  « Verrouillage auto. Dossier sécurisé » › l'opt
   <data name="ProfitHowTip" xml:space="preserve">
     <value>Quêtes faisables maintenant, classées par gain par minute.
 Temps estimé par DT Hub, gains à votre niveau.
-Quêtes : la prochaine de chaque série. Succès : la suite de la série.
+Quêtes : la prochaine de chaque chaîne d'une série. Succès : la suite de la série, une par voie.
 Donjon : proposé s'il termine au moins 2 quêtes.</value>
   </data>
   <data name="ProfitHowTeamTip" xml:space="preserve">
     <value>Quêtes faisables maintenant, classées par gain par minute.
 Temps estimé par DT Hub, gains additionnés sur les persos cochés.
-Quêtes : la prochaine de chaque série. Succès : la suite de la série.
+Quêtes : la prochaine de chaque chaîne d'une série. Succès : la suite de la série, une par voie.
 Pas de donjon en équipe.
 Équipe : quêtes faisables par au moins 2 persos cochés.</value>
   </data>
@@ -3027,13 +3027,13 @@ Pas de donjon en équipe.
     <value>Quêtes</value>
   </data>
   <data name="ProfitModeQuestsTip" xml:space="preserve">
-    <value>Une quête par ligne : la prochaine de chaque série</value>
+    <value>Une quête par ligne : la prochaine de chaque chaîne d'une série, et de chaque voie</value>
   </data>
   <data name="ProfitModeSeries" xml:space="preserve">
     <value>Succès</value>
   </data>
   <data name="ProfitModeSeriesTip" xml:space="preserve">
-    <value>Une série par ligne : sa suite à partir de la prochaine quête faisable, gains et temps additionnés</value>
+    <value>Une série par ligne, une par voie tant qu'aucune n'est prise : sa suite à partir de la prochaine quête faisable, gains et temps additionnés</value>
   </data>
   <data name="ProfitRunWay" xml:space="preserve">
     <value>voie {0}</value>

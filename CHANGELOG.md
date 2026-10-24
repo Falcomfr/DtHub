@@ -25,12 +25,12 @@ belongs in the commits and in `docs/DECISIONS.md`.
 - A level box in the guides window: changing it updates your character's level on Papycha too.
 - Every quest list shows what each quest gives your character, XP and kamas side by side.
 - With the Papycha tracker linked, a small priority mark on the quests you can do now, from a dot to a flame, for the ones most worth doing, for XP or for kamas.
-- A "Recommended" button next to "Doable" shows with the Papycha tracker linked two short lists in tabs, "XP" and "Kamas", the best quests to do now (from a series, only its next quest), at most 20 each, ranked by gain per minute.
+- A "Recommended" button next to "Doable" shows with the Papycha tracker linked two short lists in tabs, "XP" and "Kamas", the best quests to do now (from a series, the next quest of each of its chains, and of each path while you have not taken one), at most 20 each, ranked by gain per minute.
 - The level and Bonus Pack boxes are now in every view of the guides window.
 - Each quest shows an estimated time, about 25 min for example, worked out by DT Hub from the game's objectives and maps; Recommended ranks on XP and kamas per minute and leaves out what takes over two hours, unless a list would hold fewer than 10.
 - Mark many quests done at once: the selection button in the guides list ticks quests (Shift+click for a range), and achievement and zone headings offer "Mark all done"; DT Hub writes them one by one, checks what Papycha kept and writes again what was lost.
 - With several characters linked, "Recommended" has a "Me" and a "Team" toggle: the quests several of your characters can do, with the gains added up; tick which characters count.
-- "Recommended" has an "Achievements" mode beside "Quests": one row per series, what follows from its next doable quest, gains and times added up, with no time limit; in the "Team" view, each character's own run of the series, when at least two have one.
+- "Recommended" has an "Achievements" mode beside "Quests": one row per series, what follows from its next doable quest along the series' quest graph, gains and times added up, with no time limit; a series where the game takes one quest or another ("Agriculture ou alchimie") has one row per path, named by its first quest, until you take one; in the "Team" view, each character's own run of the series and path, when at least two have one.
 - In "Recommended", hovering a row's gain also gives the XP and kamas per minute the list ranks on ("✦ 1.2 M XP/min · ◎ 2.8 k kamas/min").
 - Dungeons that complete at least two recommended quests, quests where the dungeon is all there is to do (dialogues and travel aside), appear in "Recommended", and in the dungeon lists with those quests' whole reward; every dungeon shows the estimated time of a run.
 - A gift icon on a quest row lists the items and other rewards it gives at your level.
@@ -43,6 +43,7 @@ belongs in the commits and in `docs/DECISIONS.md`.
 
 ### Fixed
 
+- In a series where the game takes one quest or another ("Agriculture ou alchimie", Allister's achievement), the guide's previous and next quests follow your path instead of zigzagging between the two, places count along the path (2/11, not 3/21), the path not taken is no longer doable nor next once you have started the other, and a quest that needs a whole achievement waits for every quest it asks.
 - A quest row with the prerequisites lock is no longer taller than the others, and the right of the rows is tighter: signs of one size, evenly spaced, gain figures lined up.
 
 ## [0.10.5] - 2026-10-22

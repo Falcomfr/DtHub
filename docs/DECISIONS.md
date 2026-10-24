@@ -11129,18 +11129,14 @@ du site comprises. Pour les « Suivantes » calculées, en plus : répétables, 
 quêtes au-dessus du niveau du personnage exclues (une quête dont les objectifs ne
 sont pas encore lus reste) ; la liste du site garde son ordre.
 
-**Série.** Une entrée de série commence à sa première quête faisable et continue
-avec les quêtes suivantes, dans l'ordre de jeu, pas encore faites, qui passent
-toutes les règles ci-dessus sauf l'appartenance à `available_quests` (cette liste
-ne contient que ce qui est démarrable maintenant, pas la suite de la chaîne). Elle
-s'arrête à la première qui en échoue une. Une série ne donne qu'une entrée, depuis
-sa prochaine quête faisable : une quête faisable plus loin, après une quête
-bloquée ou au-dessus du niveau, n'en ouvre pas d'autre (revue du 23/10/2026 :
-une série coupée apparaissait deux fois dans « Recommandées » et dans la vue
-d'équipe). Une entrée d'une seule quête s'affiche comme une quête seule. Un membre
-sans gain calculable reste dans la série et n'y ajoute rien. « Recommandées » ne
-montre d'une entrée que sa première quête (voir plus bas) : le sablier avant le
-titre d'une série commencée a disparu avec les lignes de série.
+**Série.** Remplacé le 24/10/2026 (voir « Séries à voies » plus bas) : une entrée
+est une quête faisable seule, et une série en donne une par chaîne et par voie,
+la prochaine quête démarrable de chacune. La première version ne donnait qu'une
+entrée par série, depuis sa prochaine quête faisable (revue du 23/10/2026 : une
+série coupée apparaissait deux fois) ; une série linéaire coupée par une quête
+bloquée ne donne toujours qu'une entrée, sa suite n'étant pas démarrable.
+« Recommandées » ne montrait déjà d'une entrée que sa première quête : la suite
+que l'entrée construisait est retirée, elle ne servait qu'à ce tri.
 
 **Effort.** Remplacé par le temps estimé, en minutes : voir D221. Le plafond des
 objets à 7 de la première version, puis à 40, n'existe plus.
@@ -11186,8 +11182,8 @@ après ses propres lignes, les meilleures d'abord (son temps affiché le dit).
 Exclus des listes courtes : un côté sans gain, une quête
 « trousseau » (objectif texte contenant trousseau, keyring ou llavero), une quête
 de plus de 5 âmes. Les listes courtes ne montrent que des quêtes seules : d'une
-série, seulement sa prochaine quête faisable (la première de son entrée), sur sa
-propre ligne. Revue du 23/10/2026 : une suite de 4 quêtes de la série
+série, la prochaine quête faisable de chaque chaîne et de chaque voie (décision
+du 24/10/2026), chacune sur sa propre ligne. Revue du 23/10/2026 : une suite de 4 quêtes de la série
 « Agriculture et Alchimie » y figurait comme une seule ligne de moins d'une heure,
 alors que chacune demande de récolter des dizaines d'objets ; la coupe des séries
 à 4 quêtes est retirée avec les lignes de série. Les
@@ -11221,7 +11217,8 @@ nul, aucun « 0 » n'est affiché ; leur survol reste), une icône cadeau quand 
 des objets ou d'autres récompenses à ce niveau (survol : une ligne par
 récompense), le nom de la zone en suffixe gris après le titre dans
 « Recommandées », suivi pour une quête de série du nom de la série et de sa place
-dans l'ordre de jeu (« · Agriculture et Alchimie 3/11 ») (le regroupement « Par
+dans l'ordre de jeu, comptée le long de sa voie dans une série à voies
+(« · Agriculture ou alchimie 2/11 », voir « Séries à voies ») (le regroupement « Par
 zone » prévu n'existe pas : il aurait cassé l'ordre des deux listes), une marque à
 trois paliers (flamme pleine, flamme creuse, point), une vue « Quêtes
 recommandées » (deux listes courtes en onglets, voir plus haut) ouverte par un bouton « Recommandées » de la barre du haut, à côté
@@ -11334,8 +11331,8 @@ anciens filtres sont simplement ignorées à la lecture d'un ancien fichier.
 est retiré, et « Recommandées » fait toujours ce qu'il faisait éteint : une quête
 avec un prérequis (`QuestProfit.HasPrerequisite`, gardée et testée) n'y apparaît
 jamais, en mode « Quêtes » comme en vue d'équipe ; en mode « Succès », la suite
-s'arrête avant elle (et une série dont la première quête en a un n'a pas de
-ligne) ; une ligne de donjon ne compte plus ces quêtes, ni pour son gain ni pour
+la saute (règle C de « Séries à voies » ; elle s'arrêtait avant elle, et une
+série dont la première quête en avait un n'avait pas de ligne) ; une ligne de donjon ne compte plus ces quêtes, ni pour son gain ni pour
 les deux quêtes qu'il lui faut, et la valeur des donjons des listes du guide non
 plus (la même valeur). Seul « Donjons inclus » reste à côté des onglets. La clé
 `profitWithPrerequisites` d'un ancien fichier de réglages est ignorée à la
@@ -11346,32 +11343,35 @@ plusieurs quêtes ? genre un succès, rajoute un autre mode qui serait succès, 
 suite de quêtes rentable xp ou kamas ». En tête de la rangée de la barre, deux
 boutons « Quêtes » / « Succès », du style de « Moi » / « Équipe », retenus dans les
 réglages, « Quêtes » par défaut : c'est la liste décrite plus haut, une quête par
-série. « Succès » liste les séries (les quêtes d'un même succès, dans l'ordre de
+chaîne et par voie d'une série (une par série avant le 24/10/2026). « Succès » liste les séries (les quêtes d'un même succès, dans l'ordre de
 jeu de `QuestPlayOrder`), une ligne par série. Sa suite part de la prochaine
 quête faisable de la série pour le personnage (la même règle que la quête seule :
 démarrable ou en cours), puis prend les quêtes suivantes ni terminées ni ignorées,
-dans l'ordre de jeu, et s'arrête avant la première qui est répétable, bloquée,
+dans l'ordre de jeu, et saute (règle C plus bas ; elle s'arrêtait avant) chaque
+quête qui est répétable, écartée (règle A), bloquée,
 sans données ou sans gain calculable, au-dessus du niveau du personnage (niveau
 optimal de sa première étape), écartée des listes courtes (trousseau, plus de 5
 âmes), avec un donjon quand « Donjons inclus » est éteint (même règle que le
-filtre : course de donjon ou donjon nommé ; on coupe la suite avant cette quête,
-plus simple à lire que de retirer la série), ou avec un prérequis
+filtre : course de donjon ou donjon nommé), ou avec un prérequis
 (`QuestProfit.HasPrerequisite`), une quête
-précédente de la suite comptant comme faite. Si la première quête échoue l'une de
-ces règles, la série n'a pas de ligne, comme sa quête seule dans « Quêtes ». Seules
+précédente de la suite comptant comme faite. Une série dont aucune quête ne passe
+n'a pas de ligne ; une série à voies en a une par voie tant que le joueur n'en a
+pris aucune (règle D). Seules
 les suites d'au moins 2 quêtes restent (une suite d'une quête est déjà dans
 « Quêtes »). Gain : la somme des quêtes de la suite au niveau du personnage, Bonus
 Pack compris ; temps : la somme de leurs temps estimés (D221). Classement sur le
 côté de l'onglet par minute, égalités comme ailleurs (ordre du catalogue, puis
 identifiant), 20 lignes au plus, sans la limite de 2 h ni de complément : une
 suite prend la soirée qu'elle prend, son temps le dit. Pas de ligne de donjon dans
-ce mode. La ligne porte le nom du succès, en suffixe gris « · Zone · 3 quêtes
-(2-4/11) » (places dans la série, puis sa taille), le temps, le cadeau si une des
+ce mode. La ligne porte le nom du succès, en suffixe gris « · voie En semant, se ment »
+tant que la voie n'est pas prise, puis « · Zone · 3 quêtes (2-4/11) » (places le
+long de la voie, puis sa taille), le temps, le cadeau si une des
 quêtes donne d'autres récompenses, et les deux colonnes de gain ; le survol du gain
 donne chaque quête avec son XP, ses kamas et son temps. Le clic ouvre le guide de
 la première quête de la suite. En vue « Équipe » : la suite de chaque personnage
-coché, à son niveau ; une série reste si au moins 2 personnages en ont une suite
-d'au moins 2 quêtes ; gains additionnés, temps de la plus longue suite (dont la
+coché, à son niveau ; une série, et sa voie dans une série à voies (deux
+personnages sur deux voies d'« Agriculture ou alchimie » ne font pas la même
+suite), reste si au moins 2 personnages en ont une suite d'au moins 2 quêtes ; gains additionnés, temps de la plus longue suite (dont la
 ligne montre les quêtes), « n persos » comme les autres lignes d'équipe ; le
 survol donne les quêtes avec leur seul temps, leurs gains différant d'un
 personnage à l'autre (`QuestProfit.Runs`, `QuestPlanning.TeamRuns`, testées). La
@@ -11391,6 +11391,9 @@ en équipe. » (il n'y en a pas, D220 : la phrase demandée aurait été fausse)
 dernière ligne s'ajoute : « Équipe : quêtes faisables par au moins 2 persos
 cochés. » Chaque phrase reste vraie après la règle des donjons du même jour (ils
 ne comptent que les quêtes qu'ils terminent) et le retrait d'« Avec prérequis ».
+Depuis les séries à voies (plus bas), la troisième ligne dit « Quêtes : la
+prochaine de chaque chaîne d'une série. Succès : la suite de la série, une par
+voie. », et les infobulles des boutons « Quêtes » et « Succès » le disent aussi.
 
 **Rythme au survol.** Demande du 24/10/2026, acceptée : sur chaque ligne de
 « Recommandées » (modes « Quêtes » et « Succès », vue d'équipe et lignes de
@@ -11415,8 +11418,9 @@ priorité. « Recommandées » l'écarte : en mode « Quêtes » ; en vue d'équ
 le personnage chez qui elle est incertaine, qui sort de la ligne et de sa somme
 (la ligne reste si deux autres personnages la partagent ; décision du même jour,
 la première version la retirait dès qu'un personnage du compte l'avait en
-cours) ; en mode « Succès », une série
-dont la première quête de la suite l'est n'a pas de ligne ; et elle ne compte
+cours) ; en mode « Succès », elle n'ouvre
+pas de suite (elle est sautée, ses suivantes avec elle, depuis le 24/10/2026 ;
+avant, la série n'avait pas de ligne) ; et elle ne compte
 jamais pour un donjon. La bulle d'info n'en dit rien : « faisables maintenant »
 reste vrai, ces quêtes sont seulement retirées.
 
@@ -11451,6 +11455,92 @@ droite. Un seul réglage est retenu ; un ancien fichier qui avait « Accessibles
 actif rallume « Faisables » (la clé est encore lue, jamais réécrite), « À faire »
 seul ne le rallume pas : il gardait des quêtes pas encore démarrables.
 
+**Séries à voies (24/10/2026).** Demande de l'utilisateur : « vérifie les pages où
+ce sont des listes de quêtes comme Agriculture ou alchimie ... on sait lesquelles
+sont faites pour chaque quête de la liste, il faut le prendre en compte, mais aussi
+là ça propose 2 parcours différents, une suite de quêtes ou l'autre mais pas les 2
+en même temps ... analyse bien tout le site, toutes les quêtes, vérifie partout ».
+L'analyse des 115 séries du catalogue (43 linéaires, 19 d'une quête, 38 de chaînes
+indépendantes, 15 à embranchement ou fusion) a trouvé onze réponses fausses. Le
+cas signalé : un personnage de niveau 193 qui avait fait « Développement durable. »
+et sept quêtes de la voie agriculture voyait une suite de 13 quêtes (130,3 M d'XP),
+les 3 qui lui restaient plus les 10 de l'alchimie, en commençant par l'alchimie ;
+la bonne réponse est 3 quêtes (33,4 M), mesurée depuis sur le cache du joueur.
+
+*Donnée.* Seuls les objectifs des succès du jeu disent « l'une ou l'autre » :
+`Qf=556|Qf=566`. Le nom (« ou »), le titre et la forme du graphe trompent
+(« Dans la boue ou debout » n'est pas un choix, 13 séries ont un embranchement et
+une seule est un choix). `build/touch-ids/touch_ids.py` écrit dans
+`dofus-touch-ids.json` une clé `alternatives` : pour chaque objectif d'un succès de
+la table qui prend une quête parmi plusieurs pages Papycha, ces identifiants, rien
+d'autre (AGENTS.md). 18 groupes : 10 paires d'« Agriculture ou alchimie », 6 du
+succès d'Allister (traître ou loyal), les 3 prologues d'alignement de « L'âme de
+glace » et les 15 dévotions d'« Un nouveau départ ». La table a été complétée par la
+fonction du script sur les objectifs déjà lus pour l'analyse, sans nouvelle
+requête au serveur du jeu. La vue localisée donne à chaque quête les autres quêtes
+de son groupe (`QuestSummary.Alternatives`) ; sans noms du jeu en cache, elle n'en
+a pas, comme les liens de succès.
+
+*Règle A.* Une quête est écartée quand une quête de son groupe est terminée ou en
+cours : ni démarrable, ni faisable, ni dans une suite, ni suivante, ni dans
+« Faisables », ni pour un donjon (`QuestProfit.IsRuledOut`). Les suivantes de la
+voie écartée tombent d'elles-mêmes.
+
+*Règle B.* Une précédente compte comme faite quand une quête de son groupe l'est :
+« Malédiction » ne nomme que « La destinée », elle devient démarrable après « La
+fatalité » ou « La rivalité ». Seulement pour une quête qui n'est sur aucune voie :
+appliquée telle quelle, la règle rendait la deuxième quête de l'alchimie
+démarrable pour un agriculteur (sa précédente, la première de l'alchimie, a pour
+alternative la première de l'agriculture, faite), et toute la voie écartée
+s'ouvrait pas à pas. Une quête qui a elle-même des alternatives demande la
+précédente de sa propre voie.
+
+*Règle C.* Une suite du mode « Succès » suit le graphe : dans l'ordre de jeu, une
+quête qui échoue une règle est sautée, pas une fin ; ses suivantes tombent avec
+elle (leur précédente n'est ni faite ni dans la suite), les autres chaînes
+continuent. « Groméo et Ginette » (« Entre 19h et 20h59 ») ne retire plus les
+huit autres quêtes de « Problèmes et solutions ». Pour une chaîne linéaire, rien
+ne change.
+
+*Règle D.* Une quête démarrable laissée hors d'une suite parce qu'une de ses
+alternatives y est ouvre sa propre suite, l'autre voie écartée : avant tout choix,
+« Agriculture ou alchimie » a deux lignes de 10 quêtes, une par voie, et le mode
+« Quêtes » en a deux aussi. La voie se nomme par sa première quête, en suffixe
+« · voie En semant, se ment » (« path », « vía »), sur les lignes du mode
+« Succès » seulement et tant qu'elle n'est pas prise : en mode « Quêtes », la ligne
+est cette première quête. La vue d'équipe regroupe par série et voie. Les places
+(« 2/11 », « (9-11/11) ») se comptent le long de la voie, la racine comprise ; une
+quête avant l'embranchement garde la série entière (« Développement durable. »
+1/21). Dans une série à voies, la précédente et la suivante du guide suivent le
+graphe des prérequis (aucune suivante sur « Développement durable. », qui ouvre
+les deux voies) ; ailleurs, la liste du succès, comme avant.
+
+*Règle E.* « Succès X réalisé » demande toutes les fins de la série (les quêtes
+qu'aucune autre de la série ne suit), une fin de la voie écartée comptant comme
+faite par la règle B, et non plus la dernière dans l'ordre de jeu
+(`QuestChainIndex.Required`). « Le Héraut de la forêt » et « Premier pas dans les
+ténèbres » n'attendaient que « Meilleurs ennemis » sur les quatre branches d'« Un
+Chemin semé de bûches ». `QuestChainIndex.Resolve` reste le même pour l'affichage.
+
+*Décisions de l'utilisateur.* Mode « Quêtes » : une entrée par chaîne démarrable
+(chaînes indépendantes et branches parallèles d'une série) et une par voie,
+toujours 20 lignes au plus par liste ; « Kaïra » ne montrait qu'une quête sur
+cinq démarrables. Mode « Succès » : les quêtes facultatives d'une série (que le
+succès du jeu ne demande pas, comme les cinq annexes de « L'envers du décor »)
+restent dans la suite.
+
+*Allister.* Les dix quêtes du milieu d'« Être plus royaliste que le roi », que
+Papycha range hors série, y entrent déjà par les liens de la table (succès 558,
+D212), dès que les noms du jeu sont en cache ; avec leurs groupes, la série a ses
+deux voies. Leurs prérequis en texte libre (« Avoir choisis de trahir le Roi
+Allister ») les gardent hors de « Recommandées ».
+
+*« Développement durable. »* Papycha en fait la racine des deux voies (prérequis
+de deux quêtes de niveau 110) ; la donnée est gardée telle quelle, mais elle est
+peut-être fausse : le jeu la range au niveau 190 dans « La maire dénie » (une quête
+de donjon), et un personnage de niveau 110 à 189 qui ne l'a pas faite ne voit
+alors pas la série.
+
 ## D220 - Les outils des guides : valeur des donjons, équipe, où trouver
 
 **2026-10-23 - Acceptée, complète D219**
@@ -11480,7 +11570,10 @@ guerrier », sept étapes, ne le traverse qu'à la sixième (revue du 23/10/2026
 Une quête dont l'étape n'est pas connue (cache d'avant) n'y entrait pas. Depuis
 le 24/10/2026, une quête ne compte que si le donjon est tout ce qu'elle demande, et
 elle vaut alors sa récompense entière (plus bas). La suite
-d'une série pas encore démarrable n'y entre pas non plus. Son temps est celui du donjon lui-même (D221), pas la
+d'une série pas encore démarrable n'y entre pas non plus, ni une quête de la voie
+écartée d'une série à voies (règle A de D219) ; la prochaine quête de chaque chaîne
+et de chaque voie y entre (24/10/2026, elle n'y entrait que pour la première
+chaîne d'une série). Son temps est celui du donjon lui-même (D221), pas la
 somme des temps de ces quêtes : la première version les additionnait et donnait
 des durées énormes (revue du 23/10/2026). Son score se compare à celui des quêtes
 seules. Chaque ligne de donjon que la table du jeu connaît montre ce temps, même
@@ -11524,7 +11617,8 @@ testée).
 **Équipe.** Avec au moins deux personnages reliés, « Moi » / « Équipe » dans la
 barre de « Recommandées ». Mêmes lignes que la vue d'un personnage, des quêtes
 seules (D219), rapprochées par leur identifiant : une quête de série n'est
-partagée que si elle est la prochaine quête faisable de chacun ; ses gains, au
+partagée que si elle est la prochaine quête faisable d'une de ses chaînes ou
+voies pour chacun ; ses gains, au
 niveau de chaque personnage, sont additionnés. Seules les quêtes partagées par
 au moins deux personnages restent ; la ligne dit « 3 persos » et
 l'infobulle nomme les personnages. Une ligne d'équipe ne porte ni le statut, ni
