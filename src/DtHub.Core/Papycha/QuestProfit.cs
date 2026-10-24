@@ -435,19 +435,39 @@ public static class QuestProfit
         [.. Named(facts, names).Select(n => n.Id).Distinct().Order()];
 
     /// <summary>Each game dungeon an objective names, with that objective's step.</summary>
-    private static IEnumerable<(int Id, int? Step)> Named(TouchQuestFacts facts, List<(int Id, string Name)> names)
+    private static IEnumerable<(int Id, int? Step)> Named(TouchQuestFacts facts, List<(int Id, string Name)> names) =>
+        facts.Objectives.SelectMany(o => NamedBy(o, names).Select(id => (id, o.Step)));
+
+    /// <summary>Each game dungeon one objective's text names.</summary>
+    private static IEnumerable<int> NamedBy(TouchObjective o, List<(int Id, string Name)> names)
     {
-        foreach (var o in facts.Objectives.Where(o => !string.IsNullOrEmpty(o.Text)))
+        if (string.IsNullOrEmpty(o.Text)) yield break;
+        var text = $" {Normalised(o.Text)} ";
+        foreach (var (id, name) in names)
         {
-            var text = $" {Normalised(o.Text!)} ";
-            foreach (var (id, name) in names)
-            {
-                if (!text.Contains($" {name} ", StringComparison.Ordinal)) continue;
-                yield return (id, o.Step);
-                // The bar keeps the words around a match from forming a shorter name.
-                text = text.Replace($" {name} ", " | ", StringComparison.Ordinal);
-            }
+            if (!text.Contains($" {name} ", StringComparison.Ordinal)) continue;
+            yield return id;
+            // The bar keeps the words around a match from forming a shorter name.
+            text = text.Replace($" {name} ", " | ", StringComparison.Ordinal);
         }
+    }
+
+    /// <summary>
+    /// True when the dungeon is all the quest asks (2026-10-24: "que les quêtes où il y a juste le donjon à faire"):
+    /// dialogues, maps, texts naming it, and lone fights in its run or in a step naming it (its boss).
+    /// </summary>
+    private static bool OnlyThe(int[] dungeon, TouchQuestFacts facts, List<(int Id, string Name)> names)
+    {
+        bool Names(TouchObjective o) => NamedBy(o, names).Any(dungeon.Contains);
+
+        return facts.Objectives.All(o => o.TypeId switch
+        {
+            1 or 9 or 2 or 4 => true,
+            0 or 10 => Names(o),
+            6 => o.Parameters.Length > 1 && o.Parameters[1] == 1
+                && (QuestTime.IsRun(o, facts) || facts.Objectives.Any(e => e.Step is { } step && o.Step == step && Names(e))),
+            _ => false,
+        });
     }
 
     private static string Normalised(string text)
@@ -461,7 +481,7 @@ public static class QuestProfit
 
     /// <summary>
     /// By Papycha dungeon: the doable quests of <paramref name="entries"/> (what "Recommandées" lists) whose objectives
-    /// name one of its game dungeons, each worth the reward of the steps naming it (an advance's title says which), not
+    /// name one of its game dungeons and ask nothing else (<see cref="OnlyThe"/>), each worth the reward of the steps naming it (an advance's title says which), not
     /// the whole quest's; summed and scored for the run's own time (<see cref="QuestTime.DungeonMinutes"/>)
     /// against the quest maxima. A dungeon with none is left out.
     /// </summary>
@@ -489,6 +509,7 @@ public static class QuestProfit
             foreach (var (quest, found) in named)
             {
                 var steps = found.Where(n => ids.Dungeons.Contains(n.Id)).Select(n => n.Step).Distinct().Order().ToList();
+                if (!OnlyThe(ids.Dungeons, facts[quest.Id], names)) continue;
                 var own = facts[quest.Id].Steps;
                 // A step not kept (a cache read before steps were) leaves the quest out: its whole reward would be a guess.
                 if (steps.Count == 0 || steps.Any(s => s is not { } i || i < 0 || i >= own.Length)) continue;

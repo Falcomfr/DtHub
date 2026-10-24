@@ -11174,7 +11174,8 @@ alors que chacune demande de récolter des dizaines d'objets ; la coupe des sér
 à 4 quêtes est retirée avec les lignes de série. Les
 lignes de « Recommandées » ne portent pas de marque : l'ordre et le titre de la
 liste la disent déjà, et les paliers du score combiné contredisaient l'ordre.
-Un donjon n'y entre que s'il fait avancer au moins deux quêtes faisables (D220).
+Un donjon n'y entre que s'il termine au moins deux quêtes faisables où il est
+tout ce qu'il y a à faire (D220).
 Avec au moins deux personnages reliés, un bouton « Moi » / « Équipe » (D220)
 bascule sur les mêmes listes pour l'équipe.
 
@@ -11374,13 +11375,33 @@ des durées énormes (revue du 23/10/2026). Son score se compare à celui des qu
 seules. Chaque ligne de donjon que la table du jeu connaît montre ce temps, même
 sans quête faisable ; ses gains et sa marque, seulement avec des quêtes
 faisables, dans ses listes, et
-l'infobulle dit « Récompense des étapes de quête qui passent par ce donjon :
-quête (étape n), ... », jamais rien qui ressemble à l'XP des combats du donjon,
+l'infobulle dit « Termine n quêtes : quête (étape n), ... » (avant le 24/10/2026,
+« Récompense des étapes de quête qui passent par ce donjon : ... »), jamais rien qui ressemble à l'XP des combats du donjon,
 que le jeu ne publie pas. Sur une ligne de quête de plusieurs étapes,
 l'infobulle du gain précise « Récompense totale, n étapes » : DT Hub ne sait
 pas à quelle étape en est le personnage. Dans les deux listes courtes
 de D219, un donjon n'entre que s'il fait avancer au moins deux quêtes faisables :
 avec une seule, il doublait la ligne de cette quête.
+
+**Seulement les quêtes où il n'y a que le donjon.** Demande du 24/10/2026 : « donjon
+avec quêtes, ça doit être que les quêtes où il y a juste le donjon à faire ». La
+ligne « Antre du Korriandre » additionnait toute quête recommandée dont un objectif
+nommait le donjon, même quand la quête demandait aussi des objets, d'autres
+combats, des âmes ou une fabrication : son gain ne disait pas ce que rapporte le
+donjon seul. Une quête ne compte plus pour un donjon que si chaque objectif de
+chacune de ses étapes est un dialogue (types 1, 9, 2), une carte à rejoindre
+(type 4), un texte libre (types 0, 10) qui nomme ce donjon (même rapprochement
+que plus haut), ou un combat contre un seul monstre (type 6) dans une étape qui
+a une course de donjon (règle de la carte de sortie de D221) ou un objectif qui
+nomme ce donjon (son boss). Tout autre objectif l'écarte : objets (3),
+fabrication (20), autres combats (6, 14), âmes (12), autre texte libre, type
+inconnu. Le reste ne change pas : au moins deux de ces quêtes parmi les
+recommandées, gain = la somme de leurs étapes qui passent par le donjon, temps du
+donjon, rien en équipe. La même valeur sert aux listes de donjons du guide.
+L'infobulle dit « Termine n quêtes : ... » (« Termine 1 quête » dans une liste de
+donjons), ces quêtes finissant avec lui. Le filtre « Donjons inclus », qui
+retire les quêtes avec un donjon, ne change pas (`QuestProfit.DungeonValues`,
+testée).
 
 **Équipe.** Avec au moins deux personnages reliés, « Moi » / « Équipe » dans la
 barre de « Recommandées ». Mêmes lignes que la vue d'un personnage, des quêtes

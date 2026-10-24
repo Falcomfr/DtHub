@@ -74,7 +74,7 @@ public static partial class QuestTime
         return facts.Objectives.Any(o => IsRun(o, facts));
     }
 
-    private static bool IsRun(TouchObjective o, TouchQuestFacts facts) =>
+    internal static bool IsRun(TouchObjective o, TouchQuestFacts facts) =>
         IsSingleFight(o) && facts.Objectives.Any(e => SameStep(e, o) && IsExit(e));
 
     // "Sortie du Donjon ...": any other map beside a lone fight ("Chantier du Barrage") made a dungeon run of it.

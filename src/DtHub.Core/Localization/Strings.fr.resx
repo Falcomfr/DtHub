@@ -3053,8 +3053,11 @@ Gains calculés au niveau de chaque personnage, Bonus Pack compris s'il est coch
   <data name="ProfitWholeLevel" xml:space="preserve">
     <value>Ces {0} quêtes valent un niveau entier ({1} → {2})</value>
   </data>
-  <data name="DungeonStepRewards" xml:space="preserve">
-    <value>Récompense des étapes de quête qui passent par ce donjon : {0}</value>
+  <data name="DungeonFinishes" xml:space="preserve">
+    <value>Termine {0} quêtes : {1}</value>
+  </data>
+  <data name="DungeonFinishesOne" xml:space="preserve">
+    <value>Termine 1 quête : {1}</value>
   </data>
   <data name="DungeonQuestStep" xml:space="preserve">
     <value>{0} (étape {1})</value>

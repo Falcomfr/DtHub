@@ -3053,8 +3053,11 @@ Ganancias calculadas al nivel de cada personaje, Bonus Pack incluido si está ma
   <data name="ProfitWholeLevel" xml:space="preserve">
     <value>Estas {0} misiones valen un nivel entero ({1} → {2})</value>
   </data>
-  <data name="DungeonStepRewards" xml:space="preserve">
-    <value>Recompensa de las etapas de misión que pasan por esta mazmorra: {0}</value>
+  <data name="DungeonFinishes" xml:space="preserve">
+    <value>Completa {0} misiones: {1}</value>
+  </data>
+  <data name="DungeonFinishesOne" xml:space="preserve">
+    <value>Completa 1 misión: {1}</value>
   </data>
   <data name="DungeonQuestStep" xml:space="preserve">
     <value>{0} (etapa {1})</value>

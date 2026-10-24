@@ -360,7 +360,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         return blocks.Count == 0 ? null : string.Join("\n\n", blocks);
     }
 
-    /// <summary>A dungeon row with what it is worth: the quest steps that go through it, their gains and its mark.</summary>
+    /// <summary>A dungeon row with what it is worth: the quests it finishes (their steps through it), their gains and its mark.</summary>
     private static QuestNode Valued(QuestNode node, DungeonValue value)
     {
         var (xp, kamas) = QuestGainText.Columns(value.Gain);
@@ -372,7 +372,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             GainKamas = kamas,
             Tier = value.Tier,
             ProfitTip = QuestGainText.Tip(value.Gain, effort: new QuestEffort(value.Minutes, [])) + "\n"
-                + Strings.Format("DungeonStepRewards", steps),
+                + Strings.Format(value.Advances.Count == 1 ? "DungeonFinishesOne" : "DungeonFinishes", value.Advances.Count, steps),
         };
     }
 

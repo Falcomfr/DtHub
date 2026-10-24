@@ -26,7 +26,7 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 - Avec plusieurs personnages reliés, « Recommandées » a un bouton « Moi » et « Équipe » : les quêtes que plusieurs de vos personnages peuvent faire, gains additionnés ; cochez les personnages qui comptent.
 - « Recommandées » a un mode « Succès » à côté de « Quêtes » : une ligne par série, sa suite à partir de la prochaine quête faisable, gains et temps additionnés, sans limite de temps ; en vue « Équipe », la suite de chaque personnage, quand au moins deux en ont une.
 - Dans « Recommandées », le survol du gain d'une ligne donne aussi l'XP et les kamas par minute sur lesquels la liste classe (« ✦ 1,2 M XP/min · ◎ 2,8 k kamas/min »).
-- Les donjons qui font avancer au moins deux quêtes recommandées apparaissent dans « Recommandées », et dans les listes de donjons avec la récompense des étapes de quête qui y passent ; chaque donjon affiche le temps estimé d'un passage.
+- Les donjons qui terminent au moins deux quêtes recommandées, des quêtes où il n'y a que le donjon à faire (dialogues et trajets à part), apparaissent dans « Recommandées », et dans les listes de donjons avec la récompense des étapes de ces quêtes qui y passent ; chaque donjon affiche le temps estimé d'un passage.
 - Une icône cadeau sur une ligne de quête liste les objets et autres récompenses qu'elle donne à votre niveau.
 - Survolez une quête pour voir où trouver les objets qu'elle demande : monstres qui les lâchent, récolte, fabrication, archimonstres et leurs zones.
 - « Faisables » et les quêtes suivantes marchent maintenant pour les personnages autres que l'actif sur Papycha, d'après les quêtes qu'ils ont terminées.

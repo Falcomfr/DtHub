@@ -558,9 +558,9 @@ public class QuestProfitTests
     public void A_dungeon_gets_the_tier_its_score_would_have_among_quests()
     {
         var catalog = Enumerable.Range(1, 20).Select(i => Quest(i)).ToList();
-        // Five minutes everywhere (a map, 4 items), as a one-room run; quest i gives i times the XP of quest 1.
+        // Five minutes everywhere (a map, 3 dialogues), as a one-room run; quest i gives i times the XP of quest 1.
         var facts = catalog.ToDictionary(q => q.Id, q => new TouchQuestFacts(
-            [Step(10, q.Id)], [Said(q.Id switch { 20 => "Donjon A", 1 => "Donjon B", 18 or 19 => "Donjon C", _ => "Ailleurs" }), Obj(3, [1, 2, 4])]));
+            [Step(10, q.Id)], [Said(q.Id switch { 20 => "Donjon A", 1 => "Donjon B", 18 or 19 => "Donjon C", _ => "Ailleurs" }), Obj(1), Obj(1), Obj(1)]));
         var names = new Dictionary<int, string> { [10] = "Donjon A", [20] = "Donjon B", [30] = "Donjon C" };
         var rooms = new Dictionary<int, int> { [10] = 1, [20] = 1, [30] = 3 };
 
@@ -574,6 +574,69 @@ public class QuestProfitTests
         Assert.Equal(11, values[3].Minutes);
         Assert.Equal(2, values[3].Tier);
         Assert.Equal(2, values[3].Advances.Count);
+    }
+
+    private static TouchObjective Text(string text, int step = 0) => new(0, [], 10, text, Step: step);
+
+    private static TouchObjective Boss(int step = 0, int monsters = 1) => new(6, [1, monsters], 10, Step: step);
+
+    [Fact]
+    public void A_dungeon_counts_a_quest_whose_only_work_is_the_dungeon_dialogues_and_maps_aside()
+    {
+        // Talk (1, 9, 2), walk to a map (4), the dungeon by name (0) and its boss in that step.
+        var catalog = new[] { Quest(1), Quest(2) };
+        var only = new TouchQuestFacts([Step(10, 2f)],
+            [Obj(1), Obj(9), Obj(2), Said("Chantier du Barrage"), Text("Braver le Donjon Fungus"), Boss()]);
+        var facts = new Dictionary<int, TouchQuestFacts> { [1] = only, [2] = only };
+
+        var values = DungeonValues(catalog, Progress([1, 2]), facts, new Dictionary<int, string> { [70] = "Donjon Fungus" });
+
+        Assert.Equal([1, 2], values[7].Advances.SelectMany(a => a.Quests).Select(q => q.Id).Order());
+    }
+
+    [Fact]
+    public void A_dungeon_leaves_out_a_quest_asking_items_or_other_work_besides_it()
+    {
+        var catalog = Enumerable.Range(1, 7).Select(i => Quest(i)).ToArray();
+        TouchQuestFacts With(params TouchObjective[] more) =>
+            new([Step(10, 1f), Step(10, 1f)], [Said("Sortie du Donjon Fungus"), Boss(), .. more]);
+        var facts = new Dictionary<int, TouchQuestFacts>
+        {
+            [1] = With(),
+            [2] = With(Obj(3, [1, 2, 4])),
+            // Fights outside the run: three monsters, or a lone one in a step with no dungeon.
+            [3] = With(Boss(monsters: 3)),
+            [4] = With(Boss(step: 1)),
+            [5] = With(Obj(12, [1, 1])),
+            [6] = With(Text("Trouver le marchand", 1)),
+            [7] = With(Obj(20, [1, 1])),
+        };
+
+        var values = DungeonValues(catalog, Progress(catalog.Select(q => q.Id)), facts, new Dictionary<int, string> { [70] = "Donjon Fungus" });
+
+        Assert.Equal(1, Assert.Single(values[7].Advances).Quests.Single().Id);
+    }
+
+    [Fact]
+    public void A_dungeon_row_counts_only_its_dungeon_only_quests_toward_the_two_it_needs()
+    {
+        // The row needs two such quests: one plus one with items leaves a single advance, which the list drops.
+        var catalog = new[] { Quest(1), Quest(2), Quest(3) };
+        var facts = new Dictionary<int, TouchQuestFacts>
+        {
+            [1] = new([Step(10, 2f, 1f)], [Obj(1), Said("Sortie du Donjon Fungus"), Boss()]),
+            [2] = new([Step(10, 3f, 2f)], [Text("Braver le Donjon Fungus"), Boss()]),
+            [3] = new([Step(10, 5f)], [Said("Sortie du Donjon Fungus"), Boss(), Obj(3, [1, 2, 4])]),
+        };
+        var names = new Dictionary<int, string> { [70] = "Donjon Fungus" };
+
+        var both = DungeonValues(catalog, Progress([1, 2, 3]), facts, names)[7];
+        var one = DungeonValues(catalog, Progress([1, 3]), facts, names)[7];
+
+        Assert.Equal(2, both.Advances.Count);
+        Assert.Equal(QuestProfit.GainOf(facts[1], 10, 0)!.Xp + QuestProfit.GainOf(facts[2], 10, 0)!.Xp, both.Gain.Xp);
+        Assert.Equal(QuestProfit.GainOf(facts[1], 10, 0)!.Kamas + QuestProfit.GainOf(facts[2], 10, 0)!.Kamas, both.Gain.Kamas);
+        Assert.Single(one.Advances);
     }
 
     private static IReadOnlyList<ProfitEntry> Recommendable(QuestSummary[] catalog, TrackerProgress progress, Dictionary<int, TouchQuestFacts> facts)
