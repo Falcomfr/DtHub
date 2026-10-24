@@ -723,11 +723,13 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
 
             // An account being closed as well, by Close all or Quit, keeps
             // nobody listening: handing the sound on would push a server to
-            // the phone for the next close to kill.
+            // the phone for the next close to kill. A tool window is no
+            // listener either, as in CarrySoundAsync.
             var staying = _sessions.Values.Any(s =>
                 !ReferenceEquals(s, ending)
                 && s.IsAlive
                 && !s.StopRequested
+                && !s.Target.IsTransient
                 && string.Equals(s.Target.DeviceId, deviceId, StringComparison.Ordinal));
 
             if (!staying)
@@ -1316,9 +1318,9 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     /// closes first, and its accounts, not yet marked, read as closed by
     /// hand and left the next startup (D207).
     /// </summary>
-    public IReadOnlyList<ScrcpySession> MarkAllStopping()
+    public IReadOnlyList<ScrcpySession> MarkAllStopping(bool keepTools = false)
     {
-        var running = _sessions.Values.Where(s => s.IsAlive).ToList();
+        var running = _sessions.Values.Where(s => s.IsAlive && !(keepTools && s.Target.IsTransient)).ToList();
 
         foreach (var session in running)
         {
@@ -1330,13 +1332,15 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
 
     /// <summary>
     /// Closes all sessions opened by DT Hub, and only those. scrcpy
-    /// windows launched by other software are ignored.
+    /// windows launched by other software are ignored. With
+    /// <paramref name="keepTools" />, the tool windows stay open: a reopen
+    /// is for the games' settings, and closing a tool stops its app.
     /// </summary>
-    public async Task StopAllAsync(CancellationToken cancellationToken = default)
+    public async Task StopAllAsync(CancellationToken cancellationToken = default, bool keepTools = false)
     {
         // All marked first, so that the account carrying the sound, closed
         // before the others, does not hand it to them. See PassSoundOnAsync.
-        var running = MarkAllStopping();
+        var running = MarkAllStopping(keepTools);
 
         foreach (var id in running.Select(s => s.Id))
         {

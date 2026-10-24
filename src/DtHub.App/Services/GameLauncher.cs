@@ -4237,7 +4237,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private static readonly TimeSpan ReopenPause = TimeSpan.FromSeconds(5);
 
     /// <summary>
-    /// Closes then reopens the open windows, at their place and
+    /// Closes then reopens the open game windows, at their place and
     /// their size.
     ///
     /// Quality and zoom are scrcpy startup arguments, fixed for the
@@ -4258,8 +4258,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         try
         {
+            // The games only: a tool window reads none of these settings, and
+            // closing it would stop its app on the phone.
             var instances = _sessions.ActiveSessions
                 .Select(s => s.Target)
+                .Where(t => !t.IsTransient)
                 .ToList();
 
             if (instances.Count == 0)
@@ -4286,7 +4289,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             _soundAfterReopen.Reopened(targets.Select(Routable), DateTimeOffset.UtcNow);
 
-            await _sessions.StopAllAsync(cancellationToken).ConfigureAwait(false);
+            await _sessions.StopAllAsync(cancellationToken, keepTools: true).ConfigureAwait(false);
             _sessions.PruneFinished();
 
             // The games are stopped here, closing a window leaves them

@@ -10980,6 +10980,12 @@ vit dans `PendingReopen` (Core) ; le relais et son arrêt dans
 lecture. Un réglage changé pendant une réouverture déjà lancée la relance une
 fois, comme avant, puisqu'elle a pu lire l'ancien réglage.
 
+Depuis le 2026-10-24, « Rouvrir maintenant » ne ferme plus les fenêtres
+d'outils (DTStuff, OcrApp, Play Store) : le bandeau ne les compte pas, et
+fermer une fenêtre d'outil arrête son appli sur le téléphone. Une fenêtre
+d'outil restée ouverte ne reçoit pas non plus le son des jeux fermés : le
+relais sans fenêtre ne part que pour un jeu resté ouvert.
+
 Pas fait : revenir à la valeur d'origine ne fait pas disparaître le bandeau.
 Le lanceur ne retient que la distance de chaque fenêtre (D149), pas les autres
 réglages ; le savoir aurait demandé de les relever tous à l'ouverture. Le

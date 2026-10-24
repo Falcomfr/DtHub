@@ -693,6 +693,39 @@ public class ScrcpySessionManagerTests
     }
 
     [Fact]
+    public async Task Rouvrir_les_jeux_laisse_les_outils_ouverts_sans_lancer_de_son()
+    {
+        // "Rouvrir maintenant" (D216) closed DTStuff along with the games,
+        // and stopped it on the phone. Left open, it must not keep the
+        // phone's sound playing through a relay either.
+        var launcher = new FakeProcessLauncher()
+            .Prepare(new FakeProcessSession(1).Emit(NewDisplayLine))
+            .Prepare(new FakeProcessSession(2).Emit(NewDisplayLine))
+            .Prepare(new FakeProcessSession(3).Emit(NewDisplayLine))
+            .Prepare(new FakeProcessSession(9).Emit(ServerLine));
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        await manager.StartAsync(Target(0), WithSound, null, CancellationToken.None);
+        await manager.StartAsync(Target(999), WithSound with { AudioEnabled = false }, null, CancellationToken.None);
+        var tool = await manager.StartAsync(
+            Target(userId: 0) with
+            {
+                PackageName = "com.makeintouch.dtstuff",
+                LaunchComponent = "com.makeintouch.dtstuff/.MainActivity",
+                IsTransient = true,
+            },
+            ScrcpyOptions.Default,
+            null,
+            CancellationToken.None);
+
+        await manager.StopAllAsync(CancellationToken.None, keepTools: true);
+
+        Assert.Same(tool, Assert.Single(manager.ActiveSessions));
+        Assert.DoesNotContain(launcher.Requests, IsSoundKeeper);
+    }
+
+    [Fact]
     public async Task Fermer_un_compte_sans_le_son_ou_le_dernier_ne_lance_aucun_son()
     {
         var launcher = new FakeProcessLauncher()
