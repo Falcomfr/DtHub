@@ -10,35 +10,35 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
-## [Unreleased]
+## [0.11.0] - 2026-10-24
 
 ### Añadido
 
-- Una guía de misión muestra sus recompensas bajo el título (XP, kamas, objetos), calculadas para el nivel de tu personaje y la bonificación de XP que indiques.
-- Una casilla de nivel en la ventana de guías: al cambiarla también se actualiza el nivel de tu personaje en Papycha.
-- Cada lista de misiones muestra lo que da cada misión a tu personaje, XP y kamas lado a lado.
-- Con el seguimiento de Papycha vinculado, una pequeña marca de prioridad en las misiones que puedes hacer ahora, del punto a la llama, para las que más valen la pena, por la XP o por los kamas.
-- Un botón «Recomendadas» junto a «Realizables» muestra con el seguimiento de Papycha vinculado dos listas cortas en pestañas, «XP» y «Kamas», las mejores misiones que hacer ahora (de una serie, la siguiente misión de cada una de sus cadenas, y de cada vía mientras no hayas elegido ninguna), 20 como máximo cada una, ordenadas por ganancia por minuto.
-- Las casillas de nivel y de Bonus Pack están ahora en todas las vistas de la ventana de guías.
-- Cada misión muestra un tiempo estimado, por ejemplo ≈ 25 min, calculado por DT Hub a partir de los objetivos y los mapas del juego; «Recomendadas» ordena por XP y kamas por minuto y deja fuera lo que dura más de dos horas, salvo para completar una lista de menos de 10.
-- Marcar muchas misiones como terminadas de una vez: el botón de selección de la lista de guías marca misiones (Mayús+clic para un rango), y los títulos de logro y de zona ofrecen «Marcar todo terminado»; DT Hub las escribe una a una, comprueba lo que Papycha guardó y vuelve a escribir lo que se perdió.
-- Con varios personajes vinculados, «Recomendadas» tiene un botón «Yo» y «Equipo»: las misiones que varios de tus personajes pueden hacer, con las ganancias sumadas; marca qué personajes cuentan.
-- «Recomendadas» tiene un modo «Logros» junto a «Misiones»: una línea por serie, su continuación desde la siguiente misión realizable siguiendo los requisitos de la serie, ganancias y tiempos sumados, sin límite de tiempo; una serie en la que el juego acepta una misión u otra («Agriculture ou alchimie») tiene una línea por vía, nombrada por su primera misión, hasta que elijas una; en la vista «Equipo», la continuación de cada personaje en la serie y la vía, cuando al menos dos tienen una.
-- En «Recomendadas», al pasar el ratón sobre la ganancia de una línea se ven también la XP y los kamas por minuto con los que se ordena la lista («✦ 1,2 M XP/min · ◎ 2,8 k kamas/min»).
-- Las mazmorras que completan al menos dos misiones recomendadas, misiones en las que solo hay que hacer la mazmorra (diálogos y trayectos aparte), aparecen en «Recomendadas», ordenadas por la recompensa completa de esas misiones, y en las listas de mazmorras; la línea de una mazmorra, más estrecha, solo muestra su posición, su llave y ✓ con el número de esas misiones (sus títulos al pasar el ratón), en columnas que no se mueven de una línea a otra.
-- Un icono de regalo en una fila de misión lista los objetos y otras recompensas que da a tu nivel.
-- Pasa el cursor sobre una misión para ver dónde encontrar los objetos que pide: monstruos que los sueltan, recolección, fabricación, arquimonstruos y sus zonas.
-- «Realizables» y las misiones siguientes funcionan ahora para los personajes distintos del activo en Papycha, a partir de las misiones que han terminado.
-- La barra del seguimiento de la ventana de guías pasa bajo el personaje cuando la ventana es estrecha, y cada misión recomendada muestra su zona y, en una serie, su lugar (3/11).
-- «Por hacer» y «Accesibles» pasan a ser un solo botón, «Realizables»: solo deja las misiones que tu personaje puede hacer ahora, ni terminadas ni ignoradas (las bloqueadas siguen visibles), y, como «Recomendadas», ninguna ligada a una franja horaria o a una fecha (el acceso a una zona, un oficio o un alineamiento no oculta una misión, el candado lo indica), y cada zona muestra entonces entre paréntesis cuántas de sus misiones son realizables; con el filtro apagado y el seguimiento vinculado, una zona solo da sus misiones hechas sobre el total, a la derecha.
-- Con el seguimiento de Papycha vinculado, el candado de requisitos solo aparece si a tu personaje le falta uno (en amarillo, con una marca o una cruz delante de cada misión al pasar el ratón), nunca en «Recomendadas», y «Recomendadas» dice en una línea cómo ordena (el detalle al pasar el ratón sobre la «i») y tiene un botón «Mazmorras incluidas», activo por defecto; nunca muestra una misión ligada a una franja horaria o a una fecha, ni la cuenta en una mazmorra o en la continuación de una serie.
-- Una misión en curso de varias etapas u objetivos muestra «≤» delante de sus ganancias y su tiempo, máximos, ya que DT Hub no sabe qué está hecho; «Recomendadas» ya no la propone y ya no cuenta para una mazmorra.
-- Mientras «Recomendadas» espera el seguimiento de Papycha o los datos del juego, una línea con una rueda dice lo que se está leyendo; si Papycha no responde lo dice, con un botón «Reintentar» que vuelve a leer el seguimiento.
+- Las guías de misión muestran sus recompensas (XP, kamas, objetos) calculadas para el nivel de tu personaje, con una casilla de nivel y de Bonus Pack.
+- Cada lista de misiones da la XP, los kamas y un tiempo estimado de cada misión; un icono de regalo enumera las demás recompensas.
+- Pasa el ratón por una misión para ver dónde encontrar los objetos que pide: monstruos, recolección, fabricación, archimonstruos y sus zonas.
+- Nueva vista «Recomendadas»: las misiones más rentables para hacer ahora, en pestañas XP y Kamas, ordenadas por ganancia por minuto.
+- «Recomendadas» tiene un modo «Logros», la continuación de una serie con ganancias y tiempos sumados, una línea por vía cuando el juego deja elegir, y una vista «Equipo» para varios personajes.
+- Las mazmorras que completan varias misiones recomendadas aparecen en la lista, con el número de misiones que completan.
+- Un solo botón «Realizables» sustituye a «Por hacer» y «Accesibles»: solo las misiones que tu personaje puede hacer ahora.
+- Marcar muchas misiones como terminadas de una vez, por selección o para un logro entero.
+- Un juego abierto en ventana que conserva bandas negras en pantalla completa propone reabrirse.
+
+### Cambiado
+
+- El candado de requisitos solo aparece si falta uno, y las líneas de las listas son más compactas y alineadas.
+- «Reabrir ahora» también reabre las herramientas (DTStuff, OcrApp…) con los nuevos ajustes.
 
 ### Corregido
 
-- En una serie en la que el juego acepta una misión u otra («Agriculture ou alchimie», el logro de Allister), las misiones anterior y siguiente de la guía siguen tu vía en lugar de alternar entre las dos, los lugares se cuentan a lo largo de la vía (2/11, no 3/21), la vía no elegida ya no es realizable ni siguiente en cuanto empiezas la otra, y una misión que pide un logro entero espera todas las misiones que este pide.
-- Una fila de misión con el candado de requisitos ya no es más alta que las demás, y la derecha de las filas es más compacta: signos del mismo tamaño y espaciados por igual, cifras de las ganancias alineadas.
+- Ocultar y volver a mostrar la guía con su atajo vuelve a la misión que leías en lugar de la lista.
+- En una serie con vías a elegir, como «Agriculture ou alchimie», las misiones anterior y siguiente y las posiciones siguen tu vía.
+- Cerrar el juego que lleva el sonido con DTStuff abierto ya no reproduce el sonido dos veces, y cerrar una cuenta o salir ya no espera al relé de sonido.
+- Una actualización interrumpida reanuda su descarga, y un reemplazo fallido ya no deja DT Hub sin su programa.
+- Se acabó la falsa alerta de «juego mudo» al reabrir un teléfono.
+- La opción «Al iniciar» y el giro de DTStuff ahora avisan cuando fallan.
+- Un marco con pestañas creado durante la pantalla completa se abre en pantalla completa.
+- Más espacio bajo «Vincular un aparato nuevo».
 
 ## [0.10.5] - 2026-10-22
 

@@ -17,35 +17,35 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
-## [Unreleased]
+## [0.11.0] - 2026-10-24
 
 ### Added
 
-- A quest guide shows its rewards under the title (XP, kamas, items), computed for your character's level and the XP bonus you set.
-- A level box in the guides window: changing it updates your character's level on Papycha too.
-- Every quest list shows what each quest gives your character, XP and kamas side by side.
-- With the Papycha tracker linked, a small priority mark on the quests you can do now, from a dot to a flame, for the ones most worth doing, for XP or for kamas.
-- A "Recommended" button next to "Doable" shows with the Papycha tracker linked two short lists in tabs, "XP" and "Kamas", the best quests to do now (from a series, the next quest of each of its chains, and of each path while you have not taken one), at most 20 each, ranked by gain per minute.
-- The level and Bonus Pack boxes are now in every view of the guides window.
-- Each quest shows an estimated time, about 25 min for example, worked out by DT Hub from the game's objectives and maps; Recommended ranks on XP and kamas per minute and leaves out what takes over two hours, unless a list would hold fewer than 10.
-- Mark many quests done at once: the selection button in the guides list ticks quests (Shift+click for a range), and achievement and zone headings offer "Mark all done"; DT Hub writes them one by one, checks what Papycha kept and writes again what was lost.
-- With several characters linked, "Recommended" has a "Me" and a "Team" toggle: the quests several of your characters can do, with the gains added up; tick which characters count.
-- "Recommended" has an "Achievements" mode beside "Quests": one row per series, what follows from its next doable quest along the series' quest graph, gains and times added up, with no time limit; a series where the game takes one quest or another ("Agriculture ou alchimie") has one row per path, named by its first quest, until you take one; in the "Team" view, each character's own run of the series and path, when at least two have one.
-- In "Recommended", hovering a row's gain also gives the XP and kamas per minute the list ranks on ("✦ 1.2 M XP/min · ◎ 2.8 k kamas/min").
-- Dungeons that complete at least two recommended quests, quests where the dungeon is all there is to do (dialogues and travel aside), appear in "Recommended", ranked on those quests' whole reward, and in the dungeon lists; a dungeon's row, narrower, only shows its position, its key and ✓ with the number of those quests (their titles on hover), in columns that do not move from one row to the next.
-- A gift icon on a quest row lists the items and other rewards it gives at your level.
-- Hover a quest to see where to find the items it asks for: which monsters drop them, harvesting, crafting, archimonsters and their areas.
-- "Doable" and the next quests now work for characters other than the one active on Papycha, from the quests they have finished.
-- The tracker bar of the guides window wraps under the character on a narrow window, and each recommended quest shows its zone and, in a series, its place in it (3/11).
-- "To do" and "Available" become a single toggle, "Doable": it keeps only the quests your character can do now, not finished nor ignored (blocked ones stay shown), and, as Recommended, none bound to a time slot or a date (a zone access, a job or an alignment does not hide a quest, the lock tells it), and each zone then shows in brackets how many of its quests are doable; with the filter off and the tracker linked, a zone gives only its quests done over total, on the right.
-- With the Papycha tracker linked, the prerequisites lock only shows when your character misses one (in yellow, with a check or a cross before each quest in its hover), never in Recommended, and Recommended says in one line how it ranks (the detail on hovering the "i") and has a "Dungeons included" toggle, on by default; it never shows a quest bound to a time slot or a date, nor counts one in a dungeon or a series run.
-- A quest in progress with several steps or objectives shows "≤" before its gains and time, maximums, since DT Hub cannot tell what is already done; Recommended no longer offers it and it no longer counts for a dungeon.
-- While Recommended waits for the Papycha tracker or the game's data, a line with a spinner says what is being read; when Papycha does not respond it says so, with a "Try again" button that reads the tracker again.
+- Quest guides show their rewards (XP, kamas, items) computed for your character's level, with a level and Bonus Pack box.
+- Every quest list gives each quest's XP, kamas and an estimated time; a gift icon lists the other rewards.
+- Hover a quest to see where to find the items it asks for: monsters, harvesting, crafting, archmonsters and their areas.
+- A new "Recommended" view: the most rewarding quests to do now, in XP and Kamas tabs, ranked by gain per minute.
+- "Recommended" has an "Achievements" mode, a series' run with gains and times added up, one row per path when the game lets you choose, and a "Team" view for several characters.
+- Dungeons that complete several recommended quests show in the list, with the number of quests they complete.
+- A single "Doable" button replaces "To do" and "Available": only the quests your character can do now.
+- Mark many quests done at once, by selection or for a whole achievement.
+- A game opened windowed that keeps black bands in full screen offers to reopen.
+
+### Changed
+
+- The prerequisites lock only shows when one is missing, and list rows are tighter and aligned.
+- "Reopen now" also reopens the tools (DTStuff, OcrApp...) with the new settings.
 
 ### Fixed
 
-- In a series where the game takes one quest or another ("Agriculture ou alchimie", Allister's achievement), the guide's previous and next quests follow your path instead of zigzagging between the two, places count along the path (2/11, not 3/21), the path not taken is no longer doable nor next once you have started the other, and a quest that needs a whole achievement waits for every quest it asks.
-- A quest row with the prerequisites lock is no longer taller than the others, and the right of the rows is tighter: signs of one size, evenly spaced, gain figures lined up.
+- Hiding then showing the guide with its shortcut brings back the quest you were reading instead of the list.
+- In a series with a choice of paths, such as "Agriculture ou alchimie", the previous and next quests and the places follow your path.
+- Closing the game that carries the sound while DTStuff is open no longer plays the sound twice, and closing an account or quitting no longer waits for the sound relay.
+- An interrupted update resumes its download, and a failed replacement no longer leaves DT Hub without its program.
+- No more false "game silent" alert when a phone reopens.
+- The "At startup" choice and turning DTStuff now say when they fail.
+- A tabbed frame created during full screen opens in full screen.
+- More room under "Pair a new device".
 
 ## [0.10.5] - 2026-10-22
 

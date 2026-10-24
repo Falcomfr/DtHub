@@ -11,35 +11,35 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
-## [Unreleased]
+## [0.11.0] - 2026-10-24
 
 ### Ajouté
 
-- Un guide de quête affiche ses récompenses sous le titre (XP, kamas, objets), calculées pour le niveau de votre personnage et le bonus d'XP que vous réglez.
-- Une case de niveau dans la fenêtre des guides : la changer met aussi à jour le niveau de votre personnage sur Papycha.
-- Chaque liste de quêtes affiche ce que rapporte chaque quête à votre personnage, XP et kamas côte à côte.
-- Avec le suivi Papycha relié, une petite marque de priorité sur les quêtes faisables maintenant, du point à la flamme, pour celles qui valent le plus la peine, pour l'XP ou pour les kamas.
-- Un bouton « Recommandées » à côté de « Faisables » montre avec le suivi Papycha relié deux listes courtes en onglets, « XP » et « Kamas », les meilleures quêtes à faire maintenant (d'une série, la prochaine quête de chacune de ses chaînes, et de chaque voie tant que vous n'en avez pris aucune), 20 au plus chacune, classées par gain à la minute.
-- Les cases de niveau et de Bonus Pack sont maintenant dans toutes les vues de la fenêtre des guides.
-- Chaque quête affiche un temps estimé, par exemple ≈ 25 min, calculé par DT Hub à partir des objectifs et des cartes du jeu ; « Recommandées » classe sur l'XP et les kamas par minute et écarte ce qui prend plus de deux heures, sauf pour compléter une liste de moins de 10.
-- Marquer beaucoup de quêtes terminées d'un coup : le bouton de sélection de la liste des guides coche des quêtes (Maj+clic pour une plage), et les titres de succès et de zone proposent « Tout marquer terminé » ; DT Hub les écrit une à une, vérifie ce que Papycha a gardé et réécrit ce qui s'est perdu.
-- Avec plusieurs personnages reliés, « Recommandées » a un bouton « Moi » et « Équipe » : les quêtes que plusieurs de vos personnages peuvent faire, gains additionnés ; cochez les personnages qui comptent.
-- « Recommandées » a un mode « Succès » à côté de « Quêtes » : une ligne par série, sa suite à partir de la prochaine quête faisable en suivant les prérequis de la série, gains et temps additionnés, sans limite de temps ; une série où le jeu prend une quête ou une autre (« Agriculture ou alchimie ») a une ligne par voie, nommée par sa première quête, jusqu'à ce que vous en preniez une ; en vue « Équipe », la suite de chaque personnage dans la série et la voie, quand au moins deux en ont une.
-- Dans « Recommandées », le survol du gain d'une ligne donne aussi l'XP et les kamas par minute sur lesquels la liste classe (« ✦ 1,2 M XP/min · ◎ 2,8 k kamas/min »).
-- Les donjons qui terminent au moins deux quêtes recommandées, des quêtes où il n'y a que le donjon à faire (dialogues et trajets à part), apparaissent dans « Recommandées », classés sur la récompense entière de ces quêtes, et dans les listes de donjons ; la ligne d'un donjon, plus étroite, n'affiche que sa position, sa clé et ✓ suivi du nombre de ces quêtes (leurs titres au survol), dans des colonnes qui ne bougent pas d'une ligne à l'autre.
-- Une icône cadeau sur une ligne de quête liste les objets et autres récompenses qu'elle donne à votre niveau.
-- Survolez une quête pour voir où trouver les objets qu'elle demande : monstres qui les lâchent, récolte, fabrication, archimonstres et leurs zones.
-- « Faisables » et les quêtes suivantes marchent maintenant pour les personnages autres que l'actif sur Papycha, d'après les quêtes qu'ils ont terminées.
-- La barre du suivi de la fenêtre des guides passe sous le personnage quand la fenêtre est étroite, et chaque quête recommandée affiche sa zone et, dans une série, sa place (3/11).
-- « À faire » et « Accessibles » deviennent un seul bouton, « Faisables » : il ne garde que les quêtes que votre personnage peut faire maintenant, pas terminées ni ignorées (les bloquées restent affichées), et, comme « Recommandées », aucune liée à un créneau horaire ou à une date (l'accès à une zone, un métier ou un alignement ne cache pas une quête, le cadenas le signale), et chaque zone affiche alors entre parenthèses le nombre de ses quêtes faisables ; filtre éteint, avec le suivi relié, une zone ne donne plus que ses quêtes faites sur le total, à droite.
-- Avec le suivi Papycha relié, le cadenas des prérequis n'apparaît plus que s'il en manque un à votre personnage (en jaune, avec une coche ou une croix devant chaque quête au survol), jamais dans « Recommandées », et « Recommandées » dit en une ligne comment il classe (le détail au survol du « i ») et a un bouton « Donjons inclus », actif par défaut ; il n'affiche jamais une quête liée à un créneau horaire ou à une date, ni ne la compte dans un donjon ou la suite d'une série.
-- Une quête en cours de plusieurs étapes ou objectifs affiche « ≤ » devant ses gains et son temps, des maximums, puisque DT Hub ne sait pas ce qui est déjà fait ; « Recommandées » ne la propose plus et elle ne compte plus pour un donjon.
-- Pendant que « Recommandées » attend le suivi Papycha ou les données du jeu, une ligne avec une roue dit ce qui se lit ; si Papycha ne répond pas, elle le dit, avec un bouton « Réessayer » qui relit le suivi.
+- Les guides de quête affichent les récompenses (XP, kamas, objets) calculées pour le niveau de votre personnage, avec une case de niveau et de Bonus Pack.
+- Chaque liste de quêtes donne l'XP, les kamas et un temps estimé pour chaque quête ; une icône cadeau liste les autres récompenses.
+- Survolez une quête pour savoir où trouver les objets qu'elle demande : monstres, récolte, fabrication, archimonstres et leurs zones.
+- Nouvelle vue « Recommandées » : les quêtes les plus rentables à faire maintenant, en onglets XP et Kamas, classées par gain à la minute.
+- « Recommandées » a un mode « Succès », la suite d'une série avec gains et temps additionnés, une ligne par voie quand le jeu laisse le choix, et une vue « Équipe » pour plusieurs personnages.
+- Les donjons qui terminent plusieurs quêtes recommandées apparaissent dans la liste, avec le nombre de quêtes qu'ils terminent.
+- Un seul bouton « Faisables » remplace « À faire » et « Accessibles » : seulement les quêtes que votre personnage peut faire maintenant.
+- Marquer beaucoup de quêtes terminées d'un coup, par sélection ou pour un succès entier.
+- Un jeu ouvert en fenêtré qui garde des bandes noires en plein écran propose de se rouvrir.
+
+### Modifié
+
+- Le cadenas des prérequis n'apparaît plus que s'il en manque un, et les lignes des listes sont plus serrées et alignées.
+- « Rouvrir maintenant » rouvre aussi les outils (DTStuff, OcrApp…) avec les nouveaux réglages.
 
 ### Corrigé
 
-- Dans une série où le jeu prend une quête ou une autre (« Agriculture ou alchimie », le succès d'Allister), les quêtes précédente et suivante du guide suivent votre voie au lieu d'alterner entre les deux, les places se comptent le long de la voie (2/11, et non 3/21), la voie non prise n'est plus faisable ni suivante dès que vous avez commencé l'autre, et une quête qui demande un succès entier attend toutes les quêtes qu'il demande.
-- Une ligne de quête avec le cadenas des prérequis n'est plus plus haute que les autres, et la droite des lignes est plus serrée : signes de même taille et régulièrement espacés, chiffres des gains alignés.
+- Masquer puis rouvrir le guide au raccourci revient sur la quête que vous lisiez, au lieu de la liste.
+- Dans une série à voies au choix, comme « Agriculture ou alchimie », les quêtes précédente et suivante et les places suivent votre voie.
+- Fermer le jeu qui porte le son avec DTStuff ouvert ne fait plus sortir le son deux fois, et fermer un compte ou quitter n'attend plus le relais son.
+- Une mise à jour interrompue reprend son téléchargement, et un remplacement raté ne laisse plus DT Hub sans programme.
+- Plus de fausse alerte « jeu muet » à la réouverture d'un téléphone.
+- Le choix « Au démarrage » et la rotation de DTStuff disent maintenant quand ils échouent.
+- Un cadre à onglets créé pendant le plein écran s'ouvre en plein écran.
+- Plus d'espace sous « Associer un nouvel appareil ».
 
 ## [0.10.5] - 2026-10-22
 
