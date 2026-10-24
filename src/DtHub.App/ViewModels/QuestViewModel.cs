@@ -138,11 +138,34 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         _team = null;
     }
 
-    /// <summary>Ranks again, once, and redraws the shown list.</summary>
+    private bool _rescoreQueued;
+
+    /// <summary>
+    /// Ranks again, once, and redraws the shown list after the current dispatcher work: a tracker read changes the
+    /// character, the level and the progress one after the other, each asking for a whole redraw.
+    /// </summary>
     private void Rescore()
     {
         ForgetRanking();
-        RedrawAfterRead();
+
+        if (System.Windows.Application.Current?.Dispatcher is not { } dispatcher)
+        {
+            RedrawAfterRead();
+
+            return;
+        }
+
+        if (_rescoreQueued)
+        {
+            return;
+        }
+
+        _rescoreQueued = true;
+        _ = dispatcher.BeginInvoke(() =>
+        {
+            _rescoreQueued = false;
+            RedrawAfterRead();
+        });
     }
 
     /// <summary>The game read failure last logged: it stays set until a read succeeds.</summary>
