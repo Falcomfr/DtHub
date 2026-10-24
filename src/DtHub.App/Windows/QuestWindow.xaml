@@ -178,6 +178,12 @@
                   </TextBlock>
                 </DataTemplate>
               </ComboBox.ItemTemplate>
+              <!-- Screen readers read the name, not the record's ToString. -->
+              <ComboBox.ItemContainerStyle>
+                <Style TargetType="ComboBoxItem" BasedOn="{StaticResource ComboItem}">
+                  <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                </Style>
+              </ComboBox.ItemContainerStyle>
             </ComboBox>
 
             <!-- One character only: a dropdown with a single entry would
@@ -1111,6 +1117,9 @@
                    selection were Aero2's own pale blue washes, which are
                    nowhere in the palette. -->
               <Style TargetType="ListBoxItem">
+                <!-- Screen readers read the row's title, not the record's
+                     ToString ("QuestNode { Kind = Quest, ... }"). -->
+                <Setter Property="AutomationProperties.Name" Value="{Binding Label}" />
                 <!-- Reachable, not only enabled: in selection mode an
                      achievement heading carries "Tout marquer terminé", and
                      a disabled row would disable its button too. -->
