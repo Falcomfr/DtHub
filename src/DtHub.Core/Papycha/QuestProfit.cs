@@ -495,8 +495,8 @@ public static class QuestProfit
 
     /// <summary>
     /// By Papycha dungeon: the doable quests of <paramref name="entries"/> (what "Recommandées" lists) whose objectives
-    /// name one of its game dungeons and ask nothing else (<see cref="OnlyThe"/>), each worth the reward of the steps naming it (an advance's title says which), not
-    /// the whole quest's; summed and scored for the run's own time (<see cref="QuestTime.DungeonMinutes"/>)
+    /// name one of its game dungeons and ask nothing else (<see cref="OnlyThe"/>), each worth its whole reward, since
+    /// the dungeon completes it; summed and scored for the run's own time (<see cref="QuestTime.DungeonMinutes"/>)
     /// against the quest maxima. A dungeon with none is left out.
     /// </summary>
     /// <param name="rooms">Game dungeon id to its room count.</param>
@@ -523,20 +523,15 @@ public static class QuestProfit
             var advances = new List<(ProfitEntry, double)>();
             foreach (var (quest, found) in named)
             {
-                var steps = found.Where(n => ids.Dungeons.Contains(n.Id)).Select(n => n.Step).Distinct().Order().ToList();
-                if (!OnlyThe(ids.Dungeons, facts[quest.Id], names)) continue;
-                var own = facts[quest.Id].Steps;
-                // A step not kept (a cache read before steps were) leaves the quest out: its whole reward would be a guess.
-                if (steps.Count == 0 || steps.Any(s => s is not { } i || i < 0 || i >= own.Length)) continue;
-                if (QuestRewards.For([.. steps.Select(s => new TouchStep("", "", [], own[s!.Value]))], level, bonusPercent) is not { } reward)
+                // It ends with the dungeon, so the whole quest counts, as its own row would.
+                if (!found.Any(n => ids.Dungeons.Contains(n.Id)) || !OnlyThe(ids.Dungeons, facts[quest.Id], names)
+                    || GainOf(facts[quest.Id], level, bonusPercent) is null)
                 {
                     continue;
                 }
 
-                var (entry, rank) = Build(quest.Title, [quest], scores, facts, level, bonusPercent, best,
-                    QuestTracking.StatusOf(progress, quest.Id) == QuestStatus.InProgress);
-                var title = Strings.Format("DungeonQuestStep", quest.Title, string.Join(", ", steps.Select(s => s + 1)));
-                advances.Add((entry with { Title = title, Gain = new QuestGain(reward.Experience, reward.Kamas) }, rank));
+                advances.Add(Build(quest.Title, [quest], scores, facts, level, bonusPercent, best,
+                    QuestTracking.StatusOf(progress, quest.Id) == QuestStatus.InProgress));
             }
 
             if (advances.Count == 0) continue;

@@ -25,7 +25,7 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 - Con varios personajes vinculados, «Recomendadas» tiene un botón «Yo» y «Equipo»: las misiones que varios de tus personajes pueden hacer, con las ganancias sumadas; marca qué personajes cuentan.
 - «Recomendadas» tiene un modo «Logros» junto a «Misiones»: una línea por serie, su continuación desde la siguiente misión realizable, ganancias y tiempos sumados, sin límite de tiempo; en la vista «Equipo», la continuación de cada personaje, cuando al menos dos tienen una.
 - En «Recomendadas», al pasar el ratón sobre la ganancia de una línea se ven también la XP y los kamas por minuto con los que se ordena la lista («✦ 1,2 M XP/min · ◎ 2,8 k kamas/min»).
-- Las mazmorras que completan al menos dos misiones recomendadas, misiones en las que solo hay que hacer la mazmorra (diálogos y trayectos aparte), aparecen en «Recomendadas», y en las listas de mazmorras con la recompensa de las etapas de esas misiones que pasan por ellas; cada mazmorra muestra el tiempo estimado de una partida.
+- Las mazmorras que completan al menos dos misiones recomendadas, misiones en las que solo hay que hacer la mazmorra (diálogos y trayectos aparte), aparecen en «Recomendadas», y en las listas de mazmorras con la recompensa completa de esas misiones; cada mazmorra muestra el tiempo estimado de una partida.
 - Un icono de regalo en una fila de misión lista los objetos y otras recompensas que da a tu nivel.
 - Pasa el cursor sobre una misión para ver dónde encontrar los objetos que pide: monstruos que los sueltan, recolección, fabricación, arquimonstruos y sus zonas.
 - «Realizables» y las misiones siguientes funcionan ahora para los personajes distintos del activo en Papycha, a partir de las misiones que han terminado.

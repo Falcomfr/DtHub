@@ -11439,14 +11439,16 @@ chaque quête faisable maintenant, la récompense des seules étapes dont un
 objectif nomme le donjon (au niveau et au Bonus Pack du personnage), jamais la
 quête entière : le Bworker affichait 5,7 M d'XP parce que « La voie du
 guerrier », sept étapes, ne le traverse qu'à la sixième (revue du 23/10/2026).
-Une quête dont l'étape n'est pas connue (cache d'avant) n'y entre pas. La suite
+Une quête dont l'étape n'est pas connue (cache d'avant) n'y entrait pas. Depuis
+le 24/10/2026, une quête ne compte que si le donjon est tout ce qu'elle demande, et
+elle vaut alors sa récompense entière (plus bas). La suite
 d'une série pas encore démarrable n'y entre pas non plus. Son temps est celui du donjon lui-même (D221), pas la
 somme des temps de ces quêtes : la première version les additionnait et donnait
 des durées énormes (revue du 23/10/2026). Son score se compare à celui des quêtes
 seules. Chaque ligne de donjon que la table du jeu connaît montre ce temps, même
 sans quête faisable ; ses gains et sa marque, seulement avec des quêtes
 faisables, dans ses listes, et
-l'infobulle dit « Termine n quêtes : quête (étape n), ... » (avant le 24/10/2026,
+l'infobulle dit « Termine n quêtes : quête, ... » (avant le 24/10/2026,
 « Récompense des étapes de quête qui passent par ce donjon : ... »), jamais rien qui ressemble à l'XP des combats du donjon,
 que le jeu ne publie pas. Sur une ligne de quête de plusieurs étapes,
 l'infobulle du gain précise « Récompense totale, n étapes » : DT Hub ne sait
@@ -11467,8 +11469,14 @@ a une course de donjon (règle de la carte de sortie de D221) ou un objectif qui
 nomme ce donjon (son boss). Tout autre objectif l'écarte : objets (3),
 fabrication (20), autres combats (6, 14), âmes (12), autre texte libre, type
 inconnu. Le reste ne change pas : au moins deux de ces quêtes parmi les
-recommandées, gain = la somme de leurs étapes qui passent par le donjon, temps du
-donjon, rien en équipe. La même valeur sert aux listes de donjons du guide.
+recommandées, temps du donjon, rien en équipe. Chacune vaut sa récompense
+entière au niveau du personnage, toutes étapes comprises, comme sa propre ligne
+dans les listes (décision du même jour) : le donjon la termine, et les autres
+étapes ne demandent que dialogues et trajets. Les seules étapes qui nomment le
+donjon, comptées avant, laissaient de côté la récompense de ces étapes de
+dialogue. Les titres de l'infobulle n'ont plus de numéro d'étape, et l'étape
+inconnue d'un cache d'avant ne retire plus la quête : la récompense entière n'en a
+pas besoin. La même valeur sert aux listes de donjons du guide.
 L'infobulle dit « Termine n quêtes : ... » (« Termine 1 quête » dans une liste de
 donjons), ces quêtes finissant avec lui. Le filtre « Donjons inclus », qui
 retire les quêtes avec un donjon, ne change pas (`QuestProfit.DungeonValues`,

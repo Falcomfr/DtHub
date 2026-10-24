@@ -3050,9 +3050,6 @@ Team: quests at least 2 ticked characters can do.</value>
   <data name="DungeonFinishesOne" xml:space="preserve">
     <value>Completes 1 quest: {1}</value>
   </data>
-  <data name="DungeonQuestStep" xml:space="preserve">
-    <value>{0} (step {1})</value>
-  </data>
   <data name="RewardWholeQuest" xml:space="preserve">
     <value>Whole quest reward, {0} steps</value>
   </data>

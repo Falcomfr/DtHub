@@ -3050,9 +3050,6 @@ Pas de donjon en équipe.
   <data name="DungeonFinishesOne" xml:space="preserve">
     <value>Termine 1 quête : {1}</value>
   </data>
-  <data name="DungeonQuestStep" xml:space="preserve">
-    <value>{0} (étape {1})</value>
-  </data>
   <data name="RewardWholeQuest" xml:space="preserve">
     <value>Récompense totale, {0} étapes</value>
   </data>
