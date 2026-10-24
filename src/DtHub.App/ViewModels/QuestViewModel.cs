@@ -1748,7 +1748,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
 
         // The ranking itself measured under 25 ms (2026-10-24), so it gets no line of its own.
         ProfitWait = Core.Papycha.ProfitWait.Of(
-            Tracker.Link, Tracker.IsReading, _facts?.Count, _factsRead.IsCompleted);
+            Tracker.Link, Tracker.IsReading, _facts?.Count, _factsRead.IsCompleted, _viewFailed);
 
         if (ProfitWait.Length > 0)
         {
@@ -2720,7 +2720,13 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         IsLoadingPage = false;
         Placeholder =
             exception.Message + Strings.Get("BrowserFallback");
+
+        // No tracker read will start: the Recommended card stops spinning and offers to try again.
+        _viewFailed = true;
+        Rescore();
     }
+
+    private bool _viewFailed;
 
     /// <summary>The site's home page.</summary>
     private const string HomeUrl = "https://papycha.fr/";

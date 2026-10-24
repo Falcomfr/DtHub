@@ -17,13 +17,15 @@ public static class ProfitWait
     /// <param name="facts">The game's quest facts read so far, null before any.</param>
     /// <param name="factsDone">The facts' read has ended: none then means the data is missing, whatever the cause (a
     /// later read of a guide's steps clears the service's last failure).</param>
-    public static string Of(TrackerLink link, bool reading, int? facts, bool factsDone) =>
+    /// <param name="viewFailed">The page engine failed to start: no read starts on its own, so a tracker never read is
+    /// a failure to retry, not a wait.</param>
+    public static string Of(TrackerLink link, bool reading, int? facts, bool factsDone, bool viewFailed) =>
         link == TrackerLink.Linked
             ? facts is null || (facts == 0 && !factsDone) ? ReadingGame
                 : facts == 0 ? GameDown
                 : string.Empty
-            : reading || link == TrackerLink.Unknown ? ReadingTracker
-            : link == TrackerLink.Unreadable ? TrackerDown
+            : reading || (link == TrackerLink.Unknown && !viewFailed) ? ReadingTracker
+            : link is TrackerLink.Unreadable or TrackerLink.Unknown ? TrackerDown
             : NeedsLink;
 
     /// <summary>A wait the spinner turns for.</summary>

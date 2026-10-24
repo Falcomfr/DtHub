@@ -1137,9 +1137,10 @@ public partial class QuestWindow : Window
     /// <summary>One read of the tracker, none while one runs: the button hides then, but its redraw is queued.</summary>
     private void OnRetryTracker(object sender, RoutedEventArgs e)
     {
+        // Through the engine's preparation: after it failed, the cookie can only come from a new attempt.
         if (!_viewModel.Tracker.IsReading)
         {
-            _ = _viewModel.Tracker.RefreshAsync();
+            _ = PrepareOnShowAsync();
         }
     }
 

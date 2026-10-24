@@ -19,7 +19,15 @@ public sealed class ProfitWaitTests
     [InlineData(TrackerLink.Linked, false, 0, true, ProfitWait.GameDown)]
     [InlineData(TrackerLink.Linked, false, 12, true, "")]
     public void Chaque_etat_a_sa_carte(TrackerLink link, bool reading, int? facts, bool factsDone, string attendu) =>
-        Assert.Equal(attendu, ProfitWait.Of(link, reading, facts, factsDone));
+        Assert.Equal(attendu, ProfitWait.Of(link, reading, facts, factsDone, viewFailed: false));
+
+    [Fact]
+    public void Sans_moteur_la_roue_ne_tourne_pas_sans_fin()
+    {
+        // The engine failed: no read will ever start, so the failure with "Réessayer" rather than the spinner.
+        Assert.Equal(ProfitWait.TrackerDown, ProfitWait.Of(TrackerLink.Unknown, reading: false, null, false, viewFailed: true));
+        Assert.Equal(ProfitWait.ReadingTracker, ProfitWait.Of(TrackerLink.Unknown, reading: true, null, false, viewFailed: true));
+    }
 
     [Fact]
     public void Seules_les_lectures_tournent_et_seul_le_suivi_se_relance()
