@@ -1335,9 +1335,9 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     /// closes first, and its accounts, not yet marked, read as closed by
     /// hand and left the next startup (D207).
     /// </summary>
-    public IReadOnlyList<ScrcpySession> MarkAllStopping(bool keepTools = false)
+    public IReadOnlyList<ScrcpySession> MarkAllStopping()
     {
-        var running = _sessions.Values.Where(s => s.IsAlive && !(keepTools && s.Target.IsTransient)).ToList();
+        var running = _sessions.Values.Where(s => s.IsAlive).ToList();
 
         foreach (var session in running)
         {
@@ -1349,15 +1349,13 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
 
     /// <summary>
     /// Closes all sessions opened by DT Hub, and only those. scrcpy
-    /// windows launched by other software are ignored. With
-    /// <paramref name="keepTools" />, the tool windows stay open: a reopen
-    /// is for the games' settings, and closing a tool stops its app.
+    /// windows launched by other software are ignored.
     /// </summary>
-    public async Task StopAllAsync(CancellationToken cancellationToken = default, bool keepTools = false)
+    public async Task StopAllAsync(CancellationToken cancellationToken = default)
     {
         // All marked first, so that the account carrying the sound, closed
         // before the others, does not hand it to them. See PassSoundOnAsync.
-        var running = MarkAllStopping(keepTools);
+        var running = MarkAllStopping();
 
         foreach (var id in running.Select(s => s.Id))
         {

@@ -4239,8 +4239,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private static readonly TimeSpan ReopenPause = TimeSpan.FromSeconds(5);
 
     /// <summary>
-    /// Closes then reopens the open game windows, at their place and
-    /// their size.
+    /// Closes then reopens the open windows, the games at their place and
+    /// their size, then the tools.
     ///
     /// Quality and zoom are scrcpy startup arguments, fixed for the
     /// whole duration of a session: changing them showed up nowhere
@@ -4260,11 +4260,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         try
         {
-            // The games only: a tool window reads none of these settings, and
-            // closing it would stop its app on the phone.
+            // The games; the tool windows, which read the quality, codec and
+            // keyboard settings too, come back after them, same app, same phone.
             var instances = _sessions.ActiveSessions
                 .Select(s => s.Target)
                 .Where(t => !t.IsTransient)
+                .ToList();
+            var tools = _sessions.ActiveSessions
+                .Select(s => s.Target)
+                .Where(t => t.IsTransient)
                 .ToList();
 
             if (instances.Count == 0)
@@ -4291,7 +4295,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             _soundAfterReopen.Reopened(targets.Select(Routable), DateTimeOffset.UtcNow);
 
-            await _sessions.StopAllAsync(cancellationToken, keepTools: true).ConfigureAwait(false);
+            await _sessions.StopAllAsync(cancellationToken).ConfigureAwait(false);
             _sessions.PruneFinished();
 
             // The games are stopped here, closing a window leaves them
@@ -4335,7 +4339,22 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 LogMissingGeometry(string.Join(", ", missing));
             }
 
-            return await LaunchAsync(reopen, remembered, cancellationToken).ConfigureAwait(false);
+            var report = await LaunchAsync(reopen, remembered, cancellationToken).ConfigureAwait(false);
+
+            // Its app, or the store page it showed.
+            foreach (var tool in tools)
+            {
+                if (PartnerApps.All.Any(a => string.Equals(a.PackageName, tool.PackageName, StringComparison.Ordinal)))
+                {
+                    _ = await OpenPartnerAppAsync(tool.DeviceId, tool.PackageName, cancellationToken).ConfigureAwait(false);
+                }
+                else if (PartnerApps.All.FirstOrDefault(a => PartnerApps.StoreUri(a.PackageName) == tool.StartUri) is { } page)
+                {
+                    _ = await OpenStoreAsync(tool.DeviceId, page.PackageName, cancellationToken).ConfigureAwait(false);
+                }
+            }
+
+            return report;
         }
         finally
         {

@@ -734,22 +734,20 @@ public class ScrcpySessionManagerTests
     }
 
     [Fact]
-    public async Task Rouvrir_les_jeux_laisse_les_outils_ouverts_sans_lancer_de_son()
+    public async Task Fermer_le_dernier_jeu_avec_un_outil_ouvert_ne_lance_aucun_son()
     {
-        // "Rouvrir maintenant" (D216) closed DTStuff along with the games,
-        // and stopped it on the phone. Left open, it must not keep the
-        // phone's sound playing through a relay either.
+        // A tool window never carries the sound: left open, it counted as an
+        // account to hand the sound on to, and the game reopened next carried
+        // it too, the phone's sound playing twice.
         var launcher = new FakeProcessLauncher()
             .Prepare(new FakeProcessSession(1).Emit(NewDisplayLine))
-            .Prepare(new FakeProcessSession(2).Emit(NewDisplayLine))
             .Prepare(new FakeProcessSession(3).Emit(NewDisplayLine))
             .Prepare(new FakeProcessSession(9).Emit(ServerLine));
 
         await using var manager = Manager(launcher, new FakeAppLauncher());
 
-        await manager.StartAsync(Target(0), WithSound, null, CancellationToken.None);
-        await manager.StartAsync(Target(999), WithSound with { AudioEnabled = false }, null, CancellationToken.None);
-        var tool = await manager.StartAsync(
+        var game = await manager.StartAsync(Target(0), WithSound, null, CancellationToken.None);
+        await manager.StartAsync(
             Target(userId: 0) with
             {
                 PackageName = "com.makeintouch.dtstuff",
@@ -760,9 +758,8 @@ public class ScrcpySessionManagerTests
             null,
             CancellationToken.None);
 
-        await manager.StopAllAsync(CancellationToken.None, keepTools: true);
+        await manager.StopAsync(game.Id, CancellationToken.None);
 
-        Assert.Same(tool, Assert.Single(manager.ActiveSessions));
         Assert.DoesNotContain(launcher.Requests, IsSoundKeeper);
     }
 
