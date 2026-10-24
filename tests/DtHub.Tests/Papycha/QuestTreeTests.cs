@@ -457,6 +457,25 @@ public class QuestTreeTests
     }
 
     [Fact]
+    public void Sous_le_filtre_une_serie_coupee_compte_tous_ses_morceaux_sur_son_premier_entete()
+    {
+        // Une série de 6 coupée en 2 + 4 par une quête isolée, 1 et 3 quêtes gardées : « A (4) », pas « A (1) ».
+        static QuestNode Dans(int id) =>
+            Row(id, true) with { Quest = new QuestSummary { Id = id, Title = $"q{id}", SuccessName = "A" } };
+        var suite = $"A ({Strings.Get("SeriesContinued")})";
+        QuestNode[] lignes =
+            [Heading("A (6)"), Dans(1), Dans(2), Row(9, false), Heading(suite), Dans(3), Dans(4), Dans(5), Dans(6)];
+
+        Assert.Equal(
+            ["A (4)", "q1", "q9", suite, "q3", "q4", "q5"],
+            QuestTree.Keep(lignes, q => q.Id is not (2 or 6), count: true).Select(n => n.Label));
+        // Premier morceau vidé : la suite devient le premier en-tête et porte le compte.
+        Assert.Equal(
+            ["q9", "A (3)", "q3", "q4", "q5"],
+            QuestTree.Keep(lignes, q => q.Id is not (1 or 2 or 6), count: true).Select(n => n.Label));
+    }
+
+    [Fact]
     public void Sans_filtre_la_liste_reste_identique()
     {
         var kept = QuestTree.Keep(Planned, _ => true);

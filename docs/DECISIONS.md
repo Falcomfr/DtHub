@@ -1,4 +1,4 @@
-# Décisions d'architecture
+﻿# Décisions d'architecture
 
 Une entrée par décision structurante : le contexte, le choix retenu et ce
 qu'il coûte. Les entrées ne sont pas réécrites ; si une décision est
@@ -11490,7 +11490,10 @@ n'est dit qu'une fois.
 - Dans une zone, sous « Faisables » allumé, l'en-tête d'un succès compte de même
   les quêtes affichées dessous (audit visuel du 24/10/2026 : « Médiation
   expéditive (6) » sur deux lignes devient « (2) »), une suite de série gardant
-  son libellé (`QuestTree.Keep`).
+  son libellé (`QuestTree.Keep`). Une série coupée par une quête isolée compte
+  tous ses morceaux sur son premier en-tête affiché, comme sans filtre (revue du
+  24/10/2026 : « Série (1) » puis « Série (suite) » sur 3 lignes disait 1 pour
+  4) ; si le premier morceau est vide, la suite devient ce premier en-tête.
 - Liste des zones, 24/10/2026 : « je veux pas d'espace pas utile comme ça ». La
   colonne du sablier (quêtes en cours) n'est large que de son plus long contenu
   dans la liste, et disparaît pour toutes les lignes quand aucune zone n'a de

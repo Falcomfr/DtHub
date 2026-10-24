@@ -381,9 +381,11 @@ public sealed class QuestTree
     /// section from the quests it is given, and a section filtered first came
     /// out in another order. A filter only removes rows. An achievement
     /// heading stays only when one of its quests does; with
-    /// <paramref name="count"/> (a filter on), it counts the quests kept under
-    /// it, as a zone does ("Médiation expéditive (2)", not "(6)"), a
-    /// continued one keeping its label.
+    /// <paramref name="count"/> (a filter on), the first one shown of each
+    /// achievement counts its quests kept, as a zone does ("Médiation
+    /// expéditive (2)", not "(6)"), every piece of a series cut by a lone
+    /// quest included, as <see cref="BySuccess"/> counts it; the later
+    /// pieces keep "(suite)".
     /// </summary>
     public static IEnumerable<QuestNode> Keep(IEnumerable<QuestNode> rows, Func<QuestSummary, bool> keep, bool count = false)
     {
@@ -392,7 +394,6 @@ public sealed class QuestTree
 
         List<QuestNode> kept = [];
         QuestNode? heading = null;
-        var at = -1;
 
         foreach (var row in rows)
         {
@@ -409,17 +410,27 @@ public sealed class QuestTree
 
             if (heading is not null && row.InSuccess)
             {
-                at = kept.Count;
                 kept.Add(heading);
             }
 
             heading = null;
             kept.Add(row);
+        }
 
-            if (count && at >= 0 && row.InSuccess && row.Quest is { } shown
-                && kept[at].Label != $"{shown.SuccessName} ({Strings.Get("SeriesContinued")})")
+        if (!count)
+        {
+            return kept;
+        }
+
+        // A heading is always followed by a row of its achievement.
+        var shown = kept.Where(r => r.InSuccess && r.Quest is not null)
+            .GroupBy(r => r.Quest!.SuccessName).ToDictionary(g => g.Key, g => g.Count());
+        HashSet<string> seen = [];
+        for (var i = 0; i + 1 < kept.Count; i++)
+        {
+            if (kept[i].Kind == QuestNodeKind.Success && kept[i + 1].Quest is { } first && seen.Add(first.SuccessName))
             {
-                kept[at] = kept[at] with { Label = $"{shown.SuccessName} ({Text(kept.Count - at - 1)})" };
+                kept[i] = kept[i] with { Label = $"{first.SuccessName} ({Text(shown[first.SuccessName])})" };
             }
         }
 
