@@ -124,13 +124,20 @@ public static class QuestProfit
     /// <summary>
     /// Whether the quest has a prerequisite in the sense of the "Avec prérequis" toggle: a need that is not a quest
     /// every character in <paramref name="progress"/> has completed (a time slot, an alignment, an item, or a previous
-    /// quest still to do). A need naming the quest itself is ignored, as in <see cref="Previous"/>.
+    /// quest still to do). A need naming the quest itself is ignored, as in <see cref="Previous"/>. A quest every one of
+    /// them has in progress has none.
     /// </summary>
     public static bool HasPrerequisite(QuestSummary quest, QuestChainIndex chain, IReadOnlyCollection<TrackerProgress> progress)
     {
         ArgumentNullException.ThrowIfNull(quest);
         ArgumentNullException.ThrowIfNull(chain);
         ArgumentNullException.ThrowIfNull(progress);
+
+        // Started by every character: its conditions were met, whatever they were.
+        if (progress.Count > 0 && progress.All(c => QuestTracking.StatusOf(c, quest.Id) == QuestStatus.InProgress))
+        {
+            return false;
+        }
 
         return quest.Prerequisites.Any(need => chain.Resolve(need) is not { } p
             || (p.Id != quest.Id && !progress.All(c => QuestTracking.StatusOf(c, p.Id) == QuestStatus.Completed)));

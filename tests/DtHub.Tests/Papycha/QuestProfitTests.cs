@@ -172,6 +172,11 @@ public class QuestProfitTests
         // Team: every character of the row must have done the previous quest.
         Assert.False(Has(2, done, done));
         Assert.True(Has(2, done, notDone));
+        // A quest already in progress has passed its conditions, for every character of the row only.
+        var started = new TrackerProgress(new Dictionary<int, QuestStatus> { [3] = QuestStatus.InProgress }, new HashSet<int>(), new HashSet<int>(), []);
+        Assert.False(Has(3, started));
+        Assert.False(Has(3, started, started));
+        Assert.True(Has(3, started, done));
     }
 
     private static (List<QuestSummary> Catalog, Dictionary<int, TouchQuestFacts> Facts) Twenty()
