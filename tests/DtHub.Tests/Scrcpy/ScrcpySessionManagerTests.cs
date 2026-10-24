@@ -667,6 +667,47 @@ public class ScrcpySessionManagerTests
     }
 
     [Fact]
+    public async Task Un_relais_son_qui_ne_demarre_pas_rend_la_file_du_telephone()
+    {
+        // Any failure, not the expected launch failure alone: a lease kept
+        // would block every later opening on this phone until a restart.
+        var launcher = new FakeProcessLauncher()
+            .Prepare(new FakeProcessSession(1).Emit(NewDisplayLine))
+            .Prepare(new FakeProcessSession(2).Emit(NewDisplayLine))
+            // The relay the read loop may still start and the account reopened,
+            // in either order.
+            .Prepare(new FakeProcessSession(3).Emit(ServerLine).Emit(NewDisplayLine))
+            .Prepare(new FakeProcessSession(4).Emit(ServerLine).Emit(NewDisplayLine));
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        var a = await manager.StartAsync(Target(0), WithSound, null, CancellationToken.None);
+        await manager.StartAsync(Target(999), WithSound with { AudioEnabled = false }, null, CancellationToken.None);
+
+        // Thrown once, by the close or by its read loop, whichever hands the sound on first.
+        launcher.LaunchError = new InvalidOperationException("Inattendu.");
+
+        try
+        {
+            await manager.StopAsync(a.Id, CancellationToken.None);
+        }
+        catch (InvalidOperationException)
+        {
+            // The close that met it.
+        }
+
+        for (var waited = 0; launcher.LaunchError is not null && waited < 100; waited++)
+        {
+            await Task.Delay(20);
+        }
+
+        var again = await manager.StartAsync(Target(0), ScrcpyOptions.Default, null, CancellationToken.None)
+            .WaitAsync(TimeSpan.FromSeconds(3));
+
+        Assert.Equal(ScrcpySessionState.Running, again.State);
+    }
+
+    [Fact]
     public async Task Tout_fermer_ne_lance_aucun_son()
     {
         // Closing everything, quitting or reopening all stopped the accounts

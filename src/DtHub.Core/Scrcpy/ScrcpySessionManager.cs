@@ -876,6 +876,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         var lease = await _gate.EnterQuietlyAsync(deviceId, CancellationToken.None).ConfigureAwait(false);
 
         IProcessSession keeper;
+        var started = false;
 
         try
         {
@@ -885,13 +886,22 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
                 Arguments = soundArguments,
                 Environment = new Dictionary<string, string?> { ["ADB"] = adbPath },
             });
+            started = true;
         }
         catch (ProcessLaunchException)
         {
             // The other accounts stay silent on the PC, as before, and
             // keep their game: closing one account must not fail for it.
-            await lease.DisposeAsync().ConfigureAwait(false);
             return;
+        }
+        finally
+        {
+            // Released whatever the failure: kept, it would block the
+            // phone's every later opening.
+            if (!started)
+            {
+                await lease.DisposeAsync().ConfigureAwait(false);
+            }
         }
 
         _soundKeepers[deviceId] = keeper;

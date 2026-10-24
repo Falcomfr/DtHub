@@ -82,7 +82,7 @@ public sealed class FakeProcessLauncher : IProcessLauncher
     /// <summary>
     /// Exception to throw on the next start, if one is set.
     /// </summary>
-    public ProcessLaunchException? LaunchError { get; set; }
+    public Exception? LaunchError { get; set; }
 
     public FakeProcessLauncher Prepare(FakeProcessSession session)
     {
@@ -94,9 +94,10 @@ public sealed class FakeProcessLauncher : IProcessLauncher
     {
         Requests.Add(request);
 
-        if (LaunchError is not null)
+        if (LaunchError is { } error)
         {
-            throw LaunchError;
+            LaunchError = null;
+            throw error;
         }
 
         var session = _prepared.Count > 0 ? _prepared.Dequeue() : new FakeProcessSession();
