@@ -191,10 +191,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     {
         try
         {
-            if (!await _launcher.TurnDtStuffAsync().ConfigureAwait(true))
-            {
-                Instances.ShowBanner(Strings.Format("PartnerFailed", app.Name));
-            }
+            Tell(await _launcher.TurnDtStuffAsync().ConfigureAwait(true), app);
         }
         catch (AdbException exception)
         {
@@ -232,6 +229,12 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             return;
         }
 
+        Tell(outcome, app);
+    }
+
+    /// <summary>Anything but a window on the PC, said in the banner.</summary>
+    private void Tell(PartnerOpening outcome, PartnerApp app)
+    {
         switch (outcome)
         {
             case PartnerOpening.OnPhone:
