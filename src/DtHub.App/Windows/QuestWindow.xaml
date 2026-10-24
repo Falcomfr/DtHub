@@ -1747,12 +1747,14 @@
                                                     ConverterParameter=inverse}" />
 
                     <!-- What the quest gives the chosen character: XP then
-                         kamas, last on the right in two fixed columns, wide
-                         enough for a glyph and "999,9 M" or "≤ 99,9 M" (a
-                         quest in progress) in XP, "12,5 M" for a series'
-                         kamas or "≤ 999 k", so the numbers line up on their
-                         right edge; tabular figures, so "314" and "780"
-                         are as wide. A glyph says
+                         kamas, last on the right in two fixed columns. The
+                         glyph sits at the column's left edge and the number at
+                         its right, so both line up down the list; tabular
+                         figures, so "314" and "780" are as wide. Widths
+                         measured in this face at 11 px, glyph and gap 12: XP
+                         58 for "≤ 99,9 M" (43.6, a quest in progress) or a
+                         team's "1234,5 M" (43.2); kamas 50 for "≤ 9,9 M"
+                         (37.7) or "≤ 999 k" (36.8). A glyph says
                          which is which, the words come on hover: a blue
                          four-point sparkle for XP, a gold coin for kamas.
                          The kamas column stays empty when there are none.
@@ -1763,7 +1765,7 @@
                          when it closes, filled in place once read. Rich: the
                          plain tooltip shows its content as text, and a panel
                          as text is empty. -->
-                    <Border x:Name="GainXp" Width="54" Margin="3,0,0,0"
+                    <Border x:Name="GainXp" Width="58" Margin="3,0,0,0"
                             Background="Transparent" VerticalAlignment="Center"
                             ToolTipService.InitialShowDelay="200"
                             ToolTipService.ShowDuration="30000"
@@ -1778,18 +1780,19 @@
                           </StackPanel>
                         </ToolTip>
                       </Border.ToolTip>
-                      <StackPanel x:Name="GainXpValeur" Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Path Width="10" Height="10" Margin="0,0,2,0" VerticalAlignment="Center"
+                      <DockPanel x:Name="GainXpValeur">
+                        <Path DockPanel.Dock="Left" Width="10" Height="10" Margin="0,0,2,0" VerticalAlignment="Center"
                               Stretch="None" Fill="{DynamicResource GainXpBrush}"
                               Data="M 5,0.5 C 5.4,3.6 6.4,4.6 9.5,5 C 6.4,5.4 5.4,6.4 5,9.5
                                     C 4.6,6.4 3.6,5.4 0.5,5 C 3.6,4.6 4.6,3.6 5,0.5 Z" />
                         <TextBlock Text="{Binding GainXp}" TextWrapping="NoWrap" Typography.NumeralAlignment="Tabular"
+                                   HorizontalAlignment="Right"
                                    VerticalAlignment="Center" Style="{StaticResource Muted}"
                                    Foreground="{DynamicResource GainXpBrush}"
                                    FontSize="{StaticResource FontSmall}" />
-                      </StackPanel>
+                      </DockPanel>
                     </Border>
-                    <Border x:Name="GainKamas" Width="48" Margin="4,0,0,0"
+                    <Border x:Name="GainKamas" Width="50" Margin="4,0,0,0"
                             Background="Transparent" VerticalAlignment="Center"
                             ToolTipService.InitialShowDelay="200"
                             ToolTipService.ShowDuration="30000"
@@ -1804,18 +1807,18 @@
                           </StackPanel>
                         </ToolTip>
                       </Border.ToolTip>
-                      <StackPanel x:Name="GainKamasValeur" Orientation="Horizontal"
-                                  HorizontalAlignment="Right">
-                        <Path Width="10" Height="10" Margin="0,0,2,0" VerticalAlignment="Center"
+                      <DockPanel x:Name="GainKamasValeur">
+                        <Path DockPanel.Dock="Left" Width="10" Height="10" Margin="0,0,2,0" VerticalAlignment="Center"
                               Stretch="None" Stroke="{DynamicResource GainKamasBrush}"
                               StrokeThickness="1.2"
                               Data="M 0.9,5 A 4.1,4.1 0 1 0 9.1,5 A 4.1,4.1 0 1 0 0.9,5 Z
                                     M 3.2,5 A 1.8,1.8 0 1 0 6.8,5 A 1.8,1.8 0 1 0 3.2,5 Z" />
                         <TextBlock Text="{Binding GainKamas}" TextWrapping="NoWrap" Typography.NumeralAlignment="Tabular"
+                                   HorizontalAlignment="Right"
                                    VerticalAlignment="Center" Style="{StaticResource Muted}"
                                    Foreground="{DynamicResource GainKamasBrush}"
                                    FontSize="{StaticResource FontSmall}" />
-                      </StackPanel>
+                      </DockPanel>
                     </Border>
                   </StackPanel>
                 </Grid>
