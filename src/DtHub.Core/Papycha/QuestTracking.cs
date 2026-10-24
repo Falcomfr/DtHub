@@ -33,20 +33,33 @@ public static class QuestTracking
     /// A quest row's lock for the chosen character: met when the quest is in progress, done, or startable
     /// (<see cref="QuestProfit.Startable"/>, as <see cref="QuestProfit.IsDoable"/> reads it). Each prerequisite naming
     /// another quest gets a check when done and, on an unmet lock only, a missing mark; the others (items, free text,
-    /// the quest itself) get none. Without a tracker, or with no prerequisite naming another quest on a quest neither
-    /// started nor done, the row is left neutral.
+    /// the quest itself) get none. A quest ruled out by an alternative done or started (rule A) gets a first line naming
+    /// it. Without a tracker, or with no prerequisite naming another quest on a quest neither started nor done nor ruled
+    /// out, the row is left neutral.
     /// </summary>
     public static QuestNode Locked(QuestNode node, TrackerProgress? progress, QuestChainIndex? chain)
     {
         ArgumentNullException.ThrowIfNull(node);
 
-        if (progress is null || chain is null || node.Quest is not { } quest || node.Needs is not { Count: > 0 } needs)
+        if (progress is null || chain is null || node.Quest is not { } quest)
         {
             return node;
         }
 
         var touched = StatusOf(progress, quest.Id) is QuestStatus.InProgress or QuestStatus.Completed;
-        if (!touched && QuestProfit.Previous(quest, chain).Count == 0)
+
+        // Rule A: the other way taken is why the quest cannot start, every need of its own met or not.
+        List<QuestNeed> otherWay = touched
+            ? []
+            : [.. quest.Alternatives.Where(id => StatusOf(progress, id) is QuestStatus.InProgress or QuestStatus.Completed)
+                .Select(chain.ById).OfType<QuestSummary>().Take(1)
+                .Select(other => new QuestNeed(Strings.Format("LockOtherWay", other.Title), null, false))];
+        if (node.Needs is not { Count: > 0 } needs)
+        {
+            return otherWay.Count == 0 ? node : node with { NeedsMet = false, Needs = otherWay };
+        }
+
+        if (!touched && otherWay.Count == 0 && QuestProfit.Previous(quest, chain).Count == 0)
         {
             return node;
         }
@@ -56,7 +69,7 @@ public static class QuestTracking
         return node with
         {
             NeedsMet = met,
-            Needs = [.. needs.Select(n => chain.Resolve(n.Text) is { } p && p.Id != quest.Id
+            Needs = [.. otherWay, .. needs.Select(n => chain.Resolve(n.Text) is { } p && p.Id != quest.Id
                 ? n with { Met = QuestProfit.IsMet(n.Text, quest, chain, p => QuestProfit.IsDone(p, quest, progress)) ? true : met ? null : false }
                 : n)],
         };

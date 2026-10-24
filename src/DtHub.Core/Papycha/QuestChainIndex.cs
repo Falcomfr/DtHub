@@ -34,6 +34,7 @@ public sealed class QuestChainIndex
     private readonly Dictionary<string, IReadOnlyList<QuestSummary>> _bySuccess;
     private readonly Dictionary<string, QuestSummary> _lastOfSuccess;
     private readonly Dictionary<string, IReadOnlyList<QuestSummary>> _endsOfSuccess = [];
+    private readonly Dictionary<int, QuestSummary> _byId = [];
 
     public QuestChainIndex(IEnumerable<QuestSummary> quests)
     {
@@ -49,6 +50,7 @@ public sealed class QuestChainIndex
         foreach (var quest in all)
         {
             _byTitle.TryAdd(QuestSearch.Normalize(quest.Title), quest);
+            _byId.TryAdd(quest.Id, quest);
         }
 
         // The quests of each achievement, in the order they are
@@ -296,6 +298,9 @@ public sealed class QuestChainIndex
     /// </summary>
     public QuestSummary? Find(string? title) =>
         title is null ? null : _byTitle.GetValueOrDefault(QuestSearch.Normalize(title));
+
+    /// <summary>The quest of this id, or <c>null</c>: an alternative is named by its id.</summary>
+    public QuestSummary? ById(int id) => _byId.GetValueOrDefault(id);
 
     private static bool Same(QuestSummary first, QuestSummary second) =>
         string.Equals(first.Url, second.Url, StringComparison.Ordinal);

@@ -130,6 +130,25 @@ public class QuestTrackingTests
     }
 
     [Fact]
+    public void The_lock_of_a_ruled_out_quest_says_which_way_was_taken()
+    {
+        // 4 is done, 30 its alternative: 30's own previous quest, 5, is done too, yet it cannot start.
+        var catalog = new[] { Named(4) with { Alternatives = [30] }, Named(30, 0, "Q5") with { Alternatives = [4] }, Named(5), Named(31) with { Alternatives = [4] } };
+        var chain = new QuestChainIndex(catalog);
+        QuestNode Node(QuestSummary q) => new(QuestNodeKind.Quest, q.Title, Quest: q, Needs: [.. q.Prerequisites.Select(n => new QuestNeed(n, chain.Find(n)))]);
+        var progress = Progress with { Available = new HashSet<int>() };
+
+        var locked = QuestTracking.Locked(Node(catalog[1]), progress, chain);
+        Assert.False(locked.NeedsMet);
+        Assert.Equal([("Autre voie choisie : Q4", (bool?)false), ("Q5", true)], locked.Needs!.Select(n => (n.Text, n.Met)));
+
+        // Without any prerequisite, the lock still says it.
+        var bare = QuestTracking.Locked(Node(catalog[3]), progress, chain);
+        Assert.False(bare.NeedsMet);
+        Assert.Equal("Autre voie choisie : Q4", Assert.Single(bare.Needs!).Text);
+    }
+
+    [Fact]
     public void NextQuests_come_in_play_order()
     {
         var catalog = new[] { Named(4), Named(20, 3, "Q4"), Named(21, 1, "Q4"), Named(22, 2, "Q4") };

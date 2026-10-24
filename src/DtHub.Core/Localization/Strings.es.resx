@@ -3047,6 +3047,9 @@ Equipo: misiones realizables por al menos 2 personajes marcados.</value>
   <data name="ProfitRunWay" xml:space="preserve">
     <value>vía {0}</value>
   </data>
+  <data name="LockOtherWay" xml:space="preserve">
+    <value>Otra vía elegida: {0}</value>
+  </data>
   <data name="ProfitRunQuests" xml:space="preserve">
     <value>{0} misiones ({1}-{2}/{3})</value>
   </data>

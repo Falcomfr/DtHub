@@ -3047,6 +3047,9 @@ Team: quests at least 2 ticked characters can do.</value>
   <data name="ProfitRunWay" xml:space="preserve">
     <value>path {0}</value>
   </data>
+  <data name="LockOtherWay" xml:space="preserve">
+    <value>Other path taken: {0}</value>
+  </data>
   <data name="ProfitRunQuests" xml:space="preserve">
     <value>{0} quests ({1}-{2}/{3})</value>
   </data>

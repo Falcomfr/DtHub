@@ -11485,7 +11485,11 @@ a pas, comme les liens de succès.
 *Règle A.* Une quête est écartée quand une quête de son groupe est terminée ou en
 cours : ni démarrable, ni faisable, ni dans une suite, ni suivante, ni dans
 « Faisables », ni pour un donjon (`QuestProfit.IsRuledOut`). Les suivantes de la
-voie écartée tombent d'elles-mêmes.
+voie écartée tombent d'elles-mêmes. Son cadenas reste fermé et son survol commence
+par « Autre voie choisie : <titre> » (« Other path taken », « Otra vía elegida »),
+croix en tête, même quand ses propres prérequis sont tous cochés ou qu'elle n'en a
+aucun (revue du même jour : un cadenas fermé sans rien qui manque ne disait pas
+pourquoi).
 
 *Règle B.* Une précédente compte comme faite quand une quête de son groupe l'est :
 « Malédiction » ne nomme que « La destinée », elle devient démarrable après « La

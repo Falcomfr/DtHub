@@ -3047,6 +3047,9 @@ Pas de donjon en équipe.
   <data name="ProfitRunWay" xml:space="preserve">
     <value>voie {0}</value>
   </data>
+  <data name="LockOtherWay" xml:space="preserve">
+    <value>Autre voie choisie : {0}</value>
+  </data>
   <data name="ProfitRunQuests" xml:space="preserve">
     <value>{0} quêtes ({1}-{2}/{3})</value>
   </data>
