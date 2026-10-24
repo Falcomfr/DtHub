@@ -2996,10 +2996,10 @@ Para evitarlo: {1}  ›  «Bloqueo automático de Carpeta segura» › la opció
     <value>Conserva las mazmorras y las misiones que pasan por una mazmorra</value>
   </data>
   <data name="ProfitHowXp" xml:space="preserve">
-    <value>Ordenadas por XP ganada por minuto estimado, a su nivel.</value>
+    <value>Ordenadas por XP ganada por minuto estimado, a tu nivel.</value>
   </data>
   <data name="ProfitHowKamas" xml:space="preserve">
-    <value>Ordenadas por kamas ganados por minuto estimado, a su nivel.</value>
+    <value>Ordenadas por kamas ganados por minuto estimado, a tu nivel.</value>
   </data>
   <data name="ProfitHowTeamXp" xml:space="preserve">
     <value>Ordenadas por XP ganada por minuto estimado, sumada en el equipo.</value>

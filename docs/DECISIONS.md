@@ -11269,7 +11269,7 @@ ligne y est démarrable pour ses personnages, elle est donc marquée prérequis
 remplis, ce qui masque le cadenas. Avant, dans la vue d'équipe, une ligne que le
 personnage choisi ne partageait pas gardait le cadenas neutre, et décocher un
 personnage en ajoutait. Le cadenas grandissait aussi la ligne : bouton d'icône de
-24 px de haut contre 15 pour les autres signes ; il fait maintenant 16 px, dans
+24 px de haut contre 15 pour les autres signes ; il fait maintenant 15 px, dans
 toutes les listes, et une ligne avec ou sans lui a la même hauteur.
 
 **Barre de « Recommandées ».** Demande du 24/10/2026, sur la première version
