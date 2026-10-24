@@ -2980,12 +2980,6 @@ To avoid it: {1}  ›  "Auto lock Secure Folder" › the longest option.</value>
   <data name="QuestTimeHours" xml:space="preserve">
     <value>≈ {0} h {1:00}</value>
   </data>
-  <data name="ProfitForXp" xml:space="preserve">
-    <value>For XP</value>
-  </data>
-  <data name="ProfitForKamas" xml:space="preserve">
-    <value>For kamas</value>
-  </data>
   <data name="ProfitMe" xml:space="preserve">
     <value>Me</value>
   </data>
@@ -2998,17 +2992,49 @@ To avoid it: {1}  ›  "Auto lock Secure Folder" › the longest option.</value>
   <data name="ProfitTeamTip" xml:space="preserve">
     <value>What several of your characters can do, their gains added up</value>
   </data>
-  <data name="ProfitInProgress" xml:space="preserve">
-    <value>In progress</value>
+  <data name="ProfitTabXp" xml:space="preserve">
+    <value>XP</value>
   </data>
-  <data name="ProfitNotStarted" xml:space="preserve">
-    <value>Not started</value>
+  <data name="ProfitTabKamas" xml:space="preserve">
+    <value>Kamas</value>
   </data>
-  <data name="ProfitWithDungeon" xml:space="preserve">
-    <value>With dungeon</value>
+  <data name="ProfitTabXpTip" xml:space="preserve">
+    <value>The quests that give the most XP per minute</value>
   </data>
-  <data name="ProfitNoDungeon" xml:space="preserve">
-    <value>No dungeon</value>
+  <data name="ProfitTabKamasTip" xml:space="preserve">
+    <value>The quests that give the most kamas per minute</value>
+  </data>
+  <data name="ProfitDungeons" xml:space="preserve">
+    <value>Dungeons included</value>
+  </data>
+  <data name="ProfitDungeonsTip" xml:space="preserve">
+    <value>Keeps the dungeons and the quests that go through a dungeon</value>
+  </data>
+  <data name="ProfitWithPrerequisites" xml:space="preserve">
+    <value>With prerequisites</value>
+  </data>
+  <data name="ProfitWithPrerequisitesTip" xml:space="preserve">
+    <value>Also shows the quests asking for a condition DT Hub cannot check: time slot, alignment, item, achievement…</value>
+  </data>
+  <data name="ProfitHow" xml:space="preserve">
+    <value>Ranked by estimated gain per minute, at your level.</value>
+  </data>
+  <data name="ProfitHowTeam" xml:space="preserve">
+    <value>Ranked by estimated gain per minute, summed over the team.</value>
+  </data>
+  <data name="ProfitHowTip" xml:space="preserve">
+    <value>Quests your character can start now: level reached, previous quests done according to your tracker, or already in progress.
+Ranking: XP or kamas earned per minute, depending on the tab. The time is DT Hub's estimate from the game's objectives (dialogues, fights, items, travel).
+One quest per series: the next one to do. No quest asking for the whole keyring or more than 5 souls; a quest over 2 h only tops up a list of fewer than 10.
+A dungeon shows when it advances at least 2 of these quests.
+Gains computed at your level, Bonus Pack included if ticked.</value>
+  </data>
+  <data name="ProfitHowTeamTip" xml:space="preserve">
+    <value>Quests your characters can start now: level reached, previous quests done according to your tracker, or already in progress.
+Team: quests at least 2 ticked characters can do, gains added up.
+Ranking: XP or kamas earned per minute, depending on the tab. The time is DT Hub's estimate from the game's objectives (dialogues, fights, items, travel).
+One quest per series: the next one to do. No quest asking for the whole keyring or more than 5 souls; a quest over 2 h only tops up a list of fewer than 10. No dungeons.
+Gains computed at each character's level, Bonus Pack included if ticked.</value>
   </data>
   <data name="ProfitCharacters" xml:space="preserve">
     <value>{0} characters</value>

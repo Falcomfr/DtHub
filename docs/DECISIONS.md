@@ -11153,7 +11153,8 @@ du 23/10/2026). Ces marques sont celles des autres listes ; les
 lignes de « Recommandées » n'en portent pas (voir plus bas).
 
 **Deux listes courtes.** « Recommandées » n'est plus une liste unique sur le
-score combiné mais deux : « Pour l'XP » et « Pour les kamas », 20 lignes au plus
+score combiné mais deux, une par onglet (voir « Barre de Recommandées » plus bas),
+« XP » et « Kamas », 20 lignes au plus
 chacune (8 dans la première version : les listes restaient presque vides, revue
 du 23/10/2026), chaque côté classé sur son propre rapport par minute (une ligne peut
 être dans les deux). Cette valeur ne dépend que de la ligne : classer sur le score
@@ -11175,7 +11176,7 @@ lignes de « Recommandées » ne portent pas de marque : l'ordre et le titre de 
 liste la disent déjà, et les paliers du score combiné contredisaient l'ordre.
 Un donjon n'y entre que s'il fait avancer au moins deux quêtes faisables (D220).
 Avec au moins deux personnages reliés, un bouton « Moi » / « Équipe » (D220)
-bascule sur les mêmes deux listes pour l'équipe.
+bascule sur les mêmes listes pour l'équipe.
 
 **Lecture en masse et pauses.** Les étapes, objectifs et récompenses d'étapes de
 toutes les quêtes appariées sont lus en trois requêtes (`QuestSteps`,
@@ -11198,7 +11199,7 @@ récompense), le nom de la zone en suffixe gris après le titre dans
 dans l'ordre de jeu (« · Agriculture et Alchimie 3/11 ») (le regroupement « Par
 zone » prévu n'existe pas : il aurait cassé l'ordre des deux listes), une marque à
 trois paliers (flamme pleine, flamme creuse, point), une vue « Quêtes
-recommandées » (deux listes courtes, voir plus haut) ouverte par un bouton « Recommandées » de la barre du haut, à côté
+recommandées » (deux listes courtes en onglets, voir plus haut) ouverte par un bouton « Recommandées » de la barre du haut, à côté
 de « À faire » et « Accessibles » (seule entrée : la branche des zones est
 retirée ; pressé de nouveau, il rend la section ou le guide quitté, Retour
 rend la section quittée, liste ouverte ; non relié, une ligne dit de relier le suivi Papycha), et les cases de niveau et de Bonus Pack dans toutes
@@ -11238,19 +11239,45 @@ clic ouvre toujours la liste dont les quêtes se suivent. Une ligne de
 « Recommandées », vue d'équipe comprise, n'a jamais un cadenas fermé : un test le
 vérifie.
 
-**Filtres de « Recommandées ».** Deux paires de boutons, du même style que « À
-faire » et « Accessibles », sous le fil d'Ariane de cette vue seulement, suivi
-relié : « En cours » et « À commencer », puis « Avec donjon » et « Sans donjon ».
-Tous actifs par défaut ; dans chaque paire le dernier actif le reste (le décocher le
-rallume), une paire vide viderait les listes. Une quête est « avec donjon » quand un
-objectif est une course de donjon selon la règle de la carte de sortie de D221, ou
-quand un objectif nomme un donjon du jeu comme pour les lignes de donjon (D220) :
-la même source que ces lignes, sinon une quête qui fait avancer un donjon passait
-« sans donjon » (revue du 23/10/2026). Une ligne de donjon l'est toujours, et elle
-est en cours si une des quêtes qu'elle fait avancer l'est. Le statut est celui du
-personnage choisi ; dans la vue d'équipe, une ligne est en cours quand un des
-personnages qu'elle nomme l'a en cours. Les filtres agissent avant les listes courtes : chaque liste garde ses 20
-lignes. Les quatre choix sont retenus dans les réglages.
+**Barre de « Recommandées ».** Demande du 24/10/2026, sur la première version
+(deux listes l'une sous l'autre et quatre filtres, « En cours », « À commencer »,
+« Avec donjon », « Sans donjon ») : « je capte pas ce que tu as fait, je voudrais
+1 onglet xp 1 onglet kamas. Je veux un bouton donjon inclus pas 2. Je veux pas de
+en cours ou à commencer. Je veux juste un bouton pour afficher les quêtes qui ont
+un prérequis ou pas, donc par défaut c'est pas affiché. » Sous le fil d'Ariane,
+suivi relié, une ligne grise dit comment la liste est classée (« Classées par gain
+par minute estimé, à votre niveau. », ou « additionné sur l'équipe » dans la vue
+d'équipe ; demande du même jour : « mets une petite explication de comment sont
+recommandées les quêtes »), avec un rond « i » dont le survol donne le détail :
+quêtes démarrables (niveau, précédentes faites, ou en cours), rapport par minute
+selon l'onglet et temps estimé par DT Hub, une quête par série, ni trousseau ni
+plus de 5 âmes, une quête de plus de 2 h seulement pour compléter une liste de
+moins de 10, donjon dès 2 quêtes (pas de donjon en équipe), gains au niveau, Bonus
+Pack compris. Dessous, une seule rangée : deux onglets « XP » et « Kamas » avec
+les icônes des colonnes de gain (l'étoile bleue, la pièce dorée), du style de
+« Moi » / « Équipe », un seul actif, XP par défaut ; seule la liste de l'onglet
+s'affiche, avec les mêmes règles, et ses titres « Pour l'XP » / « Pour les kamas »
+sont retirés, l'onglet le dit. Puis deux boutons :
+- « Donjons inclus », actif par défaut. Éteint, ni ligne de donjon ni quête « avec
+  donjon » : un objectif est une course de donjon selon la règle de la carte de
+  sortie de D221, ou un objectif nomme un donjon du jeu comme pour les lignes de
+  donjon (D220), la même source que ces lignes (revue du 23/10/2026) ;
+- « Avec prérequis », éteint par défaut. Une quête a un prérequis quand l'un de
+  ses prérequis ne désigne pas, par `QuestChainIndex`, une quête terminée par le
+  personnage choisi (dans la vue d'équipe, par chacun des personnages de la
+  ligne) : créneau horaire, alignement, objet, succès, texte libre, ou quête
+  précédente pas encore faite. Une précédente terminée n'en est pas un, sinon
+  toute suite de série disparaîtrait ; la quête qui se nomme elle-même est
+  ignorée (`QuestProfit.HasPrerequisite`, testée). Éteint, ces quêtes sont
+  masquées, et une ligne de donjon dont toutes les quêtes qu'elle fait avancer le
+  sont aussi. « Blessure de chasse » (« Être dans les créneaux horaires ») est
+  masquée par défaut, « Qu'est ce qu'on a fait des tuyaux ? 5/6 », dont la
+  précédente est faite, reste.
+« Moi » / « Équipe » reste à droite du fil d'Ariane. La rangée passe à la ligne
+quand la fenêtre est trop étroite (440 px au plus juste), rien n'est coupé. Les
+boutons agissent avant les listes courtes : la liste garde ses 20 lignes.
+L'onglet et les deux boutons sont retenus dans les réglages ; les clés des quatre
+anciens filtres sont simplement ignorées à la lecture d'un ancien fichier.
 
 ## D220 - Les outils des guides : valeur des donjons, équipe, où trouver
 

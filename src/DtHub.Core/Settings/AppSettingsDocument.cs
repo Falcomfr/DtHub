@@ -150,17 +150,14 @@ public sealed class AppSettingsDocument
     /// </summary>
     public bool QuestFilterAvailable { get; set; }
 
-    /// <summary>"Recommandées" keeps the quests in progress ("En cours").</summary>
-    public bool ProfitInProgress { get; set; } = true;
+    /// <summary>"Recommandées" shows its "Kamas" tab rather than its "XP" one.</summary>
+    public bool ProfitKamas { get; set; }
 
-    /// <summary>"Recommandées" keeps the quests not started ("À commencer").</summary>
-    public bool ProfitNotStarted { get; set; } = true;
+    /// <summary>"Recommandées" keeps dungeons and the quests with a dungeon run ("Donjons inclus").</summary>
+    public bool ProfitDungeons { get; set; } = true;
 
-    /// <summary>"Recommandées" keeps the rows with a dungeon run ("Avec donjon").</summary>
-    public bool ProfitWithDungeon { get; set; } = true;
-
-    /// <summary>"Recommandées" keeps the rows without one ("Sans donjon").</summary>
-    public bool ProfitNoDungeon { get; set; } = true;
+    /// <summary>"Recommandées" keeps the quests with a prerequisite DT Hub cannot check ("Avec prérequis").</summary>
+    public bool ProfitWithPrerequisites { get; set; }
 
     /// <summary>
     /// True when the application updates itself: it downloads the release

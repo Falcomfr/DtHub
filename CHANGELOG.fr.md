@@ -19,7 +19,7 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 - Une case de niveau dans la fenêtre des guides : la changer met aussi à jour le niveau de votre personnage sur Papycha.
 - Chaque liste de quêtes affiche ce que rapporte chaque quête à votre personnage, XP et kamas côte à côte.
 - Avec le suivi Papycha relié, une petite marque de priorité sur les quêtes faisables maintenant, du point à la flamme, pour celles qui valent le plus la peine, pour l'XP ou pour les kamas.
-- Un bouton « Recommandées » à côté de « À faire » et « Accessibles » montre deux listes courtes avec le suivi Papycha relié, « Pour l'XP » et « Pour les kamas », les meilleures quêtes à faire maintenant (d'une série, seulement sa prochaine quête), 20 au plus chacune, classées par gain à la minute.
+- Un bouton « Recommandées » à côté de « À faire » et « Accessibles » montre avec le suivi Papycha relié deux listes courtes en onglets, « XP » et « Kamas », les meilleures quêtes à faire maintenant (d'une série, seulement sa prochaine quête), 20 au plus chacune, classées par gain à la minute.
 - Les cases de niveau et de Bonus Pack sont maintenant dans toutes les vues de la fenêtre des guides.
 - Chaque quête affiche un temps estimé, par exemple ≈ 25 min, calculé par DT Hub à partir des objectifs et des cartes du jeu ; « Recommandées » classe sur l'XP et les kamas par minute et écarte ce qui prend plus de deux heures, sauf pour compléter une liste de moins de 10.
 - Marquer beaucoup de quêtes terminées d'un coup : le bouton de sélection de la liste des guides coche des quêtes (Maj+clic pour une plage), et les titres de succès et de zone proposent « Tout marquer terminé » ; DT Hub les écrit une à une, vérifie ce que Papycha a gardé et réécrit ce qui s'est perdu.
@@ -30,7 +30,7 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 - « Accessibles » et les quêtes suivantes marchent maintenant pour les personnages autres que l'actif sur Papycha, d'après les quêtes qu'ils ont terminées.
 - La barre du suivi de la fenêtre des guides passe sous le personnage quand la fenêtre est étroite, et chaque quête recommandée affiche sa zone et, dans une série, sa place (3/11).
 - Avec « À faire » ou « Accessibles », chaque zone affiche le nombre de ses quêtes que les filtres gardent au lieu de faites sur le total.
-- Avec le suivi Papycha relié, le cadenas des prérequis dit s'ils sont remplis pour votre personnage (ouvert et gris, ou fermé en jaune, avec une coche ou une croix devant chaque quête au survol), et « Recommandées » a les filtres « En cours », « À commencer », « Avec donjon » et « Sans donjon ».
+- Avec le suivi Papycha relié, le cadenas des prérequis dit s'ils sont remplis pour votre personnage (ouvert et gris, ou fermé en jaune, avec une coche ou une croix devant chaque quête au survol), et « Recommandées » dit en une ligne comment il classe (le détail au survol du « i ») et a deux boutons : « Donjons inclus », actif par défaut, et « Avec prérequis », qui affiche aussi les quêtes à condition que DT Hub ne peut pas vérifier (créneau horaire, alignement, objet…), masquées par défaut.
 
 ## [0.10.5] - 2026-10-22
 

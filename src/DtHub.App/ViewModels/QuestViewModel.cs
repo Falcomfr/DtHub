@@ -1143,10 +1143,9 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         _loadingFilters = true;
         FilterToDo = saved.QuestFilterToDo;
         FilterAvailable = saved.QuestFilterAvailable;
-        ProfitInProgress = saved.ProfitInProgress;
-        ProfitNotStarted = saved.ProfitNotStarted;
-        ProfitWithDungeon = saved.ProfitWithDungeon;
-        ProfitNoDungeon = saved.ProfitNoDungeon;
+        ProfitKamas = saved.ProfitKamas;
+        ProfitDungeons = saved.ProfitDungeons;
+        ProfitWithPrerequisites = saved.ProfitWithPrerequisites;
         _loadingFilters = false;
 
         IsBusy = true;
@@ -1603,52 +1602,43 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// A row of the short lists: what it gains, in how many minutes, where ties put it, and what its filters read: a
-    /// quest in progress or not (a dungeon, any of the quests it advances), a dungeon run or not.
+    /// A row of the short lists: what it gains, in how many minutes, where ties put it, and what its toggles read: a
+    /// dungeon run or not, a prerequisite DT Hub cannot check or not (<see cref="QuestProfit.HasPrerequisite"/>).
     /// </summary>
     private sealed record ProfitRow(
-        QuestGain Gain, int Minutes, QuestSummary First, QuestNode Node, bool InProgress, bool NotStarted, bool Dungeon,
-        ProfitEntry? Entry = null);
+        QuestGain Gain, int Minutes, QuestSummary First, QuestNode Node, bool Dungeon, bool Prerequisite, ProfitEntry? Entry = null);
 
-    /// <summary>"Recommandées" keeps the quests in progress ("En cours"), remembered.</summary>
+    /// <summary>"Recommandées" shows its "Kamas" tab rather than its "XP" one, remembered.</summary>
     [ObservableProperty]
-    private bool _profitInProgress = true;
+    private bool _profitKamas;
 
-    /// <summary>"Recommandées" keeps the quests not started ("À commencer"), remembered.</summary>
+    /// <summary>"Recommandées" keeps dungeons and the quests with a dungeon run ("Donjons inclus"), remembered.</summary>
     [ObservableProperty]
-    private bool _profitNotStarted = true;
+    private bool _profitDungeons = true;
 
-    /// <summary>"Recommandées" keeps the rows with a dungeon run ("Avec donjon"), remembered.</summary>
+    /// <summary>"Recommandées" keeps the quests with a prerequisite DT Hub cannot check ("Avec prérequis"), remembered.</summary>
     [ObservableProperty]
-    private bool _profitWithDungeon = true;
+    private bool _profitWithPrerequisites;
 
-    /// <summary>"Recommandées" keeps the rows without one ("Sans donjon"), remembered.</summary>
+    /// <summary>The line under "Quêtes recommandées" saying how the list is ranked, for one character or the team.</summary>
     [ObservableProperty]
-    private bool _profitNoDungeon = true;
+    private string _profitHow = string.Empty;
 
-    // The last one on of a pair turns back on: a pair both off would empty the lists.
-    partial void OnProfitInProgressChanged(bool value)
-    {
-        if (!value && !ProfitNotStarted) ProfitInProgress = true;
-        else ProfitFiltersChanged();
-    }
+    /// <summary>The detail of <see cref="ProfitHow"/>, on its info glyph.</summary>
+    [ObservableProperty]
+    private string _profitHowTip = string.Empty;
 
-    partial void OnProfitNotStartedChanged(bool value)
-    {
-        if (!value && !ProfitInProgress) ProfitNotStarted = true;
-        else ProfitFiltersChanged();
-    }
+    partial void OnProfitKamasChanged(bool value) => ProfitFiltersChanged();
 
-    partial void OnProfitWithDungeonChanged(bool value)
-    {
-        if (!value && !ProfitNoDungeon) ProfitWithDungeon = true;
-        else ProfitFiltersChanged();
-    }
+    partial void OnProfitDungeonsChanged(bool value) => ProfitFiltersChanged();
 
-    partial void OnProfitNoDungeonChanged(bool value)
+    partial void OnProfitWithPrerequisitesChanged(bool value) => ProfitFiltersChanged();
+
+    /// <summary>Picks the "XP" or "Kamas" tab; told again so a tab clicked while already on comes back on.</summary>
+    public void ShowKamas(bool kamas)
     {
-        if (!value && !ProfitWithDungeon) ProfitNoDungeon = true;
-        else ProfitFiltersChanged();
+        ProfitKamas = kamas;
+        OnPropertyChanged(nameof(ProfitKamas));
     }
 
     private void ProfitFiltersChanged()
@@ -1659,23 +1649,24 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         }
 
         Redraw();
-        _ = _settings.SetProfitFiltersAsync(ProfitInProgress, ProfitNotStarted, ProfitWithDungeon, ProfitNoDungeon);
+        _ = _settings.SetProfitFiltersAsync(ProfitKamas, ProfitDungeons, ProfitWithPrerequisites);
     }
 
-    private bool Kept(ProfitRow row) =>
-        ((row.InProgress && ProfitInProgress) || (row.NotStarted && ProfitNotStarted))
-        && (row.Dungeon ? ProfitWithDungeon : ProfitNoDungeon);
+    private bool Kept(ProfitRow row) => (ProfitDungeons || !row.Dungeon) && (ProfitWithPrerequisites || !row.Prerequisite);
 
     /// <summary>
-    /// A quest row of the short lists, its filters read from <paramref name="started"/> and the quest's objectives: a
-    /// dungeon run, or a dungeon named as the dungeon rows find them.
+    /// A quest row of the short lists, its toggles read from the quest's objectives (a dungeon run, or a dungeon named
+    /// as the dungeon rows find them) and from its needs for the row's characters (<paramref name="progress"/>).
     /// </summary>
-    private ProfitRow QuestRow(QuestGain gain, ProfitEntry entry, QuestNode node, bool started)
+    private ProfitRow QuestRow(QuestGain gain, ProfitEntry entry, QuestNode node, IReadOnlyCollection<TrackerProgress> progress)
     {
         var dungeon = _facts?.GetValueOrDefault(entry.Quests[0].Id) is { } facts
             && (QuestTime.HasDungeonRun(facts) || QuestProfit.DungeonsOf(facts, _dungeonNames).Count > 0);
-        return new ProfitRow(gain, entry.Effort.Minutes, entry.Quests[0], node, started, !started, dungeon, entry);
+        return new ProfitRow(gain, entry.Effort.Minutes, entry.Quests[0], node, dungeon, HasPrerequisite(entry, progress), entry);
     }
+
+    private bool HasPrerequisite(ProfitEntry entry, IReadOnlyCollection<TrackerProgress> progress) =>
+        _tree.Chain is { } chain && QuestProfit.HasPrerequisite(entry.Quests[0], chain, progress);
 
     /// <summary>
     /// The game publishes no XP table (checked 2026-10-23), so the whole-level line never shows.
@@ -1684,13 +1675,18 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
     private static readonly IReadOnlyDictionary<int, long> XpTable = new Dictionary<int, long>();
 
     /// <summary>
-    /// Two short lists, for XP then for kamas: the doable quests, a series by its next one, and dungeons, best on
-    /// that side per minute.
+    /// The short list of the tab picked, XP or kamas: the doable quests, a series by its next one, and dungeons, best
+    /// on that side per minute.
     /// </summary>
     private void ShowProfit()
     {
         Breadcrumb = Strings.Get("ProfitQuests");
         SetBack(target: _beforeRecommended.Section);
+
+        // The toggle hides with a single character left: the team view must not stay on, empty.
+        var team = ProfitTeam && Tracker.HasSeveralCharacters;
+        ProfitHow = Strings.Get(team ? "ProfitHowTeam" : "ProfitHow");
+        ProfitHowTip = Strings.Get(team ? "ProfitHowTeamTip" : "ProfitHowTip");
 
         if (!Tracker.IsLinked)
         {
@@ -1706,42 +1702,33 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             return;
         }
 
-        // The toggle hides with a single character left: the team view must not stay on, empty.
-        var team = ProfitTeam && Tracker.HasSeveralCharacters;
         var tooFew = team && Tracker.TeamProgress().Count < 2;
         var rows = (team ? TeamRows() : MyRows()).Where(Kept).ToList();
-        foreach (var (title, kamas) in new[] { ("ProfitForXp", false), ("ProfitForKamas", true) })
+        var shown = QuestProfit.Shortlist(rows, r => r.Gain, r => r.Minutes, r => r.First, _catalog.Catalog.Quests, ProfitKamas);
+
+        // No priority mark here: the order and the tab say it, and the combined-score tiers contradicted the order.
+        foreach (var row in shown)
         {
-            var shown = QuestProfit.Shortlist(rows, r => r.Gain, r => r.Minutes, r => r.First, _catalog.Catalog.Quests, kamas);
-            Nodes.Add(new QuestNode(QuestNodeKind.Header, Strings.Get(title)));
+            Nodes.Add(row.Node with { Tier = 0 });
+        }
 
-            // No priority mark here: the order and the header say it, and the combined-score tiers contradicted the order.
-            foreach (var row in shown)
-            {
-                Nodes.Add(row.Node with { Tier = 0 });
-            }
+        if (shown.Count == 0)
+        {
+            Nodes.Add(new QuestNode(QuestNodeKind.Pending, Strings.Get(tooFew ? "ProfitPickTwo" : "NoResult")));
+        }
 
-            if (shown.Count == 0)
-            {
-                Nodes.Add(new QuestNode(QuestNodeKind.Pending, Strings.Get(tooFew ? "ProfitPickTwo" : "NoResult")));
-            }
-
-            if (!kamas && !team
-                && QuestPlanning.WholeLevel([.. shown.Select(r => r.Entry).OfType<ProfitEntry>()], Tracker.RewardLevel, XpTable) is { } line)
-            {
-                Nodes.Insert(1, new QuestNode(QuestNodeKind.Pending, Strings.Format("ProfitWholeLevel", line.Count, line.From, line.To)));
-            }
+        if (!ProfitKamas && !team
+            && QuestPlanning.WholeLevel([.. shown.Select(r => r.Entry).OfType<ProfitEntry>()], Tracker.RewardLevel, XpTable) is { } line)
+        {
+            Nodes.Insert(0, new QuestNode(QuestNodeKind.Pending, Strings.Format("ProfitWholeLevel", line.Count, line.From, line.To)));
         }
     }
 
     /// <summary>The chosen character's entries and the dungeons that advance two of them or more.</summary>
     private List<ProfitRow> MyRows()
     {
-        var rows = Recommendable.Select(e =>
-        {
-            var node = EntryNode(e);
-            return QuestRow(e.Gain, e, node, node.Status == QuestStatus.InProgress);
-        }).ToList();
+        IReadOnlyCollection<TrackerProgress> mine = Tracker.Progress is { } progress ? [progress] : [];
+        var rows = Recommendable.Select(e => QuestRow(e.Gain, e, EntryNode(e), mine)).ToList();
 
         // A dungeon advancing one quest only would repeat that quest's row.
         foreach (var value in DungeonValues.Values.Where(v => v.Advances.Count >= 2))
@@ -1749,9 +1736,10 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             if (_catalog.Catalog.Dungeons.FirstOrDefault(d => d.Id == value.PapychaDungeonId) is { } dungeon)
             {
                 var node = QuestTree.NodeOf(dungeon) with { Glyph = QuestTree.GlyphOf(dungeon.Kind) };
+                // Hidden with "Avec prérequis" off once every quest it advances is.
                 rows.Add(new ProfitRow(
                     value.Gain, value.Minutes, value.Advances[0].Quests[0], Valued(node, value) with { Duration = QuestTime.Text(value.Minutes) },
-                    value.Advances.Any(a => a.Started), value.Advances.Any(a => !a.Started), Dungeon: true));
+                    Dungeon: true, Prerequisite: value.Advances.All(a => HasPrerequisite(a, mine))));
             }
         }
 
@@ -1760,7 +1748,8 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
 
     /// <summary>
     /// The account's shared entries, gains summed, the characters named on hover. The lock is the chosen character's,
-    /// so it stays neutral on an entry not shared with them; "in progress" is any of the entry's characters'.
+    /// so it stays neutral on an entry not shared with them; a previous quest is a prerequisite unless every character
+    /// of the entry has done it.
     /// </summary>
     private List<ProfitRow> TeamRows()
     {
@@ -1775,9 +1764,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
                     node = node with { NeedsMet = null, Needs = node.Needs is { } needs ? [.. needs.Select(n => n with { Met = null })] : null };
                 }
 
-                var id = t.Entry.Quests[0].Id;
-                var started = team.Any(m => t.Characters.Any(c => c.Id == m.Character.Id)
-                    && QuestTracking.StatusOf(m.Progress, id) == QuestStatus.InProgress);
+                var progress = team.Where(m => t.Characters.Any(c => c.Id == m.Character.Id)).Select(m => m.Progress).ToList();
                 var (xp, kamas) = QuestGainText.Columns(t.Gain);
                 var count = Strings.Format("ProfitCharacters", t.Characters.Count);
 
@@ -1789,7 +1776,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
                     Detail = node.Detail is { Length: > 0 } detail ? $"{detail} · {count}" : count,
                     ProfitTip = QuestGainText.Tip(t.Gain, effort: t.Entry.Effort, steps: StepsOf(t.Entry))
                         + "\n" + string.Join(", ", t.Characters.Select(c => c.Name)),
-                }, started);
+                }, progress);
             }),
         ];
     }

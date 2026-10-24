@@ -150,6 +150,30 @@ public class QuestProfitTests
         Assert.True(Startable(6, Progress([6])));
     }
 
+    [Fact]
+    public void A_prerequisite_is_a_need_that_is_not_a_quest_done_by_every_character()
+    {
+        // 2 follows 1; 3 asks a time slot ("Blessure de chasse"); 4 names itself; 5 has no need.
+        var catalog = new List<QuestSummary>
+        {
+            Quest(1), Quest(2) with { Prerequisites = ["Q1"] }, Quest(3) with { Prerequisites = ["Être dans les créneaux horaires"] },
+            Quest(4) with { Prerequisites = ["Q4"] }, Quest(5),
+        };
+        var chain = new QuestChainIndex(catalog);
+        bool Has(int id, params TrackerProgress[] team) => QuestProfit.HasPrerequisite(catalog.First(q => q.Id == id), chain, team);
+        var done = Progress([], completed: [1]);
+        var notDone = Progress([]);
+
+        Assert.True(Has(3, done));
+        Assert.False(Has(2, done));
+        Assert.True(Has(2, notDone));
+        Assert.False(Has(4, notDone));
+        Assert.False(Has(5, notDone));
+        // Team: every character of the row must have done the previous quest.
+        Assert.False(Has(2, done, done));
+        Assert.True(Has(2, done, notDone));
+    }
+
     private static (List<QuestSummary> Catalog, Dictionary<int, TouchQuestFacts> Facts) Twenty()
     {
         var catalog = Enumerable.Range(1, 20).Select(i => Quest(i)).ToList();

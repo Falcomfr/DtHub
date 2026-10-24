@@ -121,6 +121,21 @@ public static class QuestProfit
             : progress.Available.Contains(quest.Id) && (previous.Count == 0 || previous.Any(Done));
     }
 
+    /// <summary>
+    /// Whether the quest has a prerequisite in the sense of the "Avec prérequis" toggle: a need that is not a quest
+    /// every character in <paramref name="progress"/> has completed (a time slot, an alignment, an item, or a previous
+    /// quest still to do). A need naming the quest itself is ignored, as in <see cref="Previous"/>.
+    /// </summary>
+    public static bool HasPrerequisite(QuestSummary quest, QuestChainIndex chain, IReadOnlyCollection<TrackerProgress> progress)
+    {
+        ArgumentNullException.ThrowIfNull(quest);
+        ArgumentNullException.ThrowIfNull(chain);
+        ArgumentNullException.ThrowIfNull(progress);
+
+        return quest.Prerequisites.Any(need => chain.Resolve(need) is not { } p
+            || (p.Id != quest.Id && !progress.All(c => QuestTracking.StatusOf(c, p.Id) == QuestStatus.Completed)));
+    }
+
     /// <summary>The quests the prerequisites name, the quest itself left out ("L'Ascension" names itself).</summary>
     public static IReadOnlyList<QuestSummary> Previous(QuestSummary quest, QuestChainIndex chain) =>
         [.. quest.Prerequisites.Select(chain.Resolve).OfType<QuestSummary>().Where(p => p.Id != quest.Id)];

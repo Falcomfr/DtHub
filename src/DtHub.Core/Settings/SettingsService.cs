@@ -1691,22 +1691,21 @@ public sealed class SettingsService : IDisposable
             },
             cancellationToken);
 
-    /// <summary>Remembers the four "Recommandées" filters.</summary>
+    /// <summary>Remembers the "Recommandées" tab and its two toggles.</summary>
     public Task SetProfitFiltersAsync(
-        bool inProgress, bool notStarted, bool withDungeon, bool noDungeon, CancellationToken cancellationToken = default) =>
+        bool kamas, bool dungeons, bool withPrerequisites, CancellationToken cancellationToken = default) =>
         UpdateIfChangedAsync(
             settings =>
             {
-                if (settings.ProfitInProgress == inProgress && settings.ProfitNotStarted == notStarted
-                    && settings.ProfitWithDungeon == withDungeon && settings.ProfitNoDungeon == noDungeon)
+                if (settings.ProfitKamas == kamas && settings.ProfitDungeons == dungeons
+                    && settings.ProfitWithPrerequisites == withPrerequisites)
                 {
                     return false;
                 }
 
-                settings.ProfitInProgress = inProgress;
-                settings.ProfitNotStarted = notStarted;
-                settings.ProfitWithDungeon = withDungeon;
-                settings.ProfitNoDungeon = noDungeon;
+                settings.ProfitKamas = kamas;
+                settings.ProfitDungeons = dungeons;
+                settings.ProfitWithPrerequisites = withPrerequisites;
                 return true;
             },
             cancellationToken);

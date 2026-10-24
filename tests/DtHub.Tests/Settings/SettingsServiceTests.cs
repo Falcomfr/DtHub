@@ -1856,26 +1856,43 @@ public sealed class SettingsServiceTests : IDisposable
         Assert.True(document.QuestFilterAvailable);
     }
     [Fact]
-    public async Task Les_filtres_de_recommandees_sont_tous_actifs_puis_se_relisent()
+    public async Task Recommandees_s_ouvre_sur_l_xp_avec_donjons_sans_prerequis_puis_se_relit()
     {
         var document = await _service.GetAsync();
 
-        Assert.True(document.ProfitInProgress && document.ProfitNotStarted && document.ProfitWithDungeon && document.ProfitNoDungeon);
+        Assert.False(document.ProfitKamas);
+        Assert.True(document.ProfitDungeons);
+        Assert.False(document.ProfitWithPrerequisites);
 
-        await _service.SetProfitFiltersAsync(inProgress: false, notStarted: true, withDungeon: true, noDungeon: false);
+        await _service.SetProfitFiltersAsync(kamas: true, dungeons: false, withPrerequisites: true);
 
         document = await _service.GetAsync();
 
-        Assert.False(document.ProfitInProgress);
-        Assert.True(document.ProfitNotStarted);
-        Assert.True(document.ProfitWithDungeon);
-        Assert.False(document.ProfitNoDungeon);
+        Assert.True(document.ProfitKamas);
+        Assert.False(document.ProfitDungeons);
+        Assert.True(document.ProfitWithPrerequisites);
 
         var writes = 0;
         _service.Changed += (_, _) => writes++;
 
-        await _service.SetProfitFiltersAsync(inProgress: false, notStarted: true, withDungeon: true, noDungeon: false);
+        await _service.SetProfitFiltersAsync(kamas: true, dungeons: false, withPrerequisites: true);
 
         Assert.Equal(0, writes);
+    }
+
+    [Fact]
+    public async Task Les_anciens_filtres_de_recommandees_dans_le_fichier_n_empechent_pas_la_lecture()
+    {
+        Directory.CreateDirectory(_directory);
+        await File.WriteAllTextAsync(
+            _store.FilePath,
+            """{ "virtualDisplayDpi": 320, "profitInProgress": false, "profitNotStarted": true, "profitWithDungeon": true, "profitNoDungeon": false }""",
+            CancellationToken.None);
+
+        _service.Invalidate();
+        var settings = await _service.GetAsync(CancellationToken.None);
+
+        Assert.Equal(320, settings.VirtualDisplayDpi);
+        Assert.True(settings.ProfitDungeons);
     }
 }
