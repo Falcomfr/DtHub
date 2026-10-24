@@ -638,6 +638,35 @@ public class ScrcpySessionManagerTests
     }
 
     [Fact]
+    public async Task Un_relais_son_qui_attend_son_serveur_ne_bloque_pas_les_autres_telephones()
+    {
+        // The relay's server answers up to ten seconds late on a slow Wi-Fi:
+        // every phone's closing window and Quit went through the same lock.
+        var sound = new FakeProcessSession(9);
+        var launcher = new FakeProcessLauncher()
+            .Prepare(new FakeProcessSession(1).Emit(NewDisplayLine))
+            .Prepare(new FakeProcessSession(2).Emit(NewDisplayLine))
+            .Prepare(sound);
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        var a = await manager.StartAsync(Target(0), WithSound, null, CancellationToken.None);
+        await manager.StartAsync(Target(999), WithSound with { AudioEnabled = false }, null, CancellationToken.None);
+
+        var stopping = manager.StopAsync(a.Id, CancellationToken.None);
+
+        for (var waited = 0; !launcher.Requests.Exists(IsSoundKeeper) && waited < 100; waited++)
+        {
+            await Task.Delay(20);
+        }
+
+        await manager.SetSoundToPcAsync(false).WaitAsync(TimeSpan.FromSeconds(3));
+        await stopping.WaitAsync(TimeSpan.FromSeconds(3));
+
+        Assert.True(sound.WasKilled);
+    }
+
+    [Fact]
     public async Task Tout_fermer_ne_lance_aucun_son()
     {
         // Closing everything, quitting or reopening all stopped the accounts

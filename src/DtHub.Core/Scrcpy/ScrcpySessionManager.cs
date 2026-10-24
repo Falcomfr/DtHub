@@ -871,7 +871,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         // It pushes a server like an opening does, so it takes its turn
         // in the same queue until its server answers. Quietly: closing a
         // window is no reason to grey the play buttons of its phone.
-        await using var lease = await _gate.EnterQuietlyAsync(deviceId, CancellationToken.None).ConfigureAwait(false);
+        var lease = await _gate.EnterQuietlyAsync(deviceId, CancellationToken.None).ConfigureAwait(false);
 
         IProcessSession keeper;
 
@@ -888,13 +888,25 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         {
             // The other accounts stay silent on the PC, as before, and
             // keep their game: closing one account must not fail for it.
+            await lease.DisposeAsync().ConfigureAwait(false);
             return;
         }
 
         _soundKeepers[deviceId] = keeper;
 
-        _ = await AwaitLineAsync(keeper, ServerLine, CancellationToken.None).ConfigureAwait(false);
-        _ = Task.Run(() => DrainAsync(keeper), CancellationToken.None);
+        // The server is awaited under the phone's queue only, not under the
+        // lock every phone's closing window and Quit go through.
+        _ = Task.Run(
+            async () =>
+            {
+                await using (lease)
+                {
+                    _ = await AwaitLineAsync(keeper, ServerLine, CancellationToken.None).ConfigureAwait(false);
+                }
+
+                _ = await DrainAsync(keeper).ConfigureAwait(false);
+            },
+            CancellationToken.None);
     }
 
     /// <summary>What scrcpy writes once its server runs on the phone.</summary>
