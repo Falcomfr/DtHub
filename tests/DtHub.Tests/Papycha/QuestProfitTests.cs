@@ -739,6 +739,20 @@ public class QuestProfitTests
     }
 
     [Fact]
+    public void An_uncertain_quest_is_left_out_wherever_it_comes_in_a_run()
+    {
+        // Two chains, 1-2 and 3-4 ("Kaïra"): 3 is in progress over two objectives, its gain and time are guesses.
+        var catalog = new[]
+        {
+            Quest(1, "S", 1), Quest(2, "S", 2) with { Prerequisites = ["Q1"] },
+            Quest(3, "S", 3), Quest(4, "S", 4) with { Prerequisites = ["Q3"] },
+        };
+        var facts = new Dictionary<int, TouchQuestFacts> { [1] = Xp(1f), [2] = Xp(1f), [3] = TwoObjectives(1f), [4] = Xp(1f) };
+
+        Assert.Equal([1, 2], RunIds(catalog, Progress([], new() { [3] = QuestStatus.InProgress }), facts));
+    }
+
+    [Fact]
     public void An_uncertain_quest_never_counts_toward_a_dungeon()
     {
         var catalog = new[] { Quest(1), Quest(2) };

@@ -11418,9 +11418,10 @@ priorité. « Recommandées » l'écarte : en mode « Quêtes » ; en vue d'équ
 le personnage chez qui elle est incertaine, qui sort de la ligne et de sa somme
 (la ligne reste si deux autres personnages la partagent ; décision du même jour,
 la première version la retirait dès qu'un personnage du compte l'avait en
-cours) ; en mode « Succès », elle n'ouvre
-pas de suite (elle est sautée, ses suivantes avec elle, depuis le 24/10/2026 ;
-avant, la série n'avait pas de ligne) ; et elle ne compte
+cours) ; en mode « Succès », elle n'entre
+dans aucune suite, en tête ou plus loin (elle est sautée, ses suivantes avec elle,
+depuis le 24/10/2026 ; avant, une série dont elle était la première quête n'avait
+pas de ligne, et plus loin elle comptait en plein) ; et elle ne compte
 jamais pour un donjon. La bulle d'info n'en dit rien : « faisables maintenant »
 reste vrai, ces quêtes sont seulement retirées.
 

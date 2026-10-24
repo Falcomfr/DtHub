@@ -286,7 +286,8 @@ public static class QuestProfit
     /// <summary>
     /// The "Succès" mode: per series, the run from its next doable quest through its later quests not done or ignored,
     /// in play order, leaving out each one that is repeatable, blocked, above the level, of unknown gain, very long
-    /// (keyring, souls), with a dungeon when <paramref name="dungeons"/> is off, ruled out (<see cref="IsRuledOut"/>), or
+    /// (keyring, souls), with a dungeon when <paramref name="dungeons"/> is off, ruled out (<see cref="IsRuledOut"/>),
+    /// uncertain (<see cref="IsUncertain"/>), or
     /// with a prerequisite (<see cref="HasPrerequisite"/>, the run's own quests counting as done). Rule C: a quest left
     /// out is skipped, not an end, so what follows it falls with it and the other chains go on. Rule D: a quest
     /// left out because one of its alternatives is in the run opens a run of its own, kept when it holds that quest:
@@ -324,10 +325,9 @@ public static class QuestProfit
                         continue;
                     }
 
-                    // A first quest in progress over several steps: its gain and time would be guesses.
-                    var fits = run.Count == 0
-                        ? IsDoable(q, progress, f, level, chain) && !IsUncertain(q.Id, progress, f)
-                        : Continuable(q, progress, f, level);
+                    // A quest in progress over several steps, wherever it comes: its gain and time would be guesses.
+                    var fits = (run.Count == 0 ? IsDoable(q, progress, f, level, chain) : Continuable(q, progress, f, level))
+                        && !IsUncertain(q.Id, progress, f);
                     if (fits && GainOf(f, level, bonusPercent) is not null && !IsVeryLong(f)
                         && (dungeons || (!QuestTime.HasDungeonRun(f) && !Named(f, names).Any()))
                         && !HasPrerequisite(q, chain, [progress], [.. run.Select(r => r.Id)]))
