@@ -11562,6 +11562,15 @@ vide dans les sondes : son contenu n'est pas vérifié), « Récolte : métier n
 (`Skills`), « Fabrication : métier niv. » (`Recipes`, indexé par l'objet
 produit), ou « Source inconnue » quand rien ne s'applique (le texte « Événement
 ou boutique » prévu a été retiré : DT Hub ne sait pas que c'en est un).
+Revue visuelle du 24/10/2026 : les monstres d'un objet trouvés dans les mêmes
+zones partagent une ligne, les zones dites une fois (« Lâché par Crapeur (niv.
+161), Atomystique (niv. 160) · zones » ; un objet de l'Hypogée répétait huit fois
+« Les larmes d'Ouronigride, Hypogée de l'Obsidiantre »), les archimonstres après
+eux. Sous le titre du guide, la ligne ne garde que 3 sources en tout, suivies de
+« … » s'il en reste, pour que l'en-tête reste court ; son infobulle les donne
+toutes (`ItemSourceText.Line`, testée). Dans la ligne des récompenses et
+l'infobulle du gain, les milliers sont séparés par une espace insécable : celle du français, l'espace fine (U+202F), fait 1,5 px à cette
+taille et « 4941112 XP » se lisait d'un bloc.
 
 **Archimonstres.** Un monstre qui lâche l'objet est un archimonstre quand
 `isMiniBoss` est vrai. Le jeu ne pointe que du monstre normal vers

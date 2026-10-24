@@ -3071,6 +3071,12 @@ Equipo: misiones realizables por al menos 2 personajes marcados.</value>
   <data name="SourceDroppedBy" xml:space="preserve">
     <value>Lo suelta {0} (nv. {1})</value>
   </data>
+  <data name="SourceDroppedByMany" xml:space="preserve">
+    <value>Lo sueltan {0}</value>
+  </data>
+  <data name="SourceMonster" xml:space="preserve">
+    <value>{0} (nv. {1})</value>
+  </data>
   <data name="SourceDuringQuest" xml:space="preserve">
     <value>durante la misión</value>
   </data>

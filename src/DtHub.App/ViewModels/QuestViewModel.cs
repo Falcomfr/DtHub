@@ -352,7 +352,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         try
         {
             await Task.Delay(HoverDelay, ct).ConfigureAwait(true);
-            return await FindAsync(quest, ct).ConfigureAwait(true);
+            return JoinSources(await FindAsync(quest, ct).ConfigureAwait(true));
         }
         catch (OperationCanceledException)
         {
@@ -367,25 +367,28 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         _guideSources?.Dispose();
     }
 
-    private async Task<string?> FindAsync(QuestSummary quest, CancellationToken ct)
+    private async Task<List<ItemSource>> FindAsync(QuestSummary quest, CancellationToken ct)
     {
+        var sources = new List<ItemSource>();
         if (_facts is null || !_facts.TryGetValue(quest.Id, out var facts))
         {
-            return null;
+            return sources;
         }
-
-        var blocks = new List<string>();
 
         foreach (var item in ItemSourceService.ItemsAsked(facts))
         {
             if (await _itemSources.SourceAsync(item, TouchNameService.CurrentLanguage, ct).ConfigureAwait(true) is { } source)
             {
-                blocks.Add(ItemSourceText.Of(source));
+                sources.Add(source);
             }
         }
 
-        return blocks.Count == 0 ? null : string.Join("\n\n", blocks);
+        return sources;
     }
+
+    /// <summary>Each item's sources, one block per item; null when none is known.</summary>
+    private static string? JoinSources(List<ItemSource> sources) =>
+        sources.Count == 0 ? null : string.Join("\n\n", sources.Select(ItemSourceText.Of));
 
     /// <summary>A dungeon row with what it is worth: the quests it finishes, their whole gains and its mark.</summary>
     private static QuestNode Valued(QuestNode node, DungeonValue value)
@@ -1031,7 +1034,8 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
 
             if (_current?.Id == quest.Id)
             {
-                SourcesText = sources ?? string.Empty;
+                SourcesText = JoinSources(sources) ?? string.Empty;
+                SourcesLine = ItemSourceText.Line(sources);
             }
         }
         catch (OperationCanceledException)
@@ -1053,21 +1057,19 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         _current = quest;
     }
 
-    /// <summary>Where the open quest's items come from, under the reward line; empty hides it.</summary>
+    /// <summary>Where the open quest's items come from, on hover of the line under the reward; empty hides it.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(SourcesLine))]
     private string _sourcesText = string.Empty;
 
-    /// <summary>The same on one line, the whole text on hover.</summary>
-    public string SourcesLine => SourcesText
-        .Replace(":\n", ": ", StringComparison.Ordinal)
-        .Replace("\n\n", " · ", StringComparison.Ordinal)
-        .Replace("\n", " · ", StringComparison.Ordinal);
+    /// <summary>The same on one line, three sources at most (<see cref="ItemSourceText.Line"/>).</summary>
+    [ObservableProperty]
+    private string _sourcesLine = string.Empty;
 
     private void ResetOfficialSteps()
     {
         RewardText = string.Empty;
         SourcesText = string.Empty;
+        SourcesLine = string.Empty;
         ShowsOfficialSteps = false;
         OfficialSteps = [];
         _officialStepsOf = 0;

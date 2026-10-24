@@ -44,13 +44,22 @@ public class QuestGainTextTests : IDisposable
     }
 
     [Fact]
+    public void Un_nombre_entier_separe_ses_milliers_par_une_espace_visible()
+    {
+        // The French culture's own separator, the narrow U+202F, draws 1.5 px wide at the header's 11 px: "4941112".
+        Assert.Equal("4\u00A0941\u00A0112", QuestGainText.Number(4_941_112));
+        Strings.Speak(CultureInfo.GetCultureInfo("en"));
+        Assert.Equal("4,941,112", QuestGainText.Number(4_941_112));
+    }
+
+    [Fact]
     public void L_infobulle_d_une_quete_non_faisable_donne_XP_et_kamas() =>
-        Assert.Equal($"{1_200L.ToString("N0", Fr)} XP · 35 kamas", QuestGainText.Tip(new QuestGain(1_200, 35)));
+        Assert.Equal("1\u00A0200 XP · 35 kamas", QuestGainText.Tip(new QuestGain(1_200, 35)));
 
     [Fact]
     public void L_infobulle_d_une_quete_faisable_ajoute_le_rang_et_ce_qu_elle_demande() =>
         Assert.Equal(
-            $"{1_200L.ToString("N0", Fr)} XP · 35 kamas\nParmi les plus rentables, surtout pour l'XP\nDemande ≈ 25 min : 2 combats, dialogues",
+            "1\u00A0200 XP · 35 kamas\nParmi les plus rentables, surtout pour l'XP\nDemande ≈ 25 min : 2 combats, dialogues",
             QuestGainText.Tip(new QuestGain(1_200, 35), 3, false, new QuestEffort(25, ["2 combats", "dialogues"])));
 
     [Fact]

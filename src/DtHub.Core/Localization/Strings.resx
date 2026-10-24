@@ -3071,6 +3071,12 @@ Team: quests at least 2 ticked characters can do.</value>
   <data name="SourceDroppedBy" xml:space="preserve">
     <value>Dropped by {0} (lvl {1})</value>
   </data>
+  <data name="SourceDroppedByMany" xml:space="preserve">
+    <value>Dropped by {0}</value>
+  </data>
+  <data name="SourceMonster" xml:space="preserve">
+    <value>{0} (lvl {1})</value>
+  </data>
   <data name="SourceDuringQuest" xml:space="preserve">
     <value>during the quest</value>
   </data>

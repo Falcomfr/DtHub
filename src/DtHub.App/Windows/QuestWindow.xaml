@@ -436,8 +436,9 @@
                      Visibility="{Binding RewardText, Converter={StaticResource EmptyToVisibility},
                                           ConverterParameter=inverse}" />
 
-          <!-- Where the items the quest asks for come from, on one line under
-               the reward; one source per line on hover. -->
+          <!-- Where the items the quest asks for come from, under the reward:
+               three sources at most, places said once, so the header stays
+               short; all of them, one per line, on hover. -->
           <TextBlock Text="{Binding SourcesLine}" ToolTip="{Binding SourcesText}" Style="{StaticResource Muted}"
                      FontSize="{StaticResource FontSmall}" TextTrimming="CharacterEllipsis"
                      Visibility="{Binding SourcesText, Converter={StaticResource EmptyToVisibility},

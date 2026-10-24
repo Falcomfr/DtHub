@@ -23,7 +23,7 @@ public class QuestRewardTextTests : IDisposable
     [Fact]
     public void La_ligne_complete()
         => Assert.Equal(
-            $"Niv. 191 · bonus +150 % : {1_976_445L.ToString("N0", Fr)} XP · {11_512L.ToString("N0", Fr)} kamas · 10 × A, 1 × B",
+            "Niv. 191 · bonus +150 % : 1\u00A0976\u00A0445 XP · 11\u00A0512 kamas · 10 × A, 1 × B",
             QuestRewardText.Format(Total(items: [new(1, 10), new(2, 1)]), 191, 150, Names));
 
     [Fact]

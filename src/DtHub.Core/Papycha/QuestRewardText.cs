@@ -1,5 +1,4 @@
-﻿using System.Globalization;
-using DtHub.Core.Localization;
+﻿using DtHub.Core.Localization;
 
 namespace DtHub.Core.Papycha;
 
@@ -8,17 +7,16 @@ public static class QuestRewardText
 {
     public static string Format(QuestRewardTotal total, int level, int bonusPercent, IReadOnlyDictionary<int, string> itemNames)
     {
-        var culture = Strings.Spoken;
         var head = Strings.Format("RewardLine", level);
         if (bonusPercent > 0)
         {
             head += " · " + Strings.Format("RewardBonus", bonusPercent);
         }
 
-        var parts = new List<string> { Strings.Format("RewardXp", total.Experience.ToString("N0", culture)) };
+        var parts = new List<string> { Strings.Format("RewardXp", QuestGainText.Number(total.Experience)) };
         if (total.Kamas > 0)
         {
-            parts.Add($"{total.Kamas.ToString("N0", culture)} {Strings.Get("RewardKamas")}");
+            parts.Add($"{QuestGainText.Number(total.Kamas)} {Strings.Get("RewardKamas")}");
         }
 
         // An unnamed item would be a silent gap in the line: hide the line instead.
@@ -28,7 +26,7 @@ public static class QuestRewardText
         }
 
         var gains = total.Items
-            .Select(i => $"{i.Quantity.ToString("N0", culture)} × {itemNames[i.ItemId]}")
+            .Select(i => $"{QuestGainText.Number(i.Quantity)} × {itemNames[i.ItemId]}")
             .ToList();
         AddKind(gains, total.Spells, "RewardSpell");
         AddKind(gains, total.Titles, "RewardTitle");
@@ -53,9 +51,8 @@ public static class QuestRewardText
         ArgumentNullException.ThrowIfNull(total);
         ArgumentNullException.ThrowIfNull(itemNames);
 
-        var culture = Strings.Spoken;
         var lines = total.Items.Where(i => itemNames.ContainsKey(i.ItemId))
-            .Select(i => $"{i.Quantity.ToString("N0", culture)} × {itemNames[i.ItemId]}")
+            .Select(i => $"{QuestGainText.Number(i.Quantity)} × {itemNames[i.ItemId]}")
             .ToList();
         AddKind(lines, total.Items.Count(i => !itemNames.ContainsKey(i.ItemId)), "RewardItem");
         AddKind(lines, total.Spells, "RewardSpell");

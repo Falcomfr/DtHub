@@ -17,6 +17,12 @@ public static class QuestGainText
     }
 
     /// <summary>
+    /// "4 941 112" in the interface's culture, its narrow no-break space (French) widened to a no-break space: the
+    /// narrow one draws 1.5 px wide at 11 px, and "4941112" read as one block.
+    /// </summary>
+    public static string Number(long value) => value.ToString("N0", Strings.Spoken).Replace('\u202F', '\u00A0');
+
+    /// <summary>
     /// The XP and kamas columns: an empty XP text when the quest gives none (known, unlike null), no kamas text when
     /// it gives none.
     /// </summary>
@@ -44,10 +50,9 @@ public static class QuestGainText
     {
         ArgumentNullException.ThrowIfNull(gain);
 
-        var culture = Strings.Spoken;
         var lines = new List<string>
         {
-            $"{Strings.Format("RewardXp", gain.Xp.ToString("N0", culture))} · {gain.Kamas.ToString("N0", culture)} {Strings.Get("RewardKamas")}",
+            $"{Strings.Format("RewardXp", Number(gain.Xp))} · {Number(gain.Kamas)} {Strings.Get("RewardKamas")}",
         };
 
         if (steps > 1)

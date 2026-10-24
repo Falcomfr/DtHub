@@ -3071,6 +3071,12 @@ Pas de donjon en équipe.
   <data name="SourceDroppedBy" xml:space="preserve">
     <value>Lâché par {0} (niv. {1})</value>
   </data>
+  <data name="SourceDroppedByMany" xml:space="preserve">
+    <value>Lâché par {0}</value>
+  </data>
+  <data name="SourceMonster" xml:space="preserve">
+    <value>{0} (niv. {1})</value>
+  </data>
   <data name="SourceDuringQuest" xml:space="preserve">
     <value>pendant la quête</value>
   </data>
