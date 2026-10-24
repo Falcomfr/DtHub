@@ -1538,32 +1538,20 @@
                       </Border>
                     </Grid>
 
-                    <!-- The right-hand icons of a quest row: priority,
-                         rhythm, status, lock, then the two gains. Each icon
-                         is collapsed when it has nothing to say, so the
-                         ones present, each in a 15 px square (the rhythm's
-                         and the lock's drawing size), pack to the right
+                    <!-- The right-hand icons of a quest row: gift, priority,
+                         rhythm, status, lock, then the time and the two gains.
+                         Each icon is collapsed when it has nothing to say, so
+                         the ones present, each in a 15 px square (the rhythm's
+                         and the lock's drawing size), pack against the time
                          three pixels apart:
                          the user prefers no gaps to straight icon columns.
                          The lock comes last as it is on most quests, so the
                          status mark beside it lines up in practice. Only the
-                         gains keep fixed columns, numbers have to line up.
+                         time and the gains keep fixed columns, they have to
+                         line up.
                          Everything is collapsed on rows that are not quests.
                          A transparent border carries each tooltip, an open
                          stroke catches no hover. -->
-                    <!-- The estimated time, muted words first among the right-hand
-                         signs: its width varies, so it sits left of the icons and
-                         the fixed gain columns, which keep their alignment. Collapsed
-                         when the game's objectives are not read yet. -->
-                    <TextBlock x:Name="Duree" Margin="4,0,0,0" VerticalAlignment="Center"
-                               Text="{Binding Duration}" TextWrapping="NoWrap"
-                               Style="{StaticResource Muted}"
-                               FontSize="{StaticResource FontSmall}"
-                               ToolTip="{Binding ProfitTip}"
-                               ToolTipService.InitialShowDelay="200"
-                               Visibility="{Binding Duration,
-                                                    Converter={StaticResource EmptyToVisibility},
-                                                    ConverterParameter=inverse}" />
                     <!-- A gift: the quest gives more than XP and kamas, what
                          comes on hover. Collapsed otherwise, like the others. -->
                     <Border x:Name="Cadeau" Width="15" Height="15"
@@ -1741,6 +1729,22 @@
                         </Path.Style>
                       </Path>
                     </Button>
+
+                    <!-- The estimated time, in a slot of fixed width just left of the gains, the
+                         words right-aligned: it stands at the same place on every row whatever
+                         icons come before it (with a gift it used to sit 18 px further left).
+                         46 px holds "≈ 12 h 34", 44.8 measured in this face; a longer time
+                         widens its row rather than being cut. Collapsed when the game's
+                         objectives are not read yet. -->
+                    <TextBlock x:Name="Duree" MinWidth="46" Margin="4,0,0,0" VerticalAlignment="Center"
+                               Text="{Binding Duration}" TextWrapping="NoWrap" TextAlignment="Right"
+                               Style="{StaticResource Muted}"
+                               FontSize="{StaticResource FontSmall}"
+                               ToolTip="{Binding ProfitTip}"
+                               ToolTipService.InitialShowDelay="200"
+                               Visibility="{Binding Duration,
+                                                    Converter={StaticResource EmptyToVisibility},
+                                                    ConverterParameter=inverse}" />
 
                     <!-- What the quest gives the chosen character: XP then
                          kamas, last on the right in two fixed columns, wide
