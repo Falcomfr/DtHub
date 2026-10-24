@@ -1163,6 +1163,14 @@
                                   Value="{DynamicResource SurfaceAltBrush}" />
                         </MultiTrigger>
 
+                        <!-- In selection mode an achievement heading is
+                             enabled for its "Tout marquer terminé"
+                             button, and still not a choice: no band.
+                             Before the selection trigger, which wins. -->
+                        <DataTrigger Binding="{Binding IsEnabled}" Value="False">
+                          <Setter TargetName="Fond" Property="Background" Value="Transparent" />
+                        </DataTrigger>
+
                         <!-- Selected and unfocused deliberately looks the
                              same as selected. This window sends focus
                              back to the search field constantly, and the
