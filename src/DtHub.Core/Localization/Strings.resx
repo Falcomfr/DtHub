@@ -3005,20 +3005,17 @@ To avoid it: {1}  ›  "Auto lock Secure Folder" › the longest option.</value>
     <value>Ranked by kamas gained per estimated minute, summed over the team.</value>
   </data>
   <data name="ProfitHowTip" xml:space="preserve">
-    <value>Quests your character can start now: level reached, previous quests done according to your tracker, or already in progress.
-Ranking: XP or kamas earned per minute, depending on the tab. The time is DT Hub's estimate from the game's objectives (dialogues, fights, items, travel).
-One quest per series: the next one to do. No quest asking for the whole keyring or more than 5 souls; a quest over 2 h only tops up a list of fewer than 10.
-Achievements: what follows in a series from its next doable quest, gains and times added up.
-A dungeon shows when it advances at least 2 of these quests.
-Gains computed at your level, Bonus Pack included if ticked.</value>
+    <value>Quests doable now, ranked by gain per minute.
+Time estimated by DT Hub, gains at your level.
+Quests: each series' next one. Achievements: what follows in the series.
+Dungeon: offered when it completes at least 2 quests.</value>
   </data>
   <data name="ProfitHowTeamTip" xml:space="preserve">
-    <value>Quests your characters can start now: level reached, previous quests done according to your tracker, or already in progress.
-Team: quests at least 2 ticked characters can do, gains added up.
-Ranking: XP or kamas earned per minute, depending on the tab. The time is DT Hub's estimate from the game's objectives (dialogues, fights, items, travel).
-One quest per series: the next one to do. No quest asking for the whole keyring or more than 5 souls; a quest over 2 h only tops up a list of fewer than 10. No dungeons.
-Achievements: what follows in a series from its next doable quest, gains and times added up.
-Gains computed at each character's level, Bonus Pack included if ticked.</value>
+    <value>Quests doable now, ranked by gain per minute.
+Time estimated by DT Hub, gains added up over the ticked characters.
+Quests: each series' next one. Achievements: what follows in the series.
+No dungeons in the team view.
+Team: quests at least 2 ticked characters can do.</value>
   </data>
   <data name="ProfitCharacters" xml:space="preserve">
     <value>{0} characters</value>

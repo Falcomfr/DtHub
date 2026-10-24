@@ -3005,20 +3005,17 @@ Para evitarlo: {1}  ›  «Bloqueo automático de Carpeta segura» › la opció
     <value>Ordenadas por kamas ganados por minuto estimado, sumados en el equipo.</value>
   </data>
   <data name="ProfitHowTip" xml:space="preserve">
-    <value>Misiones que tu personaje puede empezar ahora: nivel alcanzado, misiones anteriores hechas según tu seguimiento, o ya en curso.
-Orden: XP o kamas ganados por minuto, según la pestaña. El tiempo es una estimación de DT Hub a partir de los objetivos del juego (diálogos, combates, objetos, trayectos).
-Una sola misión por serie: la siguiente por hacer. Ninguna misión que pida todo el llavero o más de 5 almas; una misión de más de 2 h solo completa una lista de menos de 10.
-Logros: la continuación de una serie desde la siguiente misión realizable, ganancias y tiempos sumados.
-Una mazmorra aparece si hace avanzar al menos 2 de estas misiones.
-Ganancias calculadas a tu nivel, Bonus Pack incluido si está marcado.</value>
+    <value>Misiones realizables ahora, ordenadas por ganancia por minuto.
+Tiempo estimado por DT Hub, ganancias a tu nivel.
+Misiones: la siguiente de cada serie. Logros: la continuación de la serie.
+Mazmorra: propuesta si completa al menos 2 misiones.</value>
   </data>
   <data name="ProfitHowTeamTip" xml:space="preserve">
-    <value>Misiones que tus personajes pueden empezar ahora: nivel alcanzado, misiones anteriores hechas según tu seguimiento, o ya en curso.
-Equipo: misiones que al menos 2 personajes marcados pueden hacer, ganancias sumadas.
-Orden: XP o kamas ganados por minuto, según la pestaña. El tiempo es una estimación de DT Hub a partir de los objetivos del juego (diálogos, combates, objetos, trayectos).
-Una sola misión por serie: la siguiente por hacer. Ninguna misión que pida todo el llavero o más de 5 almas; una misión de más de 2 h solo completa una lista de menos de 10. Sin mazmorras.
-Logros: la continuación de una serie desde la siguiente misión realizable, ganancias y tiempos sumados.
-Ganancias calculadas al nivel de cada personaje, Bonus Pack incluido si está marcado.</value>
+    <value>Misiones realizables ahora, ordenadas por ganancia por minuto.
+Tiempo estimado por DT Hub, ganancias sumadas en los personajes marcados.
+Misiones: la siguiente de cada serie. Logros: la continuación de la serie.
+Sin mazmorras en equipo.
+Equipo: misiones realizables por al menos 2 personajes marcados.</value>
   </data>
   <data name="ProfitCharacters" xml:space="preserve">
     <value>{0} personajes</value>

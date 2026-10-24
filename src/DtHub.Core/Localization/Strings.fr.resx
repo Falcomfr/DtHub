@@ -3005,20 +3005,17 @@ Pour l'éviter : {1}  ›  « Verrouillage auto. Dossier sécurisé » › l'opt
     <value>Classées par kamas gagnés par minute estimée, additionnés sur l'équipe.</value>
   </data>
   <data name="ProfitHowTip" xml:space="preserve">
-    <value>Quêtes que votre personnage peut lancer maintenant : niveau atteint, quêtes précédentes faites d'après votre suivi, ou déjà en cours.
-Classement : XP ou kamas gagnés par minute, selon l'onglet. Le temps est une estimation de DT Hub d'après les objectifs du jeu (dialogues, combats, objets, trajets).
-Une seule quête par série : la prochaine à faire. Pas de quête qui demande tout le trousseau ou plus de 5 âmes ; une quête de plus de 2 h ne vient que pour compléter une liste de moins de 10.
-Succès : la suite d'une série à partir de la prochaine quête faisable, gains et temps additionnés.
-Un donjon apparaît s'il fait avancer au moins 2 de ces quêtes.
-Gains calculés à votre niveau, Bonus Pack compris s'il est coché.</value>
+    <value>Quêtes faisables maintenant, classées par gain par minute.
+Temps estimé par DT Hub, gains à votre niveau.
+Quêtes : la prochaine de chaque série. Succès : la suite de la série.
+Donjon : proposé s'il termine au moins 2 quêtes.</value>
   </data>
   <data name="ProfitHowTeamTip" xml:space="preserve">
-    <value>Quêtes que vos personnages peuvent lancer maintenant : niveau atteint, quêtes précédentes faites d'après votre suivi, ou déjà en cours.
-Équipe : quêtes faisables par au moins 2 personnages cochés, gains additionnés.
-Classement : XP ou kamas gagnés par minute, selon l'onglet. Le temps est une estimation de DT Hub d'après les objectifs du jeu (dialogues, combats, objets, trajets).
-Une seule quête par série : la prochaine à faire. Pas de quête qui demande tout le trousseau ou plus de 5 âmes ; une quête de plus de 2 h ne vient que pour compléter une liste de moins de 10. Pas de donjon.
-Succès : la suite d'une série à partir de la prochaine quête faisable, gains et temps additionnés.
-Gains calculés au niveau de chaque personnage, Bonus Pack compris s'il est coché.</value>
+    <value>Quêtes faisables maintenant, classées par gain par minute.
+Temps estimé par DT Hub, gains additionnés sur les persos cochés.
+Quêtes : la prochaine de chaque série. Succès : la suite de la série.
+Pas de donjon en équipe.
+Équipe : quêtes faisables par au moins 2 persos cochés.</value>
   </data>
   <data name="ProfitCharacters" xml:space="preserve">
     <value>{0} persos</value>

@@ -11341,6 +11341,18 @@ par minute estimée » ou « par kamas gagnés par minute estimée »), et son
 infobulle ajoute « Succès : la suite d'une série à partir de la prochaine quête
 faisable, gains et temps additionnés. »
 
+**Bulle d'info raccourcie.** Demande du 24/10/2026 : « simplifie la bulle
+d'info ». Le détail ci-dessus (démarrables, trousseau, âmes, 2 h, Bonus Pack...)
+est remplacé par quatre lignes : « Quêtes faisables maintenant, classées par gain
+par minute. / Temps estimé par DT Hub, gains à votre niveau. / Quêtes : la
+prochaine de chaque série. Succès : la suite de la série. / Donjon : proposé s'il
+termine au moins 2 quêtes. » En vue d'équipe, la deuxième ligne dit « gains
+additionnés sur les persos cochés », la ligne du donjon devient « Pas de donjon
+en équipe. » (il n'y en a pas, D220 : la phrase demandée aurait été fausse) et une
+dernière ligne s'ajoute : « Équipe : quêtes faisables par au moins 2 persos
+cochés. » Chaque phrase reste vraie après la règle des donjons du même jour (ils
+ne comptent que les quêtes qu'ils terminent) et le retrait d'« Avec prérequis ».
+
 **Rythme au survol.** Demande du 24/10/2026, acceptée : sur chaque ligne de
 « Recommandées » (modes « Quêtes » et « Succès », vue d'équipe et lignes de
 donjon comprises), l'infobulle du gain finit par le rythme sur lequel la liste
