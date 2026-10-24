@@ -11056,3 +11056,18 @@ onglets créé pendant le plein écran (démarrage ou réouverture) s'ouvrait en
 fenêtré alors que DT Hub restait en plein écran. La seconde passe de
 `WindowPlacements.Restore`, différée à la priorité Loaded, défaisait le plein
 écran ; le cadre y entre maintenant à ContextIdle, après elle.
+
+Pistes écartées le même jour, sur demande d'une correction directe. Mesuré avec
+scrcpy 5.0.1 officiel en `--flex-display` sur le 13T Pro, jeu lancé à froid en
+1976x1040 : passer l'afficheur à 1848x1040 en cours de partie refait bien
+l'écran de connexion, mais **l'interface en jeu reste calée sur la taille du
+lancement de l'appli, largeur comprise** (panneau de droite coupé à 1848 alors
+qu'il est créé à la connexion, déjà en 1848 ; entier de nouveau à 1976). D16
+disait la largeur libre : c'est vrai de l'écran de connexion, pas du jeu. Aucun
+redimensionnement ne peut donc remplacer la relance ; scrcpy ne sait d'ailleurs
+pas garder la hauteur fixe en mode souple (`Size.constrain` borne chaque côté).
+Étirer l'image (`--render-fit=stretched`, environ 7 %) a été refusé, rogner
+couperait la carte et le panneau. La relance automatique au Ctrl+5 a été
+refusée (15 s, retour à l'écran de connexion, même en combat) : le joueur garde
+le bouton. Le cas ne se produit qu'une fois, DT Hub retenant le plein écran
+pour les ouvertures suivantes.
