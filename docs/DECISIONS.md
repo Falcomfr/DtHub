@@ -11550,7 +11550,10 @@ ténèbres » n'attendaient que « Meilleurs ennemis » sur les quatre branches 
 Chemin semé de bûches ». `QuestChainIndex.Resolve` reste le même pour l'affichage. Pour une quête que le
 site donne à son personnage actif, une seule fin suffit (revue du même jour,
 décision du contrôleur) : c'est la règle souple de cette liste, une précédente
-faite suffit ; la règle E vaut pour les autres personnages.
+faite suffit ; la règle E vaut pour les autres personnages. Revue suivante : la
+même règle souple vaut pour « Recommandées » et les suites (`HasPrerequisite`,
+un seul personnage dont le site donne la liste), sinon une quête de « Faisables »
+sans cadenas n'y entrait jamais.
 
 *Décisions de l'utilisateur.* Mode « Quêtes » : une entrée par chaîne démarrable
 (chaînes indépendantes et branches parallèles d'une série) et une par voie,

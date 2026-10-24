@@ -240,6 +240,10 @@ public class QuestProfitTests
         // Listed by the site for its active character: one end is enough, as one previous quest is.
         Assert.True(QuestProfit.Startable(Catalog(false)[3], Progress([9], completed: [1, 2]), new QuestChainIndex(Catalog(false))));
         Assert.False(QuestProfit.Startable(Catalog(false)[3], Progress([9], completed: [1]), new QuestChainIndex(Catalog(false))));
+        // The same rule keeps it in Recommended and its runs: no prerequisite left once the site lists it.
+        Assert.False(QuestProfit.HasPrerequisite(Catalog(false)[3], new QuestChainIndex(Catalog(false)), [Progress([9], completed: [1, 2])]));
+        Assert.True(QuestProfit.HasPrerequisite(Catalog(false)[3], new QuestChainIndex(Catalog(false)), [Progress([], completed: [1, 2])]));
+        Assert.True(QuestProfit.HasPrerequisite(Catalog(false)[3], new QuestChainIndex(Catalog(false)), [Progress([9], completed: [1])]));
     }
 
     private static (List<QuestSummary> Catalog, Dictionary<int, TouchQuestFacts> Facts) Twenty()

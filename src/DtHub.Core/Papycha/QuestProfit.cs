@@ -161,7 +161,8 @@ public static class QuestProfit
     /// <summary>
     /// Whether the quest has a prerequisite, which keeps it out of "Recommandées": a need that is not a quest
     /// every character in <paramref name="progress"/> has completed (a time slot, an alignment, an item, or a previous
-    /// quest still to do; done as <see cref="IsMet"/> says). A need naming the quest itself is ignored, as in
+    /// quest still to do; done as <see cref="IsMet"/> says, or as <see cref="Startable"/> for a quest the site lists for
+    /// its one character). A need naming the quest itself is ignored, as in
     /// <see cref="Previous"/>. A quest every one of them has in progress has none.
     /// </summary>
     /// <param name="met">Quests counted as done for everyone: a series run's own earlier quests.</param>
@@ -182,8 +183,17 @@ public static class QuestProfit
         bool Done(QuestSummary p) =>
             (met is not null && (met.Contains(p.Id) || (quest.Alternatives.Count == 0 && p.Alternatives.Any(met.Contains))))
             || progress.All(c => IsDone(p, quest, c));
-        return quest.Prerequisites.Any(need => chain.Resolve(need) is not { } p
-            || (p.Id != quest.Id && !IsMet(need, quest, chain, Done)));
+        if (quest.Prerequisites.Any(need => chain.Resolve(need) is null))
+        {
+            return true;
+        }
+
+        // Listed by the site for its only character: Startable's soft rule, one previous quest or one end of an
+        // achievement done is enough, so a quest "Faisables" shows is not kept out of "Recommandées" and its runs.
+        var needs = QuestNeeds(quest, chain);
+        return progress.Count == 1 && progress.First().Available.Contains(quest.Id)
+            ? needs.Count > 0 && !needs.Any(need => chain.Required(need).Any(p => p.Id != quest.Id && Done(p)))
+            : needs.Any(need => !IsMet(need, quest, chain, Done));
     }
 
     /// <summary>The quests the prerequisites name, the quest itself left out ("L'Ascension" names itself).</summary>
