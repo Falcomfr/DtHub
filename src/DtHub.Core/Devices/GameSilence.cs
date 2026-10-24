@@ -63,6 +63,23 @@ public sealed class GameSilence
         }
     }
 
+    /// <summary>
+    /// Forgets the phones no longer read: closed while silent, a phone showed
+    /// the alert again at its next opening, before any reading.
+    /// </summary>
+    public void KeepOnly(IReadOnlyCollection<string> serials)
+    {
+        lock (_gate)
+        {
+            foreach (var gone in _silent.Keys.Where(k => !serials.Contains(k)).ToList())
+            {
+                _ = _silent.Remove(gone);
+            }
+
+            _carried.IntersectWith(serials);
+        }
+    }
+
     /// <summary>True while this phone's game has been silent long enough.</summary>
     public bool Lasts(string serial)
     {

@@ -2678,6 +2678,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
             _ = _keptAwake.TryRemove(gone, out _);
         }
 
+        _gameSilence.KeepOnly(phones);
+
         var strainDue = _sinceStrain is null || _sinceStrain.Elapsed >= StrainInterval;
 
         // Off the interface thread, which starts adb otherwise, and never
