@@ -821,13 +821,13 @@ public class QuestProfitTests
     private static QuestSummary[] Series(int n, string name = "S") => [.. Enumerable.Range(1, n).Select(i => Quest(i, name, i))];
 
     private static IReadOnlyList<ProfitEntry> Runs(
-        QuestSummary[] catalog, TrackerProgress progress, Dictionary<int, TouchQuestFacts> facts, bool withPrerequisites = false,
+        QuestSummary[] catalog, TrackerProgress progress, Dictionary<int, TouchQuestFacts> facts,
         bool dungeons = true, Dictionary<int, string>? dungeonNames = null) =>
-        QuestProfit.Runs(catalog, facts, progress, 10, 0, withPrerequisites, dungeons, dungeonNames ?? []);
+        QuestProfit.Runs(catalog, facts, progress, 10, 0, dungeons, dungeonNames ?? []);
 
-    private static int[] RunIds(QuestSummary[] catalog, TrackerProgress progress, Dictionary<int, TouchQuestFacts> facts, bool withPrerequisites = false,
+    private static int[] RunIds(QuestSummary[] catalog, TrackerProgress progress, Dictionary<int, TouchQuestFacts> facts,
         bool dungeons = true, Dictionary<int, string>? dungeonNames = null) =>
-        [.. Runs(catalog, progress, facts, withPrerequisites, dungeons, dungeonNames).SelectMany(r => r.Quests).Select(q => q.Id)];
+        [.. Runs(catalog, progress, facts, dungeons, dungeonNames).SelectMany(r => r.Quests).Select(q => q.Id)];
 
     [Fact]
     public void A_run_is_the_series_from_its_next_doable_quest_past_done_and_ignored_ones_gains_and_minutes_summed()
@@ -893,7 +893,7 @@ public class QuestProfitTests
     }
 
     [Fact]
-    public void Off_prerequisites_cut_a_run_unless_the_need_is_a_quest_of_the_run()
+    public void A_prerequisite_cuts_a_run_unless_the_need_is_a_quest_of_the_run()
     {
         var catalog = Series(4);
         // 3 follows 2, inside the run; 4 asks a time slot.
@@ -902,7 +902,6 @@ public class QuestProfitTests
         var facts = catalog.ToDictionary(q => q.Id, q => Xp(q.Id));
 
         Assert.Equal([1, 2, 3], RunIds(catalog, Progress([1]), facts));
-        Assert.Equal([1, 2, 3, 4], RunIds(catalog, Progress([1]), facts, withPrerequisites: true));
 
         // A quest outside the run, not done, is a prerequisite.
         QuestSummary[] outside = [.. Series(3), Quest(9)];
@@ -913,7 +912,6 @@ public class QuestProfitTests
         var first = Series(3);
         first[0] = first[0] with { Prerequisites = ["Être dans les créneaux horaires"] };
         Assert.Empty(RunIds(first, Progress([1]), facts));
-        Assert.Equal([1, 2, 3], RunIds(first, Progress([1]), facts, withPrerequisites: true));
     }
 
     [Fact]

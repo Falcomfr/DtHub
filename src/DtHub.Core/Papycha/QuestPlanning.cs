@@ -54,7 +54,7 @@ public static class QuestPlanning
     public static IReadOnlyList<TeamEntry> TeamRuns(
         IEnumerable<QuestSummary> catalog, IReadOnlyDictionary<int, TouchQuestFacts> facts,
         IReadOnlyList<(TrackerCharacter Character, TrackerProgress Progress)> characters, int bonusPercent,
-        bool withPrerequisites, bool dungeons, IReadOnlyDictionary<int, string> dungeonNames)
+        bool dungeons, IReadOnlyDictionary<int, string> dungeonNames)
     {
         ArgumentNullException.ThrowIfNull(characters);
 
@@ -62,7 +62,7 @@ public static class QuestPlanning
         var shared = new Dictionary<string, (ProfitEntry Entry, List<TrackerCharacter> Characters, long Xp, long Kamas)>();
         foreach (var (character, progress) in characters)
         {
-            foreach (var run in QuestProfit.Runs(all, facts, progress, character.Level, bonusPercent, withPrerequisites, dungeons, dungeonNames))
+            foreach (var run in QuestProfit.Runs(all, facts, progress, character.Level, bonusPercent, dungeons, dungeonNames))
             {
                 var s = shared.TryGetValue(run.Title, out var found) ? found : (run, [], 0, 0);
                 s.Characters.Add(character);

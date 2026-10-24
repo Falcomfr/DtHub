@@ -2992,12 +2992,6 @@ Para evitarlo: {1}  ›  «Bloqueo automático de Carpeta segura» › la opció
   <data name="ProfitDungeonsTip" xml:space="preserve">
     <value>Conserva las mazmorras y las misiones que pasan por una mazmorra</value>
   </data>
-  <data name="ProfitWithPrerequisites" xml:space="preserve">
-    <value>Con requisitos</value>
-  </data>
-  <data name="ProfitWithPrerequisitesTip" xml:space="preserve">
-    <value>Muestra también las misiones que piden una condición que DT Hub no puede comprobar: franja horaria, alineamiento, objeto, logro…</value>
-  </data>
   <data name="ProfitHowXp" xml:space="preserve">
     <value>Ordenadas por XP ganada por minuto estimado, a su nivel.</value>
   </data>

@@ -142,7 +142,7 @@ public class QuestPlanningTests
         var team = QuestPlanning.TeamRuns(
             catalog, facts,
             [Character("A", 10, Progress([1, 4])), Character("B", 30, Progress([2], completed: [1])), Character("C", 10, Progress([5], completed: [4]))],
-            0, withPrerequisites: false, dungeons: true, new Dictionary<int, string>());
+            0, dungeons: true, new Dictionary<int, string>());
 
         var s = Assert.Single(team);
         Assert.Equal("S", s.Entry.Title);
@@ -161,6 +161,6 @@ public class QuestPlanningTests
         var catalog = new[] { Quest(1, "S", 1), Quest(2, "S", 2) };
         var facts = catalog.ToDictionary(q => q.Id, q => Xp(q.Id));
 
-        Assert.Empty(QuestPlanning.TeamRuns(catalog, facts, [Character("A", 10, Progress([1]))], 0, false, true, new Dictionary<int, string>()));
+        Assert.Empty(QuestPlanning.TeamRuns(catalog, facts, [Character("A", 10, Progress([1]))], 0, true, new Dictionary<int, string>()));
     }
 }

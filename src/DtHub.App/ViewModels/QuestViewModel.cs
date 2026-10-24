@@ -116,11 +116,11 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
 
     private IReadOnlyDictionary<int, DungeonValue>? _dungeonValues;
 
-    /// <summary>By Papycha dungeon, the recommendable quests it advances.</summary>
+    /// <summary>By Papycha dungeon, the recommendable quests it completes; none with a prerequisite, as in the lists.</summary>
     private IReadOnlyDictionary<int, DungeonValue> DungeonValues => _dungeonValues ??=
         _facts is null
             ? new Dictionary<int, DungeonValue>()
-            : QuestProfit.DungeonValues(Recommendable, Scores, Tracker.Progress, _facts, Tracker.RewardLevel,
+            : QuestProfit.DungeonValues([.. Recommendable.Where(e => !HasPrerequisite(e, Mine))], Scores, Tracker.Progress, _facts, Tracker.RewardLevel,
                 Tracker.RewardXpBonus, _touchNames.Table.Dungeons, _dungeonNames, _dungeonRooms);
 
     private IReadOnlyList<TeamEntry>? _team;
@@ -1134,7 +1134,6 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         FilterDoable = saved.QuestFilterDoable;
         ProfitKamas = saved.ProfitKamas;
         ProfitDungeons = saved.ProfitDungeons;
-        ProfitWithPrerequisites = saved.ProfitWithPrerequisites;
         ProfitSeries = saved.ProfitSeries;
         _loadingFilters = false;
 
@@ -1593,7 +1592,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
 
     /// <summary>
     /// A row of the short lists: what it gains, in how many minutes, where ties put it, and what its toggles read: a
-    /// dungeon run or not, a prerequisite DT Hub cannot check or not (<see cref="QuestProfit.HasPrerequisite"/>).
+    /// dungeon run or not, a prerequisite DT Hub cannot check or not (<see cref="QuestProfit.HasPrerequisite"/>), never shown.
     /// </summary>
     private sealed record ProfitRow(
         QuestGain Gain, int Minutes, QuestSummary First, QuestNode Node, bool Dungeon, bool Prerequisite, ProfitEntry? Entry = null);
@@ -1605,10 +1604,6 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
     /// <summary>"Recommandées" keeps dungeons and the quests with a dungeon run ("Donjons inclus"), remembered.</summary>
     [ObservableProperty]
     private bool _profitDungeons = true;
-
-    /// <summary>"Recommandées" keeps the quests with a prerequisite DT Hub cannot check ("Avec prérequis"), remembered.</summary>
-    [ObservableProperty]
-    private bool _profitWithPrerequisites;
 
     /// <summary>"Recommandées" lists series runs ("Succès") rather than single quests ("Quêtes"), remembered.</summary>
     [ObservableProperty]
@@ -1625,8 +1620,6 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
     partial void OnProfitKamasChanged(bool value) => ProfitFiltersChanged();
 
     partial void OnProfitDungeonsChanged(bool value) => ProfitFiltersChanged();
-
-    partial void OnProfitWithPrerequisitesChanged(bool value) => ProfitFiltersChanged();
 
     partial void OnProfitSeriesChanged(bool value) => ProfitFiltersChanged();
 
@@ -1652,10 +1645,11 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         }
 
         Redraw();
-        _ = _settings.SetProfitFiltersAsync(ProfitKamas, ProfitDungeons, ProfitWithPrerequisites, ProfitSeries);
+        _ = _settings.SetProfitFiltersAsync(ProfitKamas, ProfitDungeons, ProfitSeries);
     }
 
-    private bool Kept(ProfitRow row) => (ProfitDungeons || !row.Dungeon) && (ProfitWithPrerequisites || !row.Prerequisite);
+    // "vire carrément 'Avec prérequis' et n'affiche pas de quêtes non faisables directement" (2026-10-24).
+    private bool Kept(ProfitRow row) => (ProfitDungeons || !row.Dungeon) && !row.Prerequisite;
 
     /// <summary>
     /// A quest row of the short lists, its toggles read from the quest's objectives (a dungeon run, or a dungeon named
@@ -1667,6 +1661,9 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             && (QuestTime.HasDungeonRun(facts) || QuestProfit.DungeonsOf(facts, _dungeonNames).Count > 0);
         return new ProfitRow(gain, entry.Effort.Minutes, entry.Quests[0], node, dungeon, HasPrerequisite(entry, progress), entry);
     }
+
+    /// <summary>The chosen character's progress, as the prerequisite check takes it.</summary>
+    private IReadOnlyCollection<TrackerProgress> Mine => Tracker.Progress is { } progress ? [progress] : [];
 
     private bool HasPrerequisite(ProfitEntry entry, IReadOnlyCollection<TrackerProgress> progress) =>
         _tree.Chain is { } chain && QuestProfit.HasPrerequisite(entry.Quests[0], chain, progress);
@@ -1735,8 +1732,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
     /// <summary>The chosen character's entries and the dungeons that advance two of them or more.</summary>
     private List<ProfitRow> MyRows()
     {
-        IReadOnlyCollection<TrackerProgress> mine = Tracker.Progress is { } progress ? [progress] : [];
-        var rows = Recommendable.Select(e => QuestRow(e.Gain, e, EntryNode(e), mine)).ToList();
+        var rows = Recommendable.Select(e => QuestRow(e.Gain, e, EntryNode(e), Mine)).ToList();
 
         // A dungeon advancing one quest only would repeat that quest's row.
         foreach (var value in DungeonValues.Values.Where(v => v.Advances.Count >= 2))
@@ -1744,10 +1740,9 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             if (_catalog.Catalog.Dungeons.FirstOrDefault(d => d.Id == value.PapychaDungeonId) is { } dungeon)
             {
                 var node = QuestTree.NodeOf(dungeon) with { Glyph = QuestTree.GlyphOf(dungeon.Kind) };
-                // Hidden with "Avec prérequis" off once every quest it advances is.
                 rows.Add(new ProfitRow(
                     value.Gain, value.Minutes, value.Advances[0].Quests[0], Valued(node, value) with { Duration = QuestTime.Text(value.Minutes) },
-                    Dungeon: true, Prerequisite: value.Advances.All(a => HasPrerequisite(a, mine))));
+                    Dungeon: true, Prerequisite: false));
             }
         }
 
@@ -1794,7 +1789,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         Tracker.Progress is not { } progress || _facts is null
             ? []
             : [.. QuestProfit.Runs(_catalog.Catalog.Quests, _facts, progress, Tracker.RewardLevel, Tracker.RewardXpBonus,
-                    ProfitWithPrerequisites, ProfitDungeons, _dungeonNames)
+                    ProfitDungeons, _dungeonNames)
                 .Select(r => RunRow(r, r.Gain, QuestGainText.Tip(r.Gain, effort: r.Effort) + "\n"
                     + string.Join("\n", r.Quests.Select(RunLine))))];
 
@@ -1806,7 +1801,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         _facts is null
             ? []
             : [.. QuestPlanning.TeamRuns(_catalog.Catalog.Quests, _facts, Tracker.TeamProgress(), Tracker.RewardXpBonus,
-                    ProfitWithPrerequisites, ProfitDungeons, _dungeonNames)
+                    ProfitDungeons, _dungeonNames)
                 .Select(t =>
                 {
                     var tip = QuestGainText.Tip(t.Gain, effort: t.Entry.Effort) + "\n"

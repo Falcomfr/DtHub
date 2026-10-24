@@ -1690,21 +1690,19 @@ public sealed class SettingsService : IDisposable
             },
             cancellationToken);
 
-    /// <summary>Remembers the "Recommandées" tab, its two toggles and its mode, quests or series.</summary>
+    /// <summary>Remembers the "Recommandées" tab, its dungeons toggle and its mode, quests or series.</summary>
     public Task SetProfitFiltersAsync(
-        bool kamas, bool dungeons, bool withPrerequisites, bool series, CancellationToken cancellationToken = default) =>
+        bool kamas, bool dungeons, bool series, CancellationToken cancellationToken = default) =>
         UpdateIfChangedAsync(
             settings =>
             {
-                if (settings.ProfitKamas == kamas && settings.ProfitDungeons == dungeons
-                    && settings.ProfitWithPrerequisites == withPrerequisites && settings.ProfitSeries == series)
+                if (settings.ProfitKamas == kamas && settings.ProfitDungeons == dungeons && settings.ProfitSeries == series)
                 {
                     return false;
                 }
 
                 settings.ProfitKamas = kamas;
                 settings.ProfitDungeons = dungeons;
-                settings.ProfitWithPrerequisites = withPrerequisites;
                 settings.ProfitSeries = series;
                 return true;
             },

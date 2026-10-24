@@ -11263,7 +11263,8 @@ sont retirés, l'onglet le dit. Puis deux boutons :
   donjon » : un objectif est une course de donjon selon la règle de la carte de
   sortie de D221, ou un objectif nomme un donjon du jeu comme pour les lignes de
   donjon (D220), la même source que ces lignes (revue du 23/10/2026) ;
-- « Avec prérequis », éteint par défaut. Une quête a un prérequis quand l'un de
+- « Avec prérequis », éteint par défaut, retiré le 24/10/2026 (plus bas). Une
+  quête a un prérequis quand l'un de
   ses prérequis ne désigne pas, par `QuestChainIndex`, une quête terminée par le
   personnage choisi (dans la vue d'équipe, par chacun des personnages de la
   ligne) : créneau horaire, alignement, objet, succès, texte libre, ou quête
@@ -11280,6 +11281,18 @@ boutons agissent avant les listes courtes : la liste garde ses 20 lignes.
 L'onglet et les deux boutons sont retenus dans les réglages ; les clés des quatre
 anciens filtres sont simplement ignorées à la lecture d'un ancien fichier.
 
+**Plus de bouton « Avec prérequis ».** Demande du 24/10/2026 : « vire carrément
+'Avec prérequis' et n'affiche pas de quêtes non faisables directement ». Le bouton
+est retiré, et « Recommandées » fait toujours ce qu'il faisait éteint : une quête
+avec un prérequis (`QuestProfit.HasPrerequisite`, gardée et testée) n'y apparaît
+jamais, en mode « Quêtes » comme en vue d'équipe ; en mode « Succès », la suite
+s'arrête avant elle (et une série dont la première quête en a un n'a pas de
+ligne) ; une ligne de donjon ne compte plus ces quêtes, ni pour son gain ni pour
+les deux quêtes qu'il lui faut, et la valeur des donjons des listes du guide non
+plus (la même valeur). Seul « Donjons inclus » reste à côté des onglets. La clé
+`profitWithPrerequisites` d'un ancien fichier de réglages est ignorée à la
+lecture, comme les quatre anciens filtres.
+
 **Mode « Succès ».** Demande du 24/10/2026 : « tu n'affiches plus quand il y a
 plusieurs quêtes ? genre un succès, rajoute un autre mode qui serait succès, genre
 suite de quêtes rentable xp ou kamas ». En tête de la rangée de la barre, deux
@@ -11295,7 +11308,7 @@ optimal de sa première étape), écartée des listes courtes (trousseau, plus d
 âmes), avec un donjon quand « Donjons inclus » est éteint (même règle que le
 filtre : course de donjon ou donjon nommé ; on coupe la suite avant cette quête,
 plus simple à lire que de retirer la série), ou avec un prérequis
-(`QuestProfit.HasPrerequisite`) quand « Avec prérequis » est éteint, une quête
+(`QuestProfit.HasPrerequisite`), une quête
 précédente de la suite comptant comme faite. Si la première quête échoue l'une de
 ces règles, la série n'a pas de ligne, comme sa quête seule dans « Quêtes ». Seules
 les suites d'au moins 2 quêtes restent (une suite d'une quête est déjà dans

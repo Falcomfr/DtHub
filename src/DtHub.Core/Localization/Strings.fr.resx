@@ -2992,12 +2992,6 @@ Pour l'éviter : {1}  ›  « Verrouillage auto. Dossier sécurisé » › l'opt
   <data name="ProfitDungeonsTip" xml:space="preserve">
     <value>Garde les donjons et les quêtes qui passent par un donjon</value>
   </data>
-  <data name="ProfitWithPrerequisites" xml:space="preserve">
-    <value>Avec prérequis</value>
-  </data>
-  <data name="ProfitWithPrerequisitesTip" xml:space="preserve">
-    <value>Affiche aussi les quêtes qui demandent une condition que DT Hub ne peut pas vérifier : créneau horaire, alignement, objet, succès…</value>
-  </data>
   <data name="ProfitHowXp" xml:space="preserve">
     <value>Classées par XP gagnée par minute estimée, à votre niveau.</value>
   </data>

@@ -122,7 +122,7 @@ public static class QuestProfit
     }
 
     /// <summary>
-    /// Whether the quest has a prerequisite in the sense of the "Avec prérequis" toggle: a need that is not a quest
+    /// Whether the quest has a prerequisite, which keeps it out of "Recommandées": a need that is not a quest
     /// every character in <paramref name="progress"/> has completed (a time slot, an alignment, an item, or a previous
     /// quest still to do). A need naming the quest itself is ignored, as in <see cref="Previous"/>. A quest every one of
     /// them has in progress has none.
@@ -294,13 +294,13 @@ public static class QuestProfit
     /// The "Succès" mode: per series, the run from its next doable quest (as <see cref="Entries"/> starts one) through
     /// its later quests not done or ignored, in play order, stopping before the first that is repeatable, blocked, above
     /// the level, of unknown gain, very long (keyring, souls), with a dungeon when <paramref name="dungeons"/> is off, or
-    /// with a prerequisite (<see cref="HasPrerequisite"/>, the run's own quests counting as done) when
-    /// <paramref name="withPrerequisites"/> is off; the first quest failing one gives no run. Runs of two quests or more,
+    /// with a prerequisite (<see cref="HasPrerequisite"/>, the run's own quests counting as done); the first quest
+    /// failing one gives no run. Runs of two quests or more,
     /// titled by the series, gains and minutes summed.
     /// </summary>
     public static IReadOnlyList<ProfitEntry> Runs(
         IEnumerable<QuestSummary> catalog, IReadOnlyDictionary<int, TouchQuestFacts> facts, TrackerProgress progress,
-        int level, int bonusPercent, bool withPrerequisites, bool dungeons, IReadOnlyDictionary<int, string> dungeonNames)
+        int level, int bonusPercent, bool dungeons, IReadOnlyDictionary<int, string> dungeonNames)
     {
         ArgumentNullException.ThrowIfNull(catalog);
         ArgumentNullException.ThrowIfNull(facts);
@@ -325,7 +325,7 @@ public static class QuestProfit
 
                 if (GainOf(f!, level, bonusPercent) is null || IsVeryLong(f!)
                     || (!dungeons && (QuestTime.HasDungeonRun(f!) || Named(f!, names).Any()))
-                    || (!withPrerequisites && HasPrerequisite(q, chain, [progress], [.. run.Select(r => r.Id)])))
+                    || HasPrerequisite(q, chain, [progress], [.. run.Select(r => r.Id)]))
                 {
                     break;
                 }

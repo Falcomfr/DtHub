@@ -165,9 +165,6 @@ public sealed class AppSettingsDocument
     /// <summary>"Recommandées" keeps dungeons and the quests with a dungeon run ("Donjons inclus").</summary>
     public bool ProfitDungeons { get; set; } = true;
 
-    /// <summary>"Recommandées" keeps the quests with a prerequisite DT Hub cannot check ("Avec prérequis").</summary>
-    public bool ProfitWithPrerequisites { get; set; }
-
     /// <summary>"Recommandées" lists series runs ("Succès") rather than single quests ("Quêtes").</summary>
     public bool ProfitSeries { get; set; }
 

@@ -1864,28 +1864,26 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task Recommandees_s_ouvre_sur_l_xp_avec_donjons_sans_prerequis_puis_se_relit()
+    public async Task Recommandees_s_ouvre_sur_l_xp_avec_donjons_puis_se_relit()
     {
         var document = await _service.GetAsync();
 
         Assert.False(document.ProfitKamas);
         Assert.True(document.ProfitDungeons);
-        Assert.False(document.ProfitWithPrerequisites);
         Assert.False(document.ProfitSeries);
 
-        await _service.SetProfitFiltersAsync(kamas: true, dungeons: false, withPrerequisites: true, series: true);
+        await _service.SetProfitFiltersAsync(kamas: true, dungeons: false, series: true);
 
         document = await _service.GetAsync();
 
         Assert.True(document.ProfitKamas);
         Assert.False(document.ProfitDungeons);
-        Assert.True(document.ProfitWithPrerequisites);
         Assert.True(document.ProfitSeries);
 
         var writes = 0;
         _service.Changed += (_, _) => writes++;
 
-        await _service.SetProfitFiltersAsync(kamas: true, dungeons: false, withPrerequisites: true, series: true);
+        await _service.SetProfitFiltersAsync(kamas: true, dungeons: false, series: true);
 
         Assert.Equal(0, writes);
     }
@@ -1896,7 +1894,7 @@ public sealed class SettingsServiceTests : IDisposable
         Directory.CreateDirectory(_directory);
         await File.WriteAllTextAsync(
             _store.FilePath,
-            """{ "virtualDisplayDpi": 320, "profitInProgress": false, "profitNotStarted": true, "profitWithDungeon": true, "profitNoDungeon": false }""",
+            """{ "virtualDisplayDpi": 320, "profitInProgress": false, "profitNotStarted": true, "profitWithDungeon": true, "profitNoDungeon": false, "profitWithPrerequisites": true }""",
             CancellationToken.None);
 
         _service.Invalidate();
