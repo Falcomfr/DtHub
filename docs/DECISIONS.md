@@ -11434,7 +11434,12 @@ site pour son personnage actif, `QuestProfit.Startable` ; sans elle, toutes les
 règles de quête faisable sauf le gain, `QuestProfit.IsDoable`), ou en cours. Une
 quête bloquée reste affichée (précision du même jour : le joueur veut encore la
 voir) : pour ces règles elle compte comme non commencée (`QuestTracking.Doable`,
-testée). Non relié, rien n'est filtré, comme avant. Chaque zone compte alors ses
+testée). Audit visuel du même jour : « Manuscrit de Terra Cogita », « L'éternelle
+moisson » ou « L'heure c'est l'heure » (« Être dans les créneaux horaires »)
+restaient listées ; l'utilisateur ne veut que ce qui se fait tout de suite. Une
+quête à prérequis que DT Hub ne vérifie pas (`QuestProfit.HasPrerequisite` :
+créneau horaire, alignement, objet, comme dans « Recommandées ») sort donc aussi
+de « Faisables », sauf en cours ; la bulle du bouton le dit. Non relié, rien n'est filtré, comme avant. Chaque zone compte alors ses
 quêtes faisables au lieu de faites sur le total. Demande du 24/10/2026 : « quand
 Faisables est activé, enlève carrément le nombre ici, ça fait doublon ». Une
 première lecture avait retiré le sablier et le nombre de quêtes en cours ; le

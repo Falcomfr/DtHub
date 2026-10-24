@@ -209,6 +209,21 @@ public class QuestTrackingTests
         Assert.True(QuestTracking.Doable(catalog[1], blocked with { Available = new HashSet<int> { 2 } }, null, 10, chain));
     }
 
+    [Fact]
+    public void Doable_leaves_out_a_quest_with_a_prerequisite_DT_Hub_cannot_check()
+    {
+        // "L'heure c'est l'heure": a time slot, as Recommandées leaves it out; in progress, it stays.
+        var catalog = new[] { Named(1, 0, "Être dans les créneaux horaires") };
+        var chain = new QuestChainIndex(catalog);
+        var facts = new TouchQuestFacts([new TouchStepReward(10, 1f, 1f, 0f, false, [])], []);
+        var none = new TrackerProgress(new Dictionary<int, QuestStatus>(), new HashSet<int>(), new HashSet<int>(), []);
+
+        Assert.False(QuestTracking.Doable(catalog[0], none, facts, 10, chain));
+        Assert.False(QuestTracking.Doable(catalog[0], none with { Available = new HashSet<int> { 1 } }, facts, 10, chain));
+        Assert.True(QuestTracking.Passes(
+            none with { Statuses = new Dictionary<int, QuestStatus> { [1] = QuestStatus.InProgress } }, 1, true, false));
+    }
+
     [Theory]
     [InlineData(QuestStatus.NotStarted, 5, 1, 0, true)]
     [InlineData(QuestStatus.NotStarted, 5, 0, 0, false)]
