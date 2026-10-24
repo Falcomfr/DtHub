@@ -149,6 +149,10 @@ public sealed partial class UpdateService(
 
         var staged = UpdatePaths.Staged(_paths.UpdatesDirectory, release.Version);
 
+        // Renamed once complete: a download cut short by quitting must not
+        // pass for done at the next startup.
+        var part = staged + ".part";
+
         try
         {
             _ = Directory.CreateDirectory(_paths.UpdatesDirectory);
@@ -156,8 +160,10 @@ public sealed partial class UpdateService(
             if (!File.Exists(staged))
             {
                 await _source
-                    .DownloadAsync(release.DownloadUrl, staged, progress: null, cancellationToken)
+                    .DownloadAsync(release.DownloadUrl, part, progress: null, cancellationToken)
                     .ConfigureAwait(true);
+
+                File.Move(part, staged, overwrite: true);
             }
 
             var expected = Digest(await _source
@@ -201,6 +207,7 @@ public sealed partial class UpdateService(
         {
             LogPrepareFailed(exception);
             Delete(staged);
+            Delete(part);
 
             return false;
         }
