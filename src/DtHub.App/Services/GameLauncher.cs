@@ -5577,6 +5577,19 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             frame.Reorder(order);
             frame.ShowAccountKeys(AccountKeyOf);
+
+            // A frame born during full screen, at startup or on "Reopen now",
+            // came up windowed while the panel stayed in full screen (2026-10-24).
+            // After the placement's second pass, queued at Loaded, which undid it.
+            _ = frame.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ContextIdle, () =>
+            {
+                if (_windows.IsFullscreen
+                    && MovableFrame is { IsFullscreen: false } movable
+                    && _windows.ScreenBoundsFor(movable.Handle) is { } bounds)
+                {
+                    movable.SetFullscreen(true, bounds);
+                }
+            });
         }).ConfigureAwait(false);
     }
 

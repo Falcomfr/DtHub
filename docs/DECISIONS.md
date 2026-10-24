@@ -11047,3 +11047,12 @@ La mesure est `WindowManagerService.FullscreenMisfits`, éprouvée par les tests
 l'affichage (`ConfiguratorViewModel.ShowsFullscreenBands`) est vérifié à la
 lecture. Le seuil de 1 % laisse passer l'arrondi pair de la définition, alors que
 le cas signalé s'écarte de 6 %.
+
+Vérifié en réel le 24/10/2026 sur le 13T Pro, écran 3840x2160 : jeu né en
+1976x1040, bandes et bandeau en plein écran, bandeau parti à la sortie, puis
+après « Rouvrir maintenant » afficheur en 1920x1080 et écran rempli, en fenêtre
+libre comme en onglets. L'essai a révélé un défaut plus ancien : un cadre à
+onglets créé pendant le plein écran (démarrage ou réouverture) s'ouvrait en
+fenêtré alors que DT Hub restait en plein écran. La seconde passe de
+`WindowPlacements.Restore`, différée à la priorité Loaded, défaisait le plein
+écran ; le cadre y entre maintenant à ContextIdle, après elle.
