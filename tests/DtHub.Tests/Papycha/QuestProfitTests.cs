@@ -1137,6 +1137,32 @@ public class QuestProfitTests
     }
 
     [Fact]
+    public void A_run_from_the_shared_root_keeps_its_places_on_its_way()
+    {
+        // Falcom, 24/10/2026: "Développement durable." (1) to do, alchemy (101-110) done up to "Le nom de la Mycose"
+        // (108), "Crocs n'en bourrent" (109) to do, "Ville Fleurie." (110) after it; farming (201-210) never started.
+        var catalog = new List<QuestSummary> { Quest(1, "S", 1) };
+        for (var n = 1; n <= 10; n++)
+        {
+            foreach (var way in new[] { 100, 200 })
+            {
+                catalog.Add(Quest(way + n, "S", 2 * n + way / 100 - 1) with
+                {
+                    Prerequisites = [n == 1 ? "Q1" : "Q" + (way + n - 1)],
+                    Alternatives = [(way == 100 ? 200 : 100) + n],
+                });
+            }
+        }
+
+        var facts = catalog.ToDictionary(q => q.Id, q => Xp(1f));
+
+        var run = Assert.Single(Runs([.. catalog], Progress([], completed: Enumerable.Range(101, 8)), facts));
+        Assert.Equal([1, 109, 110], run.Quests.Select(q => q.Id));
+        // "(1-11/11)", not "(1-19/19)": walking on from the root does not enter the farming way.
+        Assert.Equal([1, .. Enumerable.Range(101, 10)], QuestPlayOrder.Way(catalog, run.Quests).Select(q => q.Id));
+    }
+
+    [Fact]
     public void Two_ways_give_one_quests_entry_each_until_one_is_taken()
     {
         var catalog = Ways();

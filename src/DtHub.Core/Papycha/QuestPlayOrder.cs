@@ -146,8 +146,11 @@ public static class QuestPlayOrder
         HashSet<int> along = [.. on.Select(q => q.Id)];
         // The other ways of these quests: walking from a root shared by both ways must not enter them.
         HashSet<int> others = [.. on.SelectMany(q => q.Alternatives)];
-        foreach (var forward in new[] { true, false })
+        foreach (var forward in new[] { false, true })
         {
+            // Back first, then the other ways of every quest behind too: a run from a root still to do
+            // ("Développement durable.") keeps to the way it joins after it.
+            if (forward) others.UnionWith(series.Where(q => along.Contains(q.Id)).SelectMany(q => q.Alternatives));
             var reached = new Stack<int>(on.Select(q => q.Id));
             HashSet<int> seen = [.. reached];
             while (reached.TryPop(out var at))

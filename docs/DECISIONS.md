@@ -11524,7 +11524,14 @@ dévotions d'« Un nouveau départ », les quêtes d'Allister dont les prérequi
 du texte) n'a pas de graphe pour dire la voie ; ses places et ses voisines restent
 celles de la liste (« La découverte d'un destin » 1/18 et une dévotion 4/4 se
 contredisaient), et une suite qui part de la racine ne compte pas l'autre voie
-(« (1-11/11) », non « (1-21/21) »).
+(« (1-11/11) », non « (1-21/21) »). Audit visuel du même jour : la suite de
+Falcom, qui a fait l'alchimie jusqu'au « Nom de la Mycose » sans « Développement
+durable. », est « Développement durable. », « Crocs n'en bourrent » et « Ville
+Fleurie. », toutes trois sur la voie de l'alchimie, mais elle affichait
+« (1-19/19) » : en partant de la racine, le parcours n'écartait que les
+alternatives des quêtes de la suite et entrait dans l'agriculture. La voie se lit
+désormais d'abord en arrière, puis en avant sans entrer dans une alternative
+d'une quête déjà sur elle : « (1-11/11) ».
 
 *Règle E.* « Succès X réalisé » demande toutes les fins de la série (les quêtes
 qu'aucune autre de la série ne suit), une fin de la voie écartée comptant comme
