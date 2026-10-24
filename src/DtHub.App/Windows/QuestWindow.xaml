@@ -1562,55 +1562,23 @@
                       </Grid>
                     </Grid>
 
-                    <!-- The right-hand icons of a quest row: gift, priority,
-                         rhythm, status, lock, then the time and the two gains.
+                    <!-- The right-hand icons of a quest row: rhythm, status,
+                         priority, lock, gift, then the time and the two gains.
                          Each icon is collapsed when it has nothing to say, so
                          the ones present, each in a 15 px square (the rhythm's
                          and the lock's drawing size), pack against the time
                          three pixels apart:
                          the user prefers no gaps to straight icon columns.
-                         The lock comes last as it is on most quests, so the
-                         status mark beside it lines up in practice. Only the
+                         The most frequent sits rightmost, against the time, so
+                         it lines up down the list (asked 2026-10-24): the gift
+                         (386 quests of 787, in every list), then the lock (only
+                         while prerequisites are unmet, never in Recommended),
+                         the priority mark, the status and the rarest rhythm. Only the
                          time and the gains keep fixed columns, they have to
                          line up.
                          Everything is collapsed on rows that are not quests.
                          A transparent border carries each tooltip, an open
                          stroke catches no hover. -->
-                    <!-- A gift: the quest gives more than XP and kamas, what
-                         comes on hover. Collapsed otherwise, like the others. -->
-                    <Border x:Name="Cadeau" Width="15" Height="15"
-                            Margin="3,0,0,0" VerticalAlignment="Center"
-                            Background="Transparent"
-                            ToolTip="{Binding OtherRewards}"
-                            ToolTipService.InitialShowDelay="200"
-                            Visibility="{Binding OtherRewards,
-                                                 Converter={StaticResource EmptyToVisibility},
-                                                 ConverterParameter=inverse}">
-                      <Path Width="12" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center"
-                            Stretch="None" Stroke="{DynamicResource GlyphSuccessBrush}"
-                            StrokeThickness="1.2" StrokeLineJoin="Round"
-                            StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                            Data="M 1.5,4.5 H 10.5 V 6.5 H 1.5 Z M 2.5,6.5 V 11 H 9.5 V 6.5 M 6,4.5 V 11
-                                  M 6,4.5 C 5,1.8 2.6,2.2 3.8,4.5 M 6,4.5 C 7,1.8 9.4,2.2 8.2,4.5" />
-                    </Border>
-
-                    <!-- The priority mark of a quest doable now, among the
-                         character's doable quests: a flame, a hollow flame,
-                         a dot. Hidden by default and collapsed on rows
-                         without a dungeon: a dungeon row without a mark keeps
-                         its square, so its facts stay in their column. -->
-                    <Border x:Name="Priorite" Width="15" Height="15"
-                            Margin="3,0,0,0" VerticalAlignment="Center"
-                            Background="Transparent" Visibility="Hidden"
-                            ToolTip="{Binding ProfitTip}"
-                            ToolTipService.InitialShowDelay="200">
-                      <Path x:Name="PrioriteTrait" Width="12" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center"
-                            Stretch="None"
-                            Fill="{DynamicResource GlyphPriorityBrush}"
-                            Stroke="{DynamicResource GlyphPriorityBrush}" StrokeThickness="0"
-                            StrokeLineJoin="Round" />
-                    </Border>
-
                     <!-- A quest's rhythm; a quest done once has none. The
                          word comes on hover. -->
                     <Border x:Name="Rythme" Width="15" Height="15" Margin="3,0,0,0"
@@ -1635,6 +1603,23 @@
                             Stretch="None"
                             Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.5"
                             StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                            StrokeLineJoin="Round" />
+                    </Border>
+
+                    <!-- The priority mark of a quest doable now, among the
+                         character's doable quests: a flame, a hollow flame,
+                         a dot. Hidden by default and collapsed on rows
+                         without a dungeon: a dungeon row without a mark keeps
+                         its square, so its facts stay in their column. -->
+                    <Border x:Name="Priorite" Width="15" Height="15"
+                            Margin="3,0,0,0" VerticalAlignment="Center"
+                            Background="Transparent" Visibility="Hidden"
+                            ToolTip="{Binding ProfitTip}"
+                            ToolTipService.InitialShowDelay="200">
+                      <Path x:Name="PrioriteTrait" Width="12" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Stretch="None"
+                            Fill="{DynamicResource GlyphPriorityBrush}"
+                            Stroke="{DynamicResource GlyphPriorityBrush}" StrokeThickness="0"
                             StrokeLineJoin="Round" />
                     </Border>
 
@@ -1753,6 +1738,24 @@
                         </Path.Style>
                       </Path>
                     </Button>
+
+                    <!-- A gift: the quest gives more than XP and kamas, what
+                         comes on hover. Collapsed otherwise, like the others. -->
+                    <Border x:Name="Cadeau" Width="15" Height="15"
+                            Margin="3,0,0,0" VerticalAlignment="Center"
+                            Background="Transparent"
+                            ToolTip="{Binding OtherRewards}"
+                            ToolTipService.InitialShowDelay="200"
+                            Visibility="{Binding OtherRewards,
+                                                 Converter={StaticResource EmptyToVisibility},
+                                                 ConverterParameter=inverse}">
+                      <Path Width="12" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Stretch="None" Stroke="{DynamicResource GlyphSuccessBrush}"
+                            StrokeThickness="1.2" StrokeLineJoin="Round"
+                            StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                            Data="M 1.5,4.5 H 10.5 V 6.5 H 1.5 Z M 2.5,6.5 V 11 H 9.5 V 6.5 M 6,4.5 V 11
+                                  M 6,4.5 C 5,1.8 2.6,2.2 3.8,4.5 M 6,4.5 C 7,1.8 9.4,2.2 8.2,4.5" />
+                    </Border>
 
                     <!-- The estimated time, in a slot of fixed width just left of the gains, the
                          words right-aligned: it stands at the same place on every row whatever
