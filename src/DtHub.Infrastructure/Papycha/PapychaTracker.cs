@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 
 using DtHub.Core;
+using DtHub.Core.Localization;
 using DtHub.Core.Papycha;
 
 using Microsoft.Extensions.Logging;
@@ -50,7 +51,7 @@ public sealed partial class PapychaTracker : IPapychaTracker
         new("status", QuestStatusCodes.ToSite(status)),
     ];
 
-    /// <summary>Fields of the site's character save, in its order.</summary>
+    /// <summary>Fields of the site's character save, in its order; only for a character whose every field is known.</summary>
     public static IReadOnlyList<KeyValuePair<string, string>> CharacterForm(string nonce, TrackerCharacter c) =>
     [
         new("action", "papycha_tracker_character"),
@@ -58,10 +59,10 @@ public sealed partial class PapychaTracker : IPapychaTracker
         new("mode", "save"),
         new("character_id", c.Id),
         new("name", c.Name),
-        new("gender", c.Gender),
+        new("gender", c.Gender ?? string.Empty),
         new("level", c.Level.ToString(System.Globalization.CultureInfo.InvariantCulture)),
-        new("class_key", c.ClassKey),
-        new("color", c.Color),
+        new("class_key", c.ClassKey ?? string.Empty),
+        new("color", c.Color ?? string.Empty),
     ];
 
     public async Task<TrackerReadResult> ReadAsync(string cookie, CancellationToken cancellationToken = default)
@@ -99,9 +100,19 @@ public sealed partial class PapychaTracker : IPapychaTracker
         CancellationToken cancellationToken = default) =>
         WriteAsync(cookie, nonce => StatusForm(nonce, characterId, questId, status), cancellationToken);
 
+    /// <summary>
+    /// The save sends every field back (D218): with one the page did not give, nothing is sent, rather than a guess
+    /// overwriting the character on the site.
+    /// </summary>
     public Task<TrackerWriteResult> SaveCharacterAsync(
-        string cookie, TrackerCharacter character, CancellationToken cancellationToken = default) =>
-        WriteAsync(cookie, nonce => CharacterForm(nonce, character), cancellationToken);
+        string cookie, TrackerCharacter character, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(character);
+
+        return string.IsNullOrEmpty(character.Name) || character.Gender is null || character.ClassKey is null || character.Color is null
+            ? Task.FromResult(new TrackerWriteResult(false, Strings.Get("TrackerCharacterIncomplete")))
+            : WriteAsync(cookie, nonce => CharacterForm(nonce, character), cancellationToken);
+    }
 
     // Read first if no nonce, post, and on a refusal one fresh read then one retry.
     private async Task<TrackerWriteResult> WriteAsync(

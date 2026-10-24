@@ -87,9 +87,9 @@ public static class TrackerPageParser
                     id,
                     Text(c, "name") ?? string.Empty,
                     Number(c, "level") ?? 0,
-                    Text(c, "gender") ?? "male",
-                    Text(c, "class_key") ?? "cra",
-                    Text(c, "color") ?? "#6b992f"));
+                    Text(c, "gender"),
+                    Text(c, "class_key"),
+                    Text(c, "color")));
                 var view = views.ValueKind == JsonValueKind.Object && views.TryGetProperty(id, out var w) ? w : default;
                 progress[id] = ReadProgress(c, view);
             }

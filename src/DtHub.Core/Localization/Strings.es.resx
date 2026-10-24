@@ -2490,6 +2490,9 @@ Para evitarlo: {1}  ›  «Bloqueo automático de Carpeta segura» › la opció
   <data name="TrackerUnreadable" xml:space="preserve">
     <value>Seguimiento de Papycha ilegible por ahora</value>
   </data>
+  <data name="TrackerCharacterIncomplete" xml:space="preserve">
+    <value>Papycha no ha dado todo el perfil de este personaje: nivel no guardado, no se sobrescribe nada</value>
+  </data>
   <data name="TrackerUnlink" xml:space="preserve">
     <value>Desvincular</value>
   </data>

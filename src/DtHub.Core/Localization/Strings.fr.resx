@@ -2490,6 +2490,9 @@ Pour l'éviter : {1}  ›  « Verrouillage auto. Dossier sécurisé » › l'opt
   <data name="TrackerUnreadable" xml:space="preserve">
     <value>Suivi Papycha illisible pour le moment</value>
   </data>
+  <data name="TrackerCharacterIncomplete" xml:space="preserve">
+    <value>Papycha n'a pas donné tout le profil de ce personnage : niveau non enregistré, rien n'est écrasé</value>
+  </data>
   <data name="TrackerUnlink" xml:space="preserve">
     <value>Délier</value>
   </data>

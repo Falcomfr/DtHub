@@ -63,12 +63,13 @@ public class TrackerPageParserTests
     }
 
     [Fact]
-    public void Character_look_is_read_with_site_defaults()
+    public void Character_look_missing_on_the_page_stays_unknown()
     {
         var result = TrackerPageParser.Parse("""window.PAPYCHA_QUEST_TRACKER = {"nonce":"n","space":{"characters":[{"id":"a","name":"A","level":1,"gender":"female","class_key":"enutrof","color":"#123456"},{"id":"b","name":"B","level":2}]},"views":[]};""");
 
         Assert.Equal(new TrackerCharacter("a", "A", 1, "female", "enutrof", "#123456"), result.State!.Characters[0]);
-        Assert.Equal(new TrackerCharacter("b", "B", 2, "male", "cra", "#6b992f"), result.State.Characters[1]);
+        // Never a male green Cra: saving the level would write that back to the site.
+        Assert.Equal(new TrackerCharacter("b", "B", 2, null, null, null), result.State.Characters[1]);
     }
 
     [Fact]

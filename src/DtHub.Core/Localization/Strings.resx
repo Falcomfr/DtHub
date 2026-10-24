@@ -2490,6 +2490,9 @@ To avoid it: {1}  ›  "Auto lock Secure Folder" › the longest option.</value>
   <data name="TrackerUnreadable" xml:space="preserve">
     <value>Papycha tracker unreadable for now</value>
   </data>
+  <data name="TrackerCharacterIncomplete" xml:space="preserve">
+    <value>Papycha did not give this character's whole profile: level not saved, nothing overwritten</value>
+  </data>
   <data name="TrackerUnlink" xml:space="preserve">
     <value>Unlink</value>
   </data>

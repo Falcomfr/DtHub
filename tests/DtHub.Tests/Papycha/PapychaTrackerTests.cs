@@ -139,6 +139,30 @@ public class PapychaTrackerTests
         Assert.Contains("action=papycha_tracker_character&nonce=26794092b6&mode=save&character_id=b&name=Falcom&gender=female&level=191&class_key=enutrof&color=%23123456", handler.Requests[1].Body);
     }
 
+    [Theory]
+    [InlineData("name")]
+    [InlineData("gender")]
+    [InlineData("class")]
+    [InlineData("color")]
+    public async Task Save_character_with_a_field_the_site_did_not_give_sends_nothing(string missing)
+    {
+        var (tracker, handler) = Make(Linked, """{"success":true}""");
+        var character = missing switch
+        {
+            "name" => Falcom with { Name = "" },
+            "gender" => Falcom with { Gender = null },
+            "class" => Falcom with { ClassKey = null },
+            _ => Falcom with { Color = null },
+        };
+
+        var result = await tracker.SaveCharacterAsync("abc", character);
+
+        Assert.False(result.Success);
+        Assert.False(string.IsNullOrWhiteSpace(result.Message));
+        Assert.Null(result.After);
+        Assert.Empty(handler.Requests);
+    }
+
     [Fact]
     public async Task Save_character_refused_retries_once_after_a_fresh_read()
     {

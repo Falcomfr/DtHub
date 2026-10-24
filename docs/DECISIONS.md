@@ -11068,7 +11068,10 @@ Le niveau vient du personnage Papycha choisi quand le suivi est lié, d'un
 réglage local sinon. Une case de niveau dans la fenêtre des guides le change et,
 lié, l'enregistre sur Papycha (action `papycha_tracker_character`,
 `mode=save`) en renvoyant les autres champs du personnage tels que lus : un
-refus laisse l'ancienne valeur. Le bonus d'XP est une case « Bonus Pack » (+150 %),
+refus laisse l'ancienne valeur. Si la page n'a pas donné le nom, le genre, la
+classe ou la couleur, rien n'est envoyé et un message le dit : ces champs ne sont
+jamais devinés (revue du 24/10/2026 : un champ absent devenait « male », « cra »
+et vert, et l'enregistrement du niveau l'aurait écrit sur le site). Le bonus d'XP est une case « Bonus Pack » (+150 %),
 décochée par défaut : DT Hub ne voit pas le Bonus Pack. Si une étape manque, que le serveur
 ne répond pas ou que la quête n'est pas appariée au jeu, la ligne est masquée,
 jamais devinée.

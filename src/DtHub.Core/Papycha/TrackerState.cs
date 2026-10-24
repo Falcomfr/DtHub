@@ -1,7 +1,10 @@
 ﻿namespace DtHub.Core.Papycha;
 
-/// <summary>A non-archived character of the player's tracker.</summary>
-public sealed record TrackerCharacter(string Id, string Name, int Level, string Gender = "male", string ClassKey = "cra", string Color = "#6b992f");
+/// <summary>
+/// A non-archived character of the player's tracker. <c>Gender</c>, <c>ClassKey</c> and <c>Color</c> are null when the
+/// page did not give them: never guessed, since saving the level sends them back.
+/// </summary>
+public sealed record TrackerCharacter(string Id, string Name, int Level, string? Gender = null, string? ClassKey = null, string? Color = null);
 
 /// <summary>What the tracker knows about one character's quests.</summary>
 /// <param name="Statuses">Status per quest id, only the quests the player touched.</param>
