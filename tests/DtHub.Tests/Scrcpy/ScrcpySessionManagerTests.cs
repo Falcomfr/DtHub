@@ -638,6 +638,76 @@ public class ScrcpySessionManagerTests
     }
 
     [Fact]
+    public async Task Un_relais_son_qui_attend_son_serveur_ne_bloque_pas_les_autres_telephones()
+    {
+        // The relay's server answers up to ten seconds late on a slow Wi-Fi:
+        // every phone's closing window and Quit went through the same lock.
+        var sound = new FakeProcessSession(9);
+        var launcher = new FakeProcessLauncher()
+            .Prepare(new FakeProcessSession(1).Emit(NewDisplayLine))
+            .Prepare(new FakeProcessSession(2).Emit(NewDisplayLine))
+            .Prepare(sound);
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        var a = await manager.StartAsync(Target(0), WithSound, null, CancellationToken.None);
+        await manager.StartAsync(Target(999), WithSound with { AudioEnabled = false }, null, CancellationToken.None);
+
+        var stopping = manager.StopAsync(a.Id, CancellationToken.None);
+
+        for (var waited = 0; !launcher.Requests.Exists(IsSoundKeeper) && waited < 100; waited++)
+        {
+            await Task.Delay(20);
+        }
+
+        await manager.SetSoundToPcAsync(false).WaitAsync(TimeSpan.FromSeconds(3));
+        await stopping.WaitAsync(TimeSpan.FromSeconds(3));
+
+        Assert.True(sound.WasKilled);
+    }
+
+    [Fact]
+    public async Task Un_relais_son_qui_ne_demarre_pas_rend_la_file_du_telephone()
+    {
+        // Any failure, not the expected launch failure alone: a lease kept
+        // would block every later opening on this phone until a restart.
+        var launcher = new FakeProcessLauncher()
+            .Prepare(new FakeProcessSession(1).Emit(NewDisplayLine))
+            .Prepare(new FakeProcessSession(2).Emit(NewDisplayLine))
+            // The relay the read loop may still start and the account reopened,
+            // in either order.
+            .Prepare(new FakeProcessSession(3).Emit(ServerLine).Emit(NewDisplayLine))
+            .Prepare(new FakeProcessSession(4).Emit(ServerLine).Emit(NewDisplayLine));
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        var a = await manager.StartAsync(Target(0), WithSound, null, CancellationToken.None);
+        await manager.StartAsync(Target(999), WithSound with { AudioEnabled = false }, null, CancellationToken.None);
+
+        // Thrown once, by the close or by its read loop, whichever hands the sound on first.
+        launcher.LaunchError = new InvalidOperationException("Inattendu.");
+
+        try
+        {
+            await manager.StopAsync(a.Id, CancellationToken.None);
+        }
+        catch (InvalidOperationException)
+        {
+            // The close that met it.
+        }
+
+        for (var waited = 0; launcher.LaunchError is not null && waited < 100; waited++)
+        {
+            await Task.Delay(20);
+        }
+
+        var again = await manager.StartAsync(Target(0), ScrcpyOptions.Default, null, CancellationToken.None)
+            .WaitAsync(TimeSpan.FromSeconds(3));
+
+        Assert.Equal(ScrcpySessionState.Running, again.State);
+    }
+
+    [Fact]
     public async Task Tout_fermer_ne_lance_aucun_son()
     {
         // Closing everything, quitting or reopening all stopped the accounts
@@ -661,6 +731,36 @@ public class ScrcpySessionManagerTests
 
             Assert.DoesNotContain(launcher.Requests, IsSoundKeeper);
         }
+    }
+
+    [Fact]
+    public async Task Fermer_le_dernier_jeu_avec_un_outil_ouvert_ne_lance_aucun_son()
+    {
+        // A tool window never carries the sound: left open, it counted as an
+        // account to hand the sound on to, and the game reopened next carried
+        // it too, the phone's sound playing twice.
+        var launcher = new FakeProcessLauncher()
+            .Prepare(new FakeProcessSession(1).Emit(NewDisplayLine))
+            .Prepare(new FakeProcessSession(3).Emit(NewDisplayLine))
+            .Prepare(new FakeProcessSession(9).Emit(ServerLine));
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        var game = await manager.StartAsync(Target(0), WithSound, null, CancellationToken.None);
+        await manager.StartAsync(
+            Target(userId: 0) with
+            {
+                PackageName = "com.makeintouch.dtstuff",
+                LaunchComponent = "com.makeintouch.dtstuff/.MainActivity",
+                IsTransient = true,
+            },
+            ScrcpyOptions.Default,
+            null,
+            CancellationToken.None);
+
+        await manager.StopAsync(game.Id, CancellationToken.None);
+
+        Assert.DoesNotContain(launcher.Requests, IsSoundKeeper);
     }
 
     [Fact]
@@ -845,7 +945,8 @@ public class ScrcpySessionManagerTests
     [Fact]
     public async Task Les_sessions_terminees_peuvent_etre_retirees_de_la_liste()
     {
-        var launcher = new FakeProcessLauncher().Prepare(new FakeProcessSession().Emit(NewDisplayLine));
+        var process = new FakeProcessSession().Emit(NewDisplayLine);
+        var launcher = new FakeProcessLauncher().Prepare(process);
 
         await using var manager = Manager(launcher, new FakeAppLauncher());
 
@@ -856,6 +957,7 @@ public class ScrcpySessionManagerTests
         manager.PruneFinished();
 
         Assert.Empty(manager.Sessions);
+        Assert.True(process.WasDisposed);
     }
 
     [Fact]

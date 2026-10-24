@@ -70,8 +70,17 @@ public sealed class FakeReleaseSource : IReleaseSource
     {
         Downloads++;
 
+        var content = _files.GetValueOrDefault(url, []);
+
+        // A failing download dies halfway, its file cut short.
+        if (_failing.TryGetValue(url, out var error))
+        {
+            await File.WriteAllBytesAsync(path, content[..(content.Length / 2)], cancellationToken).ConfigureAwait(false);
+            throw error;
+        }
+
         await File
-            .WriteAllBytesAsync(path, _files.GetValueOrDefault(url, []), cancellationToken)
+            .WriteAllBytesAsync(path, content, cancellationToken)
             .ConfigureAwait(false);
     }
 }

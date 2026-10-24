@@ -149,6 +149,10 @@ public sealed partial class UpdateService(
 
         var staged = UpdatePaths.Staged(_paths.UpdatesDirectory, release.Version);
 
+        // Renamed once complete: a download cut short by quitting must not
+        // pass for done at the next startup.
+        var part = staged + ".part";
+
         try
         {
             _ = Directory.CreateDirectory(_paths.UpdatesDirectory);
@@ -156,8 +160,10 @@ public sealed partial class UpdateService(
             if (!File.Exists(staged))
             {
                 await _source
-                    .DownloadAsync(release.DownloadUrl, staged, progress: null, cancellationToken)
+                    .DownloadAsync(release.DownloadUrl, part, progress: null, cancellationToken)
                     .ConfigureAwait(true);
+
+                File.Move(part, staged, overwrite: true);
             }
 
             var expected = Digest(await _source
@@ -201,6 +207,7 @@ public sealed partial class UpdateService(
         {
             LogPrepareFailed(exception);
             Delete(staged);
+            Delete(part);
 
             return false;
         }
@@ -305,7 +312,16 @@ public sealed partial class UpdateService(
             // old one must come back, or nothing would be left to start.
             catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
             {
-                File.Move(retired, current);
+                try
+                {
+                    File.Move(retired, current);
+                }
+                // Refused twice: a copy back still leaves something to start,
+                // the Sweep that would mend it only runs at startup.
+                catch (Exception again) when (again is IOException or UnauthorizedAccessException)
+                {
+                    File.Copy(retired, current);
+                }
 
                 throw;
             }
@@ -385,6 +401,12 @@ public sealed partial class UpdateService(
                 {
                     Delete(file);
                 }
+            }
+
+            // A download cut short: Sweep runs at startup, before any other.
+            foreach (var file in Directory.EnumerateFiles(_paths.UpdatesDirectory, "DtHub-*.part"))
+            {
+                Delete(file);
             }
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)

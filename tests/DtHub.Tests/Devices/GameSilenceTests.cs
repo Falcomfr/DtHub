@@ -105,6 +105,21 @@ public class GameSilenceTests
     }
 
     [Fact]
+    public void Un_telephone_qui_n_est_plus_releve_est_oublie()
+    {
+        // Closed while silent, it showed the alert again at its next
+        // opening, during the loading screen, silent too.
+        var watch = SilentFor(3);
+
+        watch.KeepOnly([Phone]);
+        Assert.True(watch.Shows(Phone));
+
+        watch.KeepOnly([]);
+        Assert.False(watch.Shows(Phone));
+        Assert.False(watch.Lasts(Phone));
+    }
+
+    [Fact]
     public void Un_autre_telephone_n_est_pas_touche()
     {
         var watch = SilentFor(3);

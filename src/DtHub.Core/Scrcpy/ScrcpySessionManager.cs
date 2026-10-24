@@ -723,11 +723,13 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
 
             // An account being closed as well, by Close all or Quit, keeps
             // nobody listening: handing the sound on would push a server to
-            // the phone for the next close to kill.
+            // the phone for the next close to kill. A tool window is no
+            // listener either, as in CarrySoundAsync.
             var staying = _sessions.Values.Any(s =>
                 !ReferenceEquals(s, ending)
                 && s.IsAlive
                 && !s.StopRequested
+                && !s.Target.IsTransient
                 && string.Equals(s.Target.DeviceId, deviceId, StringComparison.Ordinal));
 
             if (!staying)
@@ -871,9 +873,10 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         // It pushes a server like an opening does, so it takes its turn
         // in the same queue until its server answers. Quietly: closing a
         // window is no reason to grey the play buttons of its phone.
-        await using var lease = await _gate.EnterQuietlyAsync(deviceId, CancellationToken.None).ConfigureAwait(false);
+        var lease = await _gate.EnterQuietlyAsync(deviceId, CancellationToken.None).ConfigureAwait(false);
 
         IProcessSession keeper;
+        var started = false;
 
         try
         {
@@ -883,6 +886,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
                 Arguments = soundArguments,
                 Environment = new Dictionary<string, string?> { ["ADB"] = adbPath },
             });
+            started = true;
         }
         catch (ProcessLaunchException)
         {
@@ -890,11 +894,38 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
             // keep their game: closing one account must not fail for it.
             return;
         }
+        finally
+        {
+            // Released whatever the failure: kept, it would block the
+            // phone's every later opening.
+            if (!started)
+            {
+                await lease.DisposeAsync().ConfigureAwait(false);
+            }
+        }
 
         _soundKeepers[deviceId] = keeper;
 
-        _ = await AwaitLineAsync(keeper, ServerLine, CancellationToken.None).ConfigureAwait(false);
-        _ = Task.Run(() => DrainAsync(keeper), CancellationToken.None);
+        // The server is awaited under the phone's queue only, not under the
+        // lock every phone's closing window and Quit go through.
+        _ = Task.Run(
+            async () =>
+            {
+                try
+                {
+                    await using (lease)
+                    {
+                        _ = await AwaitLineAsync(keeper, ServerLine, CancellationToken.None).ConfigureAwait(false);
+                    }
+                }
+                catch (ObjectDisposedException)
+                {
+                    // The manager closed meanwhile, its phone queues with it.
+                }
+
+                _ = await DrainAsync(keeper).ConfigureAwait(false);
+            },
+            CancellationToken.None);
     }
 
     /// <summary>What scrcpy writes once its server runs on the phone.</summary>
@@ -1390,7 +1421,11 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     {
         foreach (var session in _sessions.Values.Where(s => !s.IsAlive).ToList())
         {
-            _sessions.TryRemove(session.Id, out _);
+            // StopAsync and the read loop end a session without releasing its process.
+            if (_sessions.TryRemove(session.Id, out var gone))
+            {
+                _ = gone.Process.DisposeAsync().AsTask();
+            }
         }
     }
 

@@ -503,4 +503,12 @@ public partial class WebToolWindow : Window
 
         base.OnClosing(e);
     }
+
+    /// <summary>The engine let go with the window, as the guides and Almanax windows do.</summary>
+    protected override void OnClosed(EventArgs e)
+    {
+        View.Dispose();
+
+        base.OnClosed(e);
+    }
 }

@@ -140,6 +140,25 @@ public sealed class UpdateServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Un_telechargement_coupe_est_refait_au_demarrage_suivant()
+    {
+        // Quitting mid-download left a truncated DtHub-x.y.z.exe, taken as
+        // downloaded by the next startup, refused for its digest and deleted:
+        // the update waited for a third startup. The exception stands for
+        // the process ending, after which nothing runs.
+        var (coupe, source) = Monter(Empreinte(Neuf), new Version(0, 2, 0));
+        _ = source.WithFailure("https://exemple/exe", new InvalidOperationException("Arrêté."));
+
+        _ = await Assert.ThrowsAsync<InvalidOperationException>(() => coupe.CheckAsync(automatic: true));
+
+        var (suivant, _) = Monter(Empreinte(Neuf), new Version(0, 2, 0));
+
+        await suivant.CheckAsync(automatic: true);
+
+        Assert.True(suivant.Ready);
+    }
+
+    [Fact]
     public async Task Ne_pose_pas_une_livraison_prete_quand_la_case_a_ete_decochee()
     {
         // Prepared at startup, the box unchecked before quitting: the player
@@ -376,5 +395,23 @@ public sealed class UpdateServiceTests : IDisposable
             Path.Combine(Path.GetDirectoryName(_executable)!, UpdatePaths.Retired)));
         Assert.False(File.Exists(incoming));
         Assert.Empty(Directory.GetFiles(_paths.UpdatesDirectory, "DtHub-*.exe"));
+    }
+
+    [Fact]
+    public void Balaie_un_telechargement_abandonne()
+    {
+        // Quit mid-download, then a newer release came out: that part was
+        // never overwritten, and sixty megabytes stayed for good. Sweep runs
+        // at startup, before any download.
+        var part = UpdatePaths.Staged(_paths.UpdatesDirectory, new Version(0, 3, 0)) + ".part";
+        File.WriteAllText(part, "moitié");
+
+        new UpdateService(
+            new FakeReleaseSource(),
+            _paths,
+            new UpdateTarget(new Version(0, 1, 0), _executable),
+            NullLogger<UpdateService>.Instance).Sweep();
+
+        Assert.False(File.Exists(part));
     }
 }
