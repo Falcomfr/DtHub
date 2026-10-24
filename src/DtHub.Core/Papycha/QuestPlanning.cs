@@ -26,7 +26,7 @@ public static class QuestPlanning
         {
             var scores = QuestProfit.Score(all, facts, progress, character.Level, bonusPercent);
             var entries = QuestProfit.Entries(all, scores, progress, facts, character.Level, bonusPercent);
-            foreach (var entry in QuestProfit.Recommendable(entries, scores, progress, facts, character.Level, bonusPercent))
+            foreach (var entry in QuestProfit.Recommendable(entries, progress, facts))
             {
                 // Recommendable entries are single quests, each once per character.
                 var key = entry.Quests[0].Id;
@@ -49,7 +49,7 @@ public static class QuestPlanning
 
     /// <summary>
     /// The "Succès" mode for the team: each character's own run of a series (<see cref="QuestProfit.Runs"/>) at its
-    /// level, kept when two characters or more have one; gains summed, <c>Entry</c> the longest run (the first
+    /// level, by series and way (<see cref="ProfitEntry.Path"/>), kept when two characters or more have one; gains summed, <c>Entry</c> the longest run (the first
     /// character's on a tie), so its minutes are the team's.
     /// </summary>
     public static IReadOnlyList<TeamEntry> TeamRuns(
@@ -60,15 +60,17 @@ public static class QuestPlanning
         ArgumentNullException.ThrowIfNull(characters);
 
         var all = catalog.ToList();
-        var shared = new Dictionary<string, (ProfitEntry Entry, List<TrackerCharacter> Characters, long Xp, long Kamas)>();
+        var shared = new Dictionary<(string, int?), (ProfitEntry Entry, List<TrackerCharacter> Characters, long Xp, long Kamas)>();
         foreach (var (character, progress) in characters)
         {
             foreach (var run in QuestProfit.Runs(all, facts, progress, character.Level, bonusPercent, dungeons, dungeonNames))
             {
-                var s = shared.TryGetValue(run.Title, out var found) ? found : (run, [], 0, 0);
+                // A series and its way: two characters on two ways of "Agriculture ou alchimie" do not run together.
+                var key = (run.Title, run.Path?.Id);
+                var s = shared.TryGetValue(key, out var found) ? found : (run, [], 0, 0);
                 s.Characters.Add(character);
                 var longest = run.Effort.Minutes > s.Entry.Effort.Minutes ? run : s.Entry;
-                shared[run.Title] = (longest, s.Characters, s.Xp + run.Gain.Xp, s.Kamas + run.Gain.Kamas);
+                shared[key] = (longest, s.Characters, s.Xp + run.Gain.Xp, s.Kamas + run.Gain.Kamas);
             }
         }
 

@@ -14,12 +14,13 @@ public sealed record QuestGain(long Xp, long Kamas);
 public sealed record QuestScore(int QuestId, QuestGain Gain, QuestEffort Effort, double Score, int Tier, bool ByKamas);
 
 /// <summary>
-/// A quest or a series in the "profitable quests" ranking; <c>Quests.Count &gt; 1</c> is a series. <c>Score</c> is its
-/// combined score against the quest maxima, comparable with <see cref="DungeonValue.Score"/>.
+/// A quest or a series run in the "profitable quests" ranking; <c>Quests.Count &gt; 1</c> is a run. <c>Score</c> is its
+/// combined score against the quest maxima, comparable with <see cref="DungeonValue.Score"/>. <c>Path</c>, on a run
+/// along one of a series' alternative ways, is that way's first quest: it names the way.
 /// </summary>
 public sealed record ProfitEntry(
     string Title, IReadOnlyList<QuestSummary> Quests, QuestGain Gain, QuestEffort Effort, int Tier, bool Started, bool ByKamas,
-    double Score);
+    double Score, QuestSummary? Path = null);
 
 /// <summary>
 /// A dungeon is worth the listable quests it advances, one entry per quest, for the time of its run (<c>Minutes</c>);
@@ -252,66 +253,20 @@ public static class QuestProfit
     private static int Share(int n, double part) => (int)Math.Round(n * part, MidpointRounding.AwayFromZero);
 
     /// <summary>
-    /// A series gives one run, from its next doable quest: it goes on with the following quests that pass every
-    /// doable rule but being startable now, in play order, until one fails. A doable quest after that failure starts
-    /// nothing: the series is not there yet. Every member counts in gain and effort, scored or not.
+    /// Each scored quest as its own entry, most worth doing first (ties in catalog order). A series gives the next
+    /// quest of each of its chains and ways, each startable on its own (2026-10-24: "une suite de quêtes ou l'autre").
     /// </summary>
     public static IReadOnlyList<ProfitEntry> Entries(
         IEnumerable<QuestSummary> catalog, IReadOnlyDictionary<int, QuestScore> scores, TrackerProgress? progress,
         IReadOnlyDictionary<int, TouchQuestFacts> facts, int level, int bonusPercent)
     {
+        ArgumentNullException.ThrowIfNull(catalog);
+        ArgumentNullException.ThrowIfNull(scores);
+
         var best = Maxima(scores.Values.Select(s => (s.Gain, s.Effort.Minutes)));
-        var entries = new List<(ProfitEntry Entry, double Score)>();
-        var all = catalog.ToList();
-        var chain = new QuestChainIndex(all);
-        var series = all.Where(q => q.SuccessName.Length > 0).GroupBy(q => q.SuccessName).Where(g => g.Count() > 1).ToList();
-        var inSeries = series.SelectMany(g => g).Select(q => q.Id).ToHashSet();
-
-        if (progress is not null)
-        {
-            foreach (var group in series)
-            {
-                var started = group.Any(q => QuestTracking.StatusOf(progress, q.Id) is QuestStatus.Completed or QuestStatus.InProgress);
-                var members = new List<QuestSummary>();
-                var emitted = false;
-
-                void Flush()
-                {
-                    if (members.Any(q => scores.ContainsKey(q.Id)))
-                    {
-                        entries.Add(Build(members.Count == 1 ? members[0].Title : group.Key, members, scores, facts, level, bonusPercent, best, started));
-                        emitted = true;
-                    }
-
-                    members = [];
-                }
-
-                foreach (var q in QuestPlayOrder.Sorted(group))
-                {
-                    // One row per series: a second run made Recommandées list a split series twice.
-                    if (emitted) break;
-                    var known = facts.TryGetValue(q.Id, out var f);
-                    if (members.Count == 0)
-                    {
-                        if (known && IsDoable(q, progress, f!, level, chain)) members.Add(q);
-                    }
-                    else if (QuestTracking.StatusOf(progress, q.Id) == QuestStatus.Completed) continue;
-                    else if (known && Continuable(q, progress, f!, level)) members.Add(q);
-                    // Failing Continuable, it fails IsDoable too: it cannot start the next run.
-                    else Flush();
-                }
-
-                Flush();
-            }
-        }
-
-        foreach (var q in all.Where(q => scores.ContainsKey(q.Id) && !inSeries.Contains(q.Id)))
-        {
-            entries.Add(Build(q.Title, [q], scores, facts, level, bonusPercent, best, QuestTracking.StatusOf(progress, q.Id) == QuestStatus.InProgress));
-        }
-
-        // Most worth doing first; a started entry keeps its rank, the list marks it.
-        return [.. entries.OrderByDescending(e => e.Score).Select(e => e.Entry)];
+        return [.. catalog.Where(q => scores.ContainsKey(q.Id))
+            .Select(q => Build(q.Title, [q], scores, facts, level, bonusPercent, best, QuestTracking.StatusOf(progress, q.Id) == QuestStatus.InProgress))
+            .OrderByDescending(e => e.Item2).Select(e => e.Item1)];
     }
 
     // Summed gain / summed minutes against the quest maxima, so a single quest and a series compare on the same ratios.
@@ -329,12 +284,13 @@ public static class QuestProfit
     }
 
     /// <summary>
-    /// The "Succès" mode: per series, the run from its next doable quest (as <see cref="Entries"/> starts one) through
-    /// its later quests not done or ignored, in play order, stopping before the first that is repeatable, blocked, above
-    /// the level, of unknown gain, very long (keyring, souls), with a dungeon when <paramref name="dungeons"/> is off, or
-    /// with a prerequisite (<see cref="HasPrerequisite"/>, the run's own quests counting as done); the first quest
-    /// failing one gives no run. Runs of two quests or more,
-    /// titled by the series, gains and minutes summed.
+    /// The "Succès" mode: per series, the run from its next doable quest through its later quests not done or ignored,
+    /// in play order, leaving out each one that is repeatable, blocked, above the level, of unknown gain, very long
+    /// (keyring, souls), with a dungeon when <paramref name="dungeons"/> is off, ruled out (<see cref="IsRuledOut"/>), or
+    /// with a prerequisite (<see cref="HasPrerequisite"/>, the run's own quests counting as done). Rule C: a quest left
+    /// out is skipped, not an end, so what follows it falls with it and the other chains go on. Rule D: a startable
+    /// quest left out because one of its alternatives is in the run opens a run of its own, one per way until the
+    /// player takes one. Runs of two quests or more, titled by the series, gains and minutes summed.
     /// </summary>
     public static IReadOnlyList<ProfitEntry> Runs(
         IEnumerable<QuestSummary> catalog, IReadOnlyDictionary<int, TouchQuestFacts> facts, TrackerProgress progress,
@@ -350,35 +306,57 @@ public static class QuestProfit
         var runs = new List<ProfitEntry>();
         foreach (var group in all.Where(q => q.SuccessName.Length > 0).GroupBy(q => q.SuccessName))
         {
-            var run = new List<QuestSummary>();
-            foreach (var q in QuestPlayOrder.Sorted(group))
+            var order = QuestPlayOrder.Sorted(group);
+            var openers = new List<QuestSummary>();
+            var tried = new List<List<QuestSummary>>();
+
+            List<QuestSummary> RunOf(IReadOnlyList<int> off)
             {
-                var known = facts.TryGetValue(q.Id, out var f);
-                if (run.Count == 0)
+                var run = new List<QuestSummary>();
+                foreach (var q in order)
                 {
-                    if (!known || !IsDoable(q, progress, f!, level, chain)) continue;
-                    // Its gain and time would be guesses: the series has no row, as its quest has none in "Quêtes".
-                    if (IsUncertain(q.Id, progress, f!)) break;
-                }
-                else if (QuestTracking.StatusOf(progress, q.Id) is QuestStatus.Completed or QuestStatus.Ignored) continue;
-                else if (!known || !Continuable(q, progress, f!, level)) break;
+                    if (off.Contains(q.Id) || !facts.TryGetValue(q.Id, out var f)) continue;
+                    if (q.Alternatives.Any(a => run.Exists(r => r.Id == a)))
+                    {
+                        if (!openers.Contains(q) && IsDoable(q, progress, f, level, chain)) openers.Add(q);
+                        continue;
+                    }
 
-                if (GainOf(f!, level, bonusPercent) is null || IsVeryLong(f!)
-                    || (!dungeons && (QuestTime.HasDungeonRun(f!) || Named(f!, names).Any()))
-                    || HasPrerequisite(q, chain, [progress], [.. run.Select(r => r.Id)]))
-                {
-                    break;
+                    // A first quest in progress over several steps: its gain and time would be guesses.
+                    var fits = run.Count == 0
+                        ? IsDoable(q, progress, f, level, chain) && !IsUncertain(q.Id, progress, f)
+                        : Continuable(q, progress, f, level);
+                    if (fits && GainOf(f, level, bonusPercent) is not null && !IsVeryLong(f)
+                        && (dungeons || (!QuestTime.HasDungeonRun(f) && !Named(f, names).Any()))
+                        && !HasPrerequisite(q, chain, [progress], [.. run.Select(r => r.Id)]))
+                    {
+                        run.Add(q);
+                    }
                 }
 
-                run.Add(q);
+                return run;
             }
 
-            if (run.Count < 2) continue;
-            var gains = run.Select(q => GainOf(facts[q.Id], level, bonusPercent)!).ToList();
-            var started = group.Any(q => QuestTracking.StatusOf(progress, q.Id) is QuestStatus.Completed or QuestStatus.InProgress);
-            runs.Add(new ProfitEntry(
-                group.Key, run, new QuestGain(gains.Sum(g => g.Xp), gains.Sum(g => g.Kamas)),
-                EffortOf([.. run.Select(q => (q, facts[q.Id]))]), 0, started, false, 0));
+            // The first run leaves nothing out; each opener's run leaves out its alternatives, the other ways.
+            for (var i = -1; i < openers.Count; i++)
+            {
+                var opener = i < 0 ? null : openers[i];
+                if (opener is not null && tried.Exists(r => r.Contains(opener))) continue;
+                var run = RunOf(opener?.Alternatives ?? []);
+                tried.Add(run);
+                if (run.Count < 2 || (opener is not null && !run.Contains(opener))) continue;
+
+                var gains = run.Select(q => GainOf(facts[q.Id], level, bonusPercent)!).ToList();
+                var started = group.Any(q => QuestTracking.StatusOf(progress, q.Id) is QuestStatus.Completed or QuestStatus.InProgress);
+                // The way's first quest: on the run, or done or started before it.
+                var path = run.Exists(q => q.Alternatives.Count > 0)
+                    ? order.First(q => q.Alternatives.Count > 0
+                        && (run.Contains(q) || QuestTracking.StatusOf(progress, q.Id) is QuestStatus.Completed or QuestStatus.InProgress))
+                    : null;
+                runs.Add(new ProfitEntry(
+                    group.Key, run, new QuestGain(gains.Sum(g => g.Xp), gains.Sum(g => g.Kamas)),
+                    EffortOf([.. run.Select(q => (q, facts[q.Id]))]), 0, started, false, 0, path));
+            }
         }
 
         return runs;
@@ -411,27 +389,15 @@ public static class QuestProfit
     }
 
     /// <summary>
-    /// The entries fit for the short lists, single quests only: a run gives its first quest, the series' next doable
-    /// one, alone; a very long quest or an uncertain one (<see cref="IsUncertain"/>) is dropped.
+    /// The entries fit for the short lists: a very long quest or an uncertain one (<see cref="IsUncertain"/>) is dropped.
     /// </summary>
     public static IReadOnlyList<ProfitEntry> Recommendable(
-        IReadOnlyList<ProfitEntry> entries, IReadOnlyDictionary<int, QuestScore> scores, TrackerProgress? progress,
-        IReadOnlyDictionary<int, TouchQuestFacts> facts, int level, int bonusPercent)
+        IReadOnlyList<ProfitEntry> entries, TrackerProgress? progress, IReadOnlyDictionary<int, TouchQuestFacts> facts)
     {
         ArgumentNullException.ThrowIfNull(entries);
-        ArgumentNullException.ThrowIfNull(scores);
+        ArgumentNullException.ThrowIfNull(facts);
 
-        var best = Maxima(scores.Values.Select(s => (s.Gain, s.Effort.Minutes)));
-        var kept = new List<ProfitEntry>();
-        foreach (var entry in entries)
-        {
-            // A run of four quests could pass for an hour's work and take an evening.
-            var first = entry.Quests[0];
-            if (IsVeryLong(facts[first.Id]) || IsUncertain(first.Id, progress, facts[first.Id])) continue;
-            kept.Add(entry.Quests.Count == 1 ? entry : Build(first.Title, [first], scores, facts, level, bonusPercent, best, entry.Started).Item1);
-        }
-
-        return kept;
+        return [.. entries.Where(e => !IsVeryLong(facts[e.Quests[0].Id]) && !IsUncertain(e.Quests[0].Id, progress, facts[e.Quests[0].Id]))];
     }
 
     /// <summary>
@@ -551,7 +517,7 @@ public static class QuestProfit
 
         var best = Maxima(scores.Values.Select(s => (s.Gain, s.Effort.Minutes)));
         var names = NormalisedNames(dungeonNames);
-        // Doable now only: a run's later quests cannot be started yet, so a dungeon they name has nothing to do there.
+        // Entries are startable quests (a series by the next quest of each chain and way), each doable now.
         var named = entries.SelectMany(e => e.Quests).Where(q => scores.ContainsKey(q.Id) && !IsUncertain(q.Id, progress, facts[q.Id]))
             .DistinctBy(q => q.Id)
             .Select(q => (Quest: q, Named: Named(facts[q.Id], names).ToList()))

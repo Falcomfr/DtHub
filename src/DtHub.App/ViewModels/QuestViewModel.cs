@@ -95,7 +95,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             : QuestProfit.Score(_catalog.Catalog.Quests, _facts, Tracker.Progress,
                 Tracker.RewardLevel, Tracker.RewardXpBonus);
 
-    /// <summary>What "Recommandées" can list: the ranking's runs, cut short.</summary>
+    /// <summary>What "Recommandées" can list: the ranking's quests, a series by the next quest of each chain and way.</summary>
     private IReadOnlyList<ProfitEntry>? _recommendable;
 
     private IReadOnlyList<ProfitEntry> Recommendable => _recommendable ??=
@@ -103,7 +103,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             ? []
             : QuestProfit.Recommendable(
                 QuestProfit.Entries(_catalog.Catalog.Quests, Scores, Tracker.Progress, _facts, Tracker.RewardLevel, Tracker.RewardXpBonus),
-                Scores, Tracker.Progress, _facts, Tracker.RewardLevel, Tracker.RewardXpBonus);
+                Tracker.Progress, _facts);
 
     /// <summary>The game's dungeon names by game dungeon id, read with the facts.</summary>
     private IReadOnlyDictionary<int, string> _dungeonNames = new Dictionary<int, string>();

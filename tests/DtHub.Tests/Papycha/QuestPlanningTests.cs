@@ -93,9 +93,13 @@ public class QuestPlanningTests
     [Fact]
     public void Team_counts_a_series_by_each_character_s_next_doable_quest_only()
     {
-        var catalog = new[] { Quest(1, "S", 1), Quest(2, "S", 2), Quest(3, "S", 3), Quest(4, "S", 4) };
+        QuestSummary[] catalog =
+        [
+            Quest(1, "S", 1), Quest(2, "S", 2) with { Prerequisites = ["Q1"] }, Quest(3, "S", 3) with { Prerequisites = ["Q2"] },
+            Quest(4, "S", 4) with { Prerequisites = ["Q3"] },
+        ];
         var facts = new Dictionary<int, TouchQuestFacts> { [1] = Xp(1f), [2] = Xp(1f), [3] = Xp(5f), [4] = Xp(5f) };
-        // A's quest 2 is blocked: 3 is doable too, but A's next quest of S is 1 alone; B's is 3, C's is 1.
+        // A's quest 2 is blocked: the site lists 3, but it follows 2, so A's next quest of S is 1 alone; B's is 3, C's is 1.
         var blocked = new TrackerProgress(
             new Dictionary<int, QuestStatus> { [2] = QuestStatus.Blocked }, new HashSet<int>(), new HashSet<int> { 1, 3 }, []);
         var team = QuestPlanning.Team(
@@ -186,5 +190,29 @@ public class QuestPlanningTests
         var facts = catalog.ToDictionary(q => q.Id, q => Xp(q.Id));
 
         Assert.Empty(QuestPlanning.TeamRuns(catalog, facts, [Character("A", 10, Progress([1]))], 0, true, new Dictionary<int, string>()));
+    }
+
+    [Fact]
+    public void Team_runs_of_a_series_with_two_ways_are_grouped_by_way()
+    {
+        // 1 then two ways, 11-12-13 or 21-22-23. A has not chosen, B is on the first way, C on the second.
+        QuestSummary[] catalog =
+        [
+            Quest(1, "S", 1),
+            Quest(11, "S", 2) with { Prerequisites = ["Q1"], Alternatives = [21] }, Quest(21, "S", 3) with { Prerequisites = ["Q1"], Alternatives = [11] },
+            Quest(12, "S", 4) with { Prerequisites = ["Q11"], Alternatives = [22] }, Quest(22, "S", 5) with { Prerequisites = ["Q21"], Alternatives = [12] },
+            Quest(13, "S", 6) with { Prerequisites = ["Q12"], Alternatives = [23] }, Quest(23, "S", 7) with { Prerequisites = ["Q22"], Alternatives = [13] },
+        ];
+        var facts = catalog.ToDictionary(q => q.Id, q => Xp(1f));
+
+        var team = QuestPlanning.TeamRuns(
+            catalog, facts,
+            [Character("A", 10, Progress([], completed: [1])), Character("B", 10, Progress([], completed: [1, 11])), Character("C", 10, Progress([], completed: [1, 21]))],
+            0, dungeons: true, new Dictionary<int, string>());
+
+        Assert.Equal(2, team.Count);
+        Assert.Equal(["A", "B"], team.Single(t => t.Entry.Path!.Id == 11).Characters.Select(c => c.Name));
+        Assert.Equal(["A", "C"], team.Single(t => t.Entry.Path!.Id == 21).Characters.Select(c => c.Name));
+        Assert.Equal([11, 12, 13], team.Single(t => t.Entry.Path!.Id == 11).Entry.Quests.Select(q => q.Id));
     }
 }

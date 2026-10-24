@@ -370,46 +370,32 @@ public class QuestProfitTests
     }
 
     [Fact]
-    public void Series_starts_at_the_first_doable_quest_and_skips_leading_done_ones()
+    public void A_series_quest_is_an_entry_of_its_own()
     {
         var catalog = new[] { Quest(1, "S", 1), Quest(2, "S", 2), Quest(3, "S", 3) };
         var facts = new Dictionary<int, TouchQuestFacts> { [1] = Xp(1f), [2] = Xp(2f), [3] = Xp(3f) };
         var entry = Assert.Single(Entries(catalog, Progress([2], completed: [1]), facts));
-        Assert.Equal("S", entry.Title);
-        Assert.Equal([2, 3], entry.Quests.Select(q => q.Id));
-        Assert.True(entry.Started);
-        Assert.Equal(XpOf(facts[2]) + XpOf(facts[3]), entry.Gain.Xp);
+        Assert.Equal("Q2", entry.Title);
+        Assert.Equal([2], entry.Quests.Select(q => q.Id));
+        Assert.False(entry.Started);
+        Assert.Equal(XpOf(facts[2]), entry.Gain.Xp);
     }
 
     [Fact]
-    public void Series_lists_later_quests_even_when_only_the_first_is_available()
+    public void Each_startable_chain_of_a_series_gives_its_next_quest()
     {
-        var catalog = new[] { Quest(1, "S", 1), Quest(2, "S", 2), Quest(3, "S", 3) };
-        var facts = new Dictionary<int, TouchQuestFacts> { [1] = Xp(1f), [2] = Xp(2f), [3] = Xp(3f) };
-        var entry = Assert.Single(Entries(catalog, Progress([1]), facts));
-        Assert.Equal([1, 2, 3], entry.Quests.Select(q => q.Id));
-        // Three quests of 180 + 30 s, 4 minutes each.
-        Assert.Equal(12, entry.Effort.Minutes);
-        Assert.Equal(XpOf(facts[1]) + XpOf(facts[2]) + XpOf(facts[3]), entry.Gain.Xp);
-    }
-
-    [Fact]
-    public void A_blocked_or_over_level_quest_ends_the_series_entry_and_nothing_after_it_starts_another()
-    {
-        // One entry per series, from its next doable quest: 3 is doable too, but the series is not there yet.
+        // 2026-10-24: one entry per chain ("Une chambre douillette", seven bounties needing nothing). Unchained, 1 and 3
+        // can both start; chained, 3 waits for the blocked 2.
         var catalog = new[] { Quest(1, "S", 1), Quest(2, "S", 2), Quest(3, "S", 3), Quest(4, "S", 4) };
         var blocked = Progress([1, 3], new() { [2] = QuestStatus.Blocked });
-        Assert.Equal([1], Assert.Single(Entries(catalog, blocked)).Quests.Select(q => q.Id));
-
-        var facts = catalog.ToDictionary(q => q.Id, _ => Facts(Obj(1)));
-        facts[2] = new([Step(20, 1f)], []);
-        Assert.Equal(["Q1"], Entries(catalog, Progress([1, 3]), facts).Select(e => e.Title));
+        Assert.Equal(["Q1", "Q3"], Entries(catalog, blocked).Select(e => e.Title).Order());
+        Assert.Equal(["Q1"], Entries(Chained(catalog), blocked).Select(e => e.Title));
     }
 
     [Fact]
     public void A_series_split_by_a_blocked_quest_gives_one_recommended_row()
     {
-        var catalog = new[] { Quest(1, "S", 1), Quest(2, "S", 2), Quest(3, "S", 3), Quest(4, "S", 4) };
+        var catalog = Chained([Quest(1, "S", 1), Quest(2, "S", 2), Quest(3, "S", 3), Quest(4, "S", 4)]);
         var facts = catalog.ToDictionary(q => q.Id, q => Xp(q.Id));
 
         var row = Assert.Single(Recommendable(catalog, Progress([1, 3], new() { [2] = QuestStatus.Blocked }), facts));
@@ -418,34 +404,15 @@ public class QuestProfitTests
     }
 
     [Fact]
-    public void Series_follow_the_house_play_order()
+    public void Runs_follow_the_house_play_order()
     {
         // A zero play order is unknown and goes last.
         var catalog = new[] { Quest(1, "S", 0), Quest(2, "S", 1) };
-        Assert.Equal([2, 1], Assert.Single(Entries(catalog, Progress([1, 2]))).Quests.Select(q => q.Id));
+        Assert.Equal([2, 1], RunIds(catalog, Progress([1, 2]), catalog.ToDictionary(q => q.Id, _ => Xp(1f))));
     }
 
     [Fact]
-    public void Unscored_members_stay_in_the_series_and_add_no_gain()
-    {
-        var catalog = new[] { Quest(1, "S", 1), Quest(2, "S", 2), Quest(3, "S", 3) };
-        var facts = new Dictionary<int, TouchQuestFacts>
-        {
-            [1] = new([Step(10, 1f, 1f)], []),
-            [2] = new([Step(10, 1f, 1f), null], []),
-            [3] = new([Step(10, 1f, 1f)], []),
-        };
-        var progress = Progress([1, 2, 3]);
-        var scores = QuestProfit.Score(catalog, facts, progress, 10, 0);
-        Assert.Equal(2, scores.Count);
-        var entry = Assert.Single(QuestProfit.Entries(catalog, scores, progress, facts, 10, 0));
-        Assert.Equal([1, 2, 3], entry.Quests.Select(q => q.Id));
-        Assert.Equal(scores[1].Gain.Kamas + scores[3].Gain.Kamas, entry.Gain.Kamas);
-        Assert.Equal(scores[1].Gain.Xp + scores[3].Gain.Xp, entry.Gain.Xp);
-    }
-
-    [Fact]
-    public void Series_reasons_are_aggregated_per_kind_across_members()
+    public void Run_reasons_are_aggregated_per_kind_across_members()
     {
         var catalog = new[] { Quest(1, "S", 1), Quest(2, "S", 2) };
         var facts = new Dictionary<int, TouchQuestFacts>
@@ -453,10 +420,7 @@ public class QuestProfitTests
             [1] = Facts(Obj(6, [1, 5]), Obj(1)),
             [2] = Facts(Obj(6, [1, 5]), Obj(1)),
         };
-        var progress = Progress([1, 2]);
-        var scores = QuestProfit.Score(catalog, facts, progress, 10, 0);
-        var entry = Assert.Single(QuestProfit.Entries(catalog, scores, progress, facts, 10, 0));
-        Assert.Equal(["2 combats", "dialogues"], entry.Effort.Reasons);
+        Assert.Equal(["2 combats", "dialogues"], Assert.Single(Runs(catalog, Progress([1, 2]), facts)).Effort.Reasons);
     }
 
     [Fact]
@@ -467,34 +431,16 @@ public class QuestProfitTests
     }
 
     [Fact]
-    public void Entries_rank_on_summed_gain_for_summed_effort_started_or_not()
+    public void Entries_rank_best_first_ties_in_catalog_order_started_when_in_progress()
     {
         var catalog = new[]
         {
             Quest(1, "A", 1), Quest(2, "A", 2), Quest(3), Quest(4, "B", 1), Quest(5, "B", 2),
         };
-        // A gains 6 for 4 of effort, below Q3's 4 for 2, though its two scores add up above Q3's.
         var facts = new Dictionary<int, TouchQuestFacts> { [1] = Xp(3f), [2] = Xp(3f), [3] = Xp(4f), [4] = Xp(1f), [5] = Xp(1f) };
         var entries = Entries(catalog, Progress([1, 2, 3, 4, 5], new() { [4] = QuestStatus.InProgress }), facts);
-        Assert.Equal(["Q3", "A", "B"], entries.Select(e => e.Title));
-        Assert.Equal([false, false, true], entries.Select(e => e.Started));
-    }
-
-    [Fact]
-    public void Series_rank_on_their_best_side_against_the_quest_maxima()
-    {
-        var catalog = new[] { Quest(1, "K", 1), Quest(2, "K", 2), Quest(3), Quest(4) };
-        // K: little XP, kamas 4 for 4 of effort against the best quest's 3 for 2; Q3: a quarter of Q4's XP.
-        var facts = new Dictionary<int, TouchQuestFacts>
-        {
-            [1] = new([Step(10, 0.1f, 1f)], [Obj(1)]),
-            [2] = new([Step(10, 0.1f, 3f)], [Obj(1)]),
-            [3] = Xp(1f),
-            [4] = Xp(4f),
-        };
-        var entries = Entries(catalog, Progress([1, 2, 3, 4]), facts);
-        Assert.Equal(["Q4", "K", "Q3"], entries.Select(e => e.Title));
-        Assert.Equal([false, true, false], entries.Select(e => e.ByKamas));
+        Assert.Equal(["Q3", "Q1", "Q2", "Q4", "Q5"], entries.Select(e => e.Title));
+        Assert.Equal([false, false, false, true, false], entries.Select(e => e.Started));
     }
 
     private static TouchObjective Said(string text, int step = 0) => new(4, [1], 10, text, Step: step);
@@ -752,7 +698,7 @@ public class QuestProfitTests
     private static IReadOnlyList<ProfitEntry> Recommendable(QuestSummary[] catalog, TrackerProgress progress, Dictionary<int, TouchQuestFacts> facts)
     {
         var scores = QuestProfit.Score(catalog, facts, progress, 10, 0);
-        return QuestProfit.Recommendable(QuestProfit.Entries(catalog, scores, progress, facts, 10, 0), scores, progress, facts, 10, 0);
+        return QuestProfit.Recommendable(QuestProfit.Entries(catalog, scores, progress, facts, 10, 0), progress, facts);
     }
 
     // Two steps, or one step with two objectives: in progress, DT Hub cannot tell what is left.
@@ -785,7 +731,7 @@ public class QuestProfitTests
     [Fact]
     public void A_series_run_starting_on_an_uncertain_quest_is_left_out()
     {
-        var catalog = Series(3);
+        var catalog = Chained(Series(3));
         var facts = new Dictionary<int, TouchQuestFacts> { [1] = TwoSteps(1f), [2] = Xp(2f), [3] = Xp(3f) };
 
         Assert.Empty(Runs(catalog, Progress([], new() { [1] = QuestStatus.InProgress }), facts));
@@ -963,7 +909,7 @@ public class QuestProfitTests
         // The active character, whose list the site fills (here wrongly listing 3, 6 and 7), then another one.
         var active = Progress([2, 3, 4, 6, 7, 8, 10], inProgress, [1]);
         var other = Progress([], inProgress, [1]);
-        foreach (var (progress, expected) in new[] { (active, new[] { 2, 4, 5, 8, 10 }), (other, [2, 4, 5, 8]) })
+        foreach (var (progress, expected) in new[] { (active, new[] { 2, 4, 5, 8, 10 }), (other, [2, 4, 5, 8, 9]) })
         {
             var shown = Recommendable(catalog, progress, facts).Select(e => e.Quests[0]).ToList();
 
@@ -979,6 +925,10 @@ public class QuestProfitTests
     }
 
     private static QuestSummary[] Series(int n, string name = "S") => [.. Enumerable.Range(1, n).Select(i => Quest(i, name, i))];
+
+    // Each quest after the first needs the one before it: a linear chain.
+    private static QuestSummary[] Chained(QuestSummary[] quests) =>
+        [.. quests.Select((q, i) => i == 0 ? q : q with { Prerequisites = ["Q" + quests[i - 1].Id] })];
 
     private static IReadOnlyList<ProfitEntry> Runs(
         QuestSummary[] catalog, TrackerProgress progress, Dictionary<int, TouchQuestFacts> facts,
@@ -1021,7 +971,7 @@ public class QuestProfitTests
     {
         int[] With(Action<QuestSummary[], Dictionary<int, TouchQuestFacts>> change, Dictionary<int, QuestStatus>? statuses = null)
         {
-            var catalog = Series(4);
+            var catalog = Chained(Series(4));
             var facts = catalog.ToDictionary(q => q.Id, q => Xp(q.Id));
             change(catalog, facts);
             return RunIds(catalog, Progress([1], statuses), facts);
@@ -1045,7 +995,7 @@ public class QuestProfitTests
     [Fact]
     public void A_run_of_one_quest_is_left_to_the_quests_mode()
     {
-        var catalog = Series(3);
+        var catalog = Chained(Series(3));
         var facts = catalog.ToDictionary(q => q.Id, q => Xp(q.Id));
         facts[2] = new([Step(20, 1f)], [Obj(1)]);
 
@@ -1117,5 +1067,86 @@ public class QuestProfitTests
 
         Assert.Equal(["B", "A"], Ranked(runs));
         Assert.Equal(["B", "A"], Ranked(runs.Reverse()));
+    }
+
+    // "Agriculture ou alchimie" in small: 1 then two ways, 11 to 14 or 21 to 24, played interleaved; the n-th quests of
+    // the two ways are alternatives.
+    private static QuestSummary[] Ways()
+    {
+        var catalog = new List<QuestSummary> { Quest(1, "S", 1) };
+        for (var n = 1; n <= 4; n++)
+        {
+            foreach (var way in new[] { 10, 20 })
+            {
+                catalog.Add(Quest(way + n, "S", 2 * n + way / 10 - 1) with
+                {
+                    Prerequisites = [n == 1 ? "Q1" : "Q" + (way + n - 1)],
+                    Alternatives = [(way == 10 ? 20 : 10) + n],
+                });
+            }
+        }
+
+        return [.. catalog];
+    }
+
+    [Fact]
+    public void Two_ways_give_two_runs_until_one_is_taken()
+    {
+        var catalog = Ways();
+        var facts = catalog.ToDictionary(q => q.Id, q => Xp(1f));
+
+        var both = Runs(catalog, Progress([], completed: [1]), facts);
+        Assert.Equal([[11, 12, 13, 14], [21, 22, 23, 24]], both.Select(r => r.Quests.Select(q => q.Id).ToArray()));
+        Assert.Equal([11, 21], both.Select(r => r.Path!.Id));
+        Assert.All(both, r => Assert.Equal("S", r.Title));
+
+        // The second way taken: the first is gone, a done quest inside the way is stepped over.
+        var taken = Assert.Single(Runs(catalog, Progress([], completed: [1, 21, 23]), facts));
+        Assert.Equal([22, 24], taken.Quests.Select(q => q.Id));
+        Assert.Equal(21, taken.Path!.Id);
+    }
+
+    [Fact]
+    public void Two_ways_give_one_quests_entry_each_until_one_is_taken()
+    {
+        var catalog = Ways();
+
+        Assert.Equal([11, 21], Entries(catalog, Progress([], completed: [1])).Select(e => e.Quests[0].Id).Order());
+        Assert.Equal([12], Entries(catalog, Progress([], completed: [1, 11])).Select(e => e.Quests[0].Id));
+        Assert.Equal([11], Entries(catalog, Progress([], new() { [11] = QuestStatus.InProgress }, [1])).Select(e => e.Quests[0].Id));
+    }
+
+    [Fact]
+    public void A_quest_a_run_cannot_count_on_is_skipped_and_the_other_chains_go_on()
+    {
+        // Two chains, 1-2 and 3-4-5: 1 asks a time slot ("Groméo et Ginette"), 4 is above the level ("Cosmose").
+        var catalog = new[]
+        {
+            Quest(1, "S", 1) with { Prerequisites = ["Entre 19h et 20h59"] }, Quest(2, "S", 2) with { Prerequisites = ["Q1"] },
+            Quest(3, "S", 3), Quest(4, "S", 4) with { Prerequisites = ["Q3"] }, Quest(5, "S", 5) with { Prerequisites = ["Q4"] },
+            Quest(6, "S", 6),
+        };
+        var facts = catalog.ToDictionary(q => q.Id, q => Xp(1f));
+
+        Assert.Equal([3, 4, 5, 6], RunIds(catalog, Progress([]), facts));
+        facts[4] = new([Step(20, 1f)], [Obj(1)]);
+        Assert.Equal([3, 6], RunIds(catalog, Progress([]), facts));
+    }
+
+    [Fact]
+    public void A_merge_on_alternatives_follows_whichever_was_done()
+    {
+        // "L'âme de glace": three alignment prologues the game takes alike, "Malédiction" names the first one only.
+        var catalog = new[]
+        {
+            Quest(1, "S", 1) with { Alternatives = [2, 3] }, Quest(2, "S", 2) with { Alternatives = [1, 3] },
+            Quest(3, "S", 3) with { Alternatives = [1, 2] }, Quest(4, "S", 4) with { Prerequisites = ["Q1"] },
+            Quest(5, "S", 5) with { Prerequisites = ["Q4"] },
+        };
+        var facts = catalog.ToDictionary(q => q.Id, q => Xp(1f));
+
+        var run = Assert.Single(Runs(catalog, Progress([], completed: [3]), facts));
+        Assert.Equal([4, 5], run.Quests.Select(q => q.Id));
+        Assert.Null(run.Path);
     }
 }
