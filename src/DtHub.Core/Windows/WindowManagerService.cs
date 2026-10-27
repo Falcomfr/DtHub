@@ -905,21 +905,10 @@ public sealed class WindowManagerService
     }
 
     /// <summary>
-    /// Current geometry of each live window, by instance key.
-    ///
-    /// Full screen keeps only the screen: its rectangle equals the
-    /// entire screen and the window is borderless there. Remembering it
-    /// and then restoring it at normal size would give a bordered window
-    /// overflowing under the taskbar. A window moved to another screen
-    /// in full screen has its <paramref name="remembered"/> windowed
-    /// place carried over to that screen instead. A minimized window is
-    /// set aside too, its rectangle meaning nothing.
-    /// </summary>
-    /// <summary>
     /// Where a window stood when last seen, for one that died with its
     /// phone's link: its waiting view, then its game, stand there again.
-    /// <c>null</c> in full screen, as for any capture, or when it was never
-    /// seen.
+    /// <c>null</c> in full screen, whose rectangle is not a place, or when
+    /// it was never seen.
     /// </summary>
     public (string Key, StoredWindowRect Rect)? CaptureLost(ScrcpySession session)
     {
@@ -938,6 +927,17 @@ public sealed class WindowManagerService
                 StoredWindowRect.From(rect, WindowLayoutCalculator.ChooseMonitor(monitors, rect.CenterX, rect.CenterY)));
     }
 
+    /// <summary>
+    /// Current geometry of each live window, by instance key.
+    ///
+    /// Full screen keeps only the screen: its rectangle equals the
+    /// entire screen and the window is borderless there. Remembering it
+    /// and then restoring it at normal size would give a bordered window
+    /// overflowing under the taskbar. A window moved to another screen
+    /// in full screen has its <paramref name="remembered"/> windowed
+    /// place carried over to that screen instead. A minimized window is
+    /// set aside too, its rectangle meaning nothing.
+    /// </summary>
     public IReadOnlyList<(string Key, StoredWindowRect Rect)> CaptureGeometries(
         IReadOnlyList<ScrcpySession> sessions,
         IReadOnlyDictionary<string, StoredWindowRect>? remembered = null)
