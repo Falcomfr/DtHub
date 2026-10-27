@@ -1196,9 +1196,91 @@ public class WindowManagerServiceTests
 
         Assert.Equal(principal.Bounds, service.PreviewGameArea(16.0 / 9, onPrincipal));
 
-        // The full screen opens on the main screen whatever was remembered,
-        // see Resolve: the display must take that screen's shape.
-        Assert.Equal(principal.Bounds, service.MonitorBoundsFor(onSecond));
+        // The full screen opens on the remembered screen, see Resolve: the
+        // display must take that screen's shape.
+        Assert.Equal(second.Bounds, service.PreviewGameArea(16.0 / 9, onSecond));
+        Assert.Equal(second.Bounds, service.MonitorBoundsFor(onSecond));
+    }
+
+    private static readonly MonitorInfo SecondScreen = new()
+    {
+        DeviceName = @"\\.\DISPLAY2",
+        Bounds = new ScreenRect(1920, 0, 2560, 1600),
+        WorkArea = new ScreenRect(1920, 0, 2560, 1560),
+    };
+
+    [Fact]
+    public async Task En_plein_ecran_une_fenetre_rouvre_sur_l_ecran_ou_elle_etait()
+    {
+        // Every window used to reopen in full screen on the main screen,
+        // one account per screen ending up stacked there.
+        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+        await using var _ = manager;
+        desktop.Monitors.Add(SecondScreen);
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.ApplySizeAsync([], service.Presets.FullscreenIndex, CancellationToken.None);
+
+        await service.RestoreAsync(
+            sessions,
+            new Dictionary<string, StoredWindowRect>
+            {
+                [sessions[0].Target.Key] = StoredWindowRect.From(new ScreenRect(2000, 100, 1200, 750), SecondScreen),
+            },
+            CancellationToken.None);
+
+        Assert.Equal(SecondScreen.Bounds, desktop.GetWindowRect(sessions[0].WindowHandle));
+    }
+
+    [Fact]
+    public async Task En_plein_ecran_une_fenetre_changee_d_ecran_y_garde_sa_place_fenetree()
+    {
+        // The full screen rectangle is not remembered, only its screen: the
+        // windowed place is carried over to it, at the same proportions.
+        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+        await using var _ = manager;
+        desktop.Monitors.Add(SecondScreen);
+
+        var remembered = new Dictionary<string, StoredWindowRect>
+        {
+            [sessions[0].Target.Key] = Remembered(new ScreenRect(300, 200, 960, 540)),
+        };
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.RestoreAsync(sessions, remembered, CancellationToken.None);
+        await service.ApplySizeAsync(sessions, service.Presets.FullscreenIndex, CancellationToken.None);
+
+        Assert.Empty(service.CaptureGeometries(sessions, remembered));
+
+        desktop.MoveWindow(sessions[0].WindowHandle, SecondScreen.Bounds);
+
+        var captured = Assert.Single(service.CaptureGeometries(sessions, remembered));
+        Assert.Equal(SecondScreen.DeviceName, captured.Rect.MonitorDeviceName);
+        Assert.Equal(new ScreenRect(2320, 296, 1280, 800), captured.Rect.Bounds);
+    }
+
+    [Fact]
+    public async Task Une_fenetre_nee_en_plein_ecran_quitte_le_plein_ecran_sur_son_ecran()
+    {
+        // Born in full screen, it has no place from before full screen.
+        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+        await using var _ = manager;
+        desktop.Monitors.Add(SecondScreen);
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.ApplySizeAsync([], service.Presets.FullscreenIndex, CancellationToken.None);
+        await service.RestoreAsync(
+            sessions,
+            new Dictionary<string, StoredWindowRect>
+            {
+                [sessions[0].Target.Key] = StoredWindowRect.From(new ScreenRect(2000, 100, 1200, 750), SecondScreen),
+            },
+            CancellationToken.None);
+
+        await service.ApplySizeAsync(sessions, 0, CancellationToken.None);
+
+        var rect = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
+        Assert.True(SecondScreen.WorkArea.Contains(rect.CenterX, rect.CenterY), rect.ToString());
     }
 
     [Fact]

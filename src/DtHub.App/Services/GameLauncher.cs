@@ -4629,8 +4629,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // they occupy inside the frame, and remembering it as a free
         // spot made them reappear in the middle of the screen the
         // day they were taken out of the tabs.
+        // In full screen, a window moved to another screen carries its
+        // remembered windowed place over to it.
+        var remembered = _windows.IsFullscreen
+            ? await _settings.GetWindowRectsAsync(cancellationToken).ConfigureAwait(false)
+            : null;
+
         var captured = _windows.CaptureGeometries(
-            [.. _sessions.ActiveSessions.Where(s => !_tabbed.Contains(s.Target.Key) && !s.Target.IsTransient)]);
+            [.. _sessions.ActiveSessions.Where(s => !_tabbed.Contains(s.Target.Key) && !s.Target.IsTransient)],
+            remembered);
 
         if (captured.Count == 0)
         {

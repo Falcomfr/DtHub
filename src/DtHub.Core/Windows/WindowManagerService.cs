@@ -114,10 +114,11 @@ public sealed class WindowManagerService
     /// Rectangle the game windows will occupy, without moving
     /// anything. Used to place the configurator elsewhere.
     ///
-    /// A window's <paramref name="remembered"/> place wins, except in
-    /// full screen, as in <see cref="Resolve"/>: the display is sized on
-    /// this rectangle, and a window remembered small reopened in full
-    /// screen at the definition of its small size (seen on 2026-10-20).
+    /// A window's <paramref name="remembered"/> place wins; in full
+    /// screen only its screen does, as in <see cref="Resolve"/>: the
+    /// display is sized on this rectangle, and a window remembered small
+    /// reopened in full screen at the definition of its small size (seen
+    /// on 2026-10-20).
     /// A zero source ratio fills the requested rectangle and upgrades an
     /// older full-height monitor-ratio fit to the whole work area.
     /// </summary>
@@ -129,11 +130,15 @@ public sealed class WindowManagerService
             return null;
         }
 
-        if (!IsFullscreen
-            && remembered is not null
+        if (remembered is not null
             && WindowLayoutCalculator.RestoreRemembered(
                 remembered.Bounds, remembered.MonitorDeviceName, remembered.Monitor, monitors) is { } restored)
         {
+            if (IsFullscreen)
+            {
+                return WindowLayoutCalculator.ChooseMonitor(monitors, restored.CenterX, restored.CenterY).Bounds;
+            }
+
             if (sourceAspectRatio <= 0)
             {
                 // Older launches fitted a monitor-shaped image below the
@@ -702,7 +707,7 @@ public sealed class WindowManagerService
                       factor,
                       UsableArea(WindowLayoutCalculator.ChooseMonitor(monitors, before.CenterX, before.CenterY)))
                 : Compute(
-                      WindowLayoutCalculator.ChooseMonitor(monitors, preferredDeviceName: null),
+                      MonitorOf(handle) ?? WindowLayoutCalculator.ChooseMonitor(monitors, preferredDeviceName: null),
                       session.SourceAspectRatio,
                       chrome);
 
@@ -750,8 +755,8 @@ public sealed class WindowManagerService
             return null;
         }
 
-        // Full screen opens on the main screen, see Resolve.
-        var restored = remembered is null || IsFullscreen
+        // Full screen opens on the remembered screen too, see Resolve.
+        var restored = remembered is null
             ? null
             : WindowLayoutCalculator.RestoreRemembered(
                   remembered.Bounds, remembered.MonitorDeviceName, remembered.Monitor, monitors);
@@ -902,11 +907,13 @@ public sealed class WindowManagerService
     /// <summary>
     /// Current geometry of each live window, by instance key.
     ///
-    /// Full screen is set aside: its rectangle equals the entire
-    /// screen and the window is borderless there. Remembering it and
-    /// then restoring it at normal size would give a bordered window
-    /// overflowing under the taskbar. A minimized window is set
-    /// aside too, its rectangle meaning nothing.
+    /// Full screen keeps only the screen: its rectangle equals the
+    /// entire screen and the window is borderless there. Remembering it
+    /// and then restoring it at normal size would give a bordered window
+    /// overflowing under the taskbar. A window moved to another screen
+    /// in full screen has its <paramref name="remembered"/> windowed
+    /// place carried over to that screen instead. A minimized window is
+    /// set aside too, its rectangle meaning nothing.
     /// </summary>
     /// <summary>
     /// Where a window stood when last seen, for one that died with its
@@ -932,14 +939,10 @@ public sealed class WindowManagerService
     }
 
     public IReadOnlyList<(string Key, StoredWindowRect Rect)> CaptureGeometries(
-        IReadOnlyList<ScrcpySession> sessions)
+        IReadOnlyList<ScrcpySession> sessions,
+        IReadOnlyDictionary<string, StoredWindowRect>? remembered = null)
     {
         ArgumentNullException.ThrowIfNull(sessions);
-
-        if (IsFullscreen)
-        {
-            return [];
-        }
 
         var monitors = _controller.GetMonitors();
 
@@ -959,7 +962,38 @@ public sealed class WindowManagerService
 
             var monitor = WindowLayoutCalculator.ChooseMonitor(monitors, rect.CenterX, rect.CenterY);
 
-            captured.Add((session.Target.Key, StoredWindowRect.From(rect, monitor)));
+            if (!IsFullscreen)
+            {
+                captured.Add((session.Target.Key, StoredWindowRect.From(rect, monitor)));
+                continue;
+            }
+
+            // Minimized, at (-32000, -32000): on no screen at all.
+            if (!monitors.Any(m => m.Bounds.Contains(rect.CenterX, rect.CenterY)))
+            {
+                continue;
+            }
+
+            var before = remembered is not null && remembered.TryGetValue(session.Target.Key, out var stored)
+                ? WindowLayoutCalculator.RestoreRemembered(stored.Bounds, stored.MonitorDeviceName, stored.Monitor, monitors)
+                : null;
+
+            // The screen it would reopen on, see Resolve.
+            var from = before is { } b
+                ? WindowLayoutCalculator.ChooseMonitor(monitors, b.CenterX, b.CenterY)
+                : WindowLayoutCalculator.ChooseMonitor(monitors, preferredDeviceName: null);
+
+            if (string.Equals(from.DeviceName, monitor.DeviceName, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var windowed = before is { } placed
+                ? WindowLayoutCalculator.ClampInto(
+                      WindowLayoutCalculator.Rescale(placed, from.Bounds, monitor.Bounds), UsableArea(monitor))
+                : UsableArea(monitor);
+
+            captured.Add((session.Target.Key, StoredWindowRect.From(windowed, monitor)));
         }
 
         return captured;
@@ -1024,8 +1058,8 @@ public sealed class WindowManagerService
 
     /// <summary>
     /// Rectangle of a window: the one it had when it is still valid,
-    /// the anchor-based calculation otherwise. Full screen always
-    /// takes precedence over a remembered geometry.
+    /// the anchor-based calculation otherwise. In full screen, only the
+    /// remembered geometry's screen is kept.
     /// </summary>
     private ScreenRect Resolve(
         ScrcpySession session,
@@ -1034,13 +1068,14 @@ public sealed class WindowManagerService
         (int Width, int Height) chrome,
         IReadOnlyDictionary<string, StoredWindowRect>? remembered)
     {
-        if (!IsFullscreen
-            && remembered is not null
+        if (remembered is not null
             && remembered.TryGetValue(session.Target.Key, out var stored)
             && WindowLayoutCalculator.RestoreRemembered(
                 stored.Bounds, stored.MonitorDeviceName, stored.Monitor, monitors) is { } restored)
         {
-            return restored;
+            return IsFullscreen
+                ? WindowLayoutCalculator.ChooseMonitor(monitors, restored.CenterX, restored.CenterY).Bounds
+                : restored;
         }
 
         return Compute(monitor, session.SourceAspectRatio, chrome);
