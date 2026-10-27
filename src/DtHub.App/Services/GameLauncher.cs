@@ -260,10 +260,28 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     private void OnAppStopFailed(object? sender, ScrcpySession session)
     {
-        _stopFailed = TimedNotice.Raised(
-            Strings.Format("GameLeftRunning", session.Target.DisplayName), DateTimeOffset.UtcNow);
-
         LogGameLeftRunning(session.Target.DisplayName, session.Serial);
+
+        // A lost link is not a window closed on a game left behind: recovery
+        // reopens it, stopping the game first, and its own line says so.
+        // Telling the player to stop the game by hand only worried them.
+        if (SessionRecovery.Decide(session.End, 0).Retry)
+        {
+            return;
+        }
+
+        SayWindowGone(Strings.Format("GameLeftRunning", session.Target.DisplayName));
+    }
+
+    /// <summary>
+    /// Says why a window went away, and shows the panel that says it: it is
+    /// hidden while one plays, and with the last window gone the application
+    /// used to quit without a word.
+    /// </summary>
+    private void SayWindowGone(string text)
+    {
+        _windowGone = TimedNotice.Raised(text, DateTimeOffset.UtcNow);
+        WindowGone?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>
@@ -360,11 +378,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
     public IReadOnlyList<string> AwaitingNotices =>
         [.. _awaitingPhone.Values.Select(i => Strings.Format("SessionRecoveryGaveUp", i.DisplayName))];
 
-    /// <summary>
-    /// Raised when accounts start waiting for their phone: the panel shows
-    /// then, to say so, and because its sweep is what reconnects phones.
-    /// </summary>
-    public event EventHandler? PhoneAwaited;
+    /// <summary>Raised when the reason a window went away is to be read.</summary>
+    public event EventHandler? WindowGone;
 
     /// <summary>Last reconnection outcome per phone, logged only when it changes.</summary>
     private readonly Dictionary<string, ReconnectOutcome> _reconnectOutcomes = new(StringComparer.Ordinal);
@@ -397,6 +412,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
         _recovering.TryGetValue(key, out var notice)
         && notice.IsLiveAt(DateTimeOffset.UtcNow, RecoveryNoticeLife);
 
+    /// <summary>
+    /// True while a lost window is about to be reopened. Its tab gone, the
+    /// tabbed frame closed itself empty and, the panel hidden, the
+    /// application quit two seconds before the reopening (2026-10-26).
+    /// </summary>
+    public bool Recovers =>
+        _recovering.Values.Any(n => n.IsLiveAt(DateTimeOffset.UtcNow, RecoveryNoticeLife));
+
     private readonly ConcurrentDictionary<string, TimedNotice> _recovering = new(StringComparer.Ordinal);
 
     /// <summary>
@@ -420,20 +443,21 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private static readonly TimeSpan RecoveryNoticeLife = TimeSpan.FromSeconds(45);
 
     /// <summary>
-    /// The game we could not close, or <c>null</c>. Joins the
-    /// recovery banner, for the same reason: it explains what just
-    /// happened.
+    /// Why a window went away for good, or <c>null</c>: the game we could
+    /// not close, a window ended by a failure recovery cannot cure, a
+    /// reopening refused. Joins the recovery banner, for the same reason: it
+    /// explains what just happened, and the window itself is gone.
     /// </summary>
-    public string? StopFailedNotice =>
-        _stopFailed.IsLiveAt(DateTimeOffset.UtcNow, StopFailedNoticeLife) ? _stopFailed.Text : null;
+    public string? WindowGoneNotice =>
+        _windowGone.IsLiveAt(DateTimeOffset.UtcNow, WindowGoneNoticeLife) ? _windowGone.Text : null;
 
-    private TimedNotice _stopFailed;
+    private TimedNotice _windowGone;
 
     /// <summary>
     /// What the notice is granted. Enough to be read after a window
     /// closes, too short to survive into the next game.
     /// </summary>
-    private static readonly TimeSpan StopFailedNoticeLife = TimeSpan.FromSeconds(45);
+    private static readonly TimeSpan WindowGoneNoticeLife = TimeSpan.FromSeconds(45);
 
     /// <summary>
     /// The account the phone runs at a reduced resolution, or <c>null</c>.
@@ -606,6 +630,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
             session.FailureMessage ?? LogMessages.Translate("aucun message"),
             string.Join(Environment.NewLine, session.RecentOutput));
 
+        if (SessionRecovery.Recoverable(session.FailureKind))
+        {
+            RememberLostPlace(session);
+        }
+
         // Before concluding that nothing is left: a window we are
         // about to reopen is not a lost window. Without this
         // reservation, a Wi-Fi hiccup on the last session closed the
@@ -613,6 +642,16 @@ public sealed partial class GameLauncher : IAsyncDisposable
         if (TryRecover(session))
         {
             return;
+        }
+
+        // A failure recovery cannot cure, mid-game: its reason went to the
+        // log alone and the window just vanished.
+        if (session.State == ScrcpySessionState.Failed
+            && session.End.EverRan
+            && session.FailureMessage is { Length: > 0 } why
+            && !_awaitingPhone.ContainsKey(session.Target.Key))
+        {
+            SayWindowGone(Strings.Format("WindowEnded", session.Target.DisplayName, why));
         }
 
         // A clean end nobody in DT Hub asked for is the window's cross: it
@@ -644,7 +683,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
         _ = _recovering.TryRemove(key, out _);
 
         _awaitingPhone[key] = instance;
-        PhoneAwaited?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>
@@ -653,12 +691,26 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// as if recovery had given up. Seen on 2026-10-21: the first try found
     /// the phone gone, and the chain of tries stopped there for good.
     /// </summary>
-    public void AwaitPhoneIfGone(DofusInstance instance)
+    public void AwaitPhoneIfGone(DofusInstance instance, IReadOnlyList<string> problems)
     {
         ArgumentNullException.ThrowIfNull(instance);
+        ArgumentNullException.ThrowIfNull(problems);
 
-        if (_serials.ContainsKey(instance.DeviceId) || IsOpen(instance))
+        if (IsOpen(instance))
         {
+            return;
+        }
+
+        // The phone is there and still refused: said, where it used to go to
+        // the log alone while the recovery notice ran out, the window never
+        // coming back.
+        if (_serials.ContainsKey(instance.DeviceId))
+        {
+            _ = _recovering.TryRemove(instance.Key, out _);
+            _recovery = default;
+            SayWindowGone(problems.Count > 0
+                ? string.Join(" ", problems)
+                : Strings.Format("ReopenFailed", instance.DisplayName));
             return;
         }
 
@@ -2684,6 +2736,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
             }
         }
 
+        EndLostLinks(phones);
+
         // A serial no longer playing, an old port after wireless debugging
         // resumed for instance, would otherwise stay forever.
         foreach (var gone in _pings.Keys.Where(k => !phones.Contains(k, StringComparer.Ordinal)))
@@ -2721,6 +2775,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     if (strainDue)
                     {
                         await SampleStrainsAsync(serials).ConfigureAwait(false);
+                        await WatchGamesAsync(serials).ConfigureAwait(false);
                     }
 
                     // Rewritten on every strain round regardless: the lag
@@ -2732,6 +2787,139 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     _ = Interlocked.Exchange(ref _sampling, 0);
                 }
             });
+        }
+    }
+
+    /// <summary>
+    /// Closes the windows of a phone that stopped answering pings, so they
+    /// go through recovery like a link that dropped with a word. Its pings
+    /// stop with its windows, so this happens once per loss.
+    /// </summary>
+    private void EndLostLinks(IReadOnlyList<string> phones)
+    {
+        var now = DateTimeOffset.UtcNow;
+
+        foreach (var serial in phones)
+        {
+            if (!_pings.TryGetValue(serial, out var pings) || !pings.LinkLost(now))
+            {
+                continue;
+            }
+
+            // A fresh count, which waits for an answer before it can speak
+            // again: the windows take a moment to die and must not be ended
+            // twice.
+            _ = _pings.TryRemove(serial, out _);
+
+            foreach (var session in _sessions.ActiveSessions.Where(s =>
+                         s.IsAlive && string.Equals(Routable(s.Target), serial, StringComparison.Ordinal)))
+            {
+                LogLinkLost(serial, (int)PingSpikes.LinkLostAfter.TotalSeconds, session.Target.DisplayName);
+                ScrcpySessionManager.EndLostLink(session);
+            }
+        }
+    }
+
+    /// <summary>Accounts whose game was seen gone once: a second time in a row restarts it.</summary>
+    private readonly ConcurrentDictionary<string, byte> _gameMissing = new(StringComparer.Ordinal);
+
+    /// <summary>When each account's game was last restarted after it died.</summary>
+    private readonly ConcurrentDictionary<string, DateTimeOffset> _gameRestarted = new(StringComparer.Ordinal);
+
+    /// <summary>Sessions whose game died again too soon: told once, not restarted.</summary>
+    private readonly ConcurrentDictionary<string, byte> _gameGivenUp = new(StringComparer.Ordinal);
+
+    /// <summary>A game this young may still be starting: it is not watched yet.</summary>
+    private static readonly TimeSpan GameSettle = TimeSpan.FromMinutes(1);
+
+    /// <summary>
+    /// A game that dies again within this is not restarted again: a phone
+    /// short of memory would end it each time, in a loop.
+    /// </summary>
+    private static readonly TimeSpan GameRestartAgain = TimeSpan.FromMinutes(10);
+
+    /// <summary>
+    /// Restarts in its window a game the phone ended under it. Android kills
+    /// a game short of memory, and the game crashes: the window stayed black
+    /// for good, nothing said (2026-10-26). Read with the processor's
+    /// readings, every thirty seconds, and acted on at the second miss in a
+    /// row: a restart under way kills the game for a moment.
+    /// </summary>
+    private async Task WatchGamesAsync(IReadOnlyList<string> serials)
+    {
+        var now = DateTimeOffset.UtcNow;
+
+        foreach (var serial in serials)
+        {
+            var games = _sessions.ActiveSessions
+                .Where(s => s.IsAlive
+                    && s.State == ScrcpySessionState.Running
+                    && !s.Target.IsTransient
+                    && s.Target.StartUri is null
+                    && now - s.StartedUtc >= GameSettle
+                    && string.Equals(Routable(s.Target), serial, StringComparison.Ordinal))
+                .GroupBy(s => s.Target.PackageName);
+
+            foreach (var package in games)
+            {
+                if (await _devices.GetGameUsersAsync(serial, package.Key).ConfigureAwait(false) is not { } running)
+                {
+                    continue;
+                }
+
+                foreach (var session in package)
+                {
+                    var key = session.Target.Key;
+
+                    if (running.Contains(session.Target.UserId) || _gameMissing.TryAdd(key, 0))
+                    {
+                        if (running.Contains(session.Target.UserId))
+                        {
+                            _ = _gameMissing.TryRemove(key, out _);
+                        }
+
+                        continue;
+                    }
+
+                    _ = _gameMissing.TryRemove(key, out _);
+                    await RestartDeadGameAsync(session).ConfigureAwait(false);
+                }
+            }
+        }
+    }
+
+    private async Task RestartDeadGameAsync(ScrcpySession session)
+    {
+        var name = session.Target.DisplayName;
+
+        if (!_launched.TryGetValue(session.Target.Key, out var instance) || _gameGivenUp.ContainsKey(session.Id))
+        {
+            return;
+        }
+
+        var now = DateTimeOffset.UtcNow;
+
+        if (_gameRestarted.TryGetValue(session.Target.Key, out var last) && now - last < GameRestartAgain)
+        {
+            _ = _gameGivenUp.TryAdd(session.Id, 0);
+            LogGameDiedAgain(name);
+            SayWindowGone(Strings.Format("GameDiedAgain", name));
+            return;
+        }
+
+        _gameRestarted[session.Target.Key] = now;
+        LogGameDiedRestarted(name);
+
+        // Said without showing the panel: the game is back in its window.
+        _windowGone = TimedNotice.Raised(Strings.Format("GameDiedRestarted", name), now);
+
+        try
+        {
+            _ = await RestartAsync(instance).ConfigureAwait(false);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            LogDeadGameRestartFailure(exception);
         }
     }
 
@@ -3139,10 +3327,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             var live = await _devices.RefreshAsync(cancellationToken).ConfigureAwait(false);
 
-            var addresses = live.Devices
-                .Where(d => d.IsConnected)
-                .SelectMany(d => new[] { d.Serial, d.Id })
-                .ToHashSet(StringComparer.Ordinal);
+            var addresses = AdbTransportChoice.ReachedByAddress(live.Devices.Where(d => d.IsConnected));
 
             // An attempt on an announcement only succeeds for a
             // phone already paired with this PC: ADB refuses the
@@ -3383,6 +3568,18 @@ public sealed partial class GameLauncher : IAsyncDisposable
         if (enabled.Count == 0)
         {
             return new LaunchReport(0, [Strings.Get("NoInstanceChecked")]);
+        }
+
+        // A phone adb has not joined yet is asked for once before giving up on
+        // its accounts. At startup they were refused, "le téléphone n'est pas
+        // connecté", six seconds before the sweep reconnected it, and stayed
+        // closed (2026-10-26). Only then: an absent phone costs the attempt's
+        // few seconds, a present one nothing.
+        if (enabled.Exists(i => !_serials.ContainsKey(i.DeviceId)))
+        {
+            await EnsureKnownDevicesConnectedAsync(cancellationToken).ConfigureAwait(false);
+
+            enabled = [.. (await RefreshInstancesAsync(cancellationToken).ConfigureAwait(false)).Where(i => i.IsEnabled)];
         }
 
         return await LaunchAsync(enabled, cancellationToken).ConfigureAwait(false);
@@ -4494,12 +4691,188 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // us: a game window closed by hand, a phone unplugged.
         // Deliberate closes already detach the tab themselves,
         // without waiting for this pass.
-        _tabs?.KeepOnly(
-            [.. _sessions.ActiveSessions.Select(s => s.Target.Key)]);
+        var waiting = WaitingKeys();
+
+        _tabs?.KeepOnly([.. _sessions.ActiveSessions.Select(s => s.Target.Key)], waiting);
+
+        UpdateWaitingWindows(waiting);
 
         ReportFirstImages();
 
         SampleInBackground();
+
+        if (AwaitsPhone)
+        {
+            ReconnectInBackground();
+        }
+    }
+
+    /// <summary>
+    /// Accounts that wait for their phone where their game was: about to be
+    /// reopened, waiting for the phone, or whose phone stopped answering
+    /// pings a few seconds ago while their window still stands.
+    /// </summary>
+    private HashSet<string> WaitingKeys()
+    {
+        var now = DateTimeOffset.UtcNow;
+        var keys = new HashSet<string>(_awaitingPhone.Keys, StringComparer.Ordinal);
+
+        foreach (var (key, notice) in _recovering)
+        {
+            if (notice.IsLiveAt(now, RecoveryNoticeLife))
+            {
+                _ = keys.Add(key);
+            }
+        }
+
+        foreach (var session in _sessions.ActiveSessions.Where(s => s.IsAlive))
+        {
+            if (_pings.TryGetValue(Routable(session.Target), out var pings) && pings.Silent(now))
+            {
+                _ = keys.Add(session.Target.Key);
+            }
+        }
+
+        return keys;
+    }
+
+    /// <summary>Where each free window stood when its link dropped, by account.</summary>
+    private readonly ConcurrentDictionary<string, StoredWindowRect> _lostRects = new(StringComparer.Ordinal);
+
+    /// <summary>The waiting windows standing at free windows' places, by account.</summary>
+    private readonly Dictionary<string, Windows.WaitingWindow> _waitingWindows = new(StringComparer.Ordinal);
+
+    /// <summary>Free windows hidden while their phone is silent, by account.</summary>
+    private readonly Dictionary<string, nint> _hiddenWhileSilent = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Puts a waiting window where each waiting free window stands, or stood,
+    /// and takes it down when its game is back. A window still open, its
+    /// picture frozen, hides behind it, and shows again if the phone answers
+    /// before the link counts as lost. On the watch's thread, the UI one.
+    /// </summary>
+    private void UpdateWaitingWindows(HashSet<string> waiting)
+    {
+        foreach (var key in waiting)
+        {
+            if (_tabbed.Contains(key) || !_launched.TryGetValue(key, out var instance) || instance.IsTransient)
+            {
+                continue;
+            }
+
+            var live = _sessions.ActiveSessions.FirstOrDefault(s =>
+                s.IsAlive && s.WindowHandle != 0 && string.Equals(s.Target.Key, key, StringComparison.Ordinal));
+
+            ScreenRect? rect = live is not null
+                ? _windows.Controller.GetWindowRect(live.WindowHandle)
+                : _lostRects.TryGetValue(key, out var lost) ? lost.Bounds : null;
+
+            if (rect is not { IsEmpty: false } at)
+            {
+                continue;
+            }
+
+            if (live is not null && _hiddenWhileSilent.TryAdd(key, live.WindowHandle))
+            {
+                _windows.Controller.SetVisible(live.WindowHandle, false);
+            }
+
+            if (_waitingWindows.ContainsKey(key))
+            {
+                continue;
+            }
+
+            var window = new Windows.WaitingWindow(instance.DisplayName);
+
+            window.CloseRequested += (_, _) =>
+            {
+                _ = _waitingWindows.Remove(key);
+                _ = StopAsync(instance);
+            };
+
+            _waitingWindows[key] = window;
+            window.Show();
+            _windows.Controller.MoveWindow(new System.Windows.Interop.WindowInteropHelper(window).Handle, at);
+        }
+
+        foreach (var key in _waitingWindows.Keys.Where(k => !waiting.Contains(k)).ToList())
+        {
+            if (_waitingWindows.Remove(key, out var window))
+            {
+                window.Release();
+            }
+        }
+
+        foreach (var (key, handle) in _hiddenWhileSilent.Where(p => !waiting.Contains(p.Key)).ToList())
+        {
+            _ = _hiddenWhileSilent.Remove(key);
+
+            if (_sessions.ActiveSessions.Any(s => s.IsAlive && s.WindowHandle == handle))
+            {
+                _windows.Controller.SetVisible(handle, true);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Remembers where a free window stood when its link dropped, so its
+    /// waiting window, then its reopened game, stand there.
+    /// </summary>
+    private void RememberLostPlace(ScrcpySession session)
+    {
+        if (_tabbed.Contains(session.Target.Key)
+            || session.Target.IsTransient
+            || _windows.CaptureLost(session) is not { } lost)
+        {
+            return;
+        }
+
+        _lostRects[lost.Key] = lost.Rect;
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await _settings.SaveWindowRectsAsync(
+                    new Dictionary<string, StoredWindowRect>(StringComparer.Ordinal) { [lost.Key] = lost.Rect }).ConfigureAwait(false);
+            }
+            catch (Exception exception) when (exception is not OutOfMemoryException)
+            {
+                LogLostPlaceFailure(exception);
+            }
+        });
+    }
+
+    /// <summary>1 while a reconnection pass started by the watch runs.</summary>
+    private int _reconnecting;
+
+    /// <summary>
+    /// Reconnects phones while accounts wait for them. The panel's sweep did
+    /// it, so the panel had to pop up mid-game; the watch runs either way.
+    /// The pass spaces its own attempts out.
+    /// </summary>
+    private void ReconnectInBackground()
+    {
+        if (Interlocked.Exchange(ref _reconnecting, 1) == 1)
+        {
+            return;
+        }
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                _ = await RefreshDevicesAsync().ConfigureAwait(false);
+            }
+            catch (Exception exception) when (exception is not OutOfMemoryException)
+            {
+                LogBackgroundReconnectFailure(exception);
+            }
+            finally
+            {
+                _ = Interlocked.Exchange(ref _reconnecting, 0);
+            }
+        });
     }
 
     /// <summary>Sessions whose first image has already been recorded.</summary>
@@ -5669,6 +6042,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
             if (_sessions.ActiveSessions.FirstOrDefault(
                     s => string.Equals(s.Target.Key, key, StringComparison.Ordinal)) is not { } session)
             {
+                // A tab waiting for its phone has no session: closing it calls
+                // its reopening off, and it leaves the next startup the same.
+                if (IsRecovering(key) || _awaitingPhone.ContainsKey(key))
+                {
+                    CancelRecovery(key);
+                    byHand.Add(key);
+                }
+
                 continue;
             }
 
@@ -6526,6 +6907,31 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     [LoggerMessage(
         Level = LogLevel.Warning,
+        Message = "Le jeu de {name} s'est arrêté sur le téléphone, fenêtre ouverte : relancé.")]
+    private partial void LogGameDiedRestarted(string name);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "Le jeu de {name} s'est encore arrêté sur le téléphone : pas de nouvelle relance.")]
+    private partial void LogGameDiedAgain(string name);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "La relance d'un jeu arrêté sur le téléphone a échoué.")]
+    private partial void LogDeadGameRestartFailure(Exception exception);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "La place d'une fenêtre perdue n'a pas pu être retenue.")]
+    private partial void LogLostPlaceFailure(Exception exception);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "La reconnexion des téléphones attendus a échoué.")]
+    private partial void LogBackgroundReconnectFailure(Exception exception);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
         Message = "Un compte fermé à la main n'a pas pu être retiré du prochain démarrage.")]
     private partial void LogForgetClosedFailure(Exception exception);
 
@@ -6590,6 +6996,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Warning,
         Message = "Le jeu de {instance} n'a pas pu être arrêté : {serial} est resté injoignable.")]
     private partial void LogGameLeftRunning(string instance, string serial);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "{serial} ne répond plus au ping depuis {seconds} s : liaison perdue, fenêtre de {instance} fermée pour être rouverte.")]
+    private partial void LogLinkLost(string serial, int seconds, string instance);
 
     [LoggerMessage(
         Level = LogLevel.Information,

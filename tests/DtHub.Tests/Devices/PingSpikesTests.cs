@@ -58,6 +58,60 @@ public class PingSpikesTests
         Assert.Equal((0, 0L), spikes.Since(Debut.AddSeconds(2)));
     }
 
+    [Fact]
+    public void Quinze_secondes_sans_reponse_apres_une_reponse_sont_une_liaison_perdue()
+    {
+        // The link dies without a word, the PC keeps waiting for frames: the
+        // window stayed grey with no message (2026-10-26).
+        var spikes = new PingSpikes();
+
+        spikes.Add(Debut, 3);
+
+        for (var s = 1; s <= 15; s++)
+        {
+            spikes.Add(Debut.AddSeconds(s), null);
+        }
+
+        Assert.False(spikes.LinkLost(Debut.AddSeconds(14)));
+        Assert.True(spikes.LinkLost(Debut.AddSeconds(15)));
+    }
+
+    [Fact]
+    public void Trois_secondes_sans_reponse_rendent_la_liaison_muette()
+    {
+        // Shown at once as waiting for the phone, without closing the window:
+        // a Wi-Fi hiccup comes back within a few seconds.
+        var spikes = new PingSpikes();
+
+        spikes.Add(Debut, 3);
+
+        Assert.False(spikes.Silent(Debut.AddSeconds(2)));
+        Assert.True(spikes.Silent(Debut.AddSeconds(3)));
+        Assert.False(spikes.LinkLost(Debut.AddSeconds(3)));
+    }
+
+    [Fact]
+    public void Un_telephone_qui_n_a_jamais_repondu_n_est_pas_declare_perdu()
+    {
+        // A network that drops pings must not close a window that works.
+        var spikes = new PingSpikes();
+
+        spikes.Add(Debut, null);
+
+        Assert.False(spikes.LinkLost(Debut.AddMinutes(5)));
+    }
+
+    [Fact]
+    public void Une_reponse_remet_la_liaison_en_vie()
+    {
+        var spikes = new PingSpikes();
+
+        spikes.Add(Debut, 3);
+        spikes.Add(Debut.AddSeconds(14), 900);
+
+        Assert.False(spikes.LinkLost(Debut.AddSeconds(20)));
+    }
+
     [Theory]
     [InlineData("192.168.1.16:34169", "192.168.1.16")]
     [InlineData("adb-SERIAL0123456789-1V3FXQ._adb-tls-connect._tcp", null)]

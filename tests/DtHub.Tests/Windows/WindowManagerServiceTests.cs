@@ -707,6 +707,31 @@ public class WindowManagerServiceTests
         Assert.Equal(new ScreenRect(120, 340, 560, 420), captured[0].Rect.Bounds);
     }
 
+    /// <summary>
+    /// A window dead with its phone's link has no rectangle left to read:
+    /// its waiting view, then its game, must still stand where it was.
+    /// </summary>
+    [Fact]
+    public async Task Une_fenetre_disparue_garde_sa_derniere_place_connue()
+    {
+        var (manager, sessions, desktop) = await OpenSessionsAsync(1);
+        await using var _ = manager;
+
+        var service = new WindowManagerService(desktop, NoDelay);
+        await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
+
+        desktop.MoveWindow(sessions[0].WindowHandle, new ScreenRect(120, 340, 560, 420));
+        service.EnforceAspect(sessions);
+        var seen = desktop.GetWindowRect(sessions[0].WindowHandle)!.Value;
+
+        desktop.RemoveWindow(sessions[0].WindowHandle);
+
+        var lost = service.CaptureLost(sessions[0]);
+
+        Assert.Equal(sessions[0].Target.Key, lost?.Key);
+        Assert.Equal(seen, lost?.Rect.Bounds);
+    }
+
     [Fact]
     public async Task Rien_n_est_capture_en_plein_ecran()
     {

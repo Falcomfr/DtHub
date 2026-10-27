@@ -1075,6 +1075,25 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     /// </summary>
     private static readonly TimeSpan EncoderListTimeout = TimeSpan.FromSeconds(20);
 
+    /// <summary>
+    /// Ends a session whose phone stopped answering, as the disconnection it
+    /// is: the read loop then fails it and recovery reopens it. A link that
+    /// dies without a word leaves scrcpy waiting for frames, its window grey,
+    /// and nothing of ours would otherwise end it.
+    /// </summary>
+    public static void EndLostLink(ScrcpySession session)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+
+        if (session.FailureKind == ScrcpyFailureKind.None)
+        {
+            session.FailureKind = ScrcpyFailureKind.DeviceDisconnected;
+        }
+
+        session.FailureMessage ??= ScrcpyOutputParser.Describe(session.FailureKind);
+        session.Process.Kill();
+    }
+
     /// <summary>Closes a session opened by DT Hub.</summary>
     public async Task StopAsync(string sessionId, CancellationToken cancellationToken = default)
     {
@@ -1706,6 +1725,18 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         var stopped = await StopAppOnDeviceAsync(session, CancellationToken.None).ConfigureAwait(false);
 
         var exitCode = session.Process.ExitCode ?? -1;
+
+        // Closed by its cross, scrcpy exits on 0. On another code and with
+        // nothing said, it crashed or was killed from outside: taken for a
+        // close by hand, the window vanished and left the next startup.
+        if (session.Process.ExitCode is { } code and not 0
+            && session.FailureMessage is null
+            && !session.StopRequested
+            && session.State != ScrcpySessionState.Failed)
+        {
+            session.FailureKind = ScrcpyFailureKind.Unknown;
+            session.FailureMessage = Strings.Format("ScrcpyCrashed", code);
+        }
 
         if (session.State == ScrcpySessionState.Failed)
         {

@@ -628,7 +628,7 @@ Un teléfono ya vinculado por Wi-Fi vuelve solo.</value>
     <value>La conexión con {0} se cortó. Su ventana se vuelve a abrir.</value>
   </data>
   <data name="SessionRecoveryGaveUp" xml:space="preserve">
-    <value>La conexión con {0} se perdió. Su ventana se volverá a abrir en cuanto vuelva el teléfono.</value>
+    <value>{0}: conexión perdida, su ventana se volverá a abrir cuando vuelva el teléfono.</value>
   </data>
   <data name="ReducedRender" xml:space="preserve">
     <value>{0}: el teléfono ejecuta el juego al {1} % de su resolución (modo de juego de esta copia), de ahí la imagen borrosa. El triángulo de su línea lo devuelve a estándar.</value>
@@ -680,6 +680,27 @@ Un teléfono ya vinculado por Wi-Fi vuelve solo.</value>
   </data>
   <data name="GameLeftRunning" xml:space="preserve">
     <value>{0} se cerró, pero el juego sigue abierto en el teléfono: no se pudo contactar. Ciérralo desde el teléfono.</value>
+  </data>
+  <data name="WindowEnded" xml:space="preserve">
+    <value>{0} se cerró: {1}</value>
+  </data>
+  <data name="ReopenFailed" xml:space="preserve">
+    <value>No se pudo volver a abrir {0}. Ábrelo desde la lista.</value>
+  </data>
+  <data name="WaitingPhoneTitle" xml:space="preserve">
+    <value>Esperando al teléfono</value>
+  </data>
+  <data name="WaitingPhoneText" xml:space="preserve">
+    <value>La conexión Wi-Fi está cortada. El juego vuelve aquí en cuanto se restablezca.</value>
+  </data>
+  <data name="ScrcpyCrashed" xml:space="preserve">
+    <value>scrcpy se detuvo de golpe (código {0}).</value>
+  </data>
+  <data name="GameDiedRestarted" xml:space="preserve">
+    <value>El juego de {0} se detuvo en el teléfono: se ha relanzado en su ventana.</value>
+  </data>
+  <data name="GameDiedAgain" xml:space="preserve">
+    <value>El juego de {0} se volvió a detener en el teléfono. Relánzalo con la flecha en bucle de su línea, en el panel.</value>
   </data>
   <data name="DeviceBatteryLow" xml:space="preserve">
     <value>El teléfono está al {0} % y no está cargando. Enchúfalo o la sesión acabará antes que tú.</value>

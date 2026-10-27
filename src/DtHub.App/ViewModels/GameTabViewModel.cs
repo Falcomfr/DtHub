@@ -37,8 +37,21 @@ public sealed partial class GameTabViewModel : ObservableObject
     /// </summary>
     public string Key { get; }
 
-    /// <summary>Docked game window, as Windows designates it.</summary>
-    public nint Window { get; }
+    /// <summary>
+    /// Docked game window, as Windows designates it, or 0 while the account
+    /// waits for its window to come back.
+    /// </summary>
+    public nint Window { get; set; }
+
+    /// <summary>
+    /// True while the account waits for its phone: the tab stays, and the
+    /// frame shows the waiting view instead of the game.
+    /// </summary>
+    [ObservableProperty]
+    private bool _isWaiting;
+
+    /// <summary>True when the tab has a game to show.</summary>
+    public bool ShowsGame => Window != 0 && !IsWaiting;
 
     /// <summary>
     /// Width-to-height ratio of the display, the one scrcpy locks.

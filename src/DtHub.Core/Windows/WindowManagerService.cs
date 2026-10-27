@@ -908,6 +908,29 @@ public sealed class WindowManagerService
     /// overflowing under the taskbar. A minimized window is set
     /// aside too, its rectangle meaning nothing.
     /// </summary>
+    /// <summary>
+    /// Where a window stood when last seen, for one that died with its
+    /// phone's link: its waiting view, then its game, stand there again.
+    /// <c>null</c> in full screen, as for any capture, or when it was never
+    /// seen.
+    /// </summary>
+    public (string Key, StoredWindowRect Rect)? CaptureLost(ScrcpySession session)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+
+        if (IsFullscreen || !_lastSeen.TryGetValue(session.Id, out var rect) || rect.IsEmpty)
+        {
+            return null;
+        }
+
+        var monitors = _controller.GetMonitors();
+
+        return monitors.Count == 0
+            ? null
+            : (session.Target.Key,
+                StoredWindowRect.From(rect, WindowLayoutCalculator.ChooseMonitor(monitors, rect.CenterX, rect.CenterY)));
+    }
+
     public IReadOnlyList<(string Key, StoredWindowRect Rect)> CaptureGeometries(
         IReadOnlyList<ScrcpySession> sessions)
     {

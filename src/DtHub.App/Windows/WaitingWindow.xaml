@@ -1,0 +1,11 @@
+﻿<Window x:Class="DtHub.App.Windows.WaitingWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:DtHub.App.Windows"
+        WindowStartupLocation="Manual" ShowActivated="False"
+        Background="{DynamicResource SurfaceAltBrush}"
+        TextOptions.TextFormattingMode="Display">
+  <!-- Stands at a free game window's place while its phone's link is
+       down, until the game comes back there. -->
+  <local:WaitingPhoneView CloseRequested="OnCloseRequested" />
+</Window>

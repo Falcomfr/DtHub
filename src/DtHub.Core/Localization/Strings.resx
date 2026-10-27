@@ -628,7 +628,7 @@ A phone already paired over Wi-Fi comes back on its own.</value>
     <value>The link to {0} dropped. Reopening its window.</value>
   </data>
   <data name="SessionRecoveryGaveUp" xml:space="preserve">
-    <value>The link to {0} is lost. Its window will reopen as soon as the phone is back.</value>
+    <value>{0}: link lost, its window will reopen when the phone is back.</value>
   </data>
   <data name="ReducedRender" xml:space="preserve">
     <value>{0}: the phone runs the game at {1} % of its resolution (this copy's game mode), hence the blurry picture. The triangle on its line sets it back to standard.</value>
@@ -680,6 +680,27 @@ A phone already paired over Wi-Fi comes back on its own.</value>
   </data>
   <data name="GameLeftRunning" xml:space="preserve">
     <value>{0} closed, but the game is still running on the phone: it could not be reached. Close it from the phone.</value>
+  </data>
+  <data name="WindowEnded" xml:space="preserve">
+    <value>{0} closed: {1}</value>
+  </data>
+  <data name="ReopenFailed" xml:space="preserve">
+    <value>{0} could not reopen. Reopen it from the list.</value>
+  </data>
+  <data name="WaitingPhoneTitle" xml:space="preserve">
+    <value>Waiting for the phone</value>
+  </data>
+  <data name="WaitingPhoneText" xml:space="preserve">
+    <value>The Wi-Fi link is down. The game comes back here as soon as it resumes.</value>
+  </data>
+  <data name="ScrcpyCrashed" xml:space="preserve">
+    <value>scrcpy stopped abruptly (code {0}).</value>
+  </data>
+  <data name="GameDiedRestarted" xml:space="preserve">
+    <value>The game of {0} stopped on the phone: it was restarted in its window.</value>
+  </data>
+  <data name="GameDiedAgain" xml:space="preserve">
+    <value>The game of {0} stopped on the phone again. Restart it with the looping arrow on its row, in the panel.</value>
   </data>
   <data name="DeviceBatteryLow" xml:space="preserve">
     <value>The phone is down to {0} % and is not charging. Plug it in, or the session will end before you do.</value>

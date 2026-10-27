@@ -292,6 +292,24 @@
   <data name="Le jeu de {instance} n'a pas pu être arrêté : {serial} est resté injoignable." xml:space="preserve">
     <value>Le jeu de {instance} n'a pas pu être arrêté : {serial} est resté injoignable.</value>
   </data>
+  <data name="La reconnexion des téléphones attendus a échoué." xml:space="preserve">
+    <value>La reconnexion des téléphones attendus a échoué.</value>
+  </data>
+  <data name="Le jeu de {name} s'est arrêté sur le téléphone, fenêtre ouverte : relancé." xml:space="preserve">
+    <value>Le jeu de {name} s'est arrêté sur le téléphone, fenêtre ouverte : relancé.</value>
+  </data>
+  <data name="Le jeu de {name} s'est encore arrêté sur le téléphone : pas de nouvelle relance." xml:space="preserve">
+    <value>Le jeu de {name} s'est encore arrêté sur le téléphone : pas de nouvelle relance.</value>
+  </data>
+  <data name="La relance d'un jeu arrêté sur le téléphone a échoué." xml:space="preserve">
+    <value>La relance d'un jeu arrêté sur le téléphone a échoué.</value>
+  </data>
+  <data name="La place d'une fenêtre perdue n'a pas pu être retenue." xml:space="preserve">
+    <value>La place d'une fenêtre perdue n'a pas pu être retenue.</value>
+  </data>
+  <data name="{serial} ne répond plus au ping depuis {seconds} s : liaison perdue, fenêtre de {instance} fermée pour être rouverte." xml:space="preserve">
+    <value>{serial} ne répond plus au ping depuis {seconds} s : liaison perdue, fenêtre de {instance} fermée pour être rouverte.</value>
+  </data>
   <data name="Le jeu joue du son sur l'appareil {serial} ({players} lecteur(s)) mais plus rien ne le capte pour le PC depuis au moins une minute." xml:space="preserve">
     <value>Le jeu joue du son sur l'appareil {serial} ({players} lecteur(s)) mais plus rien ne le capte pour le PC depuis au moins une minute.</value>
   </data>

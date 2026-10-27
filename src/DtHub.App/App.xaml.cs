@@ -215,9 +215,10 @@ public partial class App : Application, IDisposable
         launcher.RecoveryRequested += (_, request) =>
             Dispatcher.Invoke(() => _ = RecoverAsync(launcher, request));
 
-        // Accounts waiting for their phone: the panel says so, and its
-        // sweep is what brings the phone, then the accounts, back.
-        launcher.PhoneAwaited += (_, _) => Dispatcher.Invoke(() =>
+        // Why a window went away is said in the panel, hidden while one
+        // plays. Shown before the last window's end is counted, so the
+        // application stays to say it instead of quitting.
+        launcher.WindowGone += (_, _) => Dispatcher.Invoke(() =>
         {
             if (!_quitting)
             {
@@ -767,9 +768,10 @@ public partial class App : Application, IDisposable
 
         // Also called when the panel is hidden: game windows may
         // still remain then, and the application must continue. So must
-        // it while accounts wait for their phone to come back.
+        // it while accounts wait for their phone to come back, or for
+        // their window to reopen.
         if (_host?.Services.GetRequiredService<GameLauncher>() is { } launcher
-            && (launcher.ActiveSessions.Count > 0 || launcher.AwaitsPhone))
+            && (launcher.ActiveSessions.Count > 0 || launcher.AwaitsPhone || launcher.Recovers))
         {
             return;
         }
@@ -1051,16 +1053,15 @@ public partial class App : Application, IDisposable
 
             if (!report.AnyOpened)
             {
-                launcher.AwaitPhoneIfGone(request.Instance);
+                launcher.AwaitPhoneIfGone(request.Instance, report.Problems);
             }
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
-            // The next failure will decide again. Reporting here
-            // would add nothing: the notice shown already says the
-            // window is expected, and a failed reopen shows itself
-            // by the window not coming back.
+            // Said like a refused reopening: the notice shown promised the
+            // window, and its not coming back was all the player saw.
             Log.Warning(exception, "La réouverture de {Nom} a échoué.", request.Instance.DisplayName);
+            launcher.AwaitPhoneIfGone(request.Instance, []);
         }
     }
 

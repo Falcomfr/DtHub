@@ -628,7 +628,7 @@ Un téléphone déjà associé en Wi-Fi revient tout seul.</value>
     <value>La liaison avec {0} a lâché. Sa fenêtre se rouvre.</value>
   </data>
   <data name="SessionRecoveryGaveUp" xml:space="preserve">
-    <value>La liaison avec {0} est perdue. Sa fenêtre se rouvrira dès que le téléphone reviendra.</value>
+    <value>{0} : liaison perdue, sa fenêtre se rouvrira au retour du téléphone.</value>
   </data>
   <data name="ReducedRender" xml:space="preserve">
     <value>{0} : le téléphone fait tourner le jeu à {1} % de sa résolution (mode jeu de cette copie), d'où l'image floue. Le triangle sur sa ligne le remet en standard.</value>
@@ -680,6 +680,27 @@ Un téléphone déjà associé en Wi-Fi revient tout seul.</value>
   </data>
   <data name="GameLeftRunning" xml:space="preserve">
     <value>{0} s'est fermé, mais le jeu tourne encore sur le téléphone : il est resté injoignable. Arrêtez-le depuis le téléphone.</value>
+  </data>
+  <data name="WindowEnded" xml:space="preserve">
+    <value>{0} s'est fermé : {1}</value>
+  </data>
+  <data name="ReopenFailed" xml:space="preserve">
+    <value>{0} n'a pas pu se rouvrir. Rouvrez-le depuis la liste.</value>
+  </data>
+  <data name="WaitingPhoneTitle" xml:space="preserve">
+    <value>En attente du téléphone</value>
+  </data>
+  <data name="WaitingPhoneText" xml:space="preserve">
+    <value>La liaison Wi-Fi est coupée. Le jeu revient ici dès qu'elle reprend.</value>
+  </data>
+  <data name="ScrcpyCrashed" xml:space="preserve">
+    <value>scrcpy s'est arrêté brutalement (code {0}).</value>
+  </data>
+  <data name="GameDiedRestarted" xml:space="preserve">
+    <value>Le jeu de {0} s'est arrêté sur le téléphone : il a été relancé dans sa fenêtre.</value>
+  </data>
+  <data name="GameDiedAgain" xml:space="preserve">
+    <value>Le jeu de {0} s'est encore arrêté sur le téléphone. Relancez-le avec la flèche en boucle de sa ligne, dans le panneau.</value>
   </data>
   <data name="DeviceBatteryLow" xml:space="preserve">
     <value>Le téléphone est à {0} % et n'est pas branché. Mettez-le en charge, sinon la séance finira avant vous.</value>

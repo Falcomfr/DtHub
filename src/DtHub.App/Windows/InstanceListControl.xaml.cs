@@ -361,7 +361,9 @@ public partial class InstanceListControl : UserControl
         var help = AppHost.Services.GetRequiredService<HelpWindow>();
 
         help.OpenFor(device.Manufacturer);
-        help.OpenOn(OfflineAdvice.HelpOpensOnCable(device.Connection), fixes: true);
+        // At the top: the row says to open wireless debugging, the first
+        // step, and opening on the fixes further down hid it (2026-10-26).
+        help.OpenOn(OfflineAdvice.HelpOpensOnCable(device.Connection));
         help.Owner = Window.GetWindow(this);
         help.ShowDialog();
     }

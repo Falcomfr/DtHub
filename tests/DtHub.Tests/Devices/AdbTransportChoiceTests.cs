@@ -125,6 +125,32 @@ public class AdbTransportChoiceTests
     public void Une_liste_vide_ne_leve_pas() =>
         Assert.Empty(AdbTransportChoice.WithoutDoubles([], [Memorise()]));
 
+    /// <summary>
+    /// Held only under its mDNS name, the phone's address is never
+    /// remembered: after a Wi-Fi drop DT Hub knocked at a port closed since,
+    /// and the phone came back minutes later (2026-10-26). Its announcement
+    /// must connect its address.
+    /// </summary>
+    [Fact]
+    public void Un_telephone_tenu_par_son_seul_nom_mdns_laisse_connecter_son_adresse()
+    {
+        var atteints = AdbTransportChoice.ReachedByAddress(
+            [Memorise(serial: "adb-MATERIEL123-1V3FXQ._adb-tls-connect._tcp")]);
+
+        Assert.DoesNotContain("MATERIEL123", atteints);
+    }
+
+    [Fact]
+    public void Un_telephone_tenu_par_son_adresse_ou_son_cable_bloque_son_annonce()
+    {
+        var atteints = AdbTransportChoice.ReachedByAddress(
+            [Memorise(), Memorise(id: "CABLE456", serial: "CABLE456", adresse: null, port: null)]);
+
+        Assert.Contains("192.168.1.14:40187", atteints);
+        Assert.Contains("MATERIEL123", atteints);
+        Assert.Contains("CABLE456", atteints);
+    }
+
     [Fact]
     public void Une_adresse_morte_ne_cache_pas_le_nom_mdns_qui_marche()
     {

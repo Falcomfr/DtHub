@@ -2,6 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:loc="clr-namespace:DtHub.App.Localization"
+        xmlns:local="clr-namespace:DtHub.App.Windows"
         Width="1400" Height="900" MinWidth="480" MinHeight="320"
         WindowStartupLocation="Manual"
         Background="{DynamicResource SurfaceAltBrush}"
@@ -123,9 +124,12 @@
       </ItemsControl>
     </Border>
 
-    <!-- Zone d'accueil : volontairement vide. Les fenêtres de jeu y sont
-         logées, et tout élément WPF posé ici serait caché sous elles. -->
+    <!-- Zone d'accueil. Les fenêtres de jeu y sont logées, et tout élément
+         WPF posé ici serait caché sous elles : seule la vue d'attente y vit,
+         quand l'onglet montré n'a plus de fenêtre ou la cache. -->
     <Grid x:Name="Accueil" Grid.Row="1" Background="{DynamicResource SurfaceAltBrush}"
-          SizeChanged="OnHostResized" />
+          SizeChanged="OnHostResized">
+      <local:WaitingPhoneView x:Name="Attente" Visibility="Collapsed" CloseRequested="OnWaitingClose" />
+    </Grid>
   </Grid>
 </Window>

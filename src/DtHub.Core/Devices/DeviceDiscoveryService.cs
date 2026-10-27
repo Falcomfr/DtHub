@@ -941,6 +941,30 @@ public sealed class DeviceDiscoveryService : IDisposable
     /// away, a phone that stays saturated is not, so the finding does not
     /// blink. Called from one place only, the dictionary is not shared.
     /// </summary>
+    /// <summary>
+    /// The Android accounts running this package on the phone, or <c>null</c>
+    /// when the phone did not answer: a silence is not a dead game.
+    /// </summary>
+    public async Task<IReadOnlySet<int>?> GetGameUsersAsync(
+        string serial,
+        string package,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return GameProcesses.UsersRunning(
+                await _adb.ShellAsync(serial, [GameProcesses.Command], cancellationToken: cancellationToken)
+                    .ConfigureAwait(false),
+                package);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            // Silence taken deliberately: the null says the phone did not
+            // answer, and the watch only acts on two readings that did.
+            return null;
+        }
+    }
+
     public async Task<PhoneStrain?> GetPhoneStrainAsync(
         string serial,
         CancellationToken cancellationToken = default)

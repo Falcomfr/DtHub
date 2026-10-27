@@ -173,6 +173,69 @@ public class ScrcpySessionManagerTests
         Assert.Contains("câble", session.FailureMessage, StringComparison.OrdinalIgnoreCase);
     }
 
+    /// <summary>
+    /// A link that dies without a word leaves scrcpy waiting for frames, the
+    /// window grey. Ended by DT Hub, it must read as the disconnection it is,
+    /// so it is reopened, and not as a window closed by hand.
+    /// </summary>
+    [Fact]
+    public async Task Une_liaison_perdue_ferme_la_fenetre_comme_une_deconnexion()
+    {
+        var launcher = new FakeProcessLauncher().Prepare(new FakeProcessSession().Emit(NewDisplayLine));
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        var session = await manager.StartAsync(
+            Target(), ScrcpyOptions.Default, null, CancellationToken.None);
+
+        ScrcpySessionManager.EndLostLink(session);
+
+        Assert.True(launcher.Started[0].WasKilled);
+        Assert.True(await Eventually(() => session.State == ScrcpySessionState.Failed));
+        Assert.Equal(ScrcpyFailureKind.DeviceDisconnected, session.FailureKind);
+        Assert.False(session.StopRequested);
+    }
+
+    /// <summary>
+    /// scrcpy closed by its cross exits on 0. Killed or crashed, it exits on
+    /// another code and says nothing: taken for a close by hand, the window
+    /// vanished, was not reopened, and left the next startup (2026-10-26).
+    /// </summary>
+    [Fact]
+    public async Task Un_scrcpy_qui_meurt_sans_rien_dire_echoue_au_lieu_de_se_fermer()
+    {
+        var process = new FakeProcessSession().Emit(NewDisplayLine);
+        var launcher = new FakeProcessLauncher().Prepare(process);
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        var session = await manager.StartAsync(
+            Target(), ScrcpyOptions.Default, null, CancellationToken.None);
+
+        process.Exit(-1073741819);
+
+        Assert.True(await Eventually(() => session.State == ScrcpySessionState.Failed));
+        Assert.True(SessionRecovery.Recoverable(session.FailureKind));
+        Assert.NotNull(session.FailureMessage);
+    }
+
+    [Fact]
+    public async Task Un_scrcpy_ferme_par_sa_croix_reste_une_fermeture()
+    {
+        var process = new FakeProcessSession().Emit(NewDisplayLine);
+        var launcher = new FakeProcessLauncher().Prepare(process);
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        var session = await manager.StartAsync(
+            Target(), ScrcpyOptions.Default, null, CancellationToken.None);
+
+        process.Exit(0);
+
+        Assert.True(await Eventually(() => session.State == ScrcpySessionState.Stopped));
+        Assert.Equal(ScrcpyFailureKind.None, session.FailureKind);
+    }
+
     [Fact]
     public async Task Un_scrcpy_qui_ne_repond_pas_finit_par_abandonner_sans_bloquer()
     {

@@ -75,9 +75,23 @@ public partial class TabbedGameWindow : Window
     public bool Attach(
         string key, string title, string? iconPath, nint window, double aspect, string? colourBrushKey)
     {
-        if (Find(key) is not null || window == 0)
+        if (window == 0)
         {
             return false;
+        }
+
+        // The account's tab waited for it: the game comes back into it.
+        if (Find(key) is { } existing)
+        {
+            if (existing.Window != 0 || !_windows.Dock(window, Handle))
+            {
+                return false;
+            }
+
+            _windows.SetVisible(window, false);
+            existing.Window = window;
+            SetWaiting(existing, false);
+            return true;
         }
 
         if (!_windows.Dock(window, Handle))
@@ -146,9 +160,11 @@ public partial class TabbedGameWindow : Window
         // Hidden too, not only left as it was: the selected tab's window is
         // visible, and it came out of the frame on screen at its old place
         // until scrcpy stopped, some 600 ms.
-        _windows.SetVisible(tab.Window, reveal);
-
-        _windows.Undock(tab.Window);
+        if (tab.Window != 0)
+        {
+            _windows.SetVisible(tab.Window, reveal);
+            _windows.Undock(tab.Window);
+        }
 
         // Not while the frame closes: each tab taken out showed the next one,
         // on screen and refitted, only to take it out in turn.
@@ -158,6 +174,7 @@ public partial class TabbedGameWindow : Window
         }
 
         CloseIfEmpty();
+        UpdateWaitingView();
 
         return true;
     }
@@ -178,15 +195,90 @@ public partial class TabbedGameWindow : Window
     /// hand, the phone unplugged. The tab then stayed in the bar and pointed
     /// to a window that was gone; worse, reopening the account no longer
     /// docked it, the ghost tab making it look as if it were already there.
+    ///
+    /// An account waiting for its phone keeps its tab, which shows the waiting
+    /// view where the game was. Taken out, the last one closed the frame and,
+    /// the panel hidden, the application with it (2026-10-26).
     /// </summary>
-    public void KeepOnly(IReadOnlyCollection<string> keys)
+    public void KeepOnly(IReadOnlyCollection<string> keys, IReadOnlySet<string> waiting)
     {
         ArgumentNullException.ThrowIfNull(keys);
+        ArgumentNullException.ThrowIfNull(waiting);
 
-        foreach (var key in Items.Select(t => t.Key).Where(k => !keys.Contains(k)).ToList())
+        foreach (var tab in Items.ToList())
         {
-            Detach(key);
+            var alive = keys.Contains(tab.Key);
+
+            if (!alive && !waiting.Contains(tab.Key))
+            {
+                Detach(tab.Key);
+                continue;
+            }
+
+            // Its window died with the link: the tab waits for the next one.
+            if (!alive && tab.Window != 0)
+            {
+                _windows.Undock(tab.Window);
+                tab.Window = 0;
+            }
+
+            SetWaiting(tab, waiting.Contains(tab.Key) || tab.Window == 0);
         }
+
+        UpdateWaitingView();
+    }
+
+    /// <summary>
+    /// Puts a tab in or out of waiting. A window still docked is hidden
+    /// while it waits, its picture frozen, and shown again if the phone
+    /// answers before the link counts as lost.
+    /// </summary>
+    private void SetWaiting(GameTabViewModel tab, bool waits)
+    {
+        if (tab.IsWaiting == waits)
+        {
+            return;
+        }
+
+        tab.IsWaiting = waits;
+
+        if (tab.IsSelected)
+        {
+            Select(tab);
+        }
+        else if (tab.Window != 0 && waits)
+        {
+            _windows.SetVisible(tab.Window, false);
+        }
+
+        UpdateWaitingView();
+    }
+
+    /// <summary>Shows the waiting view when the tab shown waits for its phone.</summary>
+    private void UpdateWaitingView()
+    {
+        var shown = Items.FirstOrDefault(t => t.IsSelected);
+
+        Attente.Visibility = shown is { IsWaiting: true } ? Visibility.Visible : Visibility.Collapsed;
+        Attente.Tag = shown?.Key;
+    }
+
+    /// <summary>The waiting view's Close: closes that account, as its tab's cross does.</summary>
+    private void OnWaitingClose(object? sender, EventArgs e)
+    {
+        if (Attente.Tag is not string key || Find(key) is null)
+        {
+            return;
+        }
+
+        if (Items.Count == 1)
+        {
+            Close();
+            return;
+        }
+
+        Detach(key, reveal: false);
+        CloseRequested?.Invoke(this, [key]);
     }
 
     /// <summary>True if this account is housed here.</summary>
@@ -338,7 +430,7 @@ public partial class TabbedGameWindow : Window
         // order hid the old one first whenever the new one came later in
         // it: for an instant no game covered the hosting area, and part of
         // the frame flashed white, always on the way to the same tab.
-        if (!_awaitingFirstLayout)
+        if (!_awaitingFirstLayout && tab.ShowsGame)
         {
             _windows.SetVisible(tab.Window, true);
         }
@@ -347,7 +439,7 @@ public partial class TabbedGameWindow : Window
         {
             other.IsSelected = ReferenceEquals(other, tab);
 
-            if (!other.IsSelected)
+            if (other.Window != 0 && (!other.IsSelected || !other.ShowsGame))
             {
                 _windows.SetVisible(other.Window, false);
             }
@@ -356,12 +448,13 @@ public partial class TabbedGameWindow : Window
         Fit(tab);
         Place(tab);
         Retitle();
+        UpdateWaitingView();
 
         // The keyboard does not follow the tab on its own. A docked window is
         // a child of the frame, hence out of reach of the foreground: without
         // this call, the picture shows and the mouse works, but nothing that
         // is typed arrives, paste included since scrcpy pastes by typing.
-        if (!_awaitingFirstLayout)
+        if (!_awaitingFirstLayout && tab.ShowsGame)
         {
             _ = _windows.GiveKeyboardFocus(tab.Window);
         }
@@ -730,7 +823,7 @@ public partial class TabbedGameWindow : Window
     /// </summary>
     private void Place(GameTabViewModel tab)
     {
-        if (HostArea() is not { } zone || zone.Width <= 0 || zone.Height <= 0)
+        if (!tab.ShowsGame || HostArea() is not { } zone || zone.Width <= 0 || zone.Height <= 0)
         {
             return;
         }
@@ -1023,7 +1116,7 @@ public partial class TabbedGameWindow : Window
     {
         base.OnActivated(e);
 
-        if (Items.FirstOrDefault(t => t.IsSelected) is not { } tab)
+        if (Items.FirstOrDefault(t => t.IsSelected) is not { ShowsGame: true } tab)
         {
             return;
         }
@@ -1039,7 +1132,7 @@ public partial class TabbedGameWindow : Window
             DispatcherPriority.Input,
             () =>
             {
-                if (IsActive && Items.FirstOrDefault(t => t.IsSelected) is { } encore)
+                if (IsActive && Items.FirstOrDefault(t => t.IsSelected) is { ShowsGame: true } encore)
                 {
                     _ = _windows.GiveKeyboardFocus(encore.Window);
                 }

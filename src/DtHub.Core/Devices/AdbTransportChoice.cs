@@ -76,6 +76,25 @@ public static class AdbTransportChoice
     }
 
     /// <summary>
+    /// What already reaches each connected phone, for the announcement scan
+    /// to leave alone.
+    ///
+    /// A phone held only under its mDNS name does not count by its serial
+    /// number: its announcement then connects its address. Otherwise its
+    /// remembered port was never refreshed, and after a Wi-Fi drop the
+    /// reconnection knocked at one closed since. The phone only came back
+    /// once it announced itself again, two minutes later on 2026-10-26.
+    /// </summary>
+    public static IReadOnlySet<string> ReachedByAddress(IEnumerable<AndroidDevice> connected)
+    {
+        ArgumentNullException.ThrowIfNull(connected);
+
+        return connected
+            .SelectMany(d => MdnsDeviceName.IsMdnsName(d.Serial) ? [d.Serial] : new[] { d.Serial, d.Id })
+            .ToHashSet(StringComparer.Ordinal);
+    }
+
+    /// <summary>
     /// Which phone this transport belongs to, as far as it can be
     /// told without querying it: the serial number carried by an
     /// mDNS name, or the remembered device this line designates.

@@ -292,6 +292,24 @@
   <data name="Le jeu de {instance} n'a pas pu être arrêté : {serial} est resté injoignable." xml:space="preserve">
     <value>No se ha podido detener el juego de {instance}: {serial} sigue inaccesible.</value>
   </data>
+  <data name="La reconnexion des téléphones attendus a échoué." xml:space="preserve">
+    <value>La reconexión de los teléfonos esperados ha fallado.</value>
+  </data>
+  <data name="Le jeu de {name} s'est arrêté sur le téléphone, fenêtre ouverte : relancé." xml:space="preserve">
+    <value>El juego de {name} se detuvo en el teléfono con la ventana abierta: relanzado.</value>
+  </data>
+  <data name="Le jeu de {name} s'est encore arrêté sur le téléphone : pas de nouvelle relance." xml:space="preserve">
+    <value>El juego de {name} se volvió a detener en el teléfono: no se relanza otra vez.</value>
+  </data>
+  <data name="La relance d'un jeu arrêté sur le téléphone a échoué." xml:space="preserve">
+    <value>El relanzamiento de un juego detenido en el teléfono ha fallado.</value>
+  </data>
+  <data name="La place d'une fenêtre perdue n'a pas pu être retenue." xml:space="preserve">
+    <value>No se ha podido recordar el lugar de una ventana perdida.</value>
+  </data>
+  <data name="{serial} ne répond plus au ping depuis {seconds} s : liaison perdue, fenêtre de {instance} fermée pour être rouverte." xml:space="preserve">
+    <value>{serial} no responde al ping desde hace {seconds} s: conexión perdida, ventana de {instance} cerrada para volver a abrirla.</value>
+  </data>
   <data name="Le jeu joue du son sur l'appareil {serial} ({players} lecteur(s)) mais plus rien ne le capte pour le PC depuis au moins une minute." xml:space="preserve">
     <value>El juego reproduce audio en el dispositivo {serial} ({players} reproductores), pero nada lo captura para el PC desde hace al menos un minuto.</value>
   </data>
