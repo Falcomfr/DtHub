@@ -17,6 +17,27 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.12.0] - 2026-10-27
+
+### Added
+
+- When a phone's Wi-Fi link drops, its tab or window shows "Waiting for the phone" in place of the game, and the game comes back there.
+- A game that crashes or is closed by Android on the phone is relaunched in its window; if it crashes again within 10 minutes, the panel says so.
+
+### Changed
+
+- A Wi-Fi drop no longer pops the panel up: the phone is reconnected in the background.
+
+### Fixed
+
+- After a Wi-Fi drop the phone comes back by itself, without switching wireless debugging off and on (broken since 0.10.0).
+- A Wi-Fi link that stops answering is reopened after 15 s instead of leaving a grey window.
+- A game window closed by a mirroring crash is reopened, and the account stays in the next startup.
+- At startup, an account whose phone is not reconnected yet gets one more reconnection attempt.
+- With several screens, full screen windows reopen on the screen they were on.
+- Messages about a Wi-Fi drop no longer ask you to stop the game.
+- Help opened from a disconnected phone starts at the first step.
+
 ## [0.11.1] - 2026-10-24
 
 ### Fixed

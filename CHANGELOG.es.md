@@ -10,6 +10,27 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.12.0] - 2026-10-27
+
+### Añadido
+
+- Cuando se corta la conexión Wi-Fi de un teléfono, su pestaña o ventana muestra «Esperando al teléfono» en lugar del juego, y el juego vuelve ahí.
+- Un juego que se cuelga o que Android cierra en el teléfono se relanza en su ventana; si vuelve a colgarse en 10 minutos, el panel lo indica.
+
+### Cambiado
+
+- Un corte de Wi-Fi ya no hace aparecer el panel: el teléfono se reconecta en segundo plano.
+
+### Corregido
+
+- Tras un corte de Wi-Fi, el teléfono vuelve solo, sin tener que desactivar y reactivar la depuración inalámbrica (roto desde la 0.10.0).
+- Una conexión Wi-Fi que deja de responder se reabre a los 15 s en lugar de dejar una ventana gris.
+- Una ventana de juego cerrada por un fallo de la réplica de pantalla se reabre, y la cuenta sigue en el próximo inicio.
+- Al iniciar, una cuenta cuyo teléfono aún no está reconectado tiene un intento de reconexión más.
+- Con varias pantallas, las ventanas en pantalla completa se reabren en la pantalla donde estaban.
+- Los mensajes sobre un corte de Wi-Fi ya no piden detener el juego.
+- La ayuda abierta desde un teléfono desconectado empieza en el primer paso.
+
 ## [0.11.1] - 2026-10-24
 
 ### Corregido

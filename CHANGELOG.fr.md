@@ -11,6 +11,27 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.12.0] - 2026-10-27
+
+### Ajouté
+
+- Quand la liaison Wi-Fi d'un téléphone se coupe, son onglet ou sa fenêtre affiche « En attente du téléphone » à la place du jeu, et le jeu y revient.
+- Un jeu qui plante ou qu'Android ferme sur le téléphone est relancé dans sa fenêtre ; s'il replante dans les 10 minutes, le panneau le signale.
+
+### Modifié
+
+- Une coupure Wi-Fi ne fait plus surgir le panneau : le téléphone est reconnecté en arrière-plan.
+
+### Corrigé
+
+- Après une coupure Wi-Fi, le téléphone revient tout seul, sans devoir couper puis réactiver le débogage sans fil (cassé depuis la 0.10.0).
+- Une liaison Wi-Fi qui ne répond plus est rouverte au bout de 15 s au lieu de laisser une fenêtre grise.
+- Une fenêtre de jeu fermée par un plantage de la recopie d'écran est rouverte, et le compte reste dans le prochain démarrage.
+- Au démarrage, un compte dont le téléphone n'est pas encore reconnecté a droit à une tentative de reconnexion de plus.
+- Avec plusieurs écrans, les fenêtres en plein écran rouvrent sur l'écran où elles étaient.
+- Les messages sur une coupure Wi-Fi ne demandent plus d'arrêter le jeu.
+- L'aide ouverte depuis un téléphone déconnecté commence à la première étape.
+
 ## [0.11.1] - 2026-10-24
 
 ### Corrigé
