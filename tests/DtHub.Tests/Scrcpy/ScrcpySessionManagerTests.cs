@@ -455,6 +455,99 @@ public class ScrcpySessionManagerTests
         Assert.DoesNotContain(launcher.Requests, IsScreenKeeper);
     }
 
+    private static bool IsAwakeKeeper(ProcessRequest request) =>
+        request.Arguments.Any(a => a.StartsWith("--screen-off-timeout=", StringComparison.Ordinal));
+
+    [Fact]
+    public async Task Un_android_14_reste_eveille_tant_qu_un_compte_joue()
+    {
+        var keeper = new FakeProcessSession(9).Emit(ServerLine).Emit("DEBUG: Server connected");
+        var launcher = new FakeProcessLauncher()
+            .Prepare(new FakeProcessSession(1).Emit(NewDisplayLine))
+            .Prepare(keeper)
+            .Prepare(new FakeProcessSession(2).Emit(NewDisplayLine));
+        var android14 = ScrcpyOptions.Default with { DeviceSdkVersion = 34 };
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        var a = await manager.StartAsync(Target(0), android14, null, CancellationToken.None);
+        var b = await manager.StartAsync(Target(999), android14, null, CancellationToken.None);
+
+        Assert.Single(launcher.Requests, IsAwakeKeeper);
+
+        await manager.StopAsync(a.Id, CancellationToken.None);
+
+        Assert.False(keeper.WasKilled);
+
+        await manager.StopAsync(b.Id, CancellationToken.None);
+
+        Assert.True(keeper.WasKilled);
+    }
+
+    [Fact]
+    public async Task Une_ouverture_attend_que_la_session_veille_soit_connectee()
+    {
+        // The server's "Device:" line comes before its connection: an account
+        // let through on it failed to connect (2026-10-28).
+        var awake = new FakeProcessSession(8).Emit(ServerLine);
+        var launcher = new FakeProcessLauncher()
+            .Prepare(new FakeProcessSession(1).Emit(NewDisplayLine))
+            .Prepare(awake)
+            .Prepare(new FakeProcessSession(2).Emit(NewDisplayLine));
+        var android14 = ScrcpyOptions.Default with { DeviceSdkVersion = 34 };
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        var first = manager.StartAsync(Target(0), android14, null, CancellationToken.None);
+
+        while (!launcher.Requests.Any(IsAwakeKeeper))
+        {
+            await Task.Delay(10).WaitAsync(TimeSpan.FromSeconds(5));
+        }
+
+        var second = manager.StartAsync(Target(999), android14, null, CancellationToken.None);
+
+        await Task.Delay(200);
+
+        Assert.Equal(2, launcher.Requests.Count);
+
+        awake.Emit("DEBUG: Server connected");
+
+        await Task.WhenAll(first, second).WaitAsync(TimeSpan.FromSeconds(5));
+
+        Assert.Equal(3, launcher.Requests.Count);
+    }
+
+    [Fact]
+    public async Task Rallumer_l_ecran_laisse_le_telephone_eveille()
+    {
+        var awake = new FakeProcessSession(8).Emit(ServerLine).Emit("DEBUG: Server connected");
+        var launcher = new FakeProcessLauncher()
+            .Prepare(new FakeProcessSession(1).Emit(NewDisplayLine))
+            .Prepare(new FakeProcessSession(9).Emit(ScreenOffLine))
+            .Prepare(awake);
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        await manager.StartAsync(Target(), DarkScreen with { DeviceSdkVersion = 34 }, null, CancellationToken.None);
+        await manager.LightScreenAsync(Target().DeviceId);
+
+        Assert.Single(launcher.Requests, IsAwakeKeeper);
+        Assert.False(awake.WasKilled);
+    }
+
+    [Fact]
+    public async Task Un_android_15_garde_son_delai_de_veille()
+    {
+        var launcher = new FakeProcessLauncher().Prepare(new FakeProcessSession().Emit(NewDisplayLine));
+
+        await using var manager = Manager(launcher, new FakeAppLauncher());
+
+        await manager.StartAsync(Target(), ScrcpyOptions.Default with { DeviceSdkVersion = 35 }, null, CancellationToken.None);
+
+        Assert.DoesNotContain(launcher.Requests, IsAwakeKeeper);
+    }
+
     [Fact]
     public async Task Deux_comptes_fermes_ensemble_rallument_l_ecran()
     {

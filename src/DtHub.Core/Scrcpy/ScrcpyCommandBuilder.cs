@@ -364,6 +364,39 @@ public static class ScrcpyCommandBuilder
         ];
     }
 
+    /// <summary>
+    /// A session that shows nothing and only keeps the phone from going to
+    /// sleep, one per phone, alive as long as one of its accounts is. See
+    /// <see cref="PhoneSleep" /> for the phones that need it.
+    ///
+    /// Clicks on the game's virtual display are no activity for the phone's
+    /// own: a Xiaomi Pad 6, Android 14, slept after its two minutes while
+    /// its player played on, and dropped every click (2026-10-28). scrcpy
+    /// puts its initial timeout back on exit, and its clean-up does so too
+    /// when killed outright: within a second on the 13T Pro. Never two at
+    /// once on a phone, nor replaced: the second would take the first one's
+    /// day for the phone's own timeout and put it back for good.
+    /// </summary>
+    public static IReadOnlyList<string> BuildKeepAwakeArguments(string serial)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(serial);
+
+        return
+        [
+            Option("serial", serial),
+            "--no-video",
+            "--no-audio",
+            "--no-window",
+            "--no-clipboard-autosync",
+            "--screen-off-timeout=86400",
+
+            // For "Server connected", its only line once connected: the
+            // server's "Device:" comes before, and an opening let through on
+            // it failed to connect (2026-10-28).
+            "--verbosity=debug",
+        ];
+    }
+
     /// <summary>Arguments to fetch the named list of applications.</summary>
     public static IReadOnlyList<string> BuildListAppsArguments(string serial)
     {

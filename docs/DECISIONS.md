@@ -11948,3 +11948,49 @@ couperait la carte et le panneau. La relance automatique au Ctrl+5 a été
 refusée (15 s, retour à l'écran de connexion, même en combat) : le joueur garde
 le bouton. Le cas ne se produit qu'une fois, DT Hub retenant le plein écran
 pour les ouvertures suivantes.
+
+## D224 - Un téléphone Android 14 ou moins est tenu éveillé pendant le jeu
+
+Signalé le 28/10/2026 par un joueur sur Xiaomi Pad 6 (HyperOS 2.0.16.0,
+Android 14), mise en veille réglée sur 2 minutes : au bout d'une ou deux
+minutes, **même en jouant**, plus aucun clic n'atteignait le jeu. Les clics
+sur l'afficheur virtuel ne comptent pas comme une activité pour l'écran de la
+tablette, qui s'endort à son délai ; sur Android 14, une tablette endormie
+perd les clics (voir `PhoneSleep`). Son journal montre le réveil au clic de la
+0.8.22 qui part bien (« endormi au clic : réveillé »), mais la tablette se
+réveille sur l'écran de verrouillage, qui se rendort en 9 s environ : il a
+fallu trois ou quatre clics, ou rallumer, déverrouiller et rééteindre.
+
+Le remède empêche donc la veille au lieu de la réparer : une session scrcpy
+sans fenêtre par téléphone, `--screen-off-timeout=86400`, lancée avec le
+premier compte et arrêtée avec le dernier, seulement là où `PhoneSleep` dit
+que la veille coûte les clics. Android 15 et plus gardent leur réglage.
+
+Mesuré sur le 13T Pro le même jour : scrcpy pose 86 400 000 ms et remet
+60 000 ms moins d'une seconde après un arrêt brutal, par son nettoyage côté
+téléphone. Un DT Hub qui meurt ne laisse donc pas le téléphone sans veille.
+
+Pistes écartées, essayées sur le 13T Pro verrouillé, mais pendant que des
+sessions DT Hub y tournaient, donc à reprendre avant de s'y fier : une touche
+de réveil toutes les 5 s tient le téléphone éveillé mais rallume l'écran à chaque fois ;
+une touche neutre (code 0) ou un toucher de la barre d'état ne l'empêchent pas
+de s'endormir. Écartés aussi sans mesure : `--keep-active` sur une session
+existante, puisque son activité porte sur l'afficheur virtuel (D115), et `--screen-off-timeout` sur la session qui tient l'écran éteint.
+Celle-ci est remplacée à chaque réextinction, et la nouvelle lirait le délai
+d'un jour posé par l'ancienne avant que son nettoyage ne le rende : elle le
+reposerait ensuite pour de bon. Pour la même raison, la session veille n'est
+jamais remplacée tant qu'elle vit.
+
+Non couvert : une tablette verrouillée au lancement. L'écran de verrouillage
+a son propre délai, que ce réglage ne touche pas.
+
+Vérifié dans DT Hub le même jour sur le 13T Pro, limite relevée à 36 le temps
+de l'essai : délai posé à l'ouverture du premier compte, rendu (60 000 ms)
+deux secondes après un arrêt forcé de DT Hub, deux comptes ouverts sans
+problème. Le premier essai avait fait échouer le second compte (« Server
+connection failed ») : la session veille rendait son tour sur la ligne
+« Device: » du serveur, écrite avant sa connexion. Elle attend maintenant
+« Server connected », en `--verbosity=debug`. **Non vérifié** : qu'un
+téléphone déverrouillé ne s'endorme plus, le 13T Pro étant resté verrouillé
+pendant l'essai. C'est le comportement ordinaire d'Android, à confirmer chez
+le joueur de la Pad 6.

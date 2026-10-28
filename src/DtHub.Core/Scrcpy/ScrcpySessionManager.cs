@@ -166,6 +166,14 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     private readonly System.Collections.Concurrent.ConcurrentDictionary<string, IProcessSession> _screenKeepers =
         new(StringComparer.Ordinal);
 
+    /// <summary>
+    /// The windowless session keeping each phone awake, by device identifier.
+    /// See <see cref="ScrcpyCommandBuilder.BuildKeepAwakeArguments" />. Changed
+    /// under <see cref="_screenKeepersLock" /> too.
+    /// </summary>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, IProcessSession> _awakeKeepers =
+        new(StringComparer.Ordinal);
+
     private readonly SemaphoreSlim _screenKeepersLock = new(1, 1);
 
     /// <summary>
@@ -397,6 +405,19 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
             }
         }
 
+        if (Devices.PhoneSleep.DropsClicksWhenAsleep(options.DeviceSdkVersion) && session.IsAlive)
+        {
+            try
+            {
+                await KeepAwakeAsync(target.DeviceId, serial, scrcpyPath, adbPath, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                // Same as for the screen: the phone may sleep, as before.
+            }
+        }
+
         return session;
     }
 
@@ -544,6 +565,79 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
     }
 
     /// <summary>
+    /// Starts the phone's keep-awake session, unless it already runs. Never
+    /// replaced while it lives, see <see cref="ScrcpyCommandBuilder.BuildKeepAwakeArguments" />.
+    /// </summary>
+    private async Task KeepAwakeAsync(
+        string deviceId,
+        string serial,
+        string scrcpyPath,
+        string adbPath,
+        CancellationToken cancellationToken)
+    {
+        await _screenKeepersLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+        try
+        {
+            if (_awakeKeepers.TryGetValue(deviceId, out var running))
+            {
+                if (!running.HasExited)
+                {
+                    return;
+                }
+
+                // Died on its own, a Wi-Fi drop for instance.
+                _ = _awakeKeepers.TryRemove(deviceId, out _);
+                await StopKeeperAsync(running).ConfigureAwait(false);
+            }
+
+            // Its server push takes its turn like the screen-off session's.
+            await using var lease = await _gate
+                .EnterQuietlyAsync(deviceId, cancellationToken)
+                .ConfigureAwait(false);
+
+            IProcessSession keeper;
+
+            try
+            {
+                keeper = _launcher.Start(new ProcessRequest
+                {
+                    FileName = scrcpyPath,
+                    Arguments = ScrcpyCommandBuilder.BuildKeepAwakeArguments(serial),
+                    Environment = new Dictionary<string, string?> { ["ADB"] = adbPath },
+                });
+            }
+            catch (ProcessLaunchException)
+            {
+                // The phone may sleep, as before: the game already runs.
+                return;
+            }
+
+            try
+            {
+                _ = await AwaitLineAsync(keeper, "Server connected", cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                _ = Task.Run(() => DrainAsync(keeper), CancellationToken.None);
+
+                if (HasLiveSessionOn(deviceId, except: null))
+                {
+                    _awakeKeepers[deviceId] = keeper;
+                }
+                else
+                {
+                    await StopKeeperAsync(keeper).ConfigureAwait(false);
+                }
+            }
+        }
+        finally
+        {
+            _screenKeepersLock.Release();
+        }
+    }
+
+    /// <summary>
     /// A screen-off session now holds the phone's screen, by device id, and
     /// whether scrcpy confirmed the screen off before the deadline. For the
     /// log: the panel only asks held phones, and a Galaxy S25 never showed
@@ -646,6 +740,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         var deviceId = ending.Target.DeviceId;
 
         IProcessSession? keeper;
+        IProcessSession? awake;
 
         await _screenKeepersLock.WaitAsync().ConfigureAwait(false);
 
@@ -654,18 +749,28 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
             // Asked under the lock: asked before it, an account opening
             // meanwhile could find this screen-off session running, keep
             // it, and see it killed a moment later.
-            if (HasLiveSessionOn(deviceId, except: ending)
-                || !_screenKeepers.TryRemove(deviceId, out keeper))
+            if (HasLiveSessionOn(deviceId, except: ending))
             {
                 return;
             }
+
+            _ = _screenKeepers.TryRemove(deviceId, out keeper);
+            _ = _awakeKeepers.TryRemove(deviceId, out awake);
         }
         finally
         {
             _screenKeepersLock.Release();
         }
 
-        await StopKeeperAsync(keeper).ConfigureAwait(false);
+        if (keeper is not null)
+        {
+            await StopKeeperAsync(keeper).ConfigureAwait(false);
+        }
+
+        if (awake is not null)
+        {
+            await StopKeeperAsync(awake).ConfigureAwait(false);
+        }
     }
 
     /// <summary>
@@ -1465,8 +1570,9 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
 
         try
         {
-            keepers = [.. _screenKeepers.Values];
+            keepers = [.. _screenKeepers.Values, .. _awakeKeepers.Values];
             _screenKeepers.Clear();
+            _awakeKeepers.Clear();
         }
         finally
         {
