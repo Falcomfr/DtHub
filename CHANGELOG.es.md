@@ -10,6 +10,12 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.12.1] - 2026-10-28
+
+### Corregido
+
+- En Android 14 y anteriores, el teléfono o la tableta ya no entra en reposo mientras juegas: dormido, dejaba de pasar tus clics al juego.
+
 ## [0.12.0] - 2026-10-27
 
 ### Añadido

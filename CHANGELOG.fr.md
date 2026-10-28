@@ -11,6 +11,12 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.12.1] - 2026-10-28
+
+### Corrigé
+
+- Sous Android 14 et avant, le téléphone ou la tablette ne se met plus en veille pendant que vous jouez : endormi, il ne transmettait plus vos clics au jeu.
+
 ## [0.12.0] - 2026-10-27
 
 ### Ajouté

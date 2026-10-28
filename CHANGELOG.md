@@ -17,6 +17,12 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.12.1] - 2026-10-28
+
+### Fixed
+
+- On Android 14 and earlier, the phone or tablet no longer goes to sleep while you play: asleep, it stopped passing your clicks to the game.
+
 ## [0.12.0] - 2026-10-27
 
 ### Added
