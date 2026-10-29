@@ -162,10 +162,12 @@ The checksum shown must match the one in the release's `.sha256` file.
 up to 0.7.10 read. The later ones read the three notes as assets, and the
 application shows them first: edit the section in the three changelogs, write
 each section to `notes.en.md`, `notes.fr.md` and `notes.es.md`, then replace
-the body and the assets.
+the body and the assets. The body is `notes.en.md` behind the two lines that
+say what DT Hub is, built in the "Release notes" step of `livraison.yml`:
+rebuild `corps.md` the same way, or those lines are lost.
 
 ```
-gh release edit v0.3.0 --notes-file notes.en.md
+gh release edit v0.3.0 --notes-file corps.md
 gh release upload v0.3.0 notes.en.md notes.fr.md notes.es.md --clobber
 ```
 

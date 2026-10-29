@@ -35,4 +35,25 @@
     <xhtml:link rel="alternate" hreflang="es" href="https://falcomfr.github.io/DtHub/index.es.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://falcomfr.github.io/DtHub/"/>
   </url>
+  <url>
+    <loc>https://falcomfr.github.io/DtHub/install.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://falcomfr.github.io/DtHub/install.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://falcomfr.github.io/DtHub/install.fr.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://falcomfr.github.io/DtHub/install.es.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://falcomfr.github.io/DtHub/install.html"/>
+  </url>
+  <url>
+    <loc>https://falcomfr.github.io/DtHub/install.fr.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://falcomfr.github.io/DtHub/install.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://falcomfr.github.io/DtHub/install.fr.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://falcomfr.github.io/DtHub/install.es.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://falcomfr.github.io/DtHub/install.html"/>
+  </url>
+  <url>
+    <loc>https://falcomfr.github.io/DtHub/install.es.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://falcomfr.github.io/DtHub/install.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://falcomfr.github.io/DtHub/install.fr.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://falcomfr.github.io/DtHub/install.es.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://falcomfr.github.io/DtHub/install.html"/>
+  </url>
 </urlset>

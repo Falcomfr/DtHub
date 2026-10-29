@@ -125,7 +125,9 @@ section { margin-top: 64px; }
 h2 { font-size: 24px; margin: 0 0 6px; letter-spacing: -0.01em; padding-bottom: 10px; border-bottom: 1px solid var(--trait); }
 h3 { font-size: 19px; margin: 0 0 6px; }
 p { margin: 10px 0; }
-#faq h3 { margin-top: 26px; }
+section > * + h3 { margin-top: 26px; }
+h2 + .duo { margin-top: 18px; }
+header.hero.guide { grid-template-columns: 1fr; }
 .chapo { color: var(--doux); margin-top: 10px; }
 
 /* A category: a title, a list of features, a screenshot beside it.

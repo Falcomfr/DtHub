@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Install DT Hub: play DOFUS Touch on PC with several accounts, step by step</title>
+<meta name="description" content="USB or wireless debugging, a second account on the same phone, settings for each brand (Xiaomi, Samsung, OnePlus, Honor, vivo): everything to play DOFUS Touch on PC with DT Hub.">
+<link rel="icon" href="app.png">
+<link rel="stylesheet" href="style.css">
+
+<!-- The steps and the brand settings are the application's own help window
+     (HelpWindow.xaml, the Brand* strings of Strings*.resx), written out where
+     a search engine can read them. Change them there first, then here. -->
+
+<link rel="canonical" href="https://falcomfr.github.io/DtHub/install.html">
+<link rel="alternate" hreflang="en" href="https://falcomfr.github.io/DtHub/install.html">
+<link rel="alternate" hreflang="fr" href="https://falcomfr.github.io/DtHub/install.fr.html">
+<link rel="alternate" hreflang="es" href="https://falcomfr.github.io/DtHub/install.es.html">
+<link rel="alternate" hreflang="x-default" href="https://falcomfr.github.io/DtHub/install.html">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="DT Hub">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://falcomfr.github.io/DtHub/install.html">
+<meta property="og:title" content="Install DT Hub: play DOFUS Touch on PC with several accounts, step by step">
+<meta property="og:description" content="USB or wireless debugging, a second account on the same phone, settings for each brand (Xiaomi, Samsung, OnePlus, Honor, vivo): everything to play DOFUS Touch on PC with DT Hub.">
+<meta property="og:image" content="https://falcomfr.github.io/DtHub/screenshots/appareils.en.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+<!-- Icons, drawn here rather than fetched: the project promises to send
+     nothing without being asked, and a page that pulls an icon font from a
+     stranger's server breaks that promise for decoration.
+
+     Four of them are the application's own glyphs, copied path for path:
+     stacked windows, the Almanax calendar, the sliders of an account's
+     settings. The rest are drawn in the same hand, one stroke, round ends,
+     on the same fifteen unit grid. -->
+<svg class="jeu-icones" aria-hidden="true" focusable="false"><defs>
+  <g id="i-soleil"><circle cx="7.5" cy="7.5" r="2.7"/><path d="M7.5 1.4V3M7.5 12v1.6M1.4 7.5H3M12 7.5h1.6M3.2 3.2l1.2 1.2M10.6 10.6l1.2 1.2M11.8 3.2l-1.2 1.2M4.4 10.6l-1.2 1.2"/></g>
+  <g id="i-fenetres"><path d="M1.8 2.2h8.4v6.2H1.8ZM4.8 6.6h8.4v6.2H4.8Z"/></g>
+  <g id="i-panneau"><path d="M1.8 5h11.4M1.8 10h11.4"/><circle cx="5" cy="5" r="1.6"/><circle cx="10" cy="10" r="1.6"/></g>
+  <g id="i-guides"><path d="M7.5 4.3C6 3.1 4 2.8 2 3.1v8.6c2-.3 4 0 5.5 1.2 1.5-1.2 3.5-1.5 5.5-1.2V3.1c-2-.3-4 0-5.5 1.2ZM7.5 4.3v8.6"/></g>
+  <g id="i-almanax"><path d="M3 4.5h10v9H3ZM3 7.5h10M6 3v3M10 3v3"/></g>
+  <g id="i-outils"><path d="M9.6 2.1a3.1 3.1 0 0 0-3.3 4.2L2.2 10.4a1.2 1.2 0 0 0 1.7 1.7L8 8a3.1 3.1 0 0 0 4.2-3.3l-1.9 1.9-1.7-.5-.5-1.7Z"/></g>
+  <g id="i-regles"><path d="M7.5 1.8 12.6 3.7v4.1c0 2.9-2.2 4.7-5.1 5.5-2.9-.8-5.1-2.6-5.1-5.5V3.7Z"/><path d="m5.5 7.6 1.6 1.6 3-3.2"/></g>
+  <g id="i-reste"><path d="M7.5 1.9 13 4.7v5.6L7.5 13.1 2 10.3V4.7ZM2 4.7l5.5 2.8L13 4.7M7.5 7.5v5.6"/></g>
+  <g id="i-telecharger"><path d="M7.5 2.2v7.6M4.4 6.9l3.1 3.1 3.1-3.1M2.6 12.8h9.8"/></g>
+  <g id="i-merci"><path d="M7.5 12.8C4 10.4 1.9 8.4 1.9 6.2A2.9 2.9 0 0 1 7.5 4.8 2.9 2.9 0 0 1 13.1 6.2c0 2.2-2.1 4.2-5.6 6.6Z"/></g>
+  <g id="i-gratuit"><path d="M2.3 7.9V2.6h5.3l5.2 5.3-4.9 4.9Z"/><circle cx="4.9" cy="5.1" r=".8"/></g>
+  <g id="i-vous"><path d="M2.2 3.4h10.6v6.8H7.2l-3 2.6v-2.6H2.2Z"/></g>
+  <g id="i-info"><circle cx="7.5" cy="7.5" r="5.7"/><path d="M7.5 6.8v3.6M7.5 4.6v.1"/></g>
+  <g id="i-github"><path d="M7.5 1.2a6.3 6.3 0 0 0-2 12.3c.31.06.43-.14.43-.3v-1.08c-1.75.38-2.12-.84-2.12-.84-.29-.73-.7-.92-.7-.92-.57-.39.04-.38.04-.38.63.04.97.65.97.65.56.97 1.48.69 1.84.53.06-.41.22-.69.4-.85-1.4-.16-2.87-.7-2.87-3.11 0-.69.25-1.25.65-1.69-.07-.16-.28-.81.06-1.68 0 0 .53-.17 1.74.64a6 6 0 0 1 3.16 0c1.2-.81 1.73-.64 1.73-.64.35.87.13 1.52.07 1.68.4.44.65 1 .65 1.69 0 2.42-1.48 2.95-2.88 3.1.23.2.43.58.43 1.17v1.73c0 .17.11.37.43.3A6.3 6.3 0 0 0 7.5 1.2Z" fill="currentColor" stroke="none"/></g>
+  <!-- Discord's own mark, not drawn in our hand: alone it is the only thing
+       that says where the link leads. Scaled from its 24 unit box. -->
+  <g id="i-discord"><path transform="translate(0 1.5) scale(.625)" d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z" fill="currentColor" stroke="none"/></g>
+</defs></svg>
+
+<div class="barre">
+  <div class="barre-dedans">
+    <a class="marque" href="index.html"><img src="app.png" alt="" width="30" height="30">DT Hub</a>
+    <nav>
+      <a href="index.html">Overview</a>
+      <a href="https://discord.gg/aauJcga6eG"><svg class="ic"><use href="#i-discord"/></svg>Discord</a>
+      <a href="install.fr.html">Français</a>
+      <a href="install.es.html">Español</a>
+      <a class="bouton petit" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe"><svg class="ic"><use href="#i-telecharger"/></svg>Download</a>
+    </nav>
+  </div>
+</div>
+
+<div class="page" id="top">
+
+<header class="hero guide">
+  <h1>Install DT Hub, step by step</h1>
+  <p class="accroche">Once per phone, by cable or wireless. After that, DT Hub finds it on its own.</p>
+</header>
+
+<section id="dthub">
+  <h2><svg class="ic"><use href="#i-telecharger"/></svg><span>1. Download DT Hub</span></h2>
+  <div class="telecharger">
+    <a class="bouton" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe"><svg class="ic"><use href="#i-telecharger"/></svg>Download DtHub.exe</a>
+  </div>
+  <ul class="liste">
+    <li>Windows 10 or 11, 64 bit, nothing to install</li>
+    <li>Windows warns on first run: <a href="index.html#download">here is what to do</a></li>
+    <li>Only Android devices will do. iOS allows neither opening an extra display nor installing the same application twice.</li>
+  </ul>
+</section>
+
+<section id="telephone">
+  <h2><svg class="ic"><use href="#i-panneau"/></svg><span>2. Prepare the phone</span></h2>
+  <h3>1. Unlock the developer options</h3>
+  <p>Tap seven times in a row on “Build number”. A message confirms that you are a developer. The exact path for your brand is <a href="#brands">further down</a>.</p>
+  <h3>2. Turn on debugging</h3>
+  <p>Turn on “USB debugging”. To play without a cable, turn on “Wireless debugging”.</p>
+</section>
+
+<section id="brancher">
+  <h2><svg class="ic"><use href="#i-fenetres"/></svg><span>3. Connect the phone</span></h2>
+  <div class="duo">
+    <section class="carte">
+      <h3>By cable</h3>
+      <p>Plug in the cable, then accept the request on the phone and tick “Always allow”. It then shows up in DT Hub on its own.</p>
+      <h3>It does not work?</h3>
+      <ul class="liste">
+        <li>Unlock the phone: the request only shows on an unlocked screen.</li>
+        <li>Try another cable: many only charge.</li>
+        <li>In the phone's USB notification, try “File transfer”.</li>
+        <li>Developer options: “Revoke USB debugging authorisations”, then plug it back in.</li>
+      </ul>
+    </section>
+    <section class="carte">
+      <h3>Wireless</h3>
+      <p>Wireless debugging  ›  Pair device with pairing code. Type the six-digit code it shows into DT Hub. The PC and the phone must be on the same Wi-Fi, with Android 11 at least.</p>
+      <p>In DT Hub: “Pair a new device”, then follow the window.</p>
+      <h3>It does not work?</h3>
+      <ul class="liste">
+        <li>To pair, keep the code screen open on the phone: it only shows itself to the PC meanwhile.</li>
+        <li>After a restart, turn “Wireless debugging” back on: the pairing is kept.</li>
+        <li>Box with two Wi-Fi networks (2.4 and 5 GHz): keep the phone on one, wireless debugging turns off when it switches.</li>
+        <li>The PC and the phone on the same Wi-Fi, not on the router's guest Wi-Fi.</li>
+        <li>Windows: the network set to “Private” (Settings › Network &amp; internet).</li>
+        <li>Windows firewall: allow “Android Debug Bridge” on Private and Public.</li>
+        <li>Turn off the PC's VPN, if there is one.</li>
+        <li>As a last resort: “Type the address by hand”, in the pairing window.</li>
+      </ul>
+    </section>
+  </div>
+</section>
+
+<section id="deuxieme-compte">
+  <h2><svg class="ic"><use href="#i-reste"/></svg><span>4. A second account on the same phone</span></h2>
+  <p>Each account lives in its own Android profile, with its own copy of the game. Two ways to add one:</p>
+  <ul class="liste">
+    <li><b>From DT Hub</b>: the <b>+</b> button on the phone's row, then “Clone the game”. Creates a new Android profile on the phone, with its own copy of the game, for one more account. The game will ask again for its resources and the login.</li>
+    <li><b>From the phone</b>: its brand's cloning feature, detailed <a href="#brands">below</a>.</li>
+  </ul>
+</section>
+
+<section id="brands">
+  <h2><svg class="ic"><use href="#i-outils"/></svg><span>Settings by brand</span></h2>
+  <p class="chapo">Labels of a phone set to English.</p>
+  <h3 id="android">Stock Android: Pixel, Motorola, ASUS, TCL, other</h3>
+  <ul class="liste">
+      <li><b>Unlock</b>: Settings  ›  About phone, or About tablet, tap “Build number” seven times</li>
+      <li><b>Developer options</b>: Settings  ›  System  ›  Developer options</li>
+      <li><b>Second account</b>: Multiple users, Settings  ›  System  ›  Multiple users</li>
+      <li><b>Battery, so the game does not freeze</b>: Unrestricted, Settings  ›  Apps  ›  DOFUS Touch  ›  Battery</li>
+  </ul>
+  <h3 id="xiaomi">Xiaomi, Redmi, POCO</h3>
+  <ul class="liste">
+      <li><b>Unlock</b>: Settings  ›  About phone, or About tablet, tap “HyperOS version, or MIUI version on older models” seven times</li>
+      <li><b>Developer options</b>: Settings  ›  Additional settings  ›  Developer options</li>
+      <li><b>Second account</b>: Dual apps, Settings  ›  Apps  ›  Dual apps</li>
+      <li><b>Battery, so the game does not freeze</b>: No restrictions, and Autostart, Settings  ›  Apps  ›  Manage apps  ›  DOFUS Touch  ›  Battery saver. Also lock the game in recent apps, by pulling its card down: otherwise MIUI and HyperOS close it after a few minutes.</li>
+      <li><b>Good to know</b>: Turn on "USB debugging (Security settings)", or the mouse and keyboard do nothing.</li>
+      <li><b>Good to know</b>: Android 11 and older MIUI: a SIM card is also needed, or the setting drops at restart.</li>
+      <li><b>Good to know</b>: Clicks still do nothing (Android 14 and up): turn off "Stylus handwriting", at the bottom of the developer options.</li>
+  </ul>
+  <h3 id="samsung">Samsung</h3>
+  <ul class="liste">
+      <li><b>Unlock</b>: Settings  ›  About phone, or About tablet  ›  Software information, tap “Build number” seven times</li>
+      <li><b>Developer options</b>: Settings  ›  Developer options</li>
+      <li><b>Second account</b>: Work profile (Island), the Island app from the Play Store, which makes a work profile to clone the game into</li>
+      <li><b>Battery, so the game does not freeze</b>: Allow background activity, Settings  ›  Battery  ›  Background usage limits  ›  Never sleeping apps. Turn off Auto optimise daily as well, under Settings &gt; Device care: switched back on, it puts the game back to sleep after a few days.</li>
+      <li><b>Good to know</b>: "USB debugging" greyed out or phone not detected: turn off "Auto Blocker" (Settings › Security and privacy), then "Block USB connections".</li>
+      <li><b>Good to know</b>: Secure Folder: unlock it before launching, or the game is not found there.</li>
+  </ul>
+  <h3 id="oneplus">OnePlus, OPPO, realme</h3>
+  <ul class="liste">
+      <li><b>Unlock</b>: Settings  ›  About device  ›  Version, tap “Build number, or Version number depending on the release installed” seven times</li>
+      <li><b>Developer options</b>: Settings  ›  Additional settings  ›  Developer options</li>
+      <li><b>Second account</b>: App Cloner, Settings  ›  Apps  ›  App Cloner</li>
+      <li><b>Battery, so the game does not freeze</b>: Allow background activity, set to Unrestricted, Settings  ›  Battery  ›  Battery usage  ›  DOFUS Touch. On these skins, a separate auto-clean can close apps when the screen goes off. It is turned off under Settings &gt; Battery &gt; More settings.</li>
+      <li><b>Good to know</b>: Also turn on "USB debugging (Security settings)", or mouse and keyboard do nothing, and "Install via USB", in the same menu.</li>
+  </ul>
+  <h3 id="honor">Honor, Huawei</h3>
+  <ul class="liste">
+      <li><b>Unlock</b>: Settings  ›  About phone, or About tablet, tap “Build number” seven times</li>
+      <li><b>Developer options</b>: Settings  ›  System &amp; updates  ›  Developer options</li>
+      <li><b>Second account</b>: App twin, Settings  ›  Apps  ›  App twin</li>
+      <li><b>Battery, so the game does not freeze</b>: App launch, set to manual, Settings  ›  Battery  ›  App launch  ›  DOFUS Touch. Switch the game to manual management, then turn on the three switches offered, Run in background included. Automatic management closes the game whatever you set elsewhere.</li>
+      <li><b>Good to know</b>: On builds without Google services, wireless debugging is sometimes missing. The USB cable is then the only way.</li>
+      <li><b>Good to know</b>: Also turn on “Allow ADB debugging in charge only mode” in the developer options, if your version offers it.</li>
+  </ul>
+  <h3 id="vivo">vivo, iQOO</h3>
+  <ul class="liste">
+      <li><b>Unlock</b>: Settings  ›  About phone, or About tablet  ›  Software version, tap “Version number, or Build number depending on the release installed” seven times</li>
+      <li><b>Developer options</b>: Settings  ›  More settings  ›  Developer options</li>
+      <li><b>Second account</b>: App Clone, Settings  ›  Apps  ›  App Clone</li>
+      <li><b>Battery, so the game does not freeze</b>: Background power consumption, set to Allow, Settings  ›  Battery  ›  Background power consumption management  ›  DOFUS Touch. Turn on Autostart for the game as well. These skins are among the quickest to close an app the moment it leaves the foreground.</li>
+      <li><b>Good to know</b>: Also turn on "USB debugging (Security settings)", or mouse and keyboard do nothing, and "Install via USB", in the same menu.</li>
+  </ul>
+  <h3 id="amazon-fire">Amazon Fire</h3>
+  <ul class="liste">
+      <li><b>Unlock</b>: Settings  ›  Device Options, tap “Serial Number” seven times</li>
+      <li><b>Developer options</b>: Settings  ›  Device Options  ›  Developer Options</li>
+      <li><b>Second account</b>: Profiles, Settings  ›  Profiles &amp; Family Library</li>
+      <li><b>Battery, so the game does not freeze</b>: Battery optimisation, to be turned off, Settings  ›  Battery  ›  Battery optimisation</li>
+      <li><b>Good to know</b>: Fire OS has no Play Store: DOFUS Touch is not distributed there, and installing it means going through an APK file. This card describes the steps; it does not promise the game will run.</li>
+  </ul>
+</section>
+
+<section id="ensuite">
+  <h2><svg class="ic"><use href="#i-guides"/></svg><span>Next</span></h2>
+  <ul class="liste">
+    <li><a href="index.html">Everything DT Hub does</a>, and <a href="index.html#faq">the questions</a></li>
+    <li>Stuck? Ask on <a href="https://discord.gg/aauJcga6eG">Discord</a> or <a href="https://github.com/Falcomfr/DtHub/issues">GitHub</a></li>
+  </ul>
+</section>
+
+<footer>
+  <div class="liens">
+    <a href="https://github.com/Falcomfr/DtHub">Source code</a>
+    <a href="https://github.com/Falcomfr/DtHub/releases">Releases</a>
+    <a href="https://github.com/Falcomfr/DtHub/blob/main/CHANGELOG.md">Changelog</a>
+    <a href="https://github.com/Falcomfr/DtHub/issues">Report a defect</a>
+  </div>
+  <p>
+    Released under the <a href="https://github.com/Falcomfr/DtHub/blob/main/LICENSE">MIT licence</a>.
+    The quest titles in <code>quest-successes.json</code> remain the property of
+    papycha.fr.
+  </p>
+  <p>
+    <strong>Not affiliated with Ankama.</strong> DOFUS and DOFUS Touch are
+    trademarks of Ankama. This project is not affiliated with, endorsed by or
+    supported by Ankama.
+  </p>
+</footer>
+
+</div>
+</body>
+</html>
