@@ -56,4 +56,25 @@
     <xhtml:link rel="alternate" hreflang="es" href="https://falcomfr.github.io/DtHub/install.es.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://falcomfr.github.io/DtHub/install.html"/>
   </url>
+  <url>
+    <loc>https://falcomfr.github.io/DtHub/dofus-touch-pc.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://falcomfr.github.io/DtHub/dofus-touch-pc.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://falcomfr.github.io/DtHub/dofus-touch-pc.fr.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://falcomfr.github.io/DtHub/dofus-touch-pc.es.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://falcomfr.github.io/DtHub/dofus-touch-pc.html"/>
+  </url>
+  <url>
+    <loc>https://falcomfr.github.io/DtHub/dofus-touch-pc.fr.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://falcomfr.github.io/DtHub/dofus-touch-pc.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://falcomfr.github.io/DtHub/dofus-touch-pc.fr.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://falcomfr.github.io/DtHub/dofus-touch-pc.es.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://falcomfr.github.io/DtHub/dofus-touch-pc.html"/>
+  </url>
+  <url>
+    <loc>https://falcomfr.github.io/DtHub/dofus-touch-pc.es.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://falcomfr.github.io/DtHub/dofus-touch-pc.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://falcomfr.github.io/DtHub/dofus-touch-pc.fr.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://falcomfr.github.io/DtHub/dofus-touch-pc.es.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://falcomfr.github.io/DtHub/dofus-touch-pc.html"/>
+  </url>
 </urlset>

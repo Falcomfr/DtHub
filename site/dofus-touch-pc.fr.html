@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jouer à DOFUS Touch sur PC : émulateur, mirroring ou DT Hub ?</title>
+<meta name="description" content="Les façons de jouer à DOFUS Touch sur ordinateur, à la souris et au clavier, comparées : émulateur comme BlueStacks, écran HDMI, mirroring avec scrcpy, et DT Hub pour le multicompte.">
+<link rel="icon" href="app.png">
+<link rel="stylesheet" href="style.css">
+
+<link rel="canonical" href="https://falcomfr.github.io/DtHub/dofus-touch-pc.fr.html">
+<link rel="alternate" hreflang="en" href="https://falcomfr.github.io/DtHub/dofus-touch-pc.html">
+<link rel="alternate" hreflang="fr" href="https://falcomfr.github.io/DtHub/dofus-touch-pc.fr.html">
+<link rel="alternate" hreflang="es" href="https://falcomfr.github.io/DtHub/dofus-touch-pc.es.html">
+<link rel="alternate" hreflang="x-default" href="https://falcomfr.github.io/DtHub/dofus-touch-pc.html">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="DT Hub">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:url" content="https://falcomfr.github.io/DtHub/dofus-touch-pc.fr.html">
+<meta property="og:title" content="Jouer à DOFUS Touch sur PC : émulateur, mirroring ou DT Hub ?">
+<meta property="og:description" content="Les façons de jouer à DOFUS Touch sur ordinateur, à la souris et au clavier, comparées : émulateur comme BlueStacks, écran HDMI, mirroring avec scrcpy, et DT Hub pour le multicompte.">
+<meta property="og:image" content="https://falcomfr.github.io/DtHub/screenshots/cadre-a-onglets.jpg">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+<!-- Icons, drawn here rather than fetched: the project promises to send
+     nothing without being asked, and a page that pulls an icon font from a
+     stranger's server breaks that promise for decoration.
+
+     Four of them are the application's own glyphs, copied path for path:
+     stacked windows, the Almanax calendar, the sliders of an account's
+     settings. The rest are drawn in the same hand, one stroke, round ends,
+     on the same fifteen unit grid. -->
+<svg class="jeu-icones" aria-hidden="true" focusable="false"><defs>
+  <g id="i-soleil"><circle cx="7.5" cy="7.5" r="2.7"/><path d="M7.5 1.4V3M7.5 12v1.6M1.4 7.5H3M12 7.5h1.6M3.2 3.2l1.2 1.2M10.6 10.6l1.2 1.2M11.8 3.2l-1.2 1.2M4.4 10.6l-1.2 1.2"/></g>
+  <g id="i-fenetres"><path d="M1.8 2.2h8.4v6.2H1.8ZM4.8 6.6h8.4v6.2H4.8Z"/></g>
+  <g id="i-panneau"><path d="M1.8 5h11.4M1.8 10h11.4"/><circle cx="5" cy="5" r="1.6"/><circle cx="10" cy="10" r="1.6"/></g>
+  <g id="i-guides"><path d="M7.5 4.3C6 3.1 4 2.8 2 3.1v8.6c2-.3 4 0 5.5 1.2 1.5-1.2 3.5-1.5 5.5-1.2V3.1c-2-.3-4 0-5.5 1.2ZM7.5 4.3v8.6"/></g>
+  <g id="i-almanax"><path d="M3 4.5h10v9H3ZM3 7.5h10M6 3v3M10 3v3"/></g>
+  <g id="i-outils"><path d="M9.6 2.1a3.1 3.1 0 0 0-3.3 4.2L2.2 10.4a1.2 1.2 0 0 0 1.7 1.7L8 8a3.1 3.1 0 0 0 4.2-3.3l-1.9 1.9-1.7-.5-.5-1.7Z"/></g>
+  <g id="i-regles"><path d="M7.5 1.8 12.6 3.7v4.1c0 2.9-2.2 4.7-5.1 5.5-2.9-.8-5.1-2.6-5.1-5.5V3.7Z"/><path d="m5.5 7.6 1.6 1.6 3-3.2"/></g>
+  <g id="i-reste"><path d="M7.5 1.9 13 4.7v5.6L7.5 13.1 2 10.3V4.7ZM2 4.7l5.5 2.8L13 4.7M7.5 7.5v5.6"/></g>
+  <g id="i-telecharger"><path d="M7.5 2.2v7.6M4.4 6.9l3.1 3.1 3.1-3.1M2.6 12.8h9.8"/></g>
+  <g id="i-merci"><path d="M7.5 12.8C4 10.4 1.9 8.4 1.9 6.2A2.9 2.9 0 0 1 7.5 4.8 2.9 2.9 0 0 1 13.1 6.2c0 2.2-2.1 4.2-5.6 6.6Z"/></g>
+  <g id="i-gratuit"><path d="M2.3 7.9V2.6h5.3l5.2 5.3-4.9 4.9Z"/><circle cx="4.9" cy="5.1" r=".8"/></g>
+  <g id="i-vous"><path d="M2.2 3.4h10.6v6.8H7.2l-3 2.6v-2.6H2.2Z"/></g>
+  <g id="i-info"><circle cx="7.5" cy="7.5" r="5.7"/><path d="M7.5 6.8v3.6M7.5 4.6v.1"/></g>
+  <g id="i-github"><path d="M7.5 1.2a6.3 6.3 0 0 0-2 12.3c.31.06.43-.14.43-.3v-1.08c-1.75.38-2.12-.84-2.12-.84-.29-.73-.7-.92-.7-.92-.57-.39.04-.38.04-.38.63.04.97.65.97.65.56.97 1.48.69 1.84.53.06-.41.22-.69.4-.85-1.4-.16-2.87-.7-2.87-3.11 0-.69.25-1.25.65-1.69-.07-.16-.28-.81.06-1.68 0 0 .53-.17 1.74.64a6 6 0 0 1 3.16 0c1.2-.81 1.73-.64 1.73-.64.35.87.13 1.52.07 1.68.4.44.65 1 .65 1.69 0 2.42-1.48 2.95-2.88 3.1.23.2.43.58.43 1.17v1.73c0 .17.11.37.43.3A6.3 6.3 0 0 0 7.5 1.2Z" fill="currentColor" stroke="none"/></g>
+  <!-- Discord's own mark, not drawn in our hand: alone it is the only thing
+       that says where the link leads. Scaled from its 24 unit box. -->
+  <g id="i-discord"><path transform="translate(0 1.5) scale(.625)" d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z" fill="currentColor" stroke="none"/></g>
+</defs></svg>
+
+<div class="barre">
+  <div class="barre-dedans">
+    <a class="marque" href="index.fr.html"><img src="app.png" alt="" width="30" height="30">DT Hub</a>
+    <nav>
+      <a href="index.fr.html">Présentation</a>
+      <a href="install.fr.html">Installation</a>
+      <a href="dofus-touch-pc.html">English</a>
+      <a href="dofus-touch-pc.es.html">Español</a>
+      <a class="bouton petit" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe"><svg class="ic"><use href="#i-telecharger"/></svg>Télécharger</a>
+    </nav>
+  </div>
+</div>
+
+<div class="page" id="top">
+
+<header class="hero guide">
+  <h1>Jouer à DOFUS Touch sur PC</h1>
+  <p class="accroche">DOFUS Touch se joue sur téléphone et sur tablette. Pour y jouer sur un ordinateur, avec un grand écran, une souris et un clavier, il y a quatre façons de faire, qui ne se valent pas.</p>
+</header>
+
+<section>
+  <h2><svg class="ic"><use href="#i-info"/></svg><span>Les émulateurs : BlueStacks, LDPlayer et les autres</span></h2>
+  <p>Un émulateur fait tourner Android sur le PC, et DOFUS Touch avec. C'est la solution la plus connue, et la seule à éviter : Ankama range les émulateurs et les clients modifiés parmi les pratiques interdites sur DOFUS Touch, <a href="https://support.ankama.com/hc/fr/articles/26840828168209">sur son support</a>. Un compte pris à en utiliser un s'expose à une sanction.</p>
+</section>
+<section>
+  <h2><svg class="ic"><use href="#i-fenetres"/></svg><span>Le téléphone branché sur un écran</span></h2>
+  <p>Avec un adaptateur USB-C vers HDMI, certains téléphones affichent leur écran sur un moniteur, et une souris et un clavier Bluetooth font le reste. Le jeu reste l'application officielle et aucun logiciel n'est nécessaire. Mais tous les téléphones ne sortent pas la vidéo par leur prise USB-C, et il faut un écran par téléphone.</p>
+</section>
+<section>
+  <h2><svg class="ic"><use href="#i-panneau"/></svg><span>Le mirroring : l'écran du téléphone dans une fenêtre du PC</span></h2>
+  <p>Le jeu reste sur le téléphone : un logiciel recopie son écran dans une fenêtre du PC et lui renvoie la souris et le clavier. <a href="https://github.com/Genymobile/scrcpy">scrcpy</a>, libre et gratuit, est la référence. Il s'utilise pourtant en ligne de commande et ne connaît rien au jeu : une fenêtre par téléphone, à régler et à placer soi-même.</p>
+  <p>Méfiez-vous des versions modifiées d'outils de recopie qui circulent : un logiciel qui pilote votre téléphone doit venir d'une source sûre.</p>
+</section>
+<section>
+  <h2><svg class="ic"><use href="#i-soleil"/></svg><span>DT Hub : le mirroring pensé pour DOFUS Touch</span></h2>
+  <p>DT Hub s'appuie sur scrcpy, sans ligne de commande. Il trouve chaque compte de chaque téléphone, profil principal et profil cloné, et ouvre chacun dans sa fenêtre : en onglets, côte à côte ou en grille, avec <code>F1</code> à <code>F8</code> pour passer de l'un à l'autre. Le jeu n'est pas modifié, et DT Hub ne joue jamais à votre place. Il est gratuit, libre et pour Windows.</p>
+  <p><a href="index.fr.html">Tout ce qu'il fait</a> · <a href="install.fr.html">l'installer pas à pas</a></p>
+</section>
+
+<section>
+  <h2><svg class="ic"><use href="#i-regles"/></svg><span>En résumé</span></h2>
+  <div class="defilant">
+  <table>
+    <thead><tr><th></th><th>Où tourne le jeu</th><th>Plusieurs comptes</th><th>Le jeu reste l'application officielle</th></tr></thead>
+    <tbody>
+      <tr><th>Émulateur</th><td>Sur le PC</td><td>Oui</td><td>Non : interdit par Ankama</td></tr>
+      <tr><th>Écran HDMI</th><td>Sur le téléphone</td><td>Un écran par téléphone</td><td>Oui</td></tr>
+      <tr><th>scrcpy</th><td>Sur le téléphone</td><td>Une fenêtre par téléphone, à régler soi-même</td><td>Oui</td></tr>
+      <tr><th>DT Hub</th><td>Sur le téléphone</td><td>Tous les comptes de tous les téléphones, rangés</td><td>Oui</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2><svg class="ic"><use href="#i-vous"/></svg><span>Et le multicompte ?</span></h2>
+  <p>Le multicompte est permis sur DOFUS Touch, dans des limites : jamais plus de deux comptes dans certains combats, comme le Kolizéum, et chaque action faite à la main, sans automatisation. Les règles exactes sont <a href="https://support.ankama.com/hc/fr/articles/360019616574">sur le support d'Ankama</a>. Nous ne parlons pas en son nom : en cas de doute, c'est lui qui fait foi.</p>
+  <div class="telecharger">
+    <a class="bouton" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe"><svg class="ic"><use href="#i-telecharger"/></svg>Télécharger DtHub.exe</a>
+  </div>
+</section>
+
+<footer>
+  <div class="liens">
+    <a href="https://github.com/Falcomfr/DtHub">Code source</a>
+    <a href="https://github.com/Falcomfr/DtHub/releases">Versions</a>
+    <a href="https://github.com/Falcomfr/DtHub/blob/main/CHANGELOG.md">Changements</a>
+    <a href="https://github.com/Falcomfr/DtHub/issues">Signaler un défaut</a>
+  </div>
+  <p>
+    Publié sous <a href="https://github.com/Falcomfr/DtHub/blob/main/LICENSE">licence MIT</a>.
+    Les titres de quêtes du fichier <code>quest-successes.json</code> restent la
+    propriété de papycha.fr.
+  </p>
+  <p>
+    DT Hub s'écrit aussi DTHub.
+    <strong>Sans lien avec Ankama.</strong> DOFUS et DOFUS Touch sont des
+    marques d'Ankama. Ce projet n'est ni affilié, ni approuvé, ni soutenu par
+    Ankama.
+  </p>
+</footer>
+
+</div>
+</body>
+</html>
