@@ -194,9 +194,9 @@ jobs:
           # to play on PC nothing. The assets stay bare, so versions after
           # 0.7.10 and Discord show the note as before.
           @(
-            '*Play DOFUS Touch on PC with several accounts, without an emulator: [falcomfr.github.io/DtHub](https://falcomfr.github.io/DtHub/)*'
+            '*Play DOFUS Touch on PC with several accounts, without an emulator: [dthub.app](https://dthub.app/)*'
             ''
-            '*Jouer à DOFUS Touch sur PC en multicompte, sans émulateur : [présentation en français](https://falcomfr.github.io/DtHub/index.fr.html)*'
+            '*Jouer à DOFUS Touch sur PC en multicompte, sans émulateur : [présentation en français](https://dthub.app/index.fr.html)*'
             ''
             (Get-Content notes.en.md -Raw -Encoding utf8)
           ) | Set-Content corps.md -Encoding utf8

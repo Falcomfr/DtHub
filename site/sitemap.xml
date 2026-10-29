@@ -6,75 +6,73 @@
   would be whatever was true the day it was typed; Google ignores a lastmod
   it catches out once, and a wrong one is worse than none.
 
-  **No robots.txt beside it either.** A crawler only reads robots.txt at the
-  root of a host, and this site lives under /DtHub/ on a host that is not
-  ours. One placed here would be read by nobody, and its Sitemap: line
-  would point at a file nobody was told about. The address below has to be
-  handed to Search Console and to Bing Webmaster Tools by hand, once.
+  **Named by robots.txt.** The site has its own host since dthub.app, so
+  the robots.txt at its root is read, and its Sitemap: line points here.
+
 -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://falcomfr.github.io/DtHub/</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://falcomfr.github.io/DtHub/"/>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://falcomfr.github.io/DtHub/index.fr.html"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://falcomfr.github.io/DtHub/index.es.html"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://falcomfr.github.io/DtHub/"/>
+    <loc>https://dthub.app/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://dthub.app/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://dthub.app/index.fr.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://dthub.app/index.es.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://dthub.app/"/>
   </url>
   <url>
-    <loc>https://falcomfr.github.io/DtHub/index.fr.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://falcomfr.github.io/DtHub/"/>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://falcomfr.github.io/DtHub/index.fr.html"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://falcomfr.github.io/DtHub/index.es.html"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://falcomfr.github.io/DtHub/"/>
+    <loc>https://dthub.app/index.fr.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://dthub.app/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://dthub.app/index.fr.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://dthub.app/index.es.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://dthub.app/"/>
   </url>
   <url>
-    <loc>https://falcomfr.github.io/DtHub/index.es.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://falcomfr.github.io/DtHub/"/>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://falcomfr.github.io/DtHub/index.fr.html"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://falcomfr.github.io/DtHub/index.es.html"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://falcomfr.github.io/DtHub/"/>
+    <loc>https://dthub.app/index.es.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://dthub.app/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://dthub.app/index.fr.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://dthub.app/index.es.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://dthub.app/"/>
   </url>
   <url>
-    <loc>https://falcomfr.github.io/DtHub/install.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://falcomfr.github.io/DtHub/install.html"/>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://falcomfr.github.io/DtHub/install.fr.html"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://falcomfr.github.io/DtHub/install.es.html"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://falcomfr.github.io/DtHub/install.html"/>
+    <loc>https://dthub.app/install.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://dthub.app/install.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://dthub.app/install.fr.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://dthub.app/install.es.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://dthub.app/install.html"/>
   </url>
   <url>
-    <loc>https://falcomfr.github.io/DtHub/install.fr.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://falcomfr.github.io/DtHub/install.html"/>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://falcomfr.github.io/DtHub/install.fr.html"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://falcomfr.github.io/DtHub/install.es.html"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://falcomfr.github.io/DtHub/install.html"/>
+    <loc>https://dthub.app/install.fr.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://dthub.app/install.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://dthub.app/install.fr.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://dthub.app/install.es.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://dthub.app/install.html"/>
   </url>
   <url>
-    <loc>https://falcomfr.github.io/DtHub/install.es.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://falcomfr.github.io/DtHub/install.html"/>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://falcomfr.github.io/DtHub/install.fr.html"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://falcomfr.github.io/DtHub/install.es.html"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://falcomfr.github.io/DtHub/install.html"/>
+    <loc>https://dthub.app/install.es.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://dthub.app/install.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://dthub.app/install.fr.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://dthub.app/install.es.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://dthub.app/install.html"/>
   </url>
   <url>
-    <loc>https://falcomfr.github.io/DtHub/dofus-touch-pc.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://falcomfr.github.io/DtHub/dofus-touch-pc.html"/>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://falcomfr.github.io/DtHub/dofus-touch-pc.fr.html"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://falcomfr.github.io/DtHub/dofus-touch-pc.es.html"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://falcomfr.github.io/DtHub/dofus-touch-pc.html"/>
+    <loc>https://dthub.app/dofus-touch-pc.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://dthub.app/dofus-touch-pc.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://dthub.app/dofus-touch-pc.fr.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://dthub.app/dofus-touch-pc.es.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://dthub.app/dofus-touch-pc.html"/>
   </url>
   <url>
-    <loc>https://falcomfr.github.io/DtHub/dofus-touch-pc.fr.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://falcomfr.github.io/DtHub/dofus-touch-pc.html"/>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://falcomfr.github.io/DtHub/dofus-touch-pc.fr.html"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://falcomfr.github.io/DtHub/dofus-touch-pc.es.html"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://falcomfr.github.io/DtHub/dofus-touch-pc.html"/>
+    <loc>https://dthub.app/dofus-touch-pc.fr.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://dthub.app/dofus-touch-pc.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://dthub.app/dofus-touch-pc.fr.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://dthub.app/dofus-touch-pc.es.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://dthub.app/dofus-touch-pc.html"/>
   </url>
   <url>
-    <loc>https://falcomfr.github.io/DtHub/dofus-touch-pc.es.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://falcomfr.github.io/DtHub/dofus-touch-pc.html"/>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://falcomfr.github.io/DtHub/dofus-touch-pc.fr.html"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://falcomfr.github.io/DtHub/dofus-touch-pc.es.html"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://falcomfr.github.io/DtHub/dofus-touch-pc.html"/>
+    <loc>https://dthub.app/dofus-touch-pc.es.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://dthub.app/dofus-touch-pc.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://dthub.app/dofus-touch-pc.fr.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://dthub.app/dofus-touch-pc.es.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://dthub.app/dofus-touch-pc.html"/>
   </url>
 </urlset>

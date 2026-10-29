@@ -52,8 +52,8 @@ jobs:
 
       # The images live in assets/, the only versioned image folder, and the
       # page points at them by relative path: they have to be placed next to
-      # it before the upload. The site is served under /DtHub/, where a
-      # leading slash would give 404s.
+      # it before the upload. Relative paths, so the page works at dthub.app
+      # and at the github.io address that redirects there.
       - name: Gather the page and its images
         run: |
           mkdir -p site/screenshots
