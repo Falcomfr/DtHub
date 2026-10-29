@@ -6,6 +6,11 @@
 
 **Play several DOFUS Touch accounts side by side on Windows, from your own phones.**
 
+*Jouer à DOFUS Touch sur PC en multicompte, sans émulateur :
+[présentation en français](https://falcomfr.github.io/DtHub/index.fr.html).*<br>
+*Jugar a DOFUS Touch en PC con varias cuentas, sin emulador:
+[presentación en español](https://falcomfr.github.io/DtHub/index.es.html).*
+
 Built on [ADB](https://developer.android.com/tools/adb) and
 [scrcpy](https://github.com/Genymobile/scrcpy). Not an emulator: the game runs
 on your real phone, DT Hub only mirrors it and arranges the windows.
