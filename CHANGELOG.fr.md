@@ -11,6 +11,13 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.12.2] - 2026-11-01
+
+### Corrigé
+
+- Un téléphone froid n'affiche plus « Téléphone trop chaud, fortement bridé » : Android peut garder cet état longtemps après la dernière partie.
+- « Ce téléphone refuse les clics » disparaît en 30 s une fois le réglage activé, sans débrancher le téléphone.
+
 ## [0.12.1] - 2026-10-28
 
 ### Corrigé

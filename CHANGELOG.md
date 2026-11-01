@@ -17,6 +17,13 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.12.2] - 2026-11-01
+
+### Fixed
+
+- A cold phone no longer shows "Phone too hot, heavily throttled": Android can keep that state long after the last game.
+- "This phone refuses clicks" goes away within 30 s once the setting is on, without unplugging the phone.
+
 ## [0.12.1] - 2026-10-28
 
 ### Fixed

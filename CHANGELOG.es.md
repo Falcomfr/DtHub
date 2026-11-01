@@ -10,6 +10,13 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.12.2] - 2026-11-01
+
+### Corregido
+
+- Un teléfono frío ya no muestra «Teléfono demasiado caliente, muy limitado»: Android puede mantener ese estado mucho después de la última partida.
+- «Este teléfono rechaza los clics» desaparece en 30 s una vez activado el ajuste, sin desconectar el teléfono.
+
 ## [0.12.1] - 2026-10-28
 
 ### Corregido
