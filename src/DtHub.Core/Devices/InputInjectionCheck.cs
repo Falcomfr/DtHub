@@ -42,6 +42,12 @@ public enum InputInjection
 /// the moment its first window opens, and never during a game
 /// session nor repeatedly.
 ///
+/// **Except while it refuses.** The player turns the setting on as the
+/// help says, without unplugging, and a refusal kept for the whole
+/// connection stayed red in the panel after the phone accepted clicks.
+/// A refusal is asked again every <see cref="RefusalRecheck" />: the key
+/// does nothing, and a phone that refuses does not deliver it anyway.
+///
 /// The verdict is cautious by design. We only say "it works" on
 /// complete silence, and "refused" only on a named refusal.
 /// Everything else is <see cref="InputInjection.Unknown"/>: getting
@@ -55,6 +61,16 @@ public static class InputInjectionCheck
     /// without acting on the device.
     /// </summary>
     public const string ProbeKeyCode = "0";
+
+    /// <summary>How long a refusal is kept before the probe is sent again.</summary>
+    public static readonly TimeSpan RefusalRecheck = TimeSpan.FromSeconds(30);
+
+    /// <summary>
+    /// True when a kept verdict, asked <paramref name="age" /> ago, must be
+    /// asked again: only a refusal, and only once it is old enough.
+    /// </summary>
+    public static bool AskAgain(InputInjection known, TimeSpan age) =>
+        known == InputInjection.Denied && age >= RefusalRecheck;
 
     /// <summary>Command sent to the device's shell.</summary>
     public static IReadOnlyList<string> ProbeCommand { get; } =

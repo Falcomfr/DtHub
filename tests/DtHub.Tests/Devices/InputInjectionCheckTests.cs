@@ -60,4 +60,21 @@ public class InputInjectionCheckTests
         // question askable without acting on the device.
         Assert.Equal(["shell", "input", "keyevent", "0"], InputInjectionCheck.ProbeCommand);
     }
+
+    [Fact]
+    public void Un_refus_est_redemande_apres_trente_secondes()
+    {
+        // The player turns the setting on as the help says, without
+        // unplugging: kept for the whole connection, the refusal stayed red
+        // in the panel long after the phone accepted clicks.
+        Assert.False(InputInjectionCheck.AskAgain(InputInjection.Denied, TimeSpan.FromSeconds(29)));
+        Assert.True(InputInjectionCheck.AskAgain(InputInjection.Denied, InputInjectionCheck.RefusalRecheck));
+    }
+
+    [Fact]
+    public void Une_acceptation_n_est_jamais_redemandee()
+    {
+        // Accepted, the key would reach the game: never during a session.
+        Assert.False(InputInjectionCheck.AskAgain(InputInjection.Works, TimeSpan.FromHours(5)));
+    }
 }

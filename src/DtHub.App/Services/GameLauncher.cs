@@ -2171,23 +2171,25 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// mouse captures the PC's cursor, so it has no business in the
     /// settings of someone who does not have the problem.
     /// </summary>
-    public bool AnyInputRefused => _inputs.Values.Any(v => v == InputInjection.Denied);
+    public bool AnyInputRefused => _inputs.Values.Any(v => v.Verdict == InputInjection.Denied);
 
-    /// <summary>Input verdict per device, asked once and kept.</summary>
-    private readonly Dictionary<string, InputInjection> _inputs = new(StringComparer.Ordinal);
+    /// <summary>Input verdict per device, with how long ago it was asked.</summary>
+    private readonly Dictionary<string, (InputInjection Verdict, System.Diagnostics.Stopwatch Vu)> _inputs =
+        new(StringComparer.Ordinal);
 
     /// <summary>
-    /// This device's input verdict, asked only once.
+    /// This device's input verdict, asked only once when it accepts.
     ///
-    /// Kept until the device disappears: the setting does not
-    /// change mid-session, and asking the question again would
-    /// amount to sending keys while playing.
+    /// Kept until the device disappears: asking again would amount to
+    /// sending keys while playing. A refusal is asked again, see
+    /// <see cref="InputInjectionCheck.AskAgain" />.
     /// </summary>
     private async Task<InputInjection> Inputs(string serial, CancellationToken cancellationToken)
     {
-        if (_inputs.TryGetValue(serial, out var known))
+        if (_inputs.TryGetValue(serial, out var known)
+            && !InputInjectionCheck.AskAgain(known.Verdict, known.Vu.Elapsed))
         {
-            return known;
+            return known.Verdict;
         }
 
         var answer = await _devices.CheckInputInjectionAsync(serial, cancellationToken).ConfigureAwait(false);
@@ -2197,7 +2199,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // next window.
         if (answer != InputInjection.Unknown)
         {
-            _inputs[serial] = answer;
+            _inputs[serial] = (answer, System.Diagnostics.Stopwatch.StartNew());
         }
 
         return answer;
