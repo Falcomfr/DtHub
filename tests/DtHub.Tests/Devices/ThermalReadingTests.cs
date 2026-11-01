@@ -7,9 +7,10 @@ public class ThermalReadingTests
     /// <summary>
     /// Captured as-is on the reference phone, a Xiaomi 13T Pro
     /// running Android 16. The status number is the only thing that
-    /// changes from one case to another.
+    /// changes from one case to another, with the current skin when a
+    /// tier has to be believed.
     /// </summary>
-    private static string Dumpsys(int statut) => $$"""
+    private static string Dumpsys(int statut, double peau = 34.351) => $$"""
 IsStatusOverride: false
 ThermalEventListeners:
 	callbacks: 4
@@ -29,7 +30,7 @@ Cached temperatures:
 HAL Ready: true
 Current temperatures from HAL:
 	Temperature{mValue=57.9, mType=0, mName=CPU, mStatus=0}
-	Temperature{mValue=34.351, mType=3, mName=SKIN, mStatus=0}
+	Temperature{mValue={{peau.ToString(System.Globalization.CultureInfo.InvariantCulture)}}, mType=3, mName=SKIN, mStatus=0}
 Temperature static thresholds from HAL:
 	TemperatureThreshold{mType=3, mName=SKIN, mHotThrottlingThresholds=[NaN, NaN, NaN, 50.0, 70.0, 80.0, 90.0]}
 """;
@@ -88,7 +89,7 @@ Temperature static thresholds from HAL:
     [InlineData(6, true)]
     public void Le_bridage_commence_au_palier_modere(int statut, bool bride)
     {
-        var reading = ThermalReading.Parse(Dumpsys(statut));
+        var reading = ThermalReading.Parse(Dumpsys(statut, peau: 55));
 
         Assert.NotNull(reading);
         Assert.Equal(bride, reading.IsThrottling);
@@ -104,8 +105,8 @@ Temperature static thresholds from HAL:
     [Fact]
     public void Le_message_durcit_au_bridage_lourd()
     {
-        var modere = ThermalReading.Parse(Dumpsys(2))!.Describe();
-        var lourd = ThermalReading.Parse(Dumpsys(4))!.Describe();
+        var modere = ThermalReading.Parse(Dumpsys(2, peau: 55))!.Describe();
+        var lourd = ThermalReading.Parse(Dumpsys(4, peau: 55))!.Describe();
 
         Assert.False(string.IsNullOrWhiteSpace(modere));
         Assert.False(string.IsNullOrWhiteSpace(lourd));
@@ -193,5 +194,88 @@ Current cooling devices from HAL:
             BrideParLaSurface.Replace("mName=SKIN, mStatus=3", "mName=SKIN, mStatus=0", StringComparison.Ordinal));
 
         Assert.Equal(0, reading!.Status);
+    }
+
+    /// <summary>
+    /// Captured on the reference phone on 2026-11-01, idle, unplugged,
+    /// cold in the hand: the global status still says 3, left over from
+    /// the last game, while every current sensor is far below its own
+    /// first throttling threshold. The HAL announced the heat and never
+    /// announced the cool-down.
+    /// </summary>
+    private static string StatutPerime(bool force = false) => $$"""
+IsStatusOverride: {{(force ? "true" : "false")}}
+ThermalEventListeners:
+	callbacks: 4
+	killed: false
+	broadcasts count: -1
+ThermalStatusListeners:
+	callbacks: 10
+	killed: false
+	broadcasts count: -1
+Thermal Status: 3
+Cached temperatures:
+	Temperature{mValue=89.652, mType=0, mName=CPU, mStatus=3}
+	Temperature{mValue=89.652, mType=1, mName=GPU, mStatus=3}
+	Temperature{mValue=89.652, mType=9, mName=NPU, mStatus=3}
+	Temperature{mValue=50.261, mType=3, mName=SKIN, mStatus=3}
+	Temperature{mValue=43.0, mType=2, mName=BATTERY, mStatus=0}
+	Temperature{mValue=47.628, mType=5, mName=POWER_AMPLIFIER, mStatus=0}
+HAL Ready: true
+HAL connection:
+	ThermalHAL 2.0 connected: yes
+Current temperatures from HAL:
+	Temperature{mValue=32.326, mType=0, mName=CPU, mStatus=0}
+	Temperature{mValue=32.326, mType=1, mName=GPU, mStatus=0}
+	Temperature{mValue=29.0, mType=2, mName=BATTERY, mStatus=0}
+	Temperature{mValue=30.257, mType=3, mName=SKIN, mStatus=0}
+	Temperature{mValue=30.048, mType=5, mName=POWER_AMPLIFIER, mStatus=0}
+	Temperature{mValue=32.326, mType=9, mName=NPU, mStatus=0}
+Current cooling devices from HAL:
+	CoolingDevice{mValue=0, mType=4, mName=mutt-pa1}
+Temperature static thresholds from HAL:
+	TemperatureThreshold{mType=0, mName=CPU, mHotThrottlingThresholds=[NaN, NaN, NaN, 85.0, 90.0, 100.0, 117.0], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+	TemperatureThreshold{mType=1, mName=GPU, mHotThrottlingThresholds=[NaN, NaN, NaN, 85.0, 90.0, 100.0, 117.0], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+	TemperatureThreshold{mType=2, mName=BATTERY, mHotThrottlingThresholds=[NaN, NaN, NaN, 50.0, 55.0, 59.0, 60.0], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+	TemperatureThreshold{mType=3, mName=SKIN, mHotThrottlingThresholds=[NaN, NaN, NaN, 50.0, 70.0, 80.0, 90.0], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+	TemperatureThreshold{mType=5, mName=POWER_AMPLIFIER, mHotThrottlingThresholds=[NaN, NaN, NaN, 68.0, 90.0, 100.0, 110.0], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+	TemperatureThreshold{mType=9, mName=NPU, mHotThrottlingThresholds=[NaN, NaN, NaN, 85.0, 90.0, 100.0, 117.0], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+Temperature headroom thresholds:
+[NaN, NaN, NaN, 1.0, 1.6666666, 2.0, 2.3333333]
+""";
+
+    [Fact]
+    public void Un_etat_global_reste_d_une_chauffe_passee_ne_dit_rien()
+    {
+        // The player saw "trop chaud, fortement bridé" on a cold phone that
+        // ran nothing. Every current sensor sits tens of degrees under its
+        // first threshold: the 3 is a leftover, not a measurement.
+        var reading = ThermalReading.Parse(StatutPerime());
+
+        Assert.NotNull(reading);
+        Assert.Equal(0, reading.Status);
+        Assert.Equal(30.257, reading.SkinCelsius);
+        Assert.Null(reading.Describe());
+    }
+
+    [Fact]
+    public void Un_etat_force_a_la_main_est_toujours_cru()
+    {
+        // cmd thermalservice override-status is how the warning is tried
+        // on the device: forced, the status means what it says.
+        var reading = ThermalReading.Parse(StatutPerime(force: true));
+
+        Assert.Equal(3, reading!.Status);
+    }
+
+    [Fact]
+    public void Un_capteur_proche_de_son_seuil_garde_l_etat_global()
+    {
+        // Still within the hysteresis under the 85 ° threshold, the CPU may
+        // still be throttled: the global status is believed.
+        var reading = ThermalReading.Parse(
+            StatutPerime().Replace("mValue=32.326, mType=0, mName=CPU", "mValue=82.0, mType=0, mName=CPU", StringComparison.Ordinal));
+
+        Assert.Equal(3, reading!.Status);
     }
 }

@@ -11994,3 +11994,28 @@ connection failed ») : la session veille rendait son tour sur la ligne
 téléphone déverrouillé ne s'endorme plus, le 13T Pro étant resté verrouillé
 pendant l'essai. C'est le comportement ordinaire d'Android, à confirmer chez
 le joueur de la Pad 6.
+
+## D225 - Un état thermique resté d'une chauffe passée ne déclenche plus d'alerte
+
+Vu le 01/11/2026 sur le 13T Pro : « Téléphone trop chaud, fortement bridé »
+sur un téléphone froid, débranché, sur lequel rien ne tournait. Le relevé du
+moment disait `Thermal Status: 3`, mais toute la section « Current temperatures
+from HAL » était au niveau 0 : processeur à 32 °, surface à 30 °, batterie à
+29 °. Seul le cache gardait le processeur à 89,7 ° et la surface à 50,3 °
+au niveau 3, de la dernière partie. Le statut global n'est pas une mesure :
+c'est la dernière alerte envoyée par le HAL, qui a signalé la chauffe sans
+jamais signaler la fin.
+
+Le statut global est donc mis de côté quand chaque capteur de la section
+courante qui a un seuil reste à plus de 5 ° sous son premier seuil de bridage
+(`mHotThrottlingThresholds`, publié par le HAL lui-même). On lit des degrés,
+pas le `mStatus` par capteur, qu'un fabricant pourrait laisser à zéro alors
+que le statut global est juste. Les 5 ° couvrent l'hystérésis : le bridage ne
+lâche que quelques degrés sous le point où il a commencé.
+
+Le statut global reste cru quand rien ne permet de trancher : pas de section
+courante, pas de seuils, ou forçage par `cmd thermalservice override-status`
+(`IsStatusOverride: true`), qui sert à éprouver l'avertissement (D109).
+
+**Non vérifié** : la sortie d'un téléphone Samsung. S'il ne publie pas de
+seuils, rien ne change pour lui.

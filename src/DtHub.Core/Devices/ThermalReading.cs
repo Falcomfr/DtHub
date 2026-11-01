@@ -30,6 +30,14 @@ namespace DtHub.Core.Devices;
 /// and 3.35, its skin at 50.8 ° on level 3, and the global status said
 /// 0. The higher of the two is the verdict. The processor's level is
 /// still left out, for the reason above.
+///
+/// **And the global status can be a leftover.** It is not a measurement
+/// but the last alert the HAL sent: on 2026-11-01 the reference phone,
+/// idle and cold, still said 3 from its last game, every current sensor
+/// at level 0 and tens of degrees under its thresholds. It is set aside
+/// when the current temperatures, held against the HAL's own thresholds,
+/// all say cool: that reads degrees, not the per-sensor level some
+/// manufacturer may leave at zero.
 /// </summary>
 /// <param name="Status">
 /// Thermal state, from 0 (nothing) to 6 (shutdown).
@@ -46,6 +54,13 @@ public sealed partial record ThermalReading(int Status, double? SkinCelsius)
 
     /// <summary>From here on, the throttling is heavy.</summary>
     public const int Severe = 3;
+
+    /// <summary>
+    /// How far under its first threshold a sensor must be for a leftover
+    /// status to be ruled out: throttling lets go a few degrees under the
+    /// point where it started.
+    /// </summary>
+    private const double Hysteresis = 5;
 
     /// <summary>
     /// True when the device throttles enough for it to be noticeable.
@@ -73,7 +88,61 @@ public sealed partial record ThermalReading(int Status, double? SkinCelsius)
             return null;
         }
 
-        return new ThermalReading(Math.Max(value, SkinLevel(dumpsys)), Skin(dumpsys));
+        var global = IsLeftover(dumpsys) ? 0 : value;
+
+        return new ThermalReading(Math.Max(global, SkinLevel(dumpsys)), Skin(dumpsys));
+    }
+
+    /// <summary>
+    /// True when every current sensor that has a threshold sits well under
+    /// it, so the global status can only be left over from an earlier
+    /// heat. False whenever that cannot be told: a forced status, no
+    /// current section, no thresholds.
+    /// </summary>
+    private static bool IsLeftover(string dumpsys)
+    {
+        var current = dumpsys.IndexOf("Current temperatures", StringComparison.OrdinalIgnoreCase);
+
+        if (current < 0 || OverridePattern().IsMatch(dumpsys))
+        {
+            return false;
+        }
+
+        var thresholds = new Dictionary<string, double>(StringComparer.Ordinal);
+
+        foreach (Match threshold in ThresholdPattern().Matches(dumpsys))
+        {
+            var lowest = threshold.Groups[2].Value.Split(',')
+                .Select(t => double.TryParse(t, NumberStyles.Float, CultureInfo.InvariantCulture, out var c) ? c : double.NaN)
+                .Where(double.IsFinite)
+                .DefaultIfEmpty(double.NaN)
+                .Min();
+
+            if (double.IsFinite(lowest))
+            {
+                thresholds[threshold.Groups[1].Value] = lowest;
+            }
+        }
+
+        var compared = 0;
+
+        foreach (Match sensor in CurrentPattern().Matches(dumpsys[current..]))
+        {
+            if (!thresholds.TryGetValue(sensor.Groups[2].Value, out var lowest)
+                || !double.TryParse(sensor.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var celsius))
+            {
+                continue;
+            }
+
+            if (celsius > lowest - Hysteresis)
+            {
+                return false;
+            }
+
+            compared++;
+        }
+
+        return compared > 0;
     }
 
     /// <summary>
@@ -133,6 +202,15 @@ public sealed partial record ThermalReading(int Status, double? SkinCelsius)
 
     [GeneratedRegex(@"Thermal Status:\s*(\d+)", RegexOptions.IgnoreCase)]
     private static partial Regex StatusPattern();
+
+    [GeneratedRegex(@"IsStatusOverride:\s*true", RegexOptions.IgnoreCase)]
+    private static partial Regex OverridePattern();
+
+    [GeneratedRegex(@"TemperatureThreshold\{mType=\d+,\s*mName=([^,}]+),\s*mHotThrottlingThresholds=\[([^\]]*)\]", RegexOptions.IgnoreCase)]
+    private static partial Regex ThresholdPattern();
+
+    [GeneratedRegex(@"^\s*Temperature\{mValue=(-?[\d.]+),\s*mType=\d+,\s*mName=([^,}]+)", RegexOptions.IgnoreCase | RegexOptions.Multiline)]
+    private static partial Regex CurrentPattern();
 
     [GeneratedRegex(@"Temperature\{mValue=(-?[\d.]+),\s*mType=3\b", RegexOptions.IgnoreCase)]
     private static partial Regex SkinPattern();
