@@ -1,0 +1,145 @@
+﻿<!-- The PC's menu path drawing (src/DtHub.App/Windows/MenuPathControl.xaml):
+     the sequence of phone screens a brand sheet's path describes, each with
+     its title and, on one of its rows, the real label of what to tap. The
+     other rows stay blank: making up the rest of the menu would show what
+     the brand sheet does not say. -->
+<UserControl x:Class="DtHub.Mac.Views.MenuPathControl"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:views="using:DtHub.Mac.Views">
+
+  <ItemsControl Name="Screens" Focusable="False">
+    <ItemsControl.ItemsPanel>
+      <ItemsPanelTemplate>
+        <WrapPanel Orientation="Horizontal" />
+      </ItemsPanelTemplate>
+    </ItemsControl.ItemsPanel>
+
+    <ItemsControl.ItemTemplate>
+      <DataTemplate x:DataType="views:MenuScreenView">
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Top" Margin="0,3,0,9">
+
+          <!-- The phone screen: dark background, rounded corners, status
+               bar on top, what makes it recognisable at a glance. -->
+          <Border Width="164" CornerRadius="11" BorderThickness="1"
+                  Background="{DynamicResource SurfaceBrush}"
+                  BorderBrush="{DynamicResource BorderBrush}">
+            <StackPanel>
+
+              <!-- The status bar, nothing written on it. -->
+              <Grid Margin="10,7,10,0" Height="7">
+                <Border Width="17" Height="5" CornerRadius="2"
+                        HorizontalAlignment="Left" VerticalAlignment="Center"
+                        Background="{DynamicResource BevelBrush}" Opacity="0.55" />
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
+                            VerticalAlignment="Center">
+                  <Border Width="6" Height="5" CornerRadius="1" Margin="0,0,3,0"
+                          Background="{DynamicResource BevelBrush}" Opacity="0.55" />
+                  <Border Width="6" Height="5" CornerRadius="1" Margin="0,0,3,0"
+                          Background="{DynamicResource BevelBrush}" Opacity="0.55" />
+                  <Border Width="10" Height="5" CornerRadius="1"
+                          Background="{DynamicResource BevelBrush}" Opacity="0.55" />
+                </StackPanel>
+              </Grid>
+
+              <!-- The back arrow and the large title, as Android's
+                   settings have laid them out since its twelfth version. -->
+              <TextBlock Text="&#x2190;" FontSize="13" Margin="11,7,0,0"
+                         Foreground="{DynamicResource TextMutedBrush}" />
+
+              <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="SemiBold"
+                         Margin="11,3,11,0" TextWrapping="Wrap"
+                         Foreground="{DynamicResource TextBrush}" />
+
+              <!-- The list, in its card, lighter than the page. -->
+              <Border CornerRadius="9" Margin="7,9,7,8" Padding="0,4"
+                      Background="{DynamicResource SurfaceAltBrush}">
+                <ItemsControl ItemsSource="{Binding Rows}" Focusable="False">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="views:MenuRowView">
+                      <Grid MinHeight="25">
+
+                        <!-- The background of the row to tap, across the
+                             whole row, icon included. -->
+                        <Border CornerRadius="7" Margin="4,1"
+                                Background="{DynamicResource AccentSoftBrush}"
+                                BorderThickness="1"
+                                BorderBrush="{DynamicResource AccentBrush}"
+                                IsVisible="{Binding IsTapped}" />
+
+                        <Grid Margin="9,4,8,4" ColumnDefinitions="Auto,*,Auto">
+
+                          <!-- The coloured dot Android files its settings behind. -->
+                          <Border Grid.Column="0" Width="16" Height="16" CornerRadius="5"
+                                  Margin="0,0,7,0" VerticalAlignment="Center"
+                                  Background="{Binding Tint, Converter={StaticResource KeyToBrush}}"
+                                  IsVisible="{Binding !IsTapped}" />
+
+                          <Border Grid.Column="0" Width="16" Height="16" CornerRadius="5"
+                                  Margin="0,0,7,0" VerticalAlignment="Center"
+                                  Background="{DynamicResource AccentBrush}"
+                                  IsVisible="{Binding IsTapped}" />
+
+                          <!-- A blank row: one bar, sometimes a shorter
+                               second one, like settings that state their
+                               status under their name. -->
+                          <StackPanel Grid.Column="1" Margin="0,0,8,0"
+                                      VerticalAlignment="Center"
+                                      IsVisible="{Binding !IsTapped}">
+                            <Border Height="6" CornerRadius="2" Width="{Binding BarWidth}"
+                                    HorizontalAlignment="Left"
+                                    Background="{DynamicResource BevelBrush}" Opacity="0.45" />
+
+                            <Border Height="4" CornerRadius="2" Margin="0,4,0,0"
+                                    Width="{Binding SubtitleWidth}"
+                                    HorizontalAlignment="Left"
+                                    Background="{DynamicResource BevelBrush}" Opacity="0.28"
+                                    IsVisible="{Binding HasSubtitle}" />
+                          </StackPanel>
+
+                          <TextBlock Grid.Column="1" Text="{Binding Label}" FontSize="10"
+                                     TextWrapping="Wrap" VerticalAlignment="Center"
+                                     Margin="0,0,6,0"
+                                     Foreground="{DynamicResource TextBrush}"
+                                     IsVisible="{Binding IsTapped}" />
+
+                          <!-- On the right: a chevron when the row leads
+                               elsewhere, a switch when it toggles. -->
+                          <Grid Grid.Column="2" VerticalAlignment="Center">
+                            <TextBlock Text="&#x203A;" FontSize="11" Margin="0,-1,0,0"
+                                       Opacity="0.5"
+                                       Foreground="{DynamicResource TextMutedBrush}"
+                                       IsVisible="{Binding HasChevron}" />
+
+                            <TextBlock Text="&#x203A;" FontSize="11" Margin="0,-1,0,0"
+                                       Foreground="{DynamicResource AccentBrush}"
+                                       IsVisible="{Binding IsTapped}" />
+                          </Grid>
+
+                          <!-- The switch, at rest. -->
+                          <Border Grid.Column="2" Width="18" Height="10" CornerRadius="5"
+                                  VerticalAlignment="Center"
+                                  Background="{DynamicResource BevelBrush}" Opacity="0.5"
+                                  IsVisible="{Binding HasSwitch}">
+                            <Border Width="6" Height="6" CornerRadius="3" Margin="2,0,0,0"
+                                    HorizontalAlignment="Left" VerticalAlignment="Center"
+                                    Background="{DynamicResource TextMutedBrush}" />
+                          </Border>
+                        </Grid>
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </Border>
+            </StackPanel>
+          </Border>
+
+          <!-- No chevron after the last screen: there is nothing after it. -->
+          <TextBlock Text="&#x203A;" FontSize="16" Margin="6,52,6,0" VerticalAlignment="Top"
+                     Foreground="{DynamicResource TextMutedBrush}"
+                     IsVisible="{Binding IsFollowed}" />
+        </StackPanel>
+      </DataTemplate>
+    </ItemsControl.ItemTemplate>
+  </ItemsControl>
+</UserControl>

@@ -1,0 +1,109 @@
+﻿<!-- The PC's application window (src/DtHub.App/Windows/AppPickerWindow.xaml),
+     on the same view model. Two things behind one plus sign, kept apart on
+     purpose: showing an application installs nothing, cloning the game
+     creates an Android profile. Each has its own card, its own sentence
+     and its own button. -->
+<Window x:Class="DtHub.Mac.Views.AppPickerWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:DtHub.Mac.Localization"
+        xmlns:vm="using:DtHub.App.ViewModels"
+        xmlns:data="using:System.Windows.Data"
+        x:DataType="vm:AppPickerViewModel"
+        Title="{Binding Title}"
+        Width="540" Height="680" MinWidth="460" MinHeight="480"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="{DynamicResource SurfaceAltBrush}"
+        FontSize="{DynamicResource FontMedium}"
+        Foreground="{DynamicResource TextBrush}">
+
+  <DockPanel Margin="20">
+
+    <TextBlock DockPanel.Dock="Top" Classes="title" Text="{Binding Title}" TextWrapping="Wrap"
+               Margin="0,0,0,14" />
+
+    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right"
+                Margin="0,14,0,0">
+      <Button Content="{loc:T Cancel}" Theme="{StaticResource QuietButton}" Padding="14,6"
+              Margin="0,0,8,0" IsCancel="True" Click="OnCancel" />
+      <Button Content="{loc:T Save}" Padding="14,6" IsDefault="True" Click="OnSave"
+              IsEnabled="{Binding CanSave}" />
+    </StackPanel>
+
+    <!-- The clone, below the list and apart from it: the rarer gesture,
+         and the one that changes the phone. -->
+    <Border DockPanel.Dock="Bottom" Classes="card" Margin="0,12,0,0" IsVisible="{Binding CanClone}">
+      <DockPanel>
+        <Button DockPanel.Dock="Right" VerticalAlignment="Center" Margin="12,0,0,0" Padding="12,6"
+                Theme="{StaticResource OutlineButton}"
+                Content="{loc:T AppPickerCloneButton}" Click="OnClone" />
+        <StackPanel>
+          <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="{loc:T AppPickerCloneHeader}" />
+          <TextBlock Classes="muted" Text="{loc:T AppPickerCloneHelp}" />
+        </StackPanel>
+      </DockPanel>
+    </Border>
+
+    <Border Classes="card" Margin="0">
+      <DockPanel>
+
+        <StackPanel DockPanel.Dock="Top">
+          <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="{loc:T AppPickerShowHeader}" />
+          <TextBlock Classes="muted" Margin="0,0,0,10" Text="{loc:T AppPickerShowHelp}" />
+
+          <TextBlock Classes="muted" FontSize="{DynamicResource FontSmall}"
+                     Margin="0,0,0,3" Text="{loc:T AppPickerSearch}" />
+          <TextBox Name="Search" Text="{Binding Filter}" Margin="0,0,0,8" />
+
+          <CheckBox Content="{loc:T AppPickerSystemApps}" IsChecked="{Binding ShowSystemApps}"
+                    Margin="0,0,0,8" />
+        </StackPanel>
+
+        <!-- The three states that are not a list: asking the phone, the
+             phone gone, and a filter that leaves nothing. -->
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,4,0,4"
+                    IsVisible="{Binding IsLoading}">
+          <ContentControl Theme="{StaticResource Spinner}" VerticalAlignment="Center" Margin="0,0,9,0" />
+          <TextBlock Classes="muted" Text="{loc:T AppPickerLoading}" />
+        </StackPanel>
+
+        <TextBlock DockPanel.Dock="Top" Classes="muted" Margin="0,4,0,4" Text="{Binding Problem}"
+                   IsVisible="{Binding Problem, Converter={StaticResource EmptyToVisibility}, ConverterParameter=inverse}" />
+
+        <TextBlock DockPanel.Dock="Top" Classes="muted" Margin="0,4,0,4"
+                   Text="{loc:T AppPickerEmpty}" IsVisible="{Binding IsEmpty}" />
+
+        <!-- Grouped by profile, as the PC's GroupStyle: the groups are
+             handed over by the code-behind on each change of the view. -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+          <ItemsControl Name="Groups">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="data:CollectionViewGroup">
+                <StackPanel>
+                  <TextBlock Classes="section" Margin="0,8,0,4" Text="{Binding Name}"
+                             IsVisible="{Binding Name, Converter={StaticResource EmptyToVisibility}, ConverterParameter=inverse}" />
+                  <ItemsControl ItemsSource="{Binding Items}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:AppChoiceRow">
+                        <CheckBox IsChecked="{Binding IsChosen}" Margin="0,3,0,3"
+                                  ToolTip.Tip="{Binding PackageName}">
+                          <TextBlock TextTrimming="CharacterEllipsis">
+                            <Run Text="{Binding Label, Mode=OneWay}" /><Run Text=" " /><Run Text="{Binding PackageName, Mode=OneWay}"
+                                 Foreground="{DynamicResource TextMutedBrush}"
+                                 FontSize="{DynamicResource FontSmall}" />
+                          </TextBlock>
+                        </CheckBox>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+
+      </DockPanel>
+    </Border>
+
+  </DockPanel>
+</Window>

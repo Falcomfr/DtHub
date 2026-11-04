@@ -25,6 +25,7 @@ using DtHub.Infrastructure.Processes;
 using DtHub.Infrastructure.Storage;
 using DtHub.Mac.Pc;
 using DtHub.Mac.Platform;
+using DtHub.Mac.Views;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -133,6 +134,13 @@ internal static class MacServices
         services.AddSingleton<InstanceListViewModel>();
         services.AddSingleton<ConfiguratorViewModel>();
         services.AddTransient<AddDeviceViewModel>();
+        services.AddTransient<AddDeviceWindow>();
+        services.AddTransient<HelpViewModel>();
+        services.AddTransient<HelpWindow>();
+        services.AddTransient<SleepHelpViewModel>();
+        services.AddTransient<SleepHelpWindow>();
+        services.AddTransient<InputHelpViewModel>();
+        services.AddTransient<InputHelpWindow>();
         services.AddTransient<HotkeyEditorViewModel>();
 
         // A missing registration fails at launch, not on the first click.

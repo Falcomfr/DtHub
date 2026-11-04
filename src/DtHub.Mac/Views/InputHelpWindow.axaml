@@ -1,0 +1,115 @@
+﻿<!-- The PC's dead input help (src/DtHub.App/Windows/InputHelpWindow.xaml),
+     on the same view model: why nothing responds in the game window, a
+     test first, then the remedies. -->
+<Window x:Class="DtHub.Mac.Views.InputHelpWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:DtHub.Mac.Localization"
+        xmlns:vm="using:DtHub.App.ViewModels"
+        xmlns:g="using:DtHub.Core.Guidance"
+        xmlns:views="using:DtHub.Mac.Views"
+        x:DataType="vm:InputHelpViewModel"
+        Title="{loc:T DeadInputTitle}"
+        Width="560" Height="620" MinWidth="480" MinHeight="420"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource SurfaceAltBrush}"
+        FontSize="{DynamicResource FontMedium}"
+        Foreground="{DynamicResource TextBrush}">
+
+  <Window.Styles>
+    <!-- The verdict that names the cause stands apart from the other two:
+         it is the only one with something to act on. -->
+    <Style Selector="TextBlock.refusal">
+      <Setter Property="Foreground" Value="{DynamicResource WarningBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+  </Window.Styles>
+
+  <DockPanel Margin="20">
+
+    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,14">
+      <TextBlock Classes="title" Text="{loc:T DeadInputTitle}" />
+      <TextBlock Classes="muted" Margin="0,6,0,0" Text="{loc:T DeadInputExplanation}" />
+    </StackPanel>
+
+    <Border DockPanel.Dock="Bottom" Margin="0,14,0,0">
+      <Button Content="{loc:T Close}" HorizontalAlignment="Right" MinWidth="110" Click="OnClose"
+              IsCancel="True" />
+    </Border>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                  Padding="0,0,10,0">
+      <StackPanel>
+
+        <ComboBox ItemsSource="{Binding Brands}" SelectedItem="{Binding Brand}" Margin="0,0,0,6"
+                  HorizontalAlignment="Stretch">
+          <ComboBox.ItemTemplate>
+            <DataTemplate x:DataType="g:PhoneBrand">
+              <TextBlock Text="{Binding Name}" />
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+
+        <TextBlock Classes="muted" Margin="0,0,0,14" Text="{loc:T FrenchLabelsNotice}" />
+
+        <!-- The test comes before the remedies: it says which one is right. -->
+        <Border Classes="card">
+          <StackPanel>
+            <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="{loc:T DeadInputTest}" />
+            <TextBlock Classes="muted" Text="{loc:T DeadInputTestHelp}" />
+
+            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+              <Button Content="{loc:T DeadInputTest}" MinWidth="150"
+                      Command="{Binding TestCommand}"
+                      IsEnabled="{Binding !IsTesting}" />
+              <TextBlock Classes="muted" VerticalAlignment="Center" Margin="12,0,0,0"
+                         Text="{loc:T DeadInputTestRunning}"
+                         IsVisible="{Binding IsTesting}" />
+            </StackPanel>
+
+            <TextBlock TextWrapping="Wrap" Margin="0,10,0,0" Text="{Binding Verdict}"
+                       Classes.refusal="{Binding VerdictIsRefusal}"
+                       IsVisible="{Binding HasVerdict}" />
+          </StackPanel>
+        </Border>
+
+        <!-- The main cause, by far. -->
+        <Border Classes="card">
+          <StackPanel>
+            <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="{loc:T DeadInputSecuritySetting}" />
+            <views:MenuPathControl Path="{Binding Brand.DeveloperOptionsPath}" Margin="0,2,0,4" />
+            <TextBlock Classes="muted" Text="{loc:T DeadInputSecurityHelp}" />
+            <TextBlock Classes="muted" Margin="0,6,0,0" Text="{Binding Brand.Warning}"
+                       IsVisible="{Binding HasWarning}" />
+          </StackPanel>
+        </Border>
+
+        <Border Classes="card">
+          <StackPanel>
+            <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="{loc:T DeadInputCable}" />
+            <TextBlock Classes="muted" Text="{loc:T DeadInputCableHelp}" />
+          </StackPanel>
+        </Border>
+
+        <!-- The remedy the field most often gives after the setting itself,
+             before toggling developer mode, the same effect the long way. -->
+        <Border Classes="card">
+          <StackPanel>
+            <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="{loc:T DeadInputRevoke}" />
+            <views:MenuPathControl Path="{Binding Brand.DeveloperOptionsPath}" Margin="0,2,0,4" />
+            <TextBlock Classes="muted" Text="{loc:T DeadInputRevokeHelp}" />
+          </StackPanel>
+        </Border>
+
+        <Border Classes="card">
+          <StackPanel>
+            <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="{loc:T DeadInputToggleDeveloper}" />
+            <TextBlock Classes="muted" Text="{loc:T DeadInputToggleDeveloperHelp}" />
+          </StackPanel>
+        </Border>
+
+      </StackPanel>
+    </ScrollViewer>
+
+  </DockPanel>
+</Window>

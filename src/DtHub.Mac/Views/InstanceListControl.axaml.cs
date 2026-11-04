@@ -1,14 +1,19 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
 using Avalonia.Markup.Xaml;
+using Avalonia.Styling;
 using Avalonia.VisualTree;
 
-using DtHub.App.Services;
 using DtHub.App.ViewModels;
+using DtHub.Core.Devices;
+using DtHub.Core.Guidance;
 using DtHub.Core.Localization;
+using DtHub.Mac.Pc;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -69,19 +74,99 @@ public partial class InstanceListControl : UserControl
     private InstanceListViewModel? ViewModel => DataContext as InstanceListViewModel;
 
     /// <summary>
-    /// The alert line's Help link. On the PC, one help opens the battery
-    /// page of the app the line names, or the phone's click setting, and
-    /// several are offered in a small menu first.
+    /// The alert line's Help link: one help opens straight away; several are
+    /// offered in a small panel of the theme's colours, one line each, the
+    /// app named, so a second problem is not hidden behind the first.
     /// </summary>
-    private void OnProblemHelp(object? sender, RoutedEventArgs e) =>
-        // shortcut: SleepHelpWindow and InputHelpWindow are not on the Mac
-        // yet, nor the menu that picks between them.
-        MacApp.Services.GetRequiredService<IDialogService>().ShowInformation(Strings.Get("MacNotYet"));
+    private void OnProblemHelp(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Control { DataContext: InstanceRowViewModel { Device: { } device } } link)
+        {
+            return;
+        }
+
+        if (device.Helps.Count == 1)
+        {
+            OpenHelp(device.Helps[0], device.DeviceId);
+            return;
+        }
+
+        var items = new StackPanel();
+        var menu = new Flyout { Placement = PlacementMode.Bottom };
+        menu.FlyoutPresenterClasses.Add("bare");
+
+        foreach (var help in device.Helps)
+        {
+            var item = new Button
+            {
+                Content = help.Help == HealthHelp.Input
+                    ? Strings.Get("HelpMenuInput")
+                    : Strings.Format("HelpMenuBattery", help.App ?? string.Empty),
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                HorizontalContentAlignment = HorizontalAlignment.Left,
+            };
+
+            if (this.TryFindResource("QuietButton", out var quiet) && quiet is ControlTheme theme)
+            {
+                item.Theme = theme;
+            }
+
+            item.Click += (_, _) =>
+            {
+                menu.Hide();
+                OpenHelp(help, device.DeviceId);
+            };
+            items.Children.Add(item);
+        }
+
+        var panel = new Border { Margin = new Thickness(0, 4, 0, 0), Padding = new Thickness(4), Child = items };
+        panel.Classes.Add("menu");
+
+        menu.Content = panel;
+        menu.ShowAt(link);
+    }
+
+    /// <summary>The click setting of the phone, or the battery page of the app the finding names.</summary>
+    private async void OpenHelp(HealthFinding finding, string deviceId)
+    {
+        Window help;
+
+        if (finding.Help == HealthHelp.Input)
+        {
+            help = MacApp.Services.GetRequiredService<InputHelpWindow>();
+        }
+        else
+        {
+            var sleep = MacApp.Services.GetRequiredService<SleepHelpWindow>();
+
+            if (finding.App is { } app)
+            {
+                sleep.ViewModel.App = app;
+                sleep.ViewModel.DeviceId = deviceId;
+            }
+
+            help = sleep;
+        }
+
+        _ = await Modal.ShowOver<object>(help, TopLevel.GetTopLevel(this) as Window).ConfigureAwait(true);
+    }
 
     /// <summary>The steps to follow on a phone that is not answering.</summary>
-    private void OnDeviceHelp(object? sender, RoutedEventArgs e) =>
-        // shortcut: HelpWindow is not on the Mac yet.
-        MacApp.Services.GetRequiredService<IDialogService>().ShowInformation(Strings.Get("MacNotYet"));
+    private async void OnDeviceHelp(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Control { DataContext: DeviceGroupViewModel device })
+        {
+            return;
+        }
+
+        var help = MacApp.Services.GetRequiredService<HelpWindow>();
+
+        help.OpenFor(device.Manufacturer);
+        // At the top: the row says to open wireless debugging, the first
+        // step, and opening on the fixes further down hid it (2026-10-26).
+        help.OpenOn(OfflineAdvice.HelpOpensOnCable(device.Connection));
+        _ = await Modal.ShowOver<object>(help, TopLevel.GetTopLevel(this) as Window).ConfigureAwait(true);
+    }
 
     /// <summary>
     /// Remembers the starting point. Only the handle starts a drag: an

@@ -15,6 +15,8 @@ using DtHub.Core.Settings;
 using DtHub.Core.Windows;
 using DtHub.Infrastructure.Adb;
 
+using Microsoft.Extensions.DependencyInjection;
+
 using Serilog;
 
 namespace DtHub.Mac.Views;
@@ -438,11 +440,21 @@ public partial class ConfiguratorWindow : Window
         // global shortcuts it would edit, see MacHotkeyRegistrar).
         _dialogs.ShowInformation(Strings.Get("MacNotYet"));
 
-    /// <summary>Opens the pairing window on the PC, then sweeps again.</summary>
-    private void OnAddDevice(object? sender, RoutedEventArgs e) =>
-        // shortcut: AddDeviceWindow is not on the Mac yet; Wi-Fi pairing
-        // goes through "adb pair" and "adb connect" in the Terminal.
-        _dialogs.ShowInformation(Strings.Get("MacNotYet"));
+    /// <summary>
+    /// The first launch's pairing, once the panel is laid out: without a
+    /// paired phone no other action makes sense.
+    /// </summary>
+    public void BeginPairing() =>
+        Dispatcher.UIThread.Post(() => OnAddDevice(this, new RoutedEventArgs()), DispatcherPriority.ApplicationIdle);
+
+    /// <summary>Opens the pairing window, then sweeps again.</summary>
+    private async void OnAddDevice(object? sender, RoutedEventArgs e)
+    {
+        var dialog = MacApp.Services.GetRequiredService<AddDeviceWindow>();
+        _ = await Pc.Modal.ShowOver<object>(dialog, this).ConfigureAwait(true);
+
+        await PollSafelyAsync().ConfigureAwait(true);
+    }
 
     /// <summary>The header is the drag handle, the window having no title bar.</summary>
     private void OnHeaderDrag(object? sender, PointerPressedEventArgs e)

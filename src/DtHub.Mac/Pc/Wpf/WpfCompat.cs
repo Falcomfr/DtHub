@@ -204,6 +204,14 @@ namespace System.Windows.Data
         public string PropertyName { get; } = propertyName;
     }
 
+    /// <summary>One group of a view: its name, the grouped value, and its items.</summary>
+    public sealed class CollectionViewGroup(object? name, IReadOnlyList<object> items)
+    {
+        public object? Name { get; } = name;
+
+        public IReadOnlyList<object> Items { get; } = items;
+    }
+
     public static class CollectionViewSource
     {
         public static ICollectionView GetDefaultView(IEnumerable source) => new FilteredView(source);
@@ -231,8 +239,28 @@ namespace System.Windows.Data
 
         public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
-        /// <summary>Kept, not applied: the Mac list shows no group headers.</summary>
+        /// <summary>Applied by <see cref="Groups"/> only: the list itself stays flat.</summary>
         public Collections.ObjectModel.ObservableCollection<GroupDescription> GroupDescriptions { get; } = [];
+
+        /// <summary>
+        /// What passes the filter, by the value of the first group
+        /// description's property, in order of first appearance, as WPF
+        /// groups it. A single group of everything without a description.
+        /// </summary>
+        public IReadOnlyList<CollectionViewGroup> Groups
+        {
+            get
+            {
+                var property = GroupDescriptions.OfType<PropertyGroupDescription>().FirstOrDefault()?.PropertyName;
+
+                return
+                [
+                    .. this.Cast<object>()
+                        .GroupBy(item => property is null ? null : item.GetType().GetProperty(property)?.GetValue(item))
+                        .Select(group => new CollectionViewGroup(group.Key, [.. group])),
+                ];
+            }
+        }
 
         public bool IsEmpty => !GetEnumerator().MoveNext();
 
@@ -259,6 +287,12 @@ namespace System.ComponentModel
     public interface ICollectionView : IEnumerable, INotifyCollectionChanged
     {
         Collections.ObjectModel.ObservableCollection<GroupDescription> GroupDescriptions { get; }
+
+        /// <summary>
+        /// WPF's groups, as a snapshot taken when read: the Mac's lists ask
+        /// for them again on each change of the view.
+        /// </summary>
+        IReadOnlyList<Windows.Data.CollectionViewGroup> Groups { get; }
 
         bool IsEmpty { get; }
 

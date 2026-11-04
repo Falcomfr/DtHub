@@ -240,10 +240,11 @@ internal sealed class MacApp : Application
 
         if (firstRun)
         {
-            // On the first launch, the panel stays and opens on Devices.
-            // shortcut: the PC then opens AddDeviceWindow over it
-            // (BeginPairing), which is not on the Mac yet.
+            // On the first launch, the panel stays and opens on Devices,
+            // and the pairing window comes over it: without a paired phone
+            // no other action makes sense.
             configurator.ShowDevices();
+            configurator.BeginPairing();
         }
         else if (!StartupPresence.ShowConfigurator(document.ConfiguratorVisible, report.Opened))
         {

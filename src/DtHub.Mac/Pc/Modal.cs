@@ -40,6 +40,14 @@ internal static class Modal
     public static T? Show<T>(Window window) =>
         Wait(() => Owner is { IsVisible: true } owner ? window.ShowDialog<T?>(owner) : ShowAlone<T>(window));
 
+    /// <summary>
+    /// The PC's "Owner = this; ShowDialog()" from a click: modal over the
+    /// given window when it is on screen, alone otherwise (a hidden panel
+    /// cannot own a dialog). Awaited rather than blocking.
+    /// </summary>
+    public static Task<T?> ShowOver<T>(Window window, Window? owner) =>
+        owner is { IsVisible: true } ? window.ShowDialog<T?>(owner) : ShowAlone<T>(window);
+
     private static Task<T?> ShowAlone<T>(Window window)
     {
         var closed = new TaskCompletionSource<T?>();

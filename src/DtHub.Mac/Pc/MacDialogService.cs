@@ -8,6 +8,7 @@ using DtHub.App.Services;
 using DtHub.App.ViewModels;
 using DtHub.Core;
 using DtHub.Core.Localization;
+using DtHub.Mac.Views;
 
 using Serilog;
 
@@ -106,49 +107,23 @@ internal sealed class MacDialogService : IDialogService
         string? details = null,
         string? acceptLabel = null)
     {
-        var box = new TextBox { Text = initial ?? string.Empty, MinWidth = 320 };
-        string? answer = null;
-        var window = Frame(title, out var buttons);
-
-        var accept = new Button { Content = acceptLabel ?? Strings.Get("MacOk"), IsDefault = true };
-        accept.Click += (_, _) =>
+        var window = new PromptWindow(question, initial, details, acceptLabel)
         {
-            answer = box.Text;
-            window.Close();
+            Title = title ?? ProductInfo.Name,
         };
-        var cancel = new Button { Content = Strings.Get("Cancel"), IsCancel = true };
-        cancel.Click += (_, _) => window.Close();
-        buttons.Children.Add(cancel);
-        buttons.Children.Add(accept);
-
-        var body = (StackPanel)((DockPanel)window.Content!).Children[1];
-        body.Children.Add(new TextBlock { Text = question, TextWrapping = Avalonia.Media.TextWrapping.Wrap });
-
-        if (!string.IsNullOrWhiteSpace(details))
-        {
-            body.Children.Add(new TextBlock
-            {
-                Text = details,
-                Opacity = 0.7,
-                TextWrapping = Avalonia.Media.TextWrapping.Wrap,
-            });
-        }
-
-        body.Children.Add(box);
-        window.Opened += (_, _) => box.Focus();
 
         _ = Modal.Show<object>(window);
-        return answer;
+        return window.Answer;
     }
 
-    /// <summary>
-    /// shortcut: the app picker window is not on the Mac yet; the choice is
-    /// cancelled, as if the player had closed it.
-    /// </summary>
+    /// <summary>The PC's: the outcome the window chose, cancelled when it was closed.</summary>
     public AppPickerOutcome ChooseApps(AppPickerViewModel viewModel)
     {
-        Log.Warning("Choix des applications : fenêtre pas encore disponible sur Mac.");
-        return AppPickerOutcome.Cancelled;
+        ArgumentNullException.ThrowIfNull(viewModel);
+
+        var window = new AppPickerWindow(viewModel);
+
+        return Modal.Show<bool>(window) ? viewModel.Outcome : AppPickerOutcome.Cancelled;
     }
 
     private static bool? Ask(string message, string? title, params (string Label, bool? Answer)[] choices)
