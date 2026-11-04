@@ -1,0 +1,32 @@
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:conv="using:DtHub.Mac.Converters">
+
+  <!-- The PC's converters, under the PC's keys
+       (src/DtHub.App/Themes/Converters.xaml). At the application level,
+       for the same reason as there: a view built from a data template
+       has no parent yet when its resources are looked up. -->
+
+  <conv:BoolToVisibilityConverter x:Key="BoolToVisibility" />
+  <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility" />
+  <conv:InverseBoolConverter x:Key="InverseBool" />
+  <conv:EnumMatchConverter x:Key="EnumMatch" />
+  <conv:ResourceKeyToBrushConverter x:Key="KeyToBrush" />
+  <conv:HexToBrushConverter x:Key="HexToBrush" />
+  <conv:EqualityConverter x:Key="Equality" />
+  <conv:IconPathToImageConverter x:Key="IconPath" />
+  <conv:AssetToImageConverter x:Key="AssetImage" />
+  <conv:EmptyToVisibilityConverter x:Key="EmptyToVisibility" />
+  <conv:SameInstanceConverter x:Key="SameInstance" />
+  <conv:SameValueConverter x:Key="SameValue" />
+  <conv:EqualToOpacityConverter x:Key="EqualToOpacity" />
+  <conv:AnchorLabelConverter x:Key="AnchorLabel" />
+
+  <conv:DraggedOpacityConverter x:Key="DraggedOpacity" />
+
+  <conv:AllTrueToVisibilityConverter x:Key="AllTrue" />
+  <conv:AnyTrueToVisibilityConverter x:Key="AnyTrue" />
+
+  <conv:BoolToOpacityConverter x:Key="BoolToOpacity" />
+
+</ResourceDictionary>

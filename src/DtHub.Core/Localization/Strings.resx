@@ -3212,6 +3212,9 @@ Team: quests at least 2 ticked characters can do.</value>
   <data name="MacNo" xml:space="preserve">
     <value>No</value>
   </data>
+  <data name="MacNotYet" xml:space="preserve">
+    <value>Not on the Mac yet.</value>
+  </data>
   <data name="MacRefresh" xml:space="preserve">
     <value>Refresh</value>
   </data>

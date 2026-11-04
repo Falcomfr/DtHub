@@ -9,6 +9,9 @@
     <AssemblyName>DtHub.Mac</AssemblyName>
     <RuntimeIdentifiers>osx-arm64</RuntimeIdentifiers>
     <SatelliteResourceLanguages>en;fr;es</SatelliteResourceLanguages>
+    <!-- A binding to a property the view model does not have fails the
+         build, as a WPF one only fails on screen. -->
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\DtHub.Core\DtHub.Core.csproj" />
@@ -22,6 +25,12 @@
     <PackageReference Include="Serilog.Extensions.Hosting" />
     <PackageReference Include="Serilog.Sinks.File" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
+  </ItemGroup>
+
+  <!-- The PC's pictures, from the same folder: the logos and the tool
+       icons, under the "/assets/..." paths the shared code names. -->
+  <ItemGroup>
+    <AvaloniaResource Include="..\..\assets\*.png" Link="assets\%(Filename)%(Extension)" />
   </ItemGroup>
 
   <!-- The PC's view models and services, compiled as they are: the Mac

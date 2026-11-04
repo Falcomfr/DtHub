@@ -3212,6 +3212,9 @@ Equipo: misiones realizables por al menos 2 personajes marcados.</value>
   <data name="MacNo" xml:space="preserve">
     <value>No</value>
   </data>
+  <data name="MacNotYet" xml:space="preserve">
+    <value>Todavía no en Mac.</value>
+  </data>
   <data name="MacRefresh" xml:space="preserve">
     <value>Actualizar</value>
   </data>
