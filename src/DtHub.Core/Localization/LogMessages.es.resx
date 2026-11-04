@@ -761,4 +761,16 @@
   <data name="Table d'identifiants embarquée illisible ({reason}) ; les noms restent en français." xml:space="preserve">
     <value>Tabla de identificadores integrada ilegible ({reason}); los nombres siguen en francés.</value>
   </data>
+  <data name="L'écran de l'iPhone n'a pas pu s'afficher." xml:space="preserve">
+    <value>La pantalla del iPhone no se pudo mostrar.</value>
+  </data>
+  <data name="L'affichage de l'iPhone s'est arrêté : {Errors}" xml:space="preserve">
+    <value>La pantalla del iPhone se detuvo: {Errors}</value>
+  </data>
+  <data name="Affichage de l'iPhone {name} sur le port {port}." xml:space="preserve">
+    <value>Mostrando el iPhone {name} en el puerto {port}.</value>
+  </data>
+  <data name="{command} a échoué : {error}" xml:space="preserve">
+    <value>{command} falló: {error}</value>
+  </data>
 </root>

@@ -60,6 +60,15 @@ public class DependencyManifestTests
     }
 
     [Fact]
+    public void Uv_est_a_la_racine_de_son_archive()
+    {
+        var dependency = DependencyManifest.Get(DependencyManifest.UvKey);
+
+        Assert.Equal("uv.exe", dependency.Executable);
+        Assert.Null(dependency.ArchiveRootDirectory);
+    }
+
+    [Fact]
     public void Une_cle_inconnue_echoue_explicitement()
     {
         Assert.Throws<InvalidOperationException>(() => DependencyManifest.Get("composant-inexistant"));

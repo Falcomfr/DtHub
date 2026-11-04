@@ -23,10 +23,13 @@ public sealed class ProcessSession : IProcessSession
     private int _openStreams = 2;
     private int _disposed;
 
-    private ProcessSession(Process process, Channel<ProcessOutputLine> channel)
+    private readonly bool _killEntireTree;
+
+    private ProcessSession(Process process, Channel<ProcessOutputLine> channel, bool killEntireTree)
     {
         _process = process;
         _channel = channel;
+        _killEntireTree = killEntireTree;
     }
 
     public int ProcessId { get; private set; }
@@ -89,7 +92,7 @@ public sealed class ProcessSession : IProcessSession
             SingleWriter = false,
         });
 
-        var session = new ProcessSession(process, channel);
+        var session = new ProcessSession(process, channel, request.KillEntireTree);
 
         process.OutputDataReceived += (_, e) => session.Publish(ProcessStreamKind.Output, e.Data);
         process.ErrorDataReceived += (_, e) => session.Publish(ProcessStreamKind.Error, e.Data);
@@ -136,10 +139,10 @@ public sealed class ProcessSession : IProcessSession
         {
             if (!_process.HasExited)
             {
-                // Deliberately without the process tree: scrcpy may
+                // Without the process tree unless asked: scrcpy may
                 // have started the ADB server, which is shared with
                 // the whole machine.
-                _process.Kill(entireProcessTree: false);
+                _process.Kill(entireProcessTree: _killEntireTree);
             }
         }
         catch (InvalidOperationException)

@@ -36,13 +36,14 @@ public class EmbeddedResourceTests
     }
 
     [Fact]
-    public void Les_deux_dependances_sont_declarees()
+    public void Les_trois_dependances_sont_declarees()
     {
         // The manifest is read from the resource: this test also
         // fails if the file is present but unreadable.
-        Assert.Equal(2, DependencyManifest.All.Count);
+        Assert.Equal(3, DependencyManifest.All.Count);
         Assert.NotNull(DependencyManifest.Get(DependencyManifest.PlatformToolsKey));
         Assert.NotNull(DependencyManifest.Get(DependencyManifest.ScrcpyKey));
+        Assert.NotNull(DependencyManifest.Get(DependencyManifest.UvKey));
     }
 
     /// <summary>

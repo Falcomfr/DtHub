@@ -3200,4 +3200,55 @@ Equipo: misiones realizables por al menos 2 personajes marcados.</value>
   <data name="BatchRangeHint" xml:space="preserve">
     <value>Mayús+clic: un rango</value>
   </data>
+  <data name="IPhoneLink" xml:space="preserve">
+    <value>Tengo un iPhone o un iPad</value>
+  </data>
+  <data name="IPhoneTitle" xml:space="preserve">
+    <value>iPhone y iPad (prueba)</value>
+  </data>
+  <data name="IPhoneIntro" xml:space="preserve">
+    <value>El juego se ejecuta en el iPhone, DT Hub lo muestra y lo controla. Necesitas iOS 27 o posterior, el Modo de desarrollador activado (Ajustes &gt; Privacidad y seguridad), la app Dispositivos Apple de Microsoft Store en este PC, y el iPhone conectado por USB y autorizado. Una sola cuenta por iPhone: iOS no permite duplicar una app.</value>
+  </data>
+  <data name="IPhoneRefresh" xml:space="preserve">
+    <value>Actualizar</value>
+  </data>
+  <data name="IPhoneOpen" xml:space="preserve">
+    <value>Abrir</value>
+  </data>
+  <data name="IPhonePreparing" xml:space="preserve">
+    <value>Buscando iPhones… La primera vez, DT Hub descarga sus herramientas para iPhone, unos 300 MB.</value>
+  </data>
+  <data name="IPhoneNone" xml:space="preserve">
+    <value>No se encontró ningún iPhone ni iPad. Conéctalo por USB, desbloquéalo y toca «Confiar».</value>
+  </data>
+  <data name="IPhoneStarting" xml:space="preserve">
+    <value>Abriendo {0}…</value>
+  </data>
+  <data name="IPhoneTooOld" xml:space="preserve">
+    <value>iOS {0}, se necesita iOS 27</value>
+  </data>
+  <data name="IPhoneStopped" xml:space="preserve">
+    <value>La pantalla del iPhone se detuvo. {0}</value>
+  </data>
+  <data name="IPhoneNoHevc" xml:space="preserve">
+    <value>Este PC no puede decodificar el vídeo del iPhone (HEVC). Necesita una tarjeta gráfica compatible, o las Extensiones de vídeo HEVC de Microsoft Store.</value>
+  </data>
+  <data name="IPhoneAppleDevicesMissing" xml:space="preserve">
+    <value>El servicio USB de Apple no responde. Instala la app Dispositivos Apple desde Microsoft Store, ábrela una vez y vuelve a intentarlo.</value>
+  </data>
+  <data name="IPhoneDeveloperModeOff" xml:space="preserve">
+    <value>El Modo de desarrollador está desactivado en el iPhone: Ajustes &gt; Privacidad y seguridad &gt; Modo de desarrollador, y reinicia el iPhone.</value>
+  </data>
+  <data name="IPhoneTrust" xml:space="preserve">
+    <value>Desbloquea el iPhone y toca «Confiar» cuando pregunte por este ordenador, y vuelve a intentarlo.</value>
+  </data>
+  <data name="IPhoneUnplugged" xml:space="preserve">
+    <value>El iPhone ya no está conectado. Vuelve a conectarlo y vuelve a intentarlo.</value>
+  </data>
+  <data name="IPhoneNeedsIos27" xml:space="preserve">
+    <value>Este iPhone no tiene iOS 27: Apple solo deja que un ordenador muestre y controle la pantalla a partir de iOS 27.</value>
+  </data>
+  <data name="IPhoneFailed" xml:space="preserve">
+    <value>No se pudo mostrar el iPhone. El registro de DT Hub da más detalles.</value>
+  </data>
 </root>

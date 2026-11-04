@@ -12019,3 +12019,49 @@ courante, pas de seuils, ou forçage par `cmd thermalservice override-status`
 
 **Non vérifié** : la sortie d'un téléphone Samsung. S'il ne publie pas de
 seuils, rien ne change pour lui.
+
+## D227 - L'iPhone passe par pymobiledevice3, téléchargé par uv à la demande
+
+Demandé le 04/11/2026 : que DT Hub sur PC sache afficher et piloter un iPhone,
+prêt au plus loin possible sans iPhone en iOS 27 pour l'essayer. Le jeu reste
+sur l'iPhone (règle d'Ankama), un compte par iPhone : iOS ne permet pas de
+dupliquer une appli, ni de créer un écran virtuel.
+
+Depuis iOS 27, Apple donne l'écran et les appuis à un ordinateur en Mode
+développeur (Device Hub de Xcode 27). pymobiledevice3 11.49.5 le fait depuis
+Windows : `developer core-device display serve-web` sert l'écran dans une page
+web qui renvoie clics et touches en appuis, à travers un tunnel sans droits
+administrateur. Le service USB vient de l'appli Appareils Apple du Microsoft
+Store.
+
+DT Hub ne réécrit rien de cela : il lance l'outil et affiche sa page dans son
+moteur web, en masquant les boutons de pymobiledevice3.
+
+- **uv** (0.13.7) entre dans `build/dependencies.json`, téléchargé et vérifié
+  comme scrcpy, mais seulement à la première ouverture de la fenêtre iPhone.
+  Il installe son propre Python (`UV_PYTHON_PREFERENCE=only-managed`) et
+  pymobiledevice3 à version figée dans `tools/iphone`, environ 300 Mo,
+  15 secondes mesurées sur la fibre.
+- **Arrêt** : couper uv laisse tourner son Python (mesuré). `ProcessRequest`
+  gagne `KillEntireTree`, désactivé par défaut. Il est activé pour l'iPhone
+  seulement : scrcpy garde le comportement d'avant, qui épargne le serveur adb
+  partagé. Mesuré : sortie close en 38 ms avec l'arborescence, processus
+  enfant encore vivant 15 s après sans elle.
+- **Entrée** : un lien « J'ai un iPhone ou un iPad » dans la fenêtre d'ajout
+  de téléphone, seule retouche d'une fenêtre existante. Le reste est dans des
+  fichiers neufs.
+
+Vérifié le 04/11/2026 sur le PC avec l'iPhone XR en iOS 18.7.9, par le vrai
+code de DT Hub dans un dossier d'essai :
+- téléchargement vérifié de uv, puis installation de Python et de
+  pymobiledevice3 ;
+- le XR est listé, son bouton Ouvrir désactivé ;
+- l'image disque développeur est montée ;
+- `serve-web` démarre puis s'arrête sur « Cet iPhone n'a pas iOS 27 ».
+
+Le moteur web de ce PC (Edge 156, carte NVIDIA) décode le HEVC en matériel.
+
+**Non vérifié** : l'image et les appuis sur un vrai iPhone en iOS 27. Il faut
+aussi vérifier que le masquage des boutons laisse les clics tomber au bon
+endroit. Branche `feat/iphone`, à ne fusionner qu'après un essai par un joueur
+équipé.

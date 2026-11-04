@@ -3200,4 +3200,55 @@ Team: quests at least 2 ticked characters can do.</value>
   <data name="BatchRangeHint" xml:space="preserve">
     <value>Shift+click: a range</value>
   </data>
+  <data name="IPhoneLink" xml:space="preserve">
+    <value>I have an iPhone or an iPad</value>
+  </data>
+  <data name="IPhoneTitle" xml:space="preserve">
+    <value>iPhone and iPad (trial)</value>
+  </data>
+  <data name="IPhoneIntro" xml:space="preserve">
+    <value>The game runs on the iPhone, DT Hub shows it and drives it. You need iOS 27 or later, Developer Mode turned on (Settings &gt; Privacy &amp; Security), the Apple Devices app from the Microsoft Store on this PC, and the iPhone plugged in over USB and trusted. One account per iPhone: iOS cannot clone an app.</value>
+  </data>
+  <data name="IPhoneRefresh" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="IPhoneOpen" xml:space="preserve">
+    <value>Open</value>
+  </data>
+  <data name="IPhonePreparing" xml:space="preserve">
+    <value>Looking for iPhones… The first time, DT Hub downloads its iPhone tools, about 300 MB.</value>
+  </data>
+  <data name="IPhoneNone" xml:space="preserve">
+    <value>No iPhone or iPad found. Plug it in over USB, unlock it and tap Trust.</value>
+  </data>
+  <data name="IPhoneStarting" xml:space="preserve">
+    <value>Opening {0}…</value>
+  </data>
+  <data name="IPhoneTooOld" xml:space="preserve">
+    <value>iOS {0}, iOS 27 needed</value>
+  </data>
+  <data name="IPhoneStopped" xml:space="preserve">
+    <value>The iPhone's screen stopped. {0}</value>
+  </data>
+  <data name="IPhoneNoHevc" xml:space="preserve">
+    <value>This PC cannot decode the iPhone's video (HEVC). It needs a graphics card that supports it, or the HEVC Video Extensions from the Microsoft Store.</value>
+  </data>
+  <data name="IPhoneAppleDevicesMissing" xml:space="preserve">
+    <value>Apple's USB service is not answering. Install the Apple Devices app from the Microsoft Store, open it once, then try again.</value>
+  </data>
+  <data name="IPhoneDeveloperModeOff" xml:space="preserve">
+    <value>Developer Mode is off on the iPhone: Settings &gt; Privacy &amp; Security &gt; Developer Mode, then restart the iPhone.</value>
+  </data>
+  <data name="IPhoneTrust" xml:space="preserve">
+    <value>Unlock the iPhone and tap Trust when it asks about this computer, then try again.</value>
+  </data>
+  <data name="IPhoneUnplugged" xml:space="preserve">
+    <value>The iPhone is no longer plugged in. Plug it back in, then try again.</value>
+  </data>
+  <data name="IPhoneNeedsIos27" xml:space="preserve">
+    <value>This iPhone does not have iOS 27: Apple only lets a computer show and drive the screen from iOS 27 on.</value>
+  </data>
+  <data name="IPhoneFailed" xml:space="preserve">
+    <value>The iPhone could not be shown. DT Hub's log says more.</value>
+  </data>
 </root>

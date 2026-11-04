@@ -31,6 +31,14 @@ public sealed record ProcessRequest
     /// </summary>
     public IReadOnlyCollection<string> SensitiveValues { get; init; } = [];
 
+    /// <summary>
+    /// Whether <see cref="IProcessSession.Kill"/> also ends the processes
+    /// this one started. Off by default: scrcpy may have started the ADB
+    /// server, shared with the whole machine. On for uv, whose Python
+    /// outlives it otherwise.
+    /// </summary>
+    public bool KillEntireTree { get; init; }
+
     public ProcessRequest() { }
 
     [SetsRequiredMembers]

@@ -87,6 +87,18 @@ public partial class AddDeviceWindow : Window
     private void OnClose(object sender, RoutedEventArgs e) => Close();
 
     /// <summary>
+    /// The iPhone list, in place of this window: an iPhone pairs with
+    /// neither a code nor adb.
+    /// </summary>
+    private void OnIPhone(object sender, RoutedEventArgs e)
+    {
+        var window = AppHost.Services.GetRequiredService<IPhoneWindow>();
+        window.Owner = Owner;
+        Close();
+        window.Show();
+    }
+
+    /// <summary>
     /// Enter pairs, from the code field. This is the first screen a
     /// new user encounters: six digits read off the phone are typed
     /// here, and until now the Enter key did nothing at all there.

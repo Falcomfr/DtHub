@@ -29,6 +29,9 @@ public static class DependencyManifest
     /// <summary>Key of the dependency providing scrcpy.</summary>
     public const string ScrcpyKey = "scrcpy";
 
+    /// <summary>Key of the dependency providing uv, for iPhones only.</summary>
+    public const string UvKey = "uv";
+
     /// <summary>All declared dependencies, indexed by key.</summary>
     public static IReadOnlyDictionary<string, ExternalDependency> All => Cached.Value;
 
