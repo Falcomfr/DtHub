@@ -1187,10 +1187,12 @@ public sealed partial class TabbedGameWindow : Window
             return;
         }
 
-        // A press on the cross is not the start of a drag.
+        // A press on the cross is not the start of a drag. In Avalonia the
+        // tab itself is a Button too (RadioButton derives from it): only a
+        // plain button, the cross, counts.
         foreach (var node in source.GetSelfAndVisualAncestors())
         {
-            if (node is Button)
+            if (node is Button and not Avalonia.Controls.Primitives.ToggleButton)
             {
                 return;
             }

@@ -87,10 +87,9 @@ internal sealed class MacWindowController : IWindowController
             placement.Left, placement.Top, placement.Right - placement.Left, placement.Bottom - placement.Top);
         var monitors = GetMonitors();
 
-        if (monitors.Count > 0 && !monitors.Any(m => Overlaps(m.Bounds, rect)))
+        if (monitors.Count > 0)
         {
-            var work = monitors[0].WorkArea;
-            rect = rect with { X = work.X, Y = work.Y };
+            rect = OntoScreen(rect, monitors);
         }
 
         return MacNative.dthub_move_window(handle, rect.X, rect.Y, rect.Width, rect.Height);
@@ -364,6 +363,32 @@ internal sealed class MacWindowController : IWindowController
 
     private static ScreenRect Rect((double X, double Y, double Width, double Height) frame) =>
         new((int)Math.Round(frame.X), (int)Math.Round(frame.Y), (int)Math.Round(frame.Width), (int)Math.Round(frame.Height));
+
+    /// <summary>
+    /// As Windows does for a restored placement: the window comes back
+    /// whole inside the usable area of the screen it overlaps most, or of
+    /// the main screen if its own is gone. A panel saved half off the edge
+    /// came back half off the edge.
+    /// </summary>
+    internal static ScreenRect OntoScreen(ScreenRect rect, IReadOnlyList<MonitorInfo> monitors)
+    {
+        var screen = monitors
+            .Select(m => (Monitor: m, Shared: Shared(m.Bounds, rect)))
+            .OrderByDescending(p => p.Shared)
+            .First();
+        var work = screen.Shared > 0 ? screen.Monitor.WorkArea : monitors[0].WorkArea;
+
+        var width = Math.Min(rect.Width, work.Width);
+        var height = Math.Min(rect.Height, work.Height);
+        var x = Math.Clamp(rect.X, work.X, work.X + work.Width - width);
+        var y = Math.Clamp(rect.Y, work.Y, work.Y + work.Height - height);
+
+        return new ScreenRect(x, y, width, height);
+    }
+
+    private static long Shared(ScreenRect a, ScreenRect b) =>
+        (long)Math.Max(0, Math.Min(a.X + a.Width, b.X + b.Width) - Math.Max(a.X, b.X))
+        * Math.Max(0, Math.Min(a.Y + a.Height, b.Y + b.Height) - Math.Max(a.Y, b.Y));
 
     private static bool Overlaps(ScreenRect a, ScreenRect b) =>
         a.X < b.X + b.Width && b.X < a.X + a.Width && a.Y < b.Y + b.Height && b.Y < a.Y + a.Height;
