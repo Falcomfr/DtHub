@@ -85,6 +85,19 @@ internal sealed class MainWindow : Window
         try
         {
             var result = await _discovery.RefreshAsync(CancellationToken.None);
+
+            // Discovery does not throw when adb is missing: it says so in
+            // its warnings. Without this, the player was told to plug in a
+            // phone that was plugged in all along.
+            if (result.AdbFailed)
+            {
+                _devices = [];
+                _found = [];
+                _status.Text = string.Join(Environment.NewLine, result.Warnings);
+                ShowRows();
+                return;
+            }
+
             _devices = [.. result.Connected];
             _found = await _instances.DiscoverAsync(_devices);
 
