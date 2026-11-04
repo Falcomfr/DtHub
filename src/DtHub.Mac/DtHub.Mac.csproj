@@ -42,7 +42,7 @@
   <ItemGroup Label="Shared with the PC">
     <Compile Include="..\DtHub.App\ViewModels\*.cs" Link="Pc\Shared\ViewModels\%(Filename)%(Extension)" />
     <Compile Include="..\DtHub.App\Services\*.cs"
-             Exclude="..\DtHub.App\Services\IDialogService.cs;..\DtHub.App\Services\DarkTitleBar.cs;..\DtHub.App\Services\WebViewEnvironment.cs;..\DtHub.App\Services\WindowIcons.cs;..\DtHub.App\Services\WindowPlacements.cs;..\DtHub.App\Services\FaultReporting.cs"
+             Exclude="..\DtHub.App\Services\IDialogService.cs;..\DtHub.App\Services\DarkTitleBar.cs;..\DtHub.App\Services\WebViewEnvironment.cs;..\DtHub.App\Services\WindowIcons.cs;..\DtHub.App\Services\WindowPlacements.cs;..\DtHub.App\Services\FaultReporting.cs;..\DtHub.App\Services\PcProcessor.cs"
              Link="Pc\Shared\Services\%(Filename)%(Extension)" />
     <!-- The scripts the guides, the tracker and the Almanax inject, under
          the PC's resource names, and the PC's two classes that read them. -->
@@ -123,10 +123,18 @@
     <Exec Command="sips -s format png -z %(MacIconSize.Identity) %(MacIconSize.Identity) &quot;$(MacIconSource)&quot; --out &quot;$(MacIconSet)/icon_%(MacIconSize.Identity)x%(MacIconSize.Identity).png&quot; &gt; /dev/null" />
     <Exec Command="iconutil -c icns &quot;$(MacIconSet)&quot; -o &quot;$(MacAppDir)/Contents/Resources/DtHub.icns&quot;" />
 
-    <!-- An ad-hoc signature: enough for an Apple chip to run it on this
-         Mac. Another Mac's Gatekeeper still refuses it until it is signed
-         with a developer ID and notarized. -->
-    <Exec Command="codesign --force --deep --sign - &quot;$(MacAppDir)&quot;" />
+    <!-- Signed with MacSigningIdentity when given (a certificate hash or
+         name, from MacSigningKeychain if set), ad hoc otherwise. Ad hoc is
+         enough to run on this Mac, but its identity is the binary's hash:
+         every build is a new app to macOS, which forgets the
+         Accessibility permission each time. A certificate, even a local
+         one, keeps the identity from build to build. Another Mac's
+         Gatekeeper still wants a Developer ID and notarization. -->
+    <PropertyGroup>
+      <MacSigningIdentity Condition="'$(MacSigningIdentity)' == ''">-</MacSigningIdentity>
+      <MacSigningKeychainArgument Condition="'$(MacSigningKeychain)' != ''">--keychain &quot;$(MacSigningKeychain)&quot;</MacSigningKeychainArgument>
+    </PropertyGroup>
+    <Exec Command="codesign --force --deep --sign &quot;$(MacSigningIdentity)&quot; $(MacSigningKeychainArgument) &quot;$(MacAppDir)&quot;" />
     <Message Importance="high" Text="$(Product) -&gt; $(MacAppDir)" />
   </Target>
 </Project>

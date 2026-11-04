@@ -290,3 +290,24 @@ public func dthubFrontMostOf(_ ids: UnsafePointer<Int64>?, _ count: Int32) -> In
     }
     return 0
 }
+
+/// The processor's time since startup, all cores, in ticks: idle, and the
+/// total. What the PC reads with GetSystemTimes, for its busy-machine
+/// warning.
+@_cdecl("dthub_cpu_ticks")
+public func dthubCpuTicks(_ idle: UnsafeMutablePointer<Int64>?, _ total: UnsafeMutablePointer<Int64>?) -> Bool {
+    guard let idle, let total else { return false }
+    var load = host_cpu_load_info()
+    var count = mach_msg_type_number_t(MemoryLayout<host_cpu_load_info_data_t>.size / MemoryLayout<integer_t>.size)
+    let result = withUnsafeMutablePointer(to: &load) {
+        $0.withMemoryRebound(to: integer_t.self, capacity: Int(count)) {
+            host_statistics(mach_host_self(), HOST_CPU_LOAD_INFO, $0, &count)
+        }
+    }
+    guard result == KERN_SUCCESS else { return false }
+    let user = Int64(load.cpu_ticks.0), system = Int64(load.cpu_ticks.1)
+    let idleTicks = Int64(load.cpu_ticks.2), nice = Int64(load.cpu_ticks.3)
+    idle.pointee = idleTicks
+    total.pointee = user + system + idleTicks + nice
+    return true
+}
