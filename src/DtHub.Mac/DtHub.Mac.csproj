@@ -22,4 +22,60 @@
     <PackageReference Include="Serilog.Extensions.Hosting" />
     <PackageReference Include="Serilog.Sinks.File" />
   </ItemGroup>
+
+  <!-- The Mac application: "dotnet publish src/DtHub.Mac -c Release -r
+       osx-arm64", on a Mac, leaves "DT Hub.app" next to the publish
+       folder. It carries its own .NET, so the player installs nothing but
+       adb and scrcpy. Name, version and copyright come from
+       Directory.Build.props, like the PC's. -->
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'osx-arm64'">
+    <SelfContained>true</SelfContained>
+    <MacBundleIdentifier>io.github.falcomfr.dthub</MacBundleIdentifier>
+    <MacMinimumSystemVersion>14.0</MacMinimumSystemVersion>
+  </PropertyGroup>
+
+  <Target Name="MacAppBundle" AfterTargets="Publish"
+          Condition="'$(RuntimeIdentifier)' == 'osx-arm64' And $([MSBuild]::IsOSPlatform('OSX'))">
+    <PropertyGroup>
+      <MacAppDir>$([System.IO.Path]::GetFullPath('$(PublishDir)..'))/$(Product).app</MacAppDir>
+      <MacIconSet>$(IntermediateOutputPath)DtHub.iconset</MacIconSet>
+      <MacIconSource>$(MSBuildThisFileDirectory)../../assets/app.ico</MacIconSource>
+    </PropertyGroup>
+    <ItemGroup>
+      <MacPublishedFile Include="$(PublishDir)**/*" />
+      <MacIconSize Include="16;32;128;256" />
+      <MacPlistLine Include="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;" />
+      <MacPlistLine Include="&lt;!DOCTYPE plist PUBLIC &quot;-//Apple//DTD PLIST 1.0//EN&quot; &quot;http://www.apple.com/DTDs/PropertyList-1.0.dtd&quot;&gt;" />
+      <MacPlistLine Include="&lt;plist version=&quot;1.0&quot;&gt;&lt;dict&gt;" />
+      <MacPlistLine Include="&lt;key&gt;CFBundleName&lt;/key&gt;&lt;string&gt;$(Product)&lt;/string&gt;" />
+      <MacPlistLine Include="&lt;key&gt;CFBundleDisplayName&lt;/key&gt;&lt;string&gt;$(Product)&lt;/string&gt;" />
+      <MacPlistLine Include="&lt;key&gt;CFBundleIdentifier&lt;/key&gt;&lt;string&gt;$(MacBundleIdentifier)&lt;/string&gt;" />
+      <MacPlistLine Include="&lt;key&gt;CFBundleExecutable&lt;/key&gt;&lt;string&gt;$(AssemblyName)&lt;/string&gt;" />
+      <MacPlistLine Include="&lt;key&gt;CFBundleIconFile&lt;/key&gt;&lt;string&gt;DtHub&lt;/string&gt;" />
+      <MacPlistLine Include="&lt;key&gt;CFBundlePackageType&lt;/key&gt;&lt;string&gt;APPL&lt;/string&gt;" />
+      <MacPlistLine Include="&lt;key&gt;CFBundleShortVersionString&lt;/key&gt;&lt;string&gt;$(VersionPrefix)&lt;/string&gt;" />
+      <MacPlistLine Include="&lt;key&gt;CFBundleVersion&lt;/key&gt;&lt;string&gt;$(VersionPrefix)&lt;/string&gt;" />
+      <MacPlistLine Include="&lt;key&gt;NSHumanReadableCopyright&lt;/key&gt;&lt;string&gt;$(Copyright)&lt;/string&gt;" />
+      <MacPlistLine Include="&lt;key&gt;LSMinimumSystemVersion&lt;/key&gt;&lt;string&gt;$(MacMinimumSystemVersion)&lt;/string&gt;" />
+      <MacPlistLine Include="&lt;key&gt;LSApplicationCategoryType&lt;/key&gt;&lt;string&gt;public.app-category.games&lt;/string&gt;" />
+      <MacPlistLine Include="&lt;key&gt;NSHighResolutionCapable&lt;/key&gt;&lt;true/&gt;" />
+      <MacPlistLine Include="&lt;/dict&gt;&lt;/plist&gt;" />
+    </ItemGroup>
+
+    <RemoveDir Directories="$(MacAppDir);$(MacIconSet)" />
+    <Copy SourceFiles="@(MacPublishedFile)"
+          DestinationFiles="@(MacPublishedFile->'$(MacAppDir)/Contents/MacOS/%(RecursiveDir)%(Filename)%(Extension)')" />
+    <WriteLinesToFile File="$(MacAppDir)/Contents/Info.plist" Lines="@(MacPlistLine)" Overwrite="true" />
+
+    <!-- The icon is the PC's, resized into the sizes macOS asks for. -->
+    <MakeDir Directories="$(MacIconSet);$(MacAppDir)/Contents/Resources" />
+    <Exec Command="sips -s format png -z %(MacIconSize.Identity) %(MacIconSize.Identity) &quot;$(MacIconSource)&quot; --out &quot;$(MacIconSet)/icon_%(MacIconSize.Identity)x%(MacIconSize.Identity).png&quot; &gt; /dev/null" />
+    <Exec Command="iconutil -c icns &quot;$(MacIconSet)&quot; -o &quot;$(MacAppDir)/Contents/Resources/DtHub.icns&quot;" />
+
+    <!-- An ad-hoc signature: enough for an Apple chip to run it on this
+         Mac. Another Mac's Gatekeeper still refuses it until it is signed
+         with a developer ID and notarized. -->
+    <Exec Command="codesign --force --deep --sign - &quot;$(MacAppDir)&quot;" />
+    <Message Importance="high" Text="$(Product) -&gt; $(MacAppDir)" />
+  </Target>
 </Project>
