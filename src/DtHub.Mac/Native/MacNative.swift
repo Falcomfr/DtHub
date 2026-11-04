@@ -30,15 +30,31 @@ private func ownerPid(_ id: CGWindowID) -> pid_t? {
     (windowInfo(id)?[kCGWindowOwnerPID as String] as? Int).map { pid_t($0) }
 }
 
-/// One of our own windows. The Accessibility API cannot be used on
-/// ourselves: the request is served by our own main thread, which is the
-/// one waiting for the answer, so it times out. Our windows are moved
-/// through AppKit instead.
-private func ownWindow(_ id: CGWindowID) -> NSWindow? {
-    // Looked up among our windows directly: the window server's list does
-    // not hold a window shown a moment ago yet.
-    let find = { NSApp?.windows.first { $0.windowNumber == Int(id) } }
-    return Thread.isMainThread ? find() : DispatchQueue.main.sync(execute: find)
+/// Our own windows. The Accessibility API cannot be used on ourselves: the
+/// request is served by our own main thread, which is the one waiting for
+/// the answer, so it times out. Our windows go through AppKit instead, on
+/// the main thread only.
+///
+/// Off the main thread nothing waits for it: the UI thread may itself be
+/// blocked waiting on the caller (at quit, it waits for the sessions to
+/// stop), and a synchronous hop would hang DT Hub for good. Gestures are
+/// queued to it, and questions are answered from the window server.
+private func findOwn(_ id: CGWindowID) -> NSWindow? {
+    NSApp?.windows.first { $0.windowNumber == Int(id) }
+}
+
+private func isOwn(_ id: CGWindowID) -> Bool {
+    // A window shown a moment ago is not in the window server's list yet,
+    // hence AppKit's own list when that is allowed.
+    Thread.isMainThread ? findOwn(id) != nil : ownerPid(id) == getpid()
+}
+
+/// Gives up after half a second rather than the default six: a scrcpy whose
+/// main thread hangs (link lost, decoder stuck) must not freeze DT Hub's
+/// interface on every placement.
+private func bounded(_ element: AXUIElement) -> AXUIElement {
+    _ = AXUIElementSetMessagingTimeout(element, 0.5)
+    return element
 }
 
 /// Runs on the main thread, as AppKit requires; from another thread the
@@ -56,7 +72,7 @@ private func appKitFrame(_ x: Double, _ y: Double, _ width: Double, _ height: Do
 /// The Accessibility element of a window, found among its application's.
 private func element(_ id: CGWindowID) -> AXUIElement? {
     guard let pid = ownerPid(id) else { return nil }
-    let app = AXUIElementCreateApplication(pid)
+    let app = bounded(AXUIElementCreateApplication(pid))
     let windows = attribute(app, kAXWindowsAttribute as String) as? [AXUIElement] ?? []
     for window in windows {
         var found: CGWindowID = 0
@@ -67,7 +83,10 @@ private func element(_ id: CGWindowID) -> AXUIElement? {
 
 private func copy(_ text: String, _ buffer: UnsafeMutablePointer<CChar>?, _ capacity: Int32) {
     guard let buffer, capacity > 0 else { return }
-    let bytes = Array(text.utf8.prefix(Int(capacity) - 1))
+    // Whole characters only, so a long title is never cut inside one.
+    var cut = Substring(text)
+    while cut.utf8.count > Int(capacity) - 1 { cut.removeLast() }
+    let bytes = Array(cut.utf8)
     for (index, byte) in bytes.enumerated() { buffer[index] = CChar(bitPattern: byte) }
     buffer[bytes.count] = 0
 }
@@ -118,11 +137,11 @@ public func dthubWindowFrame(_ id: Int64, _ frame: UnsafeMutablePointer<Double>?
 
 @_cdecl("dthub_window_title")
 public func dthubWindowTitle(_ id: Int64, _ buffer: UnsafeMutablePointer<CChar>?, _ capacity: Int32) -> Bool {
-    if let own = ownWindow(CGWindowID(id)) {
+    if Thread.isMainThread, let own = findOwn(CGWindowID(id)) {
         copy(own.title, buffer, capacity)
         return true
     }
-    let title = (element(CGWindowID(id)).flatMap { attribute($0, kAXTitleAttribute as String) as? String })
+    let title = isOwn(CGWindowID(id)) ? (windowInfo(CGWindowID(id))?[kCGWindowName as String] as? String) : (element(CGWindowID(id)).flatMap { attribute($0, kAXTitleAttribute as String) as? String })
         ?? (windowInfo(CGWindowID(id))?[kCGWindowName as String] as? String)
     guard let title else { return false }
     copy(title, buffer, capacity)
@@ -133,8 +152,8 @@ public func dthubWindowTitle(_ id: Int64, _ buffer: UnsafeMutablePointer<CChar>?
 /// move: macOS clamps a size that would not fit where the window still is.
 @_cdecl("dthub_move_window")
 public func dthubMoveWindow(_ id: Int64, _ x: Double, _ y: Double, _ width: Double, _ height: Double) -> Bool {
-    if let own = ownWindow(CGWindowID(id)) {
-        onMain { own.setFrame(appKitFrame(x, y, width, height), display: true) }
+    if isOwn(CGWindowID(id)) {
+        onMain { findOwn(CGWindowID(id))?.setFrame(appKitFrame(x, y, width, height), display: true) }
         return true
     }
     guard let window = element(CGWindowID(id)) else { return false }
@@ -152,8 +171,9 @@ public func dthubMoveWindow(_ id: Int64, _ x: Double, _ y: Double, _ width: Doub
 /// Brings the window and its application to the front.
 @_cdecl("dthub_raise_window")
 public func dthubRaiseWindow(_ id: Int64, _ activate: Bool) -> Bool {
-    if let own = ownWindow(CGWindowID(id)) {
+    if isOwn(CGWindowID(id)) {
         onMain {
+            guard let own = findOwn(CGWindowID(id)) else { return }
             if activate {
                 NSApp.activate()
                 own.makeKeyAndOrderFront(nil)
@@ -170,7 +190,7 @@ public func dthubRaiseWindow(_ id: Int64, _ activate: Bool) -> Bool {
         // another, and DT Hub is rarely in front while the player plays.
         // Setting the application frontmost is what a trusted process may
         // still do.
-        let app = AXUIElementCreateApplication(pid)
+        let app = bounded(AXUIElementCreateApplication(pid))
         _ = AXUIElementSetAttributeValue(app, kAXFrontmostAttribute as CFString, kCFBooleanTrue)
         _ = AXUIElementSetAttributeValue(window, kAXMainAttribute as CFString, kCFBooleanTrue)
     }
@@ -180,8 +200,8 @@ public func dthubRaiseWindow(_ id: Int64, _ activate: Bool) -> Bool {
 /// Presses the window's close button, as the player would.
 @_cdecl("dthub_close_window")
 public func dthubCloseWindow(_ id: Int64) -> Bool {
-    if let own = ownWindow(CGWindowID(id)) {
-        onMain { own.performClose(nil) }
+    if isOwn(CGWindowID(id)) {
+        onMain { findOwn(CGWindowID(id))?.performClose(nil) }
         return true
     }
     guard let window = element(CGWindowID(id)),
@@ -191,8 +211,11 @@ public func dthubCloseWindow(_ id: Int64) -> Bool {
 
 @_cdecl("dthub_set_minimized")
 public func dthubSetMinimized(_ id: Int64, _ minimized: Bool) -> Bool {
-    if let own = ownWindow(CGWindowID(id)) {
-        onMain { if minimized { own.miniaturize(nil) } else { own.deminiaturize(nil) } }
+    if isOwn(CGWindowID(id)) {
+        onMain {
+            guard let own = findOwn(CGWindowID(id)) else { return }
+            if minimized { own.miniaturize(nil) } else { own.deminiaturize(nil) }
+        }
         return true
     }
     guard let window = element(CGWindowID(id)) else { return false }
@@ -202,7 +225,11 @@ public func dthubSetMinimized(_ id: Int64, _ minimized: Bool) -> Bool {
 
 @_cdecl("dthub_is_minimized")
 public func dthubIsMinimized(_ id: Int64) -> Bool {
-    if let own = ownWindow(CGWindowID(id)) { return own.isMiniaturized }
+    if isOwn(CGWindowID(id)) {
+        if Thread.isMainThread, let own = findOwn(CGWindowID(id)) { return own.isMiniaturized }
+        // A minimized window is off screen for the window server.
+        return (windowInfo(CGWindowID(id))?[kCGWindowIsOnscreen as String] as? Bool) == false
+    }
     guard let window = element(CGWindowID(id)) else { return false }
     return (attribute(window, kAXMinimizedAttribute as String) as? Bool) ?? false
 }
@@ -211,7 +238,7 @@ public func dthubIsMinimized(_ id: Int64) -> Bool {
 @_cdecl("dthub_front_window")
 public func dthubFrontWindow() -> Int64 {
     guard let app = NSWorkspace.shared.frontmostApplication else { return 0 }
-    let element = AXUIElementCreateApplication(app.processIdentifier)
+    let element = bounded(AXUIElementCreateApplication(app.processIdentifier))
     guard let focused = attribute(element, kAXFocusedWindowAttribute as String) else { return 0 }
     var id: CGWindowID = 0
     return axGetWindow(focused as! AXUIElement, &id) == .success ? Int64(id) : 0

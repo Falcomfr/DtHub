@@ -85,6 +85,8 @@ internal sealed class MacApp : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        CatchStrayFaults();
+
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             _desktop = desktop;
@@ -99,15 +101,21 @@ internal sealed class MacApp : Application
             // Quitting from the menu bar or the Dock goes through the same
             // path as the Quit button: the session saved first, the game
             // windows closed, then the real shutdown.
-            desktop.ShutdownRequested += (_, e) =>
+            // Not cancelled: macOS asks the same way when the player logs out
+            // or restarts, and a cancelled request stops the logout. The quit
+            // work runs here instead, the UI thread kept turning meanwhile.
+            desktop.ShutdownRequested += (_, _) =>
             {
                 if (IsShuttingDown)
                 {
                     return;
                 }
 
-                e.Cancel = true;
-                _ = RequestQuitAsync();
+                _ = DtHub.Mac.Pc.Modal.Wait(async () =>
+                {
+                    await Task.WhenAny(QuitWorkAsync(), Task.Delay(QuitBudget)).ConfigureAwait(true);
+                    return true;
+                });
             };
 
             // No job object on macOS to take the scrcpy windows down with
@@ -117,8 +125,10 @@ internal sealed class MacApp : Application
             {
                 IsShuttingDown = true;
                 _shape.Stop();
-                sessions.StopAllAsync().GetAwaiter().GetResult();
-                _services.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                // Off the UI thread and bounded: the sessions' window calls
+                // must not wait for a UI thread that is waiting for them.
+                _ = Task.Run(() => sessions.StopAllAsync()).Wait(QuitBudget);
+                _ = Task.Run(() => _services.DisposeAsync().AsTask()).Wait(QuitBudget);
                 Log.CloseAndFlush();
             };
 
@@ -467,6 +477,30 @@ internal sealed class MacApp : Application
             return;
         }
 
+        try
+        {
+            await QuitWorkAsync().ConfigureAwait(true);
+        }
+        finally
+        {
+            _desktop?.Shutdown();
+        }
+    }
+
+    /// <summary>
+    /// The longest a quit waits for the games to close and the state to be
+    /// saved: past it, DT Hub ends anyway rather than hang.
+    /// </summary>
+    private static readonly TimeSpan QuitBudget = TimeSpan.FromSeconds(10);
+
+    /// <summary>What a quit does before the application ends.</summary>
+    private static async Task QuitWorkAsync()
+    {
+        if (IsShuttingDown || _services is null)
+        {
+            return;
+        }
+
         IsShuttingDown = true;
         _configurator?.BeginQuit();
 
@@ -474,15 +508,34 @@ internal sealed class MacApp : Application
         // closed by hand, and leave the next startup.
         _ = _services.GetRequiredService<ScrcpySessionManager>().MarkAllStopping();
 
-        try
+        await SaveSessionStateAsync(_configurator?.IsVisible == true).ConfigureAwait(true);
+        await CloseDownAsync().ConfigureAwait(true);
+    }
+
+    /// <summary>
+    /// The PC's fault reporting (FaultReporting.cs) is WPF's: here a fault
+    /// that nothing caught is at least written down, and one raised on the
+    /// UI thread does not take DT Hub down with the games still open.
+    /// </summary>
+    private static void CatchStrayFaults()
+    {
+        Dispatcher.UIThread.UnhandledException += (_, e) =>
         {
-            await SaveSessionStateAsync(_configurator?.IsVisible == true).ConfigureAwait(true);
-            await CloseDownAsync().ConfigureAwait(true);
-        }
-        finally
+            Log.Error(e.Exception, "{Headline}", Strings.Get("UnexpectedError"));
+            e.Handled = true;
+        };
+
+        AppDomain.CurrentDomain.UnhandledException += (_, e) =>
         {
-            _desktop?.Shutdown();
-        }
+            Log.Fatal(e.ExceptionObject as Exception, "Exception non interceptée.");
+            Log.CloseAndFlush();
+        };
+
+        TaskScheduler.UnobservedTaskException += (_, e) =>
+        {
+            Log.Error(e.Exception, "Exception de tâche non observée.");
+            e.SetObserved();
+        };
     }
 
     /// <summary>Saves where the windows are and whether the configurator was shown.</summary>
