@@ -138,9 +138,12 @@ internal sealed class MacApp : Application
             {
                 activatable.Activated += (_, e) =>
                 {
-                    if (e.Kind == ActivationKind.Reopen && !IsShuttingDown)
+                    if (e.Kind == ActivationKind.Reopen && !IsShuttingDown && _configurator is not null)
                     {
-                        _configurator?.Reveal();
+                        // As a second launch wakes the PC's: the panel, and
+                        // the session again if nothing is running.
+                        _configurator.Reveal();
+                        _ = ReopenIfNothingIsRunningAsync();
                     }
                 };
             }
@@ -670,6 +673,38 @@ internal sealed class MacApp : Application
         {
             Log.Warning(exception, "La réouverture de {Nom} a échoué.", request.Instance.DisplayName);
             launcher.AwaitPhoneIfGone(request.Instance, []);
+        }
+    }
+
+    /// <summary>
+    /// The PC's: brought back with no game open, DT Hub reopens the session,
+    /// unless the player chose to open nothing at startup.
+    /// </summary>
+    private static async Task ReopenIfNothingIsRunningAsync()
+    {
+        if (_services is null)
+        {
+            return;
+        }
+
+        var launcher = _services.GetRequiredService<GameLauncher>();
+
+        if (launcher.ActiveSessions.Count > 0
+            || (await _services.GetRequiredService<SettingsService>().GetAsync().ConfigureAwait(true))
+                .OpenNothingAtStartup)
+        {
+            return;
+        }
+
+        try
+        {
+            LogLaunchProblems(
+                LogMessages.Translate("La reprise de la session"),
+                await launcher.LaunchEnabledAsync().ConfigureAwait(true));
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            Log.Warning(exception, "La reprise de la session a échoué.");
         }
     }
 

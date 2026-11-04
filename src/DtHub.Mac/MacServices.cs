@@ -48,13 +48,26 @@ internal static class MacServices
         var paths = new AppPaths();
         paths.EnsureCreated();
 
+        // The PC's logger (App.xaml.cs BuildHost), minus its debugger sink:
+        // the launch identifier on every line is what lets a problem report
+        // take only the current session from a day's file, and the lines
+        // are written in the player's language.
         Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Debug()
+            .MinimumLevel.Information()
+            .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
+            .Enrich.FromLogContext()
+            .Enrich.WithProperty("Session", DtHub.Core.Diagnostics.AppSession.Id)
             .WriteTo.File(
+                new DtHub.Infrastructure.Diagnostics.LocalizedLogFormatter(
+                    "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] [{Session}] "
+                    + "{SourceContext} {Message:lj}{NewLine}{Exception}",
+                    System.Globalization.CultureInfo.InvariantCulture),
                 Path.Combine(paths.LogsDirectory, "dthub-.log"),
                 rollingInterval: RollingInterval.Day,
-                retainedFileCountLimit: 7,
-                formatProvider: System.Globalization.CultureInfo.InvariantCulture)
+                retainedFileCountLimit: 14,
+                fileSizeLimitBytes: 8 * 1024 * 1024,
+                rollOnFileSizeLimit: true,
+                shared: true)
             .CreateLogger();
 
         var services = new ServiceCollection();
