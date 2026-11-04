@@ -97,6 +97,39 @@ Logs: `~/Library/Application Support/DtHub/logs/`. Settings:
 8. scrcpy from Homebrew is newer than the PC's pinned 5.0.1: watch the log
    for a rejected argument from `ScrcpyCommandBuilder`.
 
+## Checked on the Mac on 2026-11-04
+
+MacBook Pro, Apple chip, macOS 27.0.1, Retina (scale 2, 1512x982 points),
+Xiaomi 13T Pro over USB with three accounts (main profile, a second user,
+XSpace). The Homebrew on that Mac belonged to another account, so the tools
+came from their official archives, linked into `~/.local/bin` and found
+through `PATH`: .NET SDK 10.0.403, adb 37.0.1, scrcpy 5.0.1, gh 2.103.3.
+
+- `dotnet build src/DtHub.Mac`: 0 warnings. `dotnet test tests/DtHub.Tests`:
+  3010/3013. The three failures test Windows-only code the Mac does not use:
+  `Win32ShortcutWriterTests` (two tests, `.lnk` through the Windows shell)
+  and `SdlFocusFixTests.Ne_plante_pas_quand_scrcpy_tient_encore_le_fichier`
+  (relies on Windows file locking). Left as they are for now.
+- 1. Starts, window "DT Hub", no error in the log.
+- 2. The three accounts are listed.
+- 3. Each opens on its own virtual display (824x536, 119 dpi), game shown
+  at the right ratio, no black bars.
+- 4. Fixed: scrcpy's `--window-x/y/width/height` all describe the picture,
+  and macOS adds a 32-point title bar above it. `MainWindow` now reserves
+  it in the cell (`TitleBarHeight`). Measured after the fix: three windows
+  in three quarters, edge to edge, no overlap. The fourth quarter was not
+  seen (three accounts only).
+- 5. `sdk`: a click opens the game's settings panel; keys reach the phone
+  (`dumpsys input`). `uhid`: clicks and keys reach the phone from the
+  "scrcpy" input device, Android pointer shown. Typing text into the game
+  was not tried (it needs logging in).
+- 6. Sound: not checked.
+- 7. Closing a window by hand sets its row back to "Ouvrir"; "Tout fermer"
+  and quitting leave no scrcpy and no virtual display.
+- 8. scrcpy 5.0.1, as on the PC: no argument rejected.
+- Seen in passing: the macOS menu reads "Avalonia Application" and "About
+  Avalonia" instead of DT Hub.
+
 ## Rules for the next session
 
 - Never touch `src/DtHub.App`. Anything in `Core` or `Infrastructure` must

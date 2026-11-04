@@ -20,6 +20,13 @@ namespace DtHub.Mac;
 /// </summary>
 internal sealed class MainWindow : Window
 {
+    // Height in points of the title bar macOS puts on scrcpy's window,
+    // measured on macOS 27 with scrcpy 5.0.1: a 434-point picture gives a
+    // 466-point window.
+    // shortcut: a fixed value, not read from the system; a Mac
+    // IWindowController (next steps of the macOS design) would measure it.
+    private const int TitleBarHeight = 32;
+
     private readonly DeviceDiscoveryService _discovery;
     private readonly DofusInstanceService _instances;
     private readonly ScrcpySessionManager _sessions;
@@ -156,22 +163,28 @@ internal sealed class MainWindow : Window
 
         // scrcpy places its window in points on macOS, while Avalonia
         // gives the screen in pixels.
-        // shortcut: no title bar allowance and no Retina check yet, calibrate on the Mac (docs/macos.md).
         var scale = screen.Scaling;
         var area = screen.WorkingArea;
         var work = new ScreenRect(
             (int)(area.X / scale), (int)(area.Y / scale), (int)(area.Width / scale), (int)(area.Height / scale));
         var aspect = (double)screen.Bounds.Width / screen.Bounds.Height;
-        var cell = TileLayout.Quarter(work, _sessions.ActiveSessions.Count, aspect, (0, 0));
+
+        // The cell holds the whole window, title bar included, as on the
+        // PC. scrcpy's --window-x/y/width/height all describe the picture
+        // only: macOS adds the title bar above it, so the picture starts
+        // one title bar lower than the cell and is that much shorter.
+        var cell = TileLayout.Quarter(work, _sessions.ActiveSessions.Count, aspect, (0, TitleBarHeight));
+        var picture = new ScrcpyWindowPlacement(
+            cell.X, cell.Y + TitleBarHeight, cell.Width, cell.Height - TitleBarHeight);
 
         // Same sizing as the Windows launcher's WithDisplayFor: the game
         // renders at the window's size in pixels, capped by the quality tier.
         var settings = await _settings.GetAsync();
         var quality = QualityProfile.For(settings.Quality, settings.CustomQuality);
         var (width, height) = DisplayLadder.For(
-            (int)(cell.Height * scale), screen.Bounds.Width, screen.Bounds.Height,
+            (int)(picture.Height * scale), screen.Bounds.Width, screen.Bounds.Height,
             quality.MaximumDisplayHeight, settings.SharpImage,
-            windowAspect: cell.Width / (double)cell.Height);
+            windowAspect: picture.Width / (double)picture.Height);
 
         var options = await _settings.GetScrcpyOptionsAsync() with
         {
@@ -195,7 +208,7 @@ internal sealed class MainWindow : Window
         };
 
         var session = await _sessions.StartAsync(
-            target, options, new ScrcpyWindowPlacement(cell.X, cell.Y, cell.Width, cell.Height));
+            target, options, picture);
 
         if (session.FailureMessage is { } failure)
         {
