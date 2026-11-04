@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+﻿<?xml version='1.0' encoding='utf-8'?>
 <root>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
@@ -104,6 +104,9 @@
   </data>
   <data name="Chemins lus : {count}." xml:space="preserve">
     <value>Rutas leídas: {count}.</value>
+  </data>
+  <data name="Choix des applications : fenêtre pas encore disponible sur Mac." xml:space="preserve">
+    <value>Elección de aplicaciones: ventana aún no disponible en Mac.</value>
   </data>
   <data name="Compte « {name} » ajouté sur {device} : {succeeded}. {message}" xml:space="preserve">
     <value>Cuenta «{name}» añadida en {device}: {succeeded}. {message}</value>

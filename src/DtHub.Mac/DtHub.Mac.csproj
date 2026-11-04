@@ -21,6 +21,37 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="Serilog.Extensions.Hosting" />
     <PackageReference Include="Serilog.Sinks.File" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+  </ItemGroup>
+
+  <!-- The PC's view models and services, compiled as they are: the Mac
+       behaves like the PC because it runs the same code, and a change on
+       the PC reaches the Mac without being copied. The few PC files that
+       are WPF through and through stay out; Pc/ holds their Mac
+       counterparts, under the same names. src/DtHub.App is never edited
+       for the Mac. -->
+  <ItemGroup Label="Shared with the PC">
+    <Compile Include="..\DtHub.App\ViewModels\*.cs" Link="Pc\Shared\ViewModels\%(Filename)%(Extension)" />
+    <Compile Include="..\DtHub.App\Services\*.cs"
+             Exclude="..\DtHub.App\Services\IDialogService.cs;..\DtHub.App\Services\DarkTitleBar.cs;..\DtHub.App\Services\WebViewEnvironment.cs;..\DtHub.App\Services\WindowIcons.cs;..\DtHub.App\Services\WindowPlacements.cs;..\DtHub.App\Services\FaultReporting.cs"
+             Link="Pc\Shared\Services\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <!-- Native/MacNative.swift, the window calls into macOS, built into
+       libDtHubMac.dylib next to the executable. Only on a Mac: the Windows
+       CI compiles the C# side, whose calls into it are never made there. -->
+  <PropertyGroup>
+    <MacNativeLibrary>$(BaseIntermediateOutputPath)native/libDtHubMac.dylib</MacNativeLibrary>
+  </PropertyGroup>
+  <Target Name="MacNativeLibrary" BeforeTargets="AssignTargetPaths"
+          Condition="$([MSBuild]::IsOSPlatform('OSX'))"
+          Inputs="Native/MacNative.swift" Outputs="$(MacNativeLibrary)">
+    <MakeDir Directories="$(BaseIntermediateOutputPath)native" />
+    <Exec Command="swiftc -emit-library -O -target arm64-apple-macos14.0 -o &quot;$(MacNativeLibrary)&quot; Native/MacNative.swift" />
+  </Target>
+  <ItemGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+    <None Include="$(MacNativeLibrary)" Link="libDtHubMac.dylib"
+          CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" />
   </ItemGroup>
 
   <!-- The Mac application: "dotnet publish src/DtHub.Mac -c Release -r

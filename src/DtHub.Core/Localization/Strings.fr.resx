@@ -3203,6 +3203,15 @@ Pas de donjon en équipe.
   <data name="ToolNotInstalled" xml:space="preserve">
     <value>{0} est introuvable. Dans le Terminal : brew install {1}</value>
   </data>
+  <data name="MacOk" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="MacYes" xml:space="preserve">
+    <value>Oui</value>
+  </data>
+  <data name="MacNo" xml:space="preserve">
+    <value>Non</value>
+  </data>
   <data name="MacRefresh" xml:space="preserve">
     <value>Actualiser</value>
   </data>

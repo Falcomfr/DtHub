@@ -12,6 +12,12 @@ namespace DtHub.Mac;
 
 internal sealed class MacApp : Application
 {
+    /// <summary>
+    /// True once quitting has begun: windows closing then are not the
+    /// player's doing, as WPF's Dispatcher.HasShutdownStarted tells the PC.
+    /// </summary>
+    public static bool IsShuttingDown { get; private set; }
+
     public override void Initialize()
     {
         // The name macOS shows in the menu bar's app menu ("Hide", "Quit").
@@ -38,8 +44,10 @@ internal sealed class MacApp : Application
 
             // No job object on macOS to take the scrcpy windows down with
             // us: they are closed here, or they would outlive the app.
+            desktop.ShutdownRequested += (_, _) => IsShuttingDown = true;
             desktop.Exit += (_, _) =>
             {
+                IsShuttingDown = true;
                 sessions.StopAllAsync().GetAwaiter().GetResult();
                 services.DisposeAsync().AsTask().GetAwaiter().GetResult();
             };
