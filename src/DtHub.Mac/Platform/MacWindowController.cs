@@ -247,20 +247,20 @@ internal sealed class MacWindowController : IWindowController
         _ = Task.Delay(HideDelay, pending.Token).ContinueWith(
             waited =>
             {
+                // Under the gate, so that a dock arriving now either comes
+                // first (and the window is left alone) or finds it
+                // minimized and restores it.
                 lock (_gate)
                 {
-                    if (!_pendingHides.Remove(handle, out var current) || current != pending)
+                    if (!_pendingHides.Remove(handle, out var current) || current != pending || _docked.Contains(handle))
                     {
                         return;
                     }
+
+                    _ = MacNative.dthub_set_minimized(handle, minimized: true);
                 }
 
                 pending.Dispose();
-
-                if (!IsDocked(handle))
-                {
-                    _ = MacNative.dthub_set_minimized(handle, minimized: true);
-                }
             },
             CancellationToken.None,
             TaskContinuationOptions.OnlyOnRanToCompletion,

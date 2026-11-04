@@ -55,7 +55,20 @@ namespace System.Windows
                 throw new Runtime.InteropServices.ExternalException("No clipboard.");
             }
 
-            _ = Avalonia.Input.Platform.ClipboardExtensions.SetTextAsync(clipboard, text);
+            // Waited for, as WPF's is synchronous: a failure must reach the
+            // caller, which warns the player.
+            try
+            {
+                _ = DtHub.Mac.Pc.Modal.Wait(async () =>
+                {
+                    await Avalonia.Input.Platform.ClipboardExtensions.SetTextAsync(clipboard, text).ConfigureAwait(true);
+                    return true;
+                });
+            }
+            catch (Exception exception) when (exception is not OutOfMemoryException and not Runtime.InteropServices.ExternalException)
+            {
+                throw new Runtime.InteropServices.ExternalException(exception.Message, exception);
+            }
         }
     }
 

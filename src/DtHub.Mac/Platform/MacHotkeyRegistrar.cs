@@ -230,7 +230,15 @@ internal sealed partial class MacHotkeyRegistrar : IHotkeyRegistrar
     {
         foreach (var raise in _events.GetConsumingEnumerable())
         {
-            raise();
+            // A raw thread: a handler that throws would end the process.
+            try
+            {
+                raise();
+            }
+            catch (Exception exception) when (exception is not OutOfMemoryException)
+            {
+                Serilog.Log.Error(exception, "{Headline}", DtHub.Core.Localization.Strings.Get("UnexpectedError"));
+            }
         }
     }
 

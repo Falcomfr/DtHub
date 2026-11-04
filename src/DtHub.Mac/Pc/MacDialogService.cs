@@ -45,7 +45,7 @@ internal sealed class MacDialogService : IDialogService
         Open(path);
     }
 
-    public string? AskWhereToSave(string suggestedName, string filter, string title) =>
+    public string? AskWhereToSave(string suggestedName, string filter, string title) => OnUi(() =>
         Modal.Owner?.StorageProvider is not { } storage
             ? null
             : Modal.Wait(async () =>
@@ -59,9 +59,9 @@ internal sealed class MacDialogService : IDialogService
                 }).ConfigureAwait(true);
 
                 return file?.TryGetLocalPath();
-            });
+            }));
 
-    public string? AskWhichFileToRead(string filter, string title) =>
+    public string? AskWhichFileToRead(string filter, string title) => OnUi(() =>
         Modal.Owner?.StorageProvider is not { } storage
             ? null
             : Modal.Wait(async () =>
@@ -74,7 +74,7 @@ internal sealed class MacDialogService : IDialogService
                 }).ConfigureAwait(true);
 
                 return files.Count == 0 ? null : files[0].TryGetLocalPath();
-            });
+            }));
 
     public void OpenUrl(string url)
     {
@@ -105,7 +105,7 @@ internal sealed class MacDialogService : IDialogService
         string? initial = null,
         string? title = null,
         string? details = null,
-        string? acceptLabel = null)
+        string? acceptLabel = null) => OnUi(() =>
     {
         var window = new PromptWindow(question, initial, details, acceptLabel)
         {
@@ -114,19 +114,27 @@ internal sealed class MacDialogService : IDialogService
 
         _ = Modal.Show<object>(window);
         return window.Answer;
-    }
+    });
 
     /// <summary>The PC's: the outcome the window chose, cancelled when it was closed.</summary>
     public AppPickerOutcome ChooseApps(AppPickerViewModel viewModel)
     {
         ArgumentNullException.ThrowIfNull(viewModel);
 
-        var window = new AppPickerWindow(viewModel);
-
-        return Modal.Show<bool>(window) ? viewModel.Outcome : AppPickerOutcome.Cancelled;
+        return OnUi(() => Modal.Show<bool>(new AppPickerWindow(viewModel)) ? viewModel.Outcome : AppPickerOutcome.Cancelled);
     }
 
-    private static bool? Ask(string message, string? title, params (string Label, bool? Answer)[] choices)
+    /// <summary>
+    /// The shared code may ask from any thread, as WPF let it through its
+    /// dispatcher; windows are built on the UI thread only.
+    /// </summary>
+    private static T OnUi<T>(Func<T> ask) =>
+        Avalonia.Threading.Dispatcher.UIThread.CheckAccess() ? ask() : Avalonia.Threading.Dispatcher.UIThread.Invoke(ask);
+
+    private static bool? Ask(string message, string? title, params (string Label, bool? Answer)[] choices) =>
+        OnUi(() => AskHere(message, title, choices));
+
+    private static bool? AskHere(string message, string? title, (string Label, bool? Answer)[] choices)
     {
         var window = Frame(title, out var buttons);
         bool? answer = choices.Length == 1 ? choices[0].Answer : null;

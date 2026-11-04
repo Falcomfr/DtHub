@@ -15,6 +15,8 @@ namespace DtHub.Mac.Platform;
 /// </summary>
 internal static class AccessibleNames
 {
+    private static readonly FollowedSet Followed = new();
+
     public static void Install() =>
         Control.LoadedEvent.AddClassHandler<Button>(OnLoaded, RoutingStrategies.Direct, handledEventsToo: true);
 
@@ -33,6 +35,14 @@ internal static class AccessibleNames
         }
 
         Follow(button);
+
+        // Loaded again each time the button returns to the tree (tabs,
+        // templates): followed once.
+        if (!Followed.Add(button))
+        {
+            return;
+        }
+
         button.PropertyChanged += (_, change) =>
         {
             if (change.Property == ToolTip.TipProperty)
@@ -49,4 +59,12 @@ internal static class AccessibleNames
             AutomationProperties.SetName(button, tip);
         }
     }
+}
+
+/// <summary>The buttons already followed, without keeping them alive.</summary>
+internal sealed class FollowedSet
+{
+    private readonly System.Runtime.CompilerServices.ConditionalWeakTable<Button, object> _seen = [];
+
+    public bool Add(Button button) => _seen.TryAdd(button, true);
 }
