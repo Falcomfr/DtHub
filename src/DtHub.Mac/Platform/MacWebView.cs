@@ -426,6 +426,16 @@ internal sealed class MacWebView : NativeControlHost, IDisposable
                 break;
 
             case 12:
+                // A click in the page takes Avalonia's focus too: left on a
+                // field, it made Cmd+C copy the field rather than the page.
+                // Avalonia may refuse the native host its focus: the field is
+                // then let go of, macOS having already given the page the
+                // keyboard with the click.
+                if (!Focus())
+                {
+                    _ = TopLevel.GetTopLevel(this)?.FocusManager?.Focus(null);
+                }
+
                 NativePressed?.Invoke(this, EventArgs.Empty);
                 break;
 

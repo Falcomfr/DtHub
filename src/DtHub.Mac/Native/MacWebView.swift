@@ -61,16 +61,6 @@ private final class DthubWebView: WKWebView {
     /// The keyboard asked for before the view was in a window: given once it is.
     var wantsFocus = false
 
-    override func mouseDown(with event: NSEvent) {
-        pressed?()
-        super.mouseDown(with: event)
-    }
-
-    override func rightMouseDown(with event: NSEvent) {
-        pressed?()
-        super.rightMouseDown(with: event)
-    }
-
     override func otherMouseUp(with event: NSEvent) {
         switch event.buttonNumber {
         case 3: goBack()
@@ -89,6 +79,8 @@ private final class DthubWebView: WKWebView {
 }
 
 private final class Host: NSObject, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler, WKDownloadDelegate {
+    private var pressMonitor: Any?
+    private var keyMonitor: Any?
     let callback: DthubWebEvent
     let context: UnsafeMutableRawPointer?
     let view: DthubWebView
@@ -125,6 +117,46 @@ private final class Host: NSObject, WKNavigationDelegate, WKUIDelegate, WKScript
         view.allowsMagnification = true
         view.allowsBackForwardNavigationGestures = false
         view.pressed = { [weak self] in self?.send(.pressed, nil, 0) }
+
+        // WebKit takes clicks in its own subviews, so the view's mouseDown
+        // override never runs on the page: the window's events are watched
+        // instead, a press inside the page saying so.
+        // Avalonia's view takes Command keys before the page sees them: when
+        // the page has the keyboard, the editing ones are sent to it here,
+        // as a browser does.
+        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { [weak self] event in
+            guard let self, let window = self.view.window, event.window === window,
+                  let responder = window.firstResponder as? NSView,
+                  responder === self.view || responder.isDescendant(of: self.view) else { return event }
+            let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+                .subtracting([.capsLock, .function, .numericPad])
+            let key = event.charactersIgnoringModifiers?.lowercased() ?? ""
+            let action: Selector?
+            switch (modifiers, key) {
+            case ([.command], "a"): action = #selector(NSResponder.selectAll(_:))
+            case ([.command], "c"): action = #selector(NSText.copy(_:))
+            case ([.command], "v"): action = #selector(NSText.paste(_:))
+            case ([.command], "x"): action = #selector(NSText.cut(_:))
+            case ([.command], "z"): action = Selector(("undo:"))
+            case ([.command, .shift], "z"): action = Selector(("redo:"))
+            default: action = nil
+            }
+            guard let action, NSApp.sendAction(action, to: nil, from: self.view) else { return event }
+            return nil
+        }
+
+        pressMonitor = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) {
+            [weak self] event in
+            // Only the page actually under the pointer: a window can hold
+            // hidden pages (the guides' readers) at the same place.
+            if let self, let window = self.view.window, event.window === window,
+               let content = window.contentView,
+               let hit = content.hitTest(content.convert(event.locationInWindow, from: nil)),
+               hit === self.view || hit.isDescendant(of: self.view) {
+                self.send(.pressed, nil, 0)
+            }
+            return event
+        }
         // The window's colour shows until the page paints, not white.
         view.setValue(false, forKey: "drawsBackground")
         observation = view.observe(\.url, options: [.new]) { [weak self] web, _ in
@@ -139,6 +171,14 @@ private final class Host: NSObject, WKNavigationDelegate, WKUIDelegate, WKScript
     }
 
     func close() {
+        if let monitor = pressMonitor {
+            NSEvent.removeMonitor(monitor)
+            pressMonitor = nil
+        }
+        if let monitor = keyMonitor {
+            NSEvent.removeMonitor(monitor)
+            keyMonitor = nil
+        }
         observation = nil
         view.pressed = nil
 
