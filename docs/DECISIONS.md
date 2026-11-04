@@ -12028,9 +12028,13 @@ Demandé le 04/11/2026 : une version Mac, sans rien risquer pour la version PC.
 Le jeu reste sur le téléphone Android, comme Ankama l'exige ; le Mac l'affiche
 et le pilote comme le PC.
 
-L'iPhone est écarté : iOS n'offre ni adb, ni écran virtuel créé de l'extérieur,
-ni injection des clics, ni appli dupliquée. Rien de ce que fait DT Hub n'y est
-possible.
+L'iPhone n'est pas couvert par cette version : iOS n'offre ni adb, ni écran
+virtuel créé de l'extérieur, ni appli dupliquée, donc un seul compte par iPhone
+au mieux. Corrigé le même jour : depuis iOS 27, le Device Hub de Xcode 27 permet
+à un ordinateur d'afficher l'écran d'un iPhone et d'y envoyer des appuis, en
+Mode développeur, et pymobiledevice3 le fait depuis Windows. Piste à part, non
+essayée : l'iPhone XR de test (iOS 18.7.9) ne peut pas passer en iOS 27, et
+pymobiledevice3 n'envoie l'image qu'à partir d'iOS 27.
 
 Décision : un projet `src/DtHub.Mac` en Avalonia, qui reprend `DtHub.Core` et
 `DtHub.Infrastructure` tels quels. `DtHub.App` n'est pas touché. adb et scrcpy

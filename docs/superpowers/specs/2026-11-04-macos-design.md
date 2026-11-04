@@ -4,9 +4,11 @@ Asked on 2026-11-04: a Mac version of DT Hub, without any risk for the
 Windows one. The game keeps running on the Android phone, as Ankama requires;
 the Mac only shows and drives it, like the PC does.
 
-iPhone support was dropped on purpose: iOS offers no adb, no virtual display
-an outside program can create, no input injection and no cloned apps. None of
-what DT Hub does is possible there.
+iPhone support is not part of this work. iOS offers no adb, no virtual
+display an outside program can create and no cloned apps, so one account per
+iPhone at best. Since iOS 27, Xcode 27's Device Hub lets a computer show an
+iPhone's screen and send it touches (Developer Mode), and pymobiledevice3 does
+it from Windows: a separate track, untried, see D226.
 
 This document is the handoff for the session that continues on the Mac. The
 code was written and built on Windows; **nothing has run on macOS yet**.
