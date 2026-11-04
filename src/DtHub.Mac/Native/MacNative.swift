@@ -251,6 +251,12 @@ public func dthubModifierDown() -> Bool {
     return !flags.intersection([.maskCommand, .maskAlternate, .maskControl, .maskShift]).isEmpty
 }
 
+/// Shift held down right now, as WPF's Keyboard.Modifiers says it.
+@_cdecl("dthub_shift_down")
+public func dthubShiftDown() -> Bool {
+    NSEvent.modifierFlags.contains(.shift)
+}
+
 /// The screens: for each, frame then visible frame (x, y, width, height),
 /// top-left origin, eight doubles per screen. The first is the main one.
 @_cdecl("dthub_screens")

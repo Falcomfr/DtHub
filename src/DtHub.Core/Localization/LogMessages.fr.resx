@@ -216,6 +216,9 @@
   <data name="La page de Calcofus n'a pas pu être retenue." xml:space="preserve">
     <value>La page de Calcofus n'a pas pu être retenue.</value>
   </data>
+  <data name="La page n'a pas pu être chargée : {Etat}" xml:space="preserve">
+    <value>La page n'a pas pu être chargée : {Etat}</value>
+  </data>
   <data name="La place de l'Almanax n'a pas pu être rétablie." xml:space="preserve">
     <value>La place de l'Almanax n'a pas pu être rétablie.</value>
   </data>
@@ -374,11 +377,17 @@
     <value>Le son du jeu n'est pas revenu sur l'appareil {serial} depuis la réouverture des fenêtres ({windows} fenêtre(s) de DT Hub). Son du téléphone :
 {state}</value>
   </data>
+  <data name="Le téléchargement a échoué : {Erreur}" xml:space="preserve">
+    <value>Le téléchargement a échoué : {Erreur}</value>
+  </data>
   <data name="Le temps de jeu n'a pas pu être enregistré à la fermeture." xml:space="preserve">
     <value>Le temps de jeu n'a pas pu être enregistré à la fermeture.</value>
   </data>
   <data name="Lecture de la version d'ADB" xml:space="preserve">
     <value>Lecture de la version d'ADB</value>
+  </data>
+  <data name="Les hôtes publicitaires n'ont pas pu être bloqués dans le moteur de rendu." xml:space="preserve">
+    <value>Les hôtes publicitaires n'ont pas pu être bloqués dans le moteur de rendu.</value>
   </data>
   <data name="Les pics de latence Wi-Fi vers l'appareil {serial} ont cessé." xml:space="preserve">
     <value>Les pics de latence Wi-Fi vers l'appareil {serial} ont cessé.</value>
@@ -525,6 +534,9 @@
   </data>
   <data name="Téléchargement de {name} depuis {url}." xml:space="preserve">
     <value>Téléchargement de {name} depuis {url}.</value>
+  </data>
+  <data name="Téléchargement enregistré : {Fichier}" xml:space="preserve">
+    <value>Téléchargement enregistré : {Fichier}</value>
   </data>
   <data name="Téléphone revenu : réouverture de {name}." xml:space="preserve">
     <value>Téléphone revenu : réouverture de {name}.</value>

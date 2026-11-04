@@ -54,7 +54,41 @@ internal sealed partial class QuestPageWindow : Window
             OpenPage.IsVisible = false;
         }
 
+        // At its place from the first frame; OnOpenedAsync settles it once open.
+        _placements.PlaceBeforeShow(this, () => WindowPlacements.LinkedPage);
+
+        View.NavigationCompleted += OnPageLoaded;
+        Failure.Retry += (_, _) =>
+        {
+            ShowFailure(null);
+            View.Navigate(View.LastNavigation ?? _url);
+        };
+
         Opened += async (_, _) => await OnOpenedAsync().ConfigureAwait(true);
+    }
+
+    /// <summary>
+    /// A page that did not come shows why, in its place, as WebView2's
+    /// error page does on the PC; one that came takes its place back.
+    /// </summary>
+    private void OnPageLoaded(object? sender, WebNavigationCompleted e)
+    {
+        if (e.IsSuccess)
+        {
+            ShowFailure(null);
+        }
+        else if (!e.IsInterrupted)
+        {
+            Log.Warning("La page n'a pas pu être chargée : {Etat}", e.WebErrorStatus);
+            ShowFailure(e.Description);
+        }
+    }
+
+    private void ShowFailure(string? reason)
+    {
+        Failure.Reason = reason;
+        Failure.IsVisible = reason is not null;
+        View.IsVisible = reason is null;
     }
 
     /// <summary>True if this handle is that of an open page.</summary>

@@ -93,8 +93,8 @@ internal sealed partial class QuestWindow : Window
     private bool _namesReported;
     private bool _placed;
 
-    /// <summary>The keys held at the last press: a click says nothing of Shift.</summary>
-    private KeyModifiers _pressModifiers;
+    /// <summary>Why the awaited page did not come, null while it did or is coming.</summary>
+    private string? _failure;
 
     /// <summary>For the designer only.</summary>
     public QuestWindow() => InitializeComponent();
@@ -151,8 +151,45 @@ internal sealed partial class QuestWindow : Window
         SearchBox.AddHandler(KeyDownEvent, OnSearchKey, RoutingStrategies.Tunnel);
         SearchBox.GotFocus += (_, _) => OpenList();
 
+        // The page shows where the view model says, unless it failed: then
+        // the failure takes its place, the native view hidden above it.
+        viewModel.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(QuestViewModel.ShowsPage))
+            {
+                ShowPage();
+            }
+        };
+        ShowPage();
+        Failure.Retry += (_, _) =>
+        {
+            if ((_viewModel.CurrentUrl ?? View.LastNavigation) is { } url)
+            {
+                NavigateTo(url);
+            }
+        };
+
+        // A click in the page never reaches Avalonia: the menus it would
+        // close are closed here.
+        View.NativePressed += (_, _) =>
+        {
+            StatusMenuToggle.IsChecked = false;
+            TrackerMenuToggle.IsChecked = false;
+            CloseNeeds();
+        };
+
+        // At its place from the first frame; OnOpenedAsync settles it once open.
+        _placements.PlaceBeforeShow(this, () => WindowPlacements.Quests);
+
         Loaded += async (_, _) => await IndexAsync().ConfigureAwait(true);
         Opened += async (_, _) => await OnOpenedAsync().ConfigureAwait(true);
+    }
+
+    private void ShowPage()
+    {
+        View.IsVisible = _viewModel.ShowsPage && _failure is null;
+        Failure.IsVisible = _viewModel.ShowsPage && _failure is not null;
+        Failure.Reason = _failure;
     }
 
     /// <summary>
@@ -187,9 +224,11 @@ internal sealed partial class QuestWindow : Window
         Dispatcher.UIThread.Post(() => _ = PrepareOnShowAsync(), DispatcherPriority.Background);
 
         // A guide that was being read comes back as it was left.
+        // The page itself, once back in the window: Avalonia's focus on its
+        // host alone would leave the keys with Avalonia.
         if (_viewModel.HasQuest && !_viewModel.IsListOpen)
         {
-            View.Focus();
+            Dispatcher.UIThread.Post(View.FocusPage, DispatcherPriority.Loaded);
             return;
         }
 
@@ -299,15 +338,21 @@ internal sealed partial class QuestWindow : Window
     /// <summary>A click on a row; one on a button or a box of the row is theirs.</summary>
     private void OnNodeChosen(object? sender, TappedEventArgs e)
     {
-        for (var at = e.Source as Visual; at is not null and not ListBoxItem; at = at.GetVisualParent())
+        var at = e.Source as Visual;
+
+        for (; at is not null and not ListBoxItem; at = at.GetVisualParent())
         {
-            if (at is Button or ToggleButton)
+            // The scroll bar is no row: a click on it must not reopen the selected one.
+            if (at is Button or ToggleButton or ScrollBar or Thumb)
             {
                 return;
             }
         }
 
-        ChooseSelected();
+        if (at is ListBoxItem)
+        {
+            ChooseSelected();
+        }
     }
 
     /// <summary>From the search box, the down arrow enters the list.</summary>
@@ -478,6 +523,8 @@ internal sealed partial class QuestWindow : Window
     private void NavigateTo(string url)
     {
         _viewModel.IsLoadingPage = true;
+        _failure = null;
+        ShowPage();
 
         LogNavigate(url, View.IsReady);
 
@@ -502,8 +549,16 @@ internal sealed partial class QuestWindow : Window
             return;
         }
 
+        // WebView2 shows its error page; WebKit an empty one: the reason
+        // and a retry instead. A navigation stopped for another is no failure.
+        if (!e.IsSuccess && !e.IsInterrupted)
+        {
+            _failure = e.Description;
+        }
+
         _watchdog.Stop();
         _viewModel.IsLoadingPage = false;
+        ShowPage();
     }
 
     private void OnBridgeMessage(object? sender, string payload)
@@ -684,7 +739,7 @@ internal sealed partial class QuestWindow : Window
     {
         var ours = SamePage(e.Uri, _viewModel.CurrentUrl);
 
-        LogNavigationStarting(e.Uri, e.NavigationId, ours, redirected: false);
+        LogNavigationStarting(e.Uri, e.NavigationId, ours, e.IsRedirected);
 
         if (ours)
         {
@@ -792,7 +847,9 @@ internal sealed partial class QuestWindow : Window
     {
         if (sender is Control { DataContext: QuestNode node })
         {
-            _viewModel.Pick(node, (_pressModifiers & KeyModifiers.Shift) != 0);
+            // Shift as it is now, as the PC's Keyboard.Modifiers: the box
+            // can be ticked with the space bar too, after no press at all.
+            _viewModel.Pick(node, OperatingSystem.IsMacOS() && MacNative.dthub_shift_down());
         }
 
         // The box flipped itself before the click; a pick refused left it ticked alone.
@@ -982,12 +1039,10 @@ internal sealed partial class QuestWindow : Window
 
     /// <summary>
     /// Closes the prerequisites as soon as a press lands anywhere other than
-    /// the lock that opened them, and keeps the keys held for a range pick.
+    /// the lock that opened them.
     /// </summary>
     private void OnWindowPressed(object? sender, PointerPressedEventArgs e)
     {
-        _pressModifiers = e.KeyModifiers;
-
         if (!PanneauPrerequis.IsOpen
             || (e.Source is Visual source && PanneauPrerequis.PlacementTarget is Visual target
                 && (ReferenceEquals(source, target) || target.IsVisualAncestorOf(source))))

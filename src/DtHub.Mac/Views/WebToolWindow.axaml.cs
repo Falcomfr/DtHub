@@ -70,6 +70,12 @@ internal sealed partial class WebToolWindow : Window
         _settings = settings;
         _dialogs = dialogs;
 
+        // At its place from the first frame; PlaceAsync settles it once open.
+        _placements.PlaceBeforeShow(this, () => Remembers ? PlacementKey : null);
+
+        View.NavigationCompleted += OnPageLoaded;
+        Failure.Retry += OnRetry;
+
         Opened += async (_, _) =>
         {
             await PlaceAsync().ConfigureAwait(true);
@@ -166,10 +172,9 @@ internal sealed partial class WebToolWindow : Window
 
         try
         {
+            // The ad hosts are refused in every view, before its first
+            // request: lomitall.fr serves the map's ads. See MacWebView.
             View.NewWindowRequested += OnNewWindowRequested;
-
-            // Every tool, not the map alone: lomitall.fr serves the same ads.
-            await View.BlockHostsAsync(DofusTouchMap.BlockedAdHosts).ConfigureAwait(true);
 
             if (Tool == WebTool.Map)
             {
@@ -292,6 +297,44 @@ internal sealed partial class WebToolWindow : Window
         {
             // An async void handler must not throw; the next navigation checks again.
             Log.Warning(exception, "Le cookie du suivi Papycha n'a pas pu être lu.");
+        }
+    }
+
+    /// <summary>
+    /// A page that did not come shows why, in its place, as WebView2's
+    /// error page does; one that came takes its place back.
+    /// </summary>
+    private void OnPageLoaded(object? sender, WebNavigationCompleted e)
+    {
+        if (e.IsSuccess)
+        {
+            ShowFailure(null);
+        }
+        else if (!e.IsInterrupted)
+        {
+            Log.Warning("La page n'a pas pu être chargée : {Etat}", e.WebErrorStatus);
+            ShowFailure(e.Description);
+        }
+    }
+
+    private void ShowFailure(string? reason)
+    {
+        Failure.Reason = reason;
+        Failure.IsVisible = reason is not null;
+        View.IsVisible = reason is null;
+    }
+
+    private void OnRetry(object? sender, EventArgs e)
+    {
+        ShowFailure(null);
+
+        try
+        {
+            View.Navigate(View.LastNavigation ?? HomeAddress);
+        }
+        catch (Exception exception) when (exception is ArgumentException or ObjectDisposedException)
+        {
+            Log.Warning(exception, "L'outil web {Outil} n'a pas pu s'ouvrir.", Tool);
         }
     }
 

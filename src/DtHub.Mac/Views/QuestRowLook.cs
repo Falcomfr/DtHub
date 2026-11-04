@@ -20,6 +20,8 @@ namespace DtHub.Mac.Views;
 /// </summary>
 internal sealed class QuestRowLook : IValueConverter
 {
+    private const double SectionSize = 14;
+
     private static readonly Dictionary<string, Geometry> Shapes = [];
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
@@ -64,6 +66,10 @@ internal sealed class QuestRowLook : IValueConverter
         "LabelMargin" => node.Nested
             ? new Thickness(32, 0, 0, 0)
             : node.InSuccess ? new Thickness(9, 3, 0, 3) : new Thickness(0),
+
+        // A results group's title a point above the rows, as on the PC
+        // (13 over 12 there; the Mac's rows are 13); the others inherit.
+        "LabelSize" => node.Kind == QuestNodeKind.Section ? SectionSize : Avalonia.AvaloniaProperty.UnsetValue,
 
         // The icon, set by the row's nature rather than its kind.
         "NatureVisible" => node.Glyph != QuestNodeGlyph.None,

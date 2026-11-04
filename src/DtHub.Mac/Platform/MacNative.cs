@@ -106,6 +106,10 @@ internal static class MacNative
     public static extern bool dthub_modifier_down();
 
     [DllImport(Library)]
+    [return: MarshalAs(UnmanagedType.I1)]
+    public static extern bool dthub_shift_down();
+
+    [DllImport(Library)]
     private static extern int dthub_screens(double[] values, int capacity);
 
     [DllImport(Library)]

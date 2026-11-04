@@ -7,6 +7,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:loc="using:DtHub.Mac.Localization"
         xmlns:platform="using:DtHub.Mac.Platform"
+        xmlns:views="using:DtHub.Mac.Views"
         Width="1280" Height="800" MinWidth="380" MinHeight="420"
         WindowStartupLocation="CenterScreen" ShowInTaskbar="True"
         FontSize="{DynamicResource FontMedium}"
@@ -36,6 +37,9 @@
       </StackPanel>
     </Border>
 
-    <platform:MacWebView x:Name="View" />
+    <Panel>
+      <platform:MacWebView x:Name="View" />
+      <views:PageFailure x:Name="Failure" />
+    </Panel>
   </DockPanel>
 </Window>

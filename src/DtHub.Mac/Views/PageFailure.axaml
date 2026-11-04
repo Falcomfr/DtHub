@@ -1,0 +1,18 @@
+﻿<!-- In a page's place when it could not be loaded: what WebView2's own
+     error page tells on the PC, with a way to try again. -->
+<UserControl x:Class="DtHub.Mac.Views.PageFailure"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:DtHub.Mac.Localization"
+             Background="{DynamicResource SurfaceBrush}"
+             IsVisible="False">
+
+  <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="24" MaxWidth="420">
+    <TextBlock Text="{loc:T MacPageFailed}" FontWeight="SemiBold"
+               TextAlignment="Center" TextWrapping="Wrap" />
+    <TextBlock x:Name="Detail" Classes="muted" FontSize="{DynamicResource FontSmall}"
+               Margin="0,6,0,0" TextAlignment="Center" TextWrapping="Wrap" />
+    <Button x:Name="RetryButton" Content="{loc:T MacPageRetry}" Theme="{StaticResource OutlineButton}"
+            HorizontalAlignment="Center" Padding="12,4" Margin="0,14,0,0" />
+  </StackPanel>
+</UserControl>

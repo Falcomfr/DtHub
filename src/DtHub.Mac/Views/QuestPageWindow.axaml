@@ -6,6 +6,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:loc="using:DtHub.Mac.Localization"
         xmlns:platform="using:DtHub.Mac.Platform"
+        xmlns:views="using:DtHub.Mac.Views"
         Title="{loc:T LinkedPage}"
         Width="620" Height="820" MinWidth="380" MinHeight="360"
         Topmost="True" ShowInTaskbar="True"
@@ -44,7 +45,10 @@
       </Grid>
     </Border>
 
-    <platform:MacWebView x:Name="View" />
+    <Panel>
+      <platform:MacWebView x:Name="View" />
+      <views:PageFailure x:Name="Failure" />
+    </Panel>
 
   </DockPanel>
 </Window>

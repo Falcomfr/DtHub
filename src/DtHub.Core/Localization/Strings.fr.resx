@@ -3286,4 +3286,52 @@ Un téléphone déjà associé en Wi-Fi revient tout seul.</value>
   <data name="MacFound" xml:space="preserve">
     <value>Comptes trouvés : {0}</value>
   </data>
+  <data name="MacMenuEdit" xml:space="preserve">
+    <value>Édition</value>
+  </data>
+  <data name="MacMenuUndo" xml:space="preserve">
+    <value>Annuler</value>
+  </data>
+  <data name="MacMenuRedo" xml:space="preserve">
+    <value>Rétablir</value>
+  </data>
+  <data name="MacMenuCut" xml:space="preserve">
+    <value>Couper</value>
+  </data>
+  <data name="MacMenuCopy" xml:space="preserve">
+    <value>Copier</value>
+  </data>
+  <data name="MacMenuPaste" xml:space="preserve">
+    <value>Coller</value>
+  </data>
+  <data name="MacMenuSelectAll" xml:space="preserve">
+    <value>Tout sélectionner</value>
+  </data>
+  <data name="MacMenuView" xml:space="preserve">
+    <value>Présentation</value>
+  </data>
+  <data name="MacMenuBack" xml:space="preserve">
+    <value>Précédent</value>
+  </data>
+  <data name="MacMenuForward" xml:space="preserve">
+    <value>Suivant</value>
+  </data>
+  <data name="MacMenuReload" xml:space="preserve">
+    <value>Recharger la page</value>
+  </data>
+  <data name="MacMenuActualSize" xml:space="preserve">
+    <value>Taille réelle</value>
+  </data>
+  <data name="MacMenuZoomIn" xml:space="preserve">
+    <value>Zoom avant</value>
+  </data>
+  <data name="MacMenuZoomOut" xml:space="preserve">
+    <value>Zoom arrière</value>
+  </data>
+  <data name="MacPageFailed" xml:space="preserve">
+    <value>Cette page n'a pas pu être chargée.</value>
+  </data>
+  <data name="MacPageRetry" xml:space="preserve">
+    <value>Réessayer</value>
+  </data>
 </root>

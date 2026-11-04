@@ -66,6 +66,9 @@ internal sealed partial class AlmanaxWindow : Window
 
         _model.DateRequested += (_, date) => _ = LoadAsync(date);
 
+        // At its place from the first frame; OnOpenedAsync settles it once open.
+        _placements.PlaceBeforeShow(this, () => WindowPlacements.Almanax);
+
         Opened += async (_, _) => await OnOpenedAsync().ConfigureAwait(true);
     }
 

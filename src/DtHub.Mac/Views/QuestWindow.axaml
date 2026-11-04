@@ -50,6 +50,8 @@
     <!-- The list's rows, edge to edge, the text ten pixels in: hover and
          selection in the palette, a bar on the left for the selection. -->
     <Style Selector="ListBox#NodeList ListBoxItem" x:DataType="papycha:QuestNode">
+      <!-- Screen readers read the row's title, not the record's ToString. -->
+      <Setter Property="AutomationProperties.Name" Value="{Binding Label}" />
       <Setter Property="IsEnabled" Value="{Binding IsReachable}" />
       <Setter Property="Margin" Value="0" />
       <Setter Property="Padding" Value="10,0" />
@@ -198,6 +200,12 @@
                       MinWidth="150" Margin="0,0,10,0"
                       IsEnabled="{Binding !Tracker.IsBusy}"
                       IsVisible="{Binding Tracker.HasSeveralCharacters}">
+              <!-- Screen readers read the name, not the record's ToString. -->
+              <ComboBox.Styles>
+                <Style Selector="ComboBoxItem" x:DataType="papycha:TrackerCharacter">
+                  <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                </Style>
+              </ComboBox.Styles>
               <ComboBox.ItemTemplate>
                 <DataTemplate x:DataType="papycha:TrackerCharacter">
                   <TextBlock>
@@ -622,8 +630,10 @@
       </Popup>
 
       <!-- The web view is a native view drawn above everything in the
-           window: hidden whenever something must show in its place. -->
-      <platform:MacWebView x:Name="View" IsVisible="{Binding ShowsPage}" />
+           window: hidden whenever something must show in its place, its
+           failure included (QuestWindow.ShowPage, after ShowsPage). -->
+      <platform:MacWebView x:Name="View" IsVisible="False" />
+      <views:PageFailure x:Name="Failure" />
 
       <!-- The game's own steps, in the web view's place while it is hidden. -->
       <DockPanel Background="{DynamicResource SurfaceBrush}" IsVisible="{Binding ShowsOfficialSteps}">
@@ -906,6 +916,7 @@
                     <!-- The label, then muted words that only situate it. -->
                     <TextBlock TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" VerticalAlignment="Center"
                                FontWeight="{Binding Converter={StaticResource Look}, ConverterParameter=LabelWeight}"
+                               FontSize="{Binding Converter={StaticResource Look}, ConverterParameter=LabelSize}"
                                Foreground="{Binding Converter={StaticResource Look}, ConverterParameter=LabelBrush}"
                                Margin="{Binding Converter={StaticResource Look}, ConverterParameter=LabelMargin}">
                       <Run Text="{Binding Label}" /><Run Text="{Binding Suffix}"

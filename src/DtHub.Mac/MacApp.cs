@@ -71,6 +71,9 @@ internal sealed class MacApp : Application
         // one and its "About Avalonia" item.
         NativeMenu.SetMenu(this, []);
 
+        // Each window's Edit menu, and View menu when it shows a page.
+        MacMenus.Install();
+
         // The PC has one theme, dark; Fluent's dark variant dresses what is
         // not redrawn, in the PC's accent.
         RequestedThemeVariant = ThemeVariant.Dark;
