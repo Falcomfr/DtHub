@@ -18,6 +18,8 @@ No copyright notice or third-party licence text may be removed.
 | Serilog and its sinks | Apache License 2.0 | NuGet packages |
 | Microsoft.Extensions.* | MIT | NuGet packages |
 | Microsoft.Web.WebView2 | Proprietary Microsoft licence | NuGet package, engine provided by Windows |
+| Avalonia (Mac version) | MIT | NuGet packages, included in DT Hub.app |
+| SkiaSharp, HarfBuzzSharp (Mac version) | MIT | NuGet packages, native libraries included in DT Hub.app |
 | papycha.fr logo | Author's agreement, see below | File embedded in the executable |
 | Discord logo | Discord's brand guidelines, see below | Vector outline in the configurator's XAML |
 | DTStuff and OcrApp icons | MakeInTouch's agreement, see below | Files embedded in the executable |

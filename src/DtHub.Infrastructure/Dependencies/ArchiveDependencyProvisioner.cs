@@ -243,7 +243,6 @@ public sealed partial class ArchiveDependencyProvisioner : IDependencyProvisione
             DeleteDirectoryQuietly(staging);
             throw;
         }
-
     }
 
     /// <summary>
