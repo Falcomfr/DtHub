@@ -74,7 +74,16 @@ dotnet build src/DtHub.Mac -warnaserror
 dotnet test tests/DtHub.Tests
 dotnet run --project src/DtHub.Mac
 dotnet publish src/DtHub.Mac -c Release -r osx-arm64   # DT Hub.app, ad-hoc signed
+# or with a stable identity, so macOS keeps the Accessibility permission
+# from build to build (ad hoc, every build is a new app to it):
+dotnet publish src/DtHub.Mac -c Release -r osx-arm64 \
+  -p:MacSigningIdentity=<certificate SHA-1 or name> -p:MacSigningKeychain=<keychain path>
 ```
+
+On the development Mac a local certificate, "DT Hub Local Signing", lives in
+its own keychain (`~/Library/Keychains/dthub-signing.keychain-db`). It is
+enough for that Mac only; another Mac still needs a Developer ID and
+notarization.
 
 Never build `DtHub.slnx` on the Mac: it contains the WPF project. Logs and
 settings: `~/Library/Application Support/DtHub/`.
@@ -99,9 +108,26 @@ MacBook Pro, Apple chip, macOS 27.0.1, Retina; Xiaomi 13T Pro over Wi-Fi
   scrcpy puts them.
 - Quitting leaves no scrcpy and no virtual display.
 
+After the reviews (same evening), from the signed `DT Hub.app` with the
+Accessibility permission:
+
+- Tabs: switching by click, Ctrl+Tab, F1 to F3 (a free window and tabbed
+  ones); the strip follows a game moved by hand; a tab dragged before
+  another, the accounts list following; rows dragged in the panel.
+- The phone's adb link cut then back: waiting window, games reopened, all
+  in view again (a game used to stay in the Dock).
+- Copy and paste: Cmd+A/C/V in a field and in a guide page; the Edit menu.
+- The panel's minimize button, and Ctrl+P bringing it back; a placement
+  saved off screen comes back inside it.
+- The permission kept across a rebuild with a stable signature; the log in
+  the PC's format; no fault caught by the new net (one was, the PC's
+  kernel32 processor reading, now replaced).
+
 Not seen: the help windows (they open on a phone problem), sound, typing
 text in the game, the strip following a game brought forward from outside,
-the Papycha sign-in, the map and DofusRoom windows, the fourth grid cell.
+the Papycha sign-in, the map and DofusRoom windows, the fourth grid cell,
+JavaScript dialogs and downloads in the web tools, a failed page's retry,
+a macOS logout with DT Hub open.
 
 ## First check on the Mac, 2026-11-04 (morning, the first minimal window)
 
