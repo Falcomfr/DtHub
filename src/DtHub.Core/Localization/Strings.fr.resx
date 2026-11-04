@@ -3201,7 +3201,7 @@ Pas de donjon en équipe.
     <value>Maj+clic : une plage</value>
   </data>
   <data name="ToolNotInstalled" xml:space="preserve">
-    <value>{0} est introuvable. Dans le Terminal : brew install {1}</value>
+    <value>{0} est introuvable. {1}</value>
   </data>
   <data name="MacOk" xml:space="preserve">
     <value>OK</value>
@@ -3333,5 +3333,11 @@ Un téléphone déjà associé en Wi-Fi revient tout seul.</value>
   </data>
   <data name="MacPageRetry" xml:space="preserve">
     <value>Réessayer</value>
+  </data>
+  <data name="InstallWithBrew" xml:space="preserve">
+    <value>Dans le Terminal : brew install {0}</value>
+  </data>
+  <data name="InstallLinuxTools" xml:space="preserve">
+    <value>Prenez l'archive Linux officielle de scrcpy (github.com/Genymobile/scrcpy/releases) : elle contient scrcpy, scrcpy-server et adb. Copiez ces trois fichiers dans ~/.local/bin. Le scrcpy de votre distribution est souvent trop ancien.</value>
   </data>
 </root>

@@ -8,7 +8,7 @@
 public sealed class WindowInteropHelper(Avalonia.Controls.Window window)
 {
     public nint Handle =>
-        window.TryGetPlatformHandle() is { Handle: not 0 } native
+        OperatingSystem.IsMacOS() && window.TryGetPlatformHandle() is { Handle: not 0 } native
             ? (nint)DtHub.Mac.Platform.MacNative.dthub_window_number(native.Handle)
             : 0;
 }

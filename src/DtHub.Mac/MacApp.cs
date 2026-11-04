@@ -197,13 +197,17 @@ internal sealed class MacApp : Application
 
         // Before the first window, as on the PC: adb and scrcpy are set up
         // with their progress shown. Shows nothing once they are there.
-        await PreparationWindow
-            .RunAsync(services.GetRequiredService<MacToolPreparation>())
-            .ConfigureAwait(true);
+        // macOS only: Linux takes the player's tools, and moves no window.
+        if (OperatingSystem.IsMacOS())
+        {
+            await PreparationWindow
+                .RunAsync(services.GetRequiredService<MacToolPreparation>())
+                .ConfigureAwait(true);
 
-        // Before any game window: without the Accessibility permission the
-        // layout cannot move them.
-        AccessibilityCheck.Run(services.GetRequiredService<IDialogService>());
+            // Before any game window: without the Accessibility permission
+            // the layout cannot move them.
+            AccessibilityCheck.Run(services.GetRequiredService<IDialogService>());
+        }
 
         // The first launch is recognized by an empty device registry.
         var firstRun = (await services.GetRequiredService<IDeviceRegistry>()
@@ -375,6 +379,14 @@ internal sealed class MacApp : Application
             return _quests;
         }
 
+        // The web view is macOS's WebKit: on Linux the guides open in the
+        // browser.
+        if (!OperatingSystem.IsMacOS())
+        {
+            services.GetRequiredService<IDialogService>().OpenUrl(DtHub.Core.Papycha.PapychaSite.Root);
+            return null;
+        }
+
         _quests = services.GetRequiredService<QuestWindow>();
         _quests.PropertyChanged += (_, e) =>
         {
@@ -390,6 +402,19 @@ internal sealed class MacApp : Application
     /// <summary>A web tool: brought forward when already open, opened otherwise.</summary>
     private static void ShowWebTool(IServiceProvider services, WebTool tool)
     {
+        if (!OperatingSystem.IsMacOS())
+        {
+            services.GetRequiredService<IDialogService>().OpenUrl(tool switch
+            {
+                WebTool.Map => DofusTouchMap.Address,
+                WebTool.Calcofus => Calcofus.Address,
+                WebTool.PapychaTracker => DtHub.Core.Papycha.PapychaSite.TrackerUrl,
+                WebTool.Lomitall => Lomitall.Address,
+                _ => DofusRoom.Address,
+            });
+            return;
+        }
+
         // Held from the opening, and visible: a window whose opening threw
         // would otherwise keep the tool from ever opening again.
         if (WebTools.TryGetValue(tool, out var open) && open.IsVisible)
@@ -419,6 +444,13 @@ internal sealed class MacApp : Application
     /// </summary>
     private static void ShowAlmanax(IServiceProvider services)
     {
+        if (!OperatingSystem.IsMacOS())
+        {
+            services.GetRequiredService<IDialogService>().OpenUrl(
+                DtHub.Core.Almanax.AlmanaxCalendar.UrlFor(Strings.Spoken.TwoLetterISOLanguageName));
+            return;
+        }
+
         if (_almanax is { IsVisible: true })
         {
             _almanax.Activate();

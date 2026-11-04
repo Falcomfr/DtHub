@@ -1,5 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <!-- The macOS front-end. It builds on Windows too, so the CI keeps it
+  <!-- The macOS and Linux front-end (D228). It builds on Windows too, so the CI keeps it
        from rotting, but only src/DtHub.App is ever shipped from there.
        See docs/superpowers/specs/2026-11-04-macos-design.md. -->
   <PropertyGroup>
@@ -7,7 +7,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>DtHub.Mac</RootNamespace>
     <AssemblyName>DtHub.Mac</AssemblyName>
-    <RuntimeIdentifiers>osx-arm64</RuntimeIdentifiers>
+    <RuntimeIdentifiers>osx-arm64;linux-x64;linux-arm64</RuntimeIdentifiers>
     <SatelliteResourceLanguages>en;fr;es</SatelliteResourceLanguages>
     <!-- A binding to a property the view model does not have fails the
          build, as a WPF one only fails on screen. -->

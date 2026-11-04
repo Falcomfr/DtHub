@@ -1,12 +1,14 @@
-﻿# DT Hub on macOS
+﻿# DT Hub on macOS and Linux
 
 Asked on 2026-11-04: a Mac version of DT Hub, without any risk for the
 Windows one. The game keeps running on the Android phone, as Ankama requires;
 the Mac only shows and drives it, like the PC does.
 
-iPhone support was dropped on purpose: iOS offers no adb, no virtual display
-an outside program can create, no input injection and no cloned apps. None of
-what DT Hub does is possible there.
+iPhone support is not part of this work. iOS offers no adb, no virtual
+display an outside program can create and no cloned apps, so one account per
+iPhone at best. Since iOS 27, Xcode 27's Device Hub lets a computer show an
+iPhone's screen and send it touches (Developer Mode), and pymobiledevice3 does
+it from Windows: a separate track, untried, see D226.
 
 ## What the Mac version is
 
@@ -162,6 +164,47 @@ through `PATH`: .NET SDK 10.0.403, adb 37.0.1, scrcpy 5.0.1, gh 2.103.3.
 - 8. scrcpy 5.0.1, as on the PC: no argument rejected.
 - Fixed in passing: the macOS app menu read "Avalonia Application" with an
   "About Avalonia" item; it now reads DT Hub, without that item.
+
+## Linux (D228)
+
+The same project, `src/DtHub.Mac`, also targets `linux-x64` and
+`linux-arm64`. It keeps its name because the Mac session works on it.
+
+Setting up a Linux PC:
+
+```bash
+# .NET 10 SDK: from the distribution, or https://dot.net/v1/dotnet-install.sh
+# scrcpy's official archive holds scrcpy, scrcpy-server and adb, matched:
+curl -LO https://github.com/Genymobile/scrcpy/releases/download/v5.0.1/scrcpy-linux-x86_64-v5.0.1.tar.gz
+tar xzf scrcpy-linux-x86_64-v5.0.1.tar.gz
+mkdir -p ~/.local/bin
+cp scrcpy-linux-x86_64-v5.0.1/{scrcpy,scrcpy-server,adb} ~/.local/bin/
+dotnet run --project src/DtHub.Mac
+```
+
+Avoid the distribution's scrcpy: Ubuntu 24.04 ships 1.25, too old for
+`--new-display`. USB debugging also needs the phone's udev rule on some
+distributions (`android-sdk-platform-tools-common` on Debian and Ubuntu).
+
+Checked on 2026-11-04 in WSL (Ubuntu 24.04, WSLg):
+- build with `-warnaserror`, 0 warnings;
+- 3011 tests passed, 3 skipped (Windows only);
+- without the tools, the window shows the Linux hint;
+- with the three files in `~/.local/bin`, adb starts and the window waits
+  for a phone.
+
+No phone could be tried: WSL does not see the PC's USB. Still to do on a
+real Linux PC:
+- items 2 to 7 of the Mac list above;
+- window placement: `TitleBarHeight` is the Mac's, and under Wayland scrcpy
+  cannot place its window at all (X11 or XWayland needed for the grid).
+
+Since the Mac work of the same evening, window placement, global shortcuts
+and the web windows go through `libDtHubMac.dylib`, macOS only. On Linux the
+services fall back (`MacServices`): no window control after launch (scrcpy
+places its windows from its arguments; no grid, tabs or full screen
+afterwards), no global shortcuts, the guides and web tools open in the
+browser, adb and scrcpy from the player's install. Not run on Linux since.
 
 ## Rules for the next session
 

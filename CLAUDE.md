@@ -1,6 +1,6 @@
-# DT Hub - consignes agent
+﻿# DT Hub - consignes agent
 
-**Sur un Mac**, les règles WSL et rtk ci-dessous ne s'appliquent pas : lire
+**Sur un Mac ou un PC Linux**, les règles WSL et rtk ci-dessous ne s'appliquent pas : lire
 `docs/superpowers/specs/2026-11-04-macos-design.md` avant tout, puis travailler
 sur la branche `feat/macos`.
 

@@ -8,6 +8,7 @@ using DtHub.Core.Dependencies;
 using DtHub.Core.Devices;
 using DtHub.Core.Dofus;
 using DtHub.Core.Hotkeys;
+using DtHub.Core.Localization;
 using DtHub.Core.Papycha;
 using DtHub.Core.Processes;
 using DtHub.Core.Scrcpy;
@@ -87,15 +88,32 @@ internal static class MacServices
         services.AddSingleton<IProcessRunner, ProcessRunner>();
         services.AddSingleton<IProcessLauncher, ProcessLauncher>();
 
-        // Third-party components: the manifest's macOS archives, downloaded
-        // on first need as on the PC, the copy the player installed only
-        // when that download fails. scrcpy is always handed this adb.
+        // Third-party components. On macOS the manifest's archives, downloaded
+        // on first need as on the PC, the copy the player installed only when
+        // that download fails; scrcpy is always handed this adb. On Linux the
+        // player's install (scrcpy's official archive, which carries adb): the
+        // manifest has no Linux archives.
         services.AddSingleton(_ => new HttpClient { Timeout = TimeSpan.FromMinutes(10) });
         services.AddSingleton<IDependencyProvisioner, ArchiveDependencyProvisioner>();
-        services.AddSingleton<IAdbLocator>(provider => Provisioned(
-            provider, DependencyManifest.PlatformToolsMacKey, new InstalledTool("adb", "android-platform-tools")));
-        services.AddSingleton<IScrcpyLocator>(provider => Provisioned(
-            provider, DependencyManifest.ScrcpyMacKey, new InstalledTool("scrcpy", "scrcpy")));
+
+        if (OperatingSystem.IsMacOS())
+        {
+            services.AddSingleton<IAdbLocator>(provider => Provisioned(
+                provider,
+                DependencyManifest.PlatformToolsMacKey,
+                new InstalledTool("adb", Strings.Format("InstallWithBrew", "android-platform-tools"))));
+            services.AddSingleton<IScrcpyLocator>(provider => Provisioned(
+                provider,
+                DependencyManifest.ScrcpyMacKey,
+                new InstalledTool("scrcpy", Strings.Format("InstallWithBrew", "scrcpy"))));
+        }
+        else
+        {
+            var linuxHint = Strings.Get("InstallLinuxTools");
+            services.AddSingleton<IAdbLocator>(new InstalledTool("adb", linuxHint));
+            services.AddSingleton<IScrcpyLocator>(new InstalledTool("scrcpy", linuxHint));
+        }
+
         services.AddSingleton<MacToolPreparation>();
 
         // Quest guides and the game's names, as on the PC.
@@ -138,9 +156,19 @@ internal static class MacServices
         services.AddSingleton<ScrcpySessionManager>();
 
         // Windows and shortcuts.
-        services.AddSingleton<IWindowController, MacWindowController>();
+        // macOS's own (libDtHubMac.dylib); on Linux passive stand-ins.
+        if (OperatingSystem.IsMacOS())
+        {
+            services.AddSingleton<IWindowController, MacWindowController>();
+            services.AddSingleton<IHotkeyRegistrar, MacHotkeyRegistrar>();
+        }
+        else
+        {
+            services.AddSingleton<IWindowController, PassiveWindowController>();
+            services.AddSingleton<IHotkeyRegistrar, PassiveHotkeyRegistrar>();
+        }
+
         services.AddSingleton<WindowManagerService>();
-        services.AddSingleton<IHotkeyRegistrar, MacHotkeyRegistrar>();
 
         // Interface.
         services.AddSingleton<IDialogService, MacDialogService>();

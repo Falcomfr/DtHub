@@ -95,7 +95,7 @@ public sealed class ProvisionedToolTests : IDisposable
         var tool = new ProvisionedTool(
             provisioner,
             Dependency(archive),
-            new InstalledTool("adb", "android-platform-tools", [_installed]),
+            new InstalledTool("adb", "brew install android-platform-tools", [_installed]),
             NullLogger<ProvisionedTool>.Instance);
         _tools.Add(tool);
 
