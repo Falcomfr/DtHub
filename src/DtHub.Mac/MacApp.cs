@@ -12,6 +12,7 @@ using DtHub.App.Services;
 using DtHub.App.ViewModels;
 using DtHub.Core;
 using DtHub.Core.Devices;
+using DtHub.Core.Dofus;
 using DtHub.Core.Localization;
 using DtHub.Core.Scrcpy;
 using DtHub.Core.Sessions;
@@ -40,6 +41,9 @@ internal sealed class MacApp : Application
     private static ServiceProvider? _services;
     private static IClassicDesktopStyleApplicationLifetime? _desktop;
     private static ConfiguratorWindow? _configurator;
+    private static QuestWindow? _quests;
+    private static AlmanaxWindow? _almanax;
+    private static readonly Dictionary<WebTool, WebToolWindow> WebTools = [];
 
     /// <summary>Only from here on does hiding the panel count as the player's decision.</summary>
     private static bool _started;
@@ -208,8 +212,9 @@ internal sealed class MacApp : Application
         // are running, and does not know which names to hide.
         services.GetRequiredService<DiagnosticReporter>().Launcher = launcher;
 
-        // Our own window counts as home for the shortcuts, as on the PC.
-        launcher.OwnsWindow = handle => handle != 0 && handle == configurator.NativeHandle;
+        // Our own windows count as home for the shortcuts, as on the PC.
+        launcher.OwnsWindow = handle => handle != 0 && (handle == configurator.NativeHandle
+            || handle == _quests?.Handle || QuestPageWindow.Owns(handle) || AlmanaxWindow.Owns(handle));
 
         WireLauncher(services, launcher, configurator);
 
@@ -265,8 +270,13 @@ internal sealed class MacApp : Application
             configurator.HideNow();
         }
 
-        // shortcut: the quest tracker is not on the Mac yet, so it is not
-        // restored (the PC's RestoreQuestsAsync).
+        // The quest tracker comes back as it was left: open or not, and on
+        // the quest being read there.
+        if (document.QuestsVisible && Quests(services) is { } quests)
+        {
+            await quests.RestoreAsync(document.LastQuestUrl, document.LastQuestStep).ConfigureAwait(true);
+        }
+
         _started = true;
 
         if (openNothing)
@@ -296,19 +306,16 @@ internal sealed class MacApp : Application
 
         launcher.ConfiguratorToggleRequested += (_, _) => dispatcher.Post(configurator.Toggle);
 
-        // shortcut: QuestWindow, AlmanaxWindow and WebToolWindow (the map,
-        // the calculators, Lomitall's portal) are not on the Mac yet. The
-        // buttons and the shortcuts keep their wiring and say so.
-        void NotYet() => dispatcher.Post(() => dialogs.ShowInformation(Strings.Get("MacNotYet")));
-        launcher.QuestsToggleRequested += (_, _) => NotYet();
-        launcher.AlmanaxRequested += (_, _) => NotYet();
-        model.QuestsRequested += (_, _) => NotYet();
-        model.AlmanaxRequested += (_, _) => NotYet();
-        model.WebToolRequested += (_, _) => NotYet();
+        launcher.QuestsToggleRequested += (_, _) => dispatcher.Post(() => Quests(services)?.Toggle());
+        launcher.AlmanaxRequested += (_, _) => dispatcher.Post(() => ShowAlmanax(services));
+        model.QuestsRequested += (_, _) => dispatcher.Post(() => Quests(services)?.Toggle());
+        model.AlmanaxRequested += (_, _) => dispatcher.Post(() => ShowAlmanax(services));
+        model.WebToolRequested += (_, tool) => dispatcher.Post(() => ShowWebTool(services, tool));
 
         // shortcut: UpdateWindow and the update service are not on the Mac;
         // the banner never shows, so its button is never reached.
-        model.UpdateNotesRequested += (_, _) => NotYet();
+        model.UpdateNotesRequested += (_, _) =>
+            dispatcher.Post(() => dialogs.ShowInformation(Strings.Get("MacNotYet")));
 
         launcher.QuitRequested += (_, _) => dispatcher.Post(() => _ = RequestQuitAsync());
 
@@ -338,6 +345,83 @@ internal sealed class MacApp : Application
                 OnNothingLeft(rememberConfigurator: true);
             }
         };
+    }
+
+    /// <summary>
+    /// The guides, built on first need, as on the PC: they carry a browser,
+    /// pointless to start for someone who does not use it. Hiding them while
+    /// nothing else is left stops the application, like hiding the panel.
+    /// </summary>
+    private static QuestWindow? Quests(IServiceProvider services)
+    {
+        if (_quests is not null || IsShuttingDown)
+        {
+            return _quests;
+        }
+
+        _quests = services.GetRequiredService<QuestWindow>();
+        _quests.PropertyChanged += (_, e) =>
+        {
+            if (e.Property == Visual.IsVisibleProperty && _started && _quests?.IsVisible == false)
+            {
+                OnNothingLeft(rememberConfigurator: false);
+            }
+        };
+
+        return _quests;
+    }
+
+    /// <summary>A web tool: brought forward when already open, opened otherwise.</summary>
+    private static void ShowWebTool(IServiceProvider services, WebTool tool)
+    {
+        // Held from the opening, and visible: a window whose opening threw
+        // would otherwise keep the tool from ever opening again.
+        if (WebTools.TryGetValue(tool, out var open) && open.IsVisible)
+        {
+            open.Activate();
+
+            return;
+        }
+
+        var window = services.GetRequiredService<WebToolWindow>();
+
+        window.Tool = tool;
+        window.Closed += (_, _) =>
+        {
+            if (WebTools.TryGetValue(tool, out var current) && ReferenceEquals(current, window))
+            {
+                _ = WebTools.Remove(tool);
+            }
+        };
+        WebTools[tool] = window;
+        window.Show();
+    }
+
+    /// <summary>
+    /// The day's Almanax, one window at a time. It does not count when
+    /// deciding whether something remains, as on the PC.
+    /// </summary>
+    private static void ShowAlmanax(IServiceProvider services)
+    {
+        if (_almanax is { IsVisible: true })
+        {
+            _almanax.Activate();
+
+            return;
+        }
+
+        var window = services.GetRequiredService<AlmanaxWindow>();
+
+        _almanax = window;
+        window.Closed += (_, _) =>
+        {
+            if (ReferenceEquals(_almanax, window))
+            {
+                _almanax = null;
+            }
+        };
+
+        _ = window.ShowAlmanaxAsync();
     }
 
     /// <summary>
@@ -421,6 +505,18 @@ internal sealed class MacApp : Application
             {
                 await _configurator.SavePlacementAsync().ConfigureAwait(true);
             }
+
+            if (_quests is not null)
+            {
+                await settings
+                    .SetQuestsStateAsync(_quests.IsVisible, _quests.LastQuestUrl, _quests.LastQuestStep)
+                    .ConfigureAwait(true);
+
+                await _services
+                    .GetRequiredService<WindowPlacements>()
+                    .SaveAsync(_quests, WindowPlacements.Quests)
+                    .ConfigureAwait(true);
+            }
         }
         catch (IOException exception)
         {
@@ -471,7 +567,8 @@ internal sealed class MacApp : Application
     /// </summary>
     private static void OnNothingLeft(bool rememberConfigurator)
     {
-        if (!_started || IsShuttingDown || _configurator?.IsVisible == true || _services is null)
+        if (!_started || IsShuttingDown || _configurator?.IsVisible == true || _quests?.IsVisible == true
+            || _services is null)
         {
             return;
         }

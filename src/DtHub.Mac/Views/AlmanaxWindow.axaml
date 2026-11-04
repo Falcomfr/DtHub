@@ -1,0 +1,481 @@
+﻿<!-- The PC's AlmanaxWindow (src/DtHub.App/Windows/AlmanaxWindow.xaml), on
+     the same view model: the Almanax reduced to what you come here for.
+     The portal page is read, not displayed: "almanax-bridge.js" pulls the
+     useful fields from it, and this window draws them itself. -->
+<Window x:Class="DtHub.Mac.Views.AlmanaxWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:DtHub.Mac.Localization"
+        xmlns:vm="using:DtHub.App.ViewModels"
+        xmlns:platform="using:DtHub.Mac.Platform"
+        x:DataType="vm:AlmanaxViewModel"
+        Title="{loc:T AlmanaxWindowTitle}"
+        Width="470" Height="560" MinWidth="420" MinHeight="340"
+        Topmost="True" ShowInTaskbar="True"
+        FontSize="{DynamicResource FontMedium}"
+        Background="{DynamicResource SurfaceAltBrush}"
+        Foreground="{DynamicResource TextBrush}">
+
+  <Window.Styles>
+    <!-- The chip for a day in the strip: the chosen day by the background
+         and outline, today by a dot under the number. -->
+    <Style Selector="Button.dayChip">
+      <Setter Property="Padding" Value="0,6" />
+      <Setter Property="Margin" Value="2,0" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+    </Style>
+
+    <!-- A cell of the drop-down calendar, the same grammar; the overflow
+         days from the neighbouring month fade without ceasing to be
+         clickable. -->
+    <Style Selector="Button.dayCell">
+      <Setter Property="Padding" Value="0,5" />
+      <Setter Property="Margin" Value="1" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="FontSize" Value="{DynamicResource FontBody}" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+    </Style>
+    <Style Selector="Button.dayCell.outside">
+      <Setter Property="Opacity" Value="0.4" />
+    </Style>
+    <Style Selector="Button.dayCell:disabled">
+      <Setter Property="Opacity" Value="0.2" />
+    </Style>
+    <Style Selector="Button.dayChip.selected, Button.dayCell.selected">
+      <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+
+    <!-- The dot for today, shared by the strip and the calendar. -->
+    <Style Selector="Ellipse.todayDot">
+      <Setter Property="Width" Value="3" />
+      <Setter Property="Height" Value="3" />
+      <Setter Property="Margin" Value="0,3,0,0" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="Fill" Value="{DynamicResource AccentBrush}" />
+    </Style>
+
+    <!-- The heading that tops a value: small, in the accent colour. -->
+    <Style Selector="TextBlock.fieldLabel">
+      <Setter Property="FontSize" Value="{DynamicResource FontSmall}" />
+      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="ScrollViewer.loading">
+      <Setter Property="Opacity" Value="0.35" />
+    </Style>
+
+    <!-- The bonus that asks to go somewhere takes the accent. -->
+    <Style Selector="Border.bonus">
+      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource GrooveBrush}" />
+    </Style>
+    <Style Selector="Border.bonus.elsewhere">
+      <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    </Style>
+  </Window.Styles>
+
+  <DockPanel>
+
+    <!-- The strip of days, up top: knowing what tomorrow requires lets
+         you have it ready. -->
+    <Border DockPanel.Dock="Top" Padding="8,8"
+            Background="{DynamicResource BrushedPanelBrush}"
+            BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,0,0,1">
+      <DockPanel>
+        <Button DockPanel.Dock="Left" Theme="{StaticResource IconButton}"
+                VerticalAlignment="Center" ToolTip.Tip="{loc:T AlmanaxPreviousTip}"
+                Command="{Binding PreviousCommand}">
+          <Path Classes="rowGlyph" Data="M 9,3 L 5,7.5 L 9,12" />
+        </Button>
+
+        <!-- The return to today only once you've moved away from it. -->
+        <Button DockPanel.Dock="Right" Theme="{StaticResource QuietButton}"
+                VerticalAlignment="Center" Margin="4,0,0,0" Padding="8,5"
+                FontSize="{DynamicResource FontSmall}"
+                Content="{loc:T AlmanaxToday}" ToolTip.Tip="{loc:T AlmanaxTodayTip}"
+                Command="{Binding TodayCommand}"
+                IsVisible="{Binding CanGoToday}" />
+
+        <!-- Going far, forward as well as back: the calendar. -->
+        <Panel DockPanel.Dock="Right" VerticalAlignment="Center">
+          <ToggleButton x:Name="CalendarToggle" Theme="{StaticResource OutlineToggleButton}"
+                        Padding="7,6" Margin="4,0,0,0"
+                        ToolTip.Tip="{loc:T AlmanaxPickTip}"
+                        IsChecked="{Binding IsCalendarOpen, Mode=TwoWay}">
+            <Path Width="15" Height="15" Stretch="None" StrokeJoin="Round"
+                  StrokeLineCap="Round"
+                  Stroke="{DynamicResource TextBrush}" StrokeThickness="1.3"
+                  Data="M 2.5,4 H 12.5 V 13 H 2.5 Z M 2.5,6.6 H 12.5 M 5,2.5 V 5 M 10,2.5 V 5" />
+          </ToggleButton>
+
+          <Popup IsOpen="{Binding IsCalendarOpen, Mode=TwoWay}" IsLightDismissEnabled="True"
+                 Placement="BottomEdgeAlignedRight" PlacementTarget="{Binding #CalendarToggle}">
+            <Border Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                    CornerRadius="{DynamicResource RadiusKey}" Margin="0,5,0,0" Padding="10">
+              <StackPanel Width="262">
+
+                <!-- The month header: go back, the month, go forward. -->
+                <DockPanel Margin="0,0,0,8">
+                  <Button DockPanel.Dock="Left" Theme="{StaticResource IconButton}"
+                          Command="{Binding PreviousMonthCommand}"
+                          ToolTip.Tip="{loc:T PreviousMonth}">
+                    <Path Classes="rowGlyph" Data="M 9,3 L 5,7.5 L 9,12" />
+                  </Button>
+
+                  <Button DockPanel.Dock="Right" Theme="{StaticResource IconButton}"
+                          Command="{Binding NextMonthCommand}"
+                          ToolTip.Tip="{loc:T NextMonth}">
+                    <Path Classes="rowGlyph" Data="M 6,3 L 10,7.5 L 6,12" />
+                  </Button>
+
+                  <TextBlock Text="{Binding MonthLabel}" HorizontalAlignment="Center"
+                             VerticalAlignment="Center" FontWeight="SemiBold" />
+                </DockPanel>
+
+                <ItemsControl ItemsSource="{Binding Weekdays}" Margin="0,0,0,2">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <UniformGrid Rows="1" Columns="7" />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                      <TextBlock Text="{Binding}" HorizontalAlignment="Center"
+                                 TextWrapping="NoWrap"
+                                 FontSize="{DynamicResource FontSmall}"
+                                 Foreground="{DynamicResource TextMutedBrush}" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <ItemsControl ItemsSource="{Binding MonthDays}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <UniformGrid Rows="6" Columns="7" />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:AlmanaxCell">
+                      <Button Theme="{StaticResource OutlineButton}" Classes="dayCell"
+                              Classes.outside="{Binding !InMonth}"
+                              Classes.selected="{Binding IsSelected}"
+                              IsEnabled="{Binding IsReachable}"
+                              Command="{Binding $parent[Window].((vm:AlmanaxViewModel)DataContext).PickDayCommand}"
+                              CommandParameter="{Binding}">
+                        <StackPanel>
+                          <TextBlock Text="{Binding Number}" TextWrapping="NoWrap"
+                                     HorizontalAlignment="Center" />
+                          <Ellipse Classes="todayDot" IsVisible="{Binding IsToday}" />
+                        </StackPanel>
+                      </Button>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </Border>
+          </Popup>
+        </Panel>
+
+        <Button DockPanel.Dock="Right" Theme="{StaticResource IconButton}"
+                VerticalAlignment="Center" ToolTip.Tip="{loc:T AlmanaxNextTip}"
+                Command="{Binding NextCommand}">
+          <Path Classes="rowGlyph" Data="M 6,3 L 10,7.5 L 6,12" />
+        </Button>
+
+        <ItemsControl ItemsSource="{Binding Days}" Margin="4,0">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <UniformGrid Rows="1" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:AlmanaxChip">
+              <!-- The bonus title in full, the chip only has room for two
+                   lines of it. None while it is unknown. -->
+              <Button Theme="{StaticResource OutlineButton}" Classes="dayChip"
+                      Classes.selected="{Binding IsSelected}"
+                      ToolTip.Tip="{Binding Bonus}"
+                      ToolTip.ServiceEnabled="{Binding Bonus, Converter={StaticResource EmptyToVisibility}, ConverterParameter=inverse}"
+                      Command="{Binding $parent[Window].((vm:AlmanaxViewModel)DataContext).PickCommand}"
+                      CommandParameter="{Binding}">
+                <StackPanel>
+                  <TextBlock Text="{Binding Weekday}" HorizontalAlignment="Center"
+                             TextWrapping="NoWrap"
+                             FontSize="{DynamicResource FontSmall}"
+                             Foreground="{DynamicResource TextMutedBrush}" />
+                  <TextBlock Text="{Binding Number}" HorizontalAlignment="Center"
+                             TextWrapping="NoWrap" Margin="0,1,0,0"
+                             FontSize="15" FontWeight="SemiBold" />
+                  <Ellipse Classes="todayDot" IsVisible="{Binding IsToday}" />
+                </StackPanel>
+              </Button>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </DockPanel>
+    </Border>
+
+    <!-- The source, credited the way the guides' source is. -->
+    <Border DockPanel.Dock="Bottom" Padding="10,6"
+            Background="{DynamicResource BrushedPanelBrush}"
+            BorderBrush="{DynamicResource BevelBrush}" BorderThickness="0,1,0,0">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                   Classes="muted" FontSize="{DynamicResource FontSmall}"
+                   TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"
+                   Text="{loc:T AlmanaxSource}" />
+
+        <Button Grid.Column="1" Theme="{StaticResource IconButton}"
+                ToolTip.Tip="{loc:T OpenThisPageTip}"
+                Click="OnOpenInBrowser">
+          <Path Classes="rowGlyph"
+                Data="M 7,3.5 H 3.5 V 12.5 H 12.5 V 9 M 9.5,3.5 H 12.5 V 6.5 M 12.5,3.5 L 7.8,8.2" />
+        </Button>
+      </Grid>
+    </Border>
+
+    <!-- The readers. They have no height: they load the pages for the
+         bridge to read, they are not there to be seen. -->
+    <platform:MacWebView x:Name="View" DockPanel.Dock="Bottom" Height="0" />
+    <platform:MacWebView x:Name="WeekView" DockPanel.Dock="Bottom" Height="0" />
+
+    <!-- Loading, under the strip: the content below fades for the read
+         rather than disappearing. -->
+    <ProgressBar DockPanel.Dock="Top" Height="2" MinHeight="2" IsIndeterminate="True"
+                 Background="Transparent" BorderThickness="0"
+                 Foreground="{DynamicResource AccentBrush}"
+                 IsVisible="{Binding IsLoading}" />
+
+    <Grid>
+      <!-- The waiting state, alone, as long as nothing has ever been read. -->
+      <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center"
+                 Classes="muted" Text="{loc:T AlmanaxLoading}"
+                 IsVisible="{Binding ShowsWaiting}" />
+
+      <ScrollViewer VerticalScrollBarVisibility="Auto"
+                    Classes.loading="{Binding IsLoading}"
+                    IsVisible="{Binding HasDay}">
+        <StackPanel Margin="16,14,16,16">
+
+          <!-- The date on the left, the Dofusian day on the right. -->
+          <DockPanel>
+            <Border DockPanel.Dock="Right" Padding="7,2" Margin="8,0,0,0"
+                    VerticalAlignment="Center"
+                    Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="1"
+                    CornerRadius="{DynamicResource RadiusKey}"
+                    IsVisible="{Binding DofusianDay, Converter={StaticResource EmptyToVisibility}, ConverterParameter=inverse}">
+              <TextBlock Text="{Binding DofusianDay}" TextWrapping="NoWrap"
+                         FontSize="{DynamicResource FontSmall}"
+                         Foreground="{DynamicResource TextMutedBrush}" />
+            </Border>
+
+            <TextBlock Text="{Binding DateText}" VerticalAlignment="Center"
+                       TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"
+                       FontSize="{DynamicResource FontBody}"
+                       Foreground="{DynamicResource TextMutedBrush}" />
+          </DockPanel>
+
+          <!-- The offering: the only thing you really come here for. -->
+          <TextBlock Text="{loc:T AlmanaxOffering}" Classes="fieldLabel" Margin="0,18,0,0" />
+
+          <Grid Margin="0,4,0,0" ColumnDefinitions="Auto,*,Auto">
+            <!-- Copy, to paste into the marketplace search on the phone. -->
+            <Button Grid.Column="2" Margin="10,0,0,0" Padding="8,5"
+                    Theme="{StaticResource QuietButton}"
+                    VerticalAlignment="Center"
+                    FontSize="{DynamicResource FontSmall}"
+                    ToolTip.Tip="{loc:T AlmanaxCopyTip}"
+                    Command="{Binding CopyOfferingCommand}"
+                    IsVisible="{Binding OfferingCount, Converter={StaticResource EmptyToVisibility}, ConverterParameter=inverse}">
+              <Panel>
+                <TextBlock Text="{loc:T AlmanaxCopy}" IsVisible="{Binding !Copied}" />
+                <TextBlock Text="{loc:T AlmanaxCopied}" IsVisible="{Binding Copied}" />
+              </Panel>
+            </Button>
+
+            <TextBlock Grid.Column="0" Text="{Binding OfferingCount}"
+                       FontSize="30" FontWeight="Bold" Margin="0,0,10,0"
+                       VerticalAlignment="Center" TextWrapping="NoWrap"
+                       Foreground="{DynamicResource AccentBrush}"
+                       IsVisible="{Binding OfferingCount, Converter={StaticResource EmptyToVisibility}, ConverterParameter=inverse}" />
+
+            <TextBlock Grid.Column="1" Text="{Binding OfferingItem}"
+                       FontSize="18" FontWeight="SemiBold" TextWrapping="Wrap"
+                       VerticalAlignment="Center" />
+          </Grid>
+
+          <TextBlock Text="{Binding OfferingDetail}" TextWrapping="Wrap"
+                     Classes="muted" FontSize="{DynamicResource FontSmall}"
+                     Margin="0,6,0,0"
+                     IsVisible="{Binding OfferingDetail, Converter={StaticResource EmptyToVisibility}, ConverterParameter=inverse}" />
+
+          <!-- The bonus applies to the whole day; on the days it asks to go
+               somewhere, it reads as something to do. -->
+          <Border Margin="0,18,0,0" Padding="12,10" BorderThickness="1"
+                  CornerRadius="{DynamicResource RadiusKey}"
+                  Classes="bonus" Classes.elsewhere="{Binding CallsElsewhere}"
+                  IsVisible="{Binding Bonus, Converter={StaticResource EmptyToVisibility}, ConverterParameter=inverse}">
+            <StackPanel>
+              <Panel>
+                <TextBlock Classes="fieldLabel" Text="{loc:T AlmanaxBonus}" IsVisible="{Binding !CallsElsewhere}" />
+                <TextBlock Classes="fieldLabel" Text="{loc:T AlmanaxElsewhere}" IsVisible="{Binding CallsElsewhere}" />
+              </Panel>
+              <TextBlock Text="{Binding Bonus}" TextWrapping="Wrap"
+                         FontSize="14" FontWeight="SemiBold" Margin="0,3,0,0" />
+              <TextBlock Text="{Binding BonusDetail}" TextWrapping="Wrap"
+                         Classes="muted" FontSize="{DynamicResource FontSmall}"
+                         Margin="0,5,0,0"
+                         IsVisible="{Binding BonusDetail, Converter={StaticResource EmptyToVisibility}, ConverterParameter=inverse}" />
+            </StackPanel>
+          </Border>
+
+          <!-- The quest and the Meryde close the list. -->
+          <Rectangle Height="1" Margin="0,16,0,0" Fill="{DynamicResource GrooveBrush}" />
+
+          <Grid Margin="0,12,0,0" ColumnDefinitions="*,*">
+            <StackPanel Grid.Column="0" Margin="0,0,8,0"
+                        IsVisible="{Binding Quest, Converter={StaticResource EmptyToVisibility}, ConverterParameter=inverse}">
+              <TextBlock Text="{loc:T AlmanaxQuest}" TextWrapping="NoWrap"
+                         FontSize="{DynamicResource FontSmall}"
+                         Foreground="{DynamicResource TextMutedBrush}" />
+              <TextBlock Text="{Binding Quest}" TextWrapping="Wrap" Margin="0,2,0,0"
+                         FontSize="{DynamicResource FontBody}" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="1"
+                        IsVisible="{Binding Meryde, Converter={StaticResource EmptyToVisibility}, ConverterParameter=inverse}">
+              <TextBlock Text="{loc:T AlmanaxMeryde}" TextWrapping="NoWrap"
+                         FontSize="{DynamicResource FontSmall}"
+                         Foreground="{DynamicResource TextMutedBrush}" />
+              <TextBlock Text="{Binding Meryde}" TextWrapping="Wrap" Margin="0,2,0,0"
+                         FontSize="{DynamicResource FontBody}" />
+            </StackPanel>
+          </Grid>
+
+          <!-- The event of the month, the same all month long. -->
+          <StackPanel Margin="0,12,0,0"
+                      IsVisible="{Binding MonthEvent, Converter={StaticResource EmptyToVisibility}, ConverterParameter=inverse}">
+            <TextBlock Text="{loc:T AlmanaxMonthEvent}" TextWrapping="NoWrap"
+                       FontSize="{DynamicResource FontSmall}"
+                       Foreground="{DynamicResource TextMutedBrush}" />
+            <TextBlock Text="{Binding MonthEvent}" TextWrapping="Wrap" Margin="0,2,0,0"
+                       FontSize="{DynamicResource FontBody}" />
+          </StackPanel>
+
+          <!-- Getting ready, on request only: each button reads several
+               pages of the portal, one a second. See D190. -->
+          <Rectangle Height="1" Margin="0,16,0,0" Fill="{DynamicResource GrooveBrush}" />
+
+          <TextBlock Text="{loc:T AlmanaxGetReady}" Classes="fieldLabel" Margin="0,12,0,0" />
+
+          <!-- The week's offerings: the seven days of the strip. -->
+          <Button Margin="0,8,0,0" Padding="10,5" HorizontalAlignment="Left"
+                  Theme="{StaticResource OutlineButton}"
+                  Content="{loc:T AlmanaxPrepare}" ToolTip.Tip="{loc:T AlmanaxPrepareTip}"
+                  Command="{Binding PrepareWeekCommand}" />
+
+          <ItemsControl ItemsSource="{Binding Shopping}" Margin="0,8,0,0">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:AlmanaxShoppingLine">
+                <Grid Margin="0,1" ColumnDefinitions="64,30,*,Auto">
+                  <TextBlock Grid.Column="0" Text="{Binding Day}" TextWrapping="NoWrap"
+                             VerticalAlignment="Center"
+                             Foreground="{DynamicResource TextMutedBrush}" />
+                  <TextBlock Grid.Column="1" Text="{Binding Count}" TextWrapping="NoWrap"
+                             VerticalAlignment="Center"
+                             FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+                  <TextBlock Grid.Column="2" Text="{Binding Item}" TextWrapping="Wrap"
+                             VerticalAlignment="Center" />
+
+                  <!-- Same copy as the day's offering, line by line. -->
+                  <Button Grid.Column="3" Margin="8,0,0,0" Padding="8,3"
+                          Theme="{StaticResource QuietButton}"
+                          FontSize="{DynamicResource FontSmall}"
+                          ToolTip.Tip="{loc:T AlmanaxCopyTip}"
+                          Command="{Binding $parent[Window].((vm:AlmanaxViewModel)DataContext).CopyLineCommand}"
+                          CommandParameter="{Binding}"
+                          IsVisible="{Binding Count, Converter={StaticResource EmptyToVisibility}, ConverterParameter=inverse}">
+                    <Panel>
+                      <TextBlock Text="{loc:T AlmanaxCopy}" IsVisible="{Binding !Copied}" />
+                      <TextBlock Text="{loc:T AlmanaxCopied}" IsVisible="{Binding Copied}" />
+                    </Panel>
+                  </Button>
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <!-- The days of a bonus or a profession, typed in any case. -->
+          <Grid Margin="0,10,0,0" ColumnDefinitions="*,Auto">
+            <TextBox VerticalContentAlignment="Center" Grid.Column="0" Padding="7,4"
+                     Text="{Binding SearchQuery}"
+                     PlaceholderText="{loc:T AlmanaxSearchHint}" ToolTip.Tip="{loc:T AlmanaxSearchTip}" />
+            <Button Grid.Column="1" Margin="6,0,0,0" Padding="10,5"
+                    Theme="{StaticResource OutlineButton}"
+                    Content="{loc:T AlmanaxSearch}" ToolTip.Tip="{loc:T AlmanaxSearchTip}"
+                    Command="{Binding SearchCommand}" />
+          </Grid>
+
+          <!-- Every day found, as it is read. -->
+          <ItemsControl ItemsSource="{Binding Found}" Margin="0,6,0,0"
+                        Grid.IsSharedSizeScope="True">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:AlmanaxFoundLine">
+                <Grid Margin="0,4">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="FoundDay" />
+                    <ColumnDefinition Width="*" />
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Grid.Column="0" Text="{Binding Day}" TextWrapping="NoWrap"
+                             Margin="0,0,12,0"
+                             Foreground="{DynamicResource TextMutedBrush}" />
+                  <StackPanel Grid.Column="1">
+                    <TextBlock Text="{Binding Bonus}" TextWrapping="Wrap" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding Detail}" TextWrapping="Wrap" Margin="0,2,0,0"
+                               Classes="muted" FontSize="{DynamicResource FontSmall}" />
+                  </StackPanel>
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <TextBlock Margin="0,6,0,0" Text="{Binding SearchResult}" TextWrapping="Wrap"
+                     Classes="muted"
+                     IsVisible="{Binding SearchResult, Converter={StaticResource EmptyToVisibility}, ConverterParameter=inverse}" />
+
+          <!-- While a batch reads: where it is, and how to stop it. -->
+          <DockPanel Margin="0,8,0,0" IsVisible="{Binding IsBatchBusy}">
+            <Button DockPanel.Dock="Right" Padding="10,4" Theme="{StaticResource QuietButton}"
+                    Content="{loc:T AlmanaxStop}" Command="{Binding StopBatchCommand}" />
+            <TextBlock Text="{Binding BatchProgress}" VerticalAlignment="Center"
+                       Classes="muted" FontSize="{DynamicResource FontSmall}" />
+          </DockPanel>
+
+        </StackPanel>
+      </ScrollViewer>
+
+      <!-- The error overlays what was already displayed. -->
+      <Border VerticalAlignment="Bottom" Margin="12" Padding="12,10"
+              Background="{DynamicResource SurfaceBrush}"
+              BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+              CornerRadius="{DynamicResource RadiusKey}"
+              IsVisible="{Binding Problem, Converter={StaticResource EmptyToVisibility}, ConverterParameter=inverse}">
+        <TextBlock Text="{Binding Problem}" TextWrapping="Wrap"
+                   FontSize="{DynamicResource FontSmall}" />
+      </Border>
+    </Grid>
+
+  </DockPanel>
+</Window>

@@ -1,0 +1,50 @@
+﻿<!-- The PC's QuestPageWindow (src/DtHub.App/Windows/QuestPageWindow.xaml):
+     a page opened from a guide, outside quest tracking: no search, no
+     steps, no success. -->
+<Window x:Class="DtHub.Mac.Views.QuestPageWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:DtHub.Mac.Localization"
+        xmlns:platform="using:DtHub.Mac.Platform"
+        Title="{loc:T LinkedPage}"
+        Width="620" Height="820" MinWidth="380" MinHeight="360"
+        Topmost="True" ShowInTaskbar="True"
+        FontSize="{DynamicResource FontMedium}"
+        Background="{DynamicResource SurfaceBrush}"
+        Foreground="{DynamicResource TextBrush}">
+
+  <DockPanel>
+
+    <Border DockPanel.Dock="Bottom" Padding="10,6"
+            Background="{DynamicResource BrushedPanelBrush}"
+            BorderBrush="{DynamicResource BevelBrush}" BorderThickness="0,1,0,0">
+      <Grid ColumnDefinitions="*,Auto,Auto">
+        <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                   Classes="muted" FontSize="{DynamicResource FontSmall}"
+                   TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"
+                   Text="{loc:T PapychaGuides}" />
+
+        <!-- Only on a site in another language than ours, where it takes the
+             place of the untranslated page: see PageTranslation. -->
+        <Button x:Name="Translate" Grid.Column="1"
+                Theme="{StaticResource QuietButton}"
+                ToolTip.Tip="{loc:T TranslateTip}" IsVisible="False"
+                Click="OnTranslate">
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="{loc:T Translate}" VerticalAlignment="Center" />
+            <Path Classes="rowGlyph" Margin="6,0,0,0" VerticalAlignment="Center"
+                  Data="M 7,3.5 H 3.5 V 12.5 H 12.5 V 9 M 9.5,3.5 H 12.5 V 6.5 M 12.5,3.5 L 7.8,8.2" />
+          </StackPanel>
+        </Button>
+
+        <Button x:Name="OpenPage" Grid.Column="2" Content="{loc:T OpenInBrowser}"
+                Theme="{StaticResource QuietButton}"
+                ToolTip.Tip="{loc:T OpenThisPageTip}"
+                Click="OnOpenInBrowser" />
+      </Grid>
+    </Border>
+
+    <platform:MacWebView x:Name="View" />
+
+  </DockPanel>
+</Window>

@@ -44,6 +44,14 @@
     <Compile Include="..\DtHub.App\Services\*.cs"
              Exclude="..\DtHub.App\Services\IDialogService.cs;..\DtHub.App\Services\DarkTitleBar.cs;..\DtHub.App\Services\WebViewEnvironment.cs;..\DtHub.App\Services\WindowIcons.cs;..\DtHub.App\Services\WindowPlacements.cs;..\DtHub.App\Services\FaultReporting.cs"
              Link="Pc\Shared\Services\%(Filename)%(Extension)" />
+    <!-- The scripts the guides, the tracker and the Almanax inject, under
+         the PC's resource names, and the PC's two classes that read them. -->
+    <Compile Include="..\DtHub.App\Windows\QuestBridge.cs;..\DtHub.App\Windows\AlmanaxBridge.cs"
+             Link="Pc\Shared\Windows\%(Filename)%(Extension)" />
+    <EmbeddedResource Include="..\DtHub.App\Assets\quest-bridge.js" LogicalName="DtHub.App.quest-bridge.js" Link="Pc\Shared\Assets\quest-bridge.js" />
+    <EmbeddedResource Include="..\DtHub.App\Assets\papycha-report.js" LogicalName="DtHub.App.papycha-report.js" Link="Pc\Shared\Assets\papycha-report.js" />
+    <EmbeddedResource Include="..\DtHub.App\Assets\papycha-tracker.js" LogicalName="DtHub.App.papycha-tracker.js" Link="Pc\Shared\Assets\papycha-tracker.js" />
+    <EmbeddedResource Include="..\DtHub.App\Assets\almanax-bridge.js" LogicalName="DtHub.App.almanax-bridge.js" Link="Pc\Shared\Assets\almanax-bridge.js" />
   </ItemGroup>
 
   <!-- Native/*.swift, the calls into macOS (windows, shortcuts, web view), built into

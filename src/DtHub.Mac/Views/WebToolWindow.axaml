@@ -1,0 +1,41 @@
+﻿<!-- The PC's WebToolWindow (src/DtHub.App/Windows/WebToolWindow.xaml): a
+     DOFUS Touch tool that is a web site, as the site shows itself, with a
+     thin strip at the foot for the browser, the map's donation page, or
+     the translation. -->
+<Window x:Class="DtHub.Mac.Views.WebToolWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:DtHub.Mac.Localization"
+        xmlns:platform="using:DtHub.Mac.Platform"
+        Width="1280" Height="800" MinWidth="380" MinHeight="420"
+        WindowStartupLocation="CenterScreen" ShowInTaskbar="True"
+        FontSize="{DynamicResource FontMedium}"
+        Foreground="{DynamicResource TextBrush}"
+        Background="{DynamicResource SurfaceAltBrush}">
+
+  <DockPanel>
+    <Border DockPanel.Dock="Bottom" Padding="10,5"
+            Background="{DynamicResource BrushedPanelBrush}"
+            BorderBrush="{DynamicResource BevelBrush}" BorderThickness="0,1,0,0">
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+        <Button x:Name="Donate" Content="{loc:T ToolMapDonate}" Theme="{StaticResource OutlineButton}"
+                Padding="10,3" Margin="0,0,6,0" IsVisible="False" Click="OnDonate" />
+        <!-- Only on a site in another language than ours, where it takes the
+             place of the untranslated page: see PageTranslation. -->
+        <Button x:Name="Translate" ToolTip.Tip="{loc:T TranslateTip}"
+                Theme="{StaticResource OutlineButton}" Padding="10,3"
+                IsVisible="False" Click="OnTranslate">
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="{loc:T Translate}" VerticalAlignment="Center" />
+            <Path Classes="rowGlyph" Margin="6,0,0,0" VerticalAlignment="Center"
+                  Data="M 7,3.5 H 3.5 V 12.5 H 12.5 V 9 M 9.5,3.5 H 12.5 V 6.5 M 12.5,3.5 L 7.8,8.2" />
+          </StackPanel>
+        </Button>
+        <Button x:Name="OpenPage" Content="{loc:T OpenInBrowser}" Theme="{StaticResource OutlineButton}"
+                Padding="10,3" Click="OnOpenInBrowser" />
+      </StackPanel>
+    </Border>
+
+    <platform:MacWebView x:Name="View" />
+  </DockPanel>
+</Window>

@@ -37,9 +37,9 @@ namespace DtHub.Mac;
 /// <summary>
 /// The PC's composition (src/DtHub.App/AppServices.cs), service for
 /// service, with the Mac's own where Windows has its: window control
-/// through the Accessibility API, the dialogs, adb and scrcpy from the
-/// manifest's macOS archives. Left out until the Mac has them: updates (the PC's
-/// install a Windows executable), the guides' web view, desktop shortcuts.
+/// through the Accessibility API, the dialogs, the web view, adb and scrcpy
+/// from the manifest's macOS archives. Left out until the Mac has them:
+/// updates (the PC's install a Windows executable), desktop shortcuts.
 /// </summary>
 internal static class MacServices
 {
@@ -146,6 +146,16 @@ internal static class MacServices
         services.AddTransient<InputHelpWindow>();
         services.AddTransient<HotkeyEditorViewModel>();
         services.AddTransient<Views.HotkeyEditorWindow>();
+
+        // The web windows, as the PC's: the guides kept for the session,
+        // the linked pages, the Almanax and the web tools built each time.
+        services.AddSingleton<QuestViewModel>();
+        services.AddSingleton<QuestTrackerViewModel>();
+        services.AddSingleton<QuestWindow>();
+        services.AddTransient<QuestPageWindow>();
+        services.AddTransient<AlmanaxWindow>();
+        services.AddTransient<WebToolWindow>();
+        services.AddSingleton<Func<WebToolWindow>>(p => () => p.GetRequiredService<WebToolWindow>());
 
         // A missing registration fails at launch, not on the first click.
         return services.BuildServiceProvider(new ServiceProviderOptions { ValidateOnBuild = true });
