@@ -237,3 +237,18 @@ public func dthubScreens(_ values: UnsafeMutablePointer<Double>?, _ capacity: In
     }
     return Int32(screens.count)
 }
+
+/// Of the given windows, the one nearest the front on screen, or 0. Lets
+/// the tab strip name the game actually shown when macOS refused to bring
+/// the selected one forward (an app not in front may not activate another).
+@_cdecl("dthub_front_most_of")
+public func dthubFrontMostOf(_ ids: UnsafePointer<Int64>?, _ count: Int32) -> Int64 {
+    guard let ids, count > 0 else { return 0 }
+    let wanted = Set((0..<Int(count)).map { ids[$0] })
+    let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID)
+        as? [[String: Any]] ?? []
+    for info in list {
+        if let id = info[kCGWindowNumber as String] as? Int, wanted.contains(Int64(id)) { return Int64(id) }
+    }
+    return 0
+}

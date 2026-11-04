@@ -107,4 +107,7 @@ internal static class MacNative
 
     [DllImport(Library)]
     private static extern int dthub_screens(double[] values, int capacity);
+
+    [DllImport(Library)]
+    public static extern long dthub_front_most_of(long[] ids, int count);
 }

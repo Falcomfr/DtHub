@@ -37,6 +37,7 @@ public sealed partial class TabbedGameWindow : Window
     private ScreenRect _beforeFullscreen;
     private bool _closing;
     private bool _following;
+    private bool _adopting;
 
     /// <summary>For Avalonia's loader and previewer only.</summary>
     public TabbedGameWindow()
@@ -57,7 +58,16 @@ public sealed partial class TabbedGameWindow : Window
         // has moved.
         PositionChanged += (_, _) => FollowStrip();
         Activated += (_, _) => RaiseSelected();
+
+        // The strip follows the game actually in front: macOS may refuse to
+        // bring the selected one forward, and the player may click straight
+        // on a game below.
+        _watch.Tick += (_, _) => AdoptFront();
+        Opened += (_, _) => _watch.Start();
+        Closed += (_, _) => _watch.Stop();
     }
+
+    private readonly Avalonia.Threading.DispatcherTimer _watch = new() { Interval = TimeSpan.FromSeconds(1) };
 
     public ObservableCollection<GameTabViewModel> Items { get; } = [];
 
@@ -128,6 +138,24 @@ public sealed partial class TabbedGameWindow : Window
         Items.Add(tab);
 
         Select(Items.Count == 1 ? tab : Selected ?? tab);
+
+        // A scrcpy window comes to the front by itself when it first shows,
+        // which can be after it was stacked: the selected tab's game is
+        // brought back once that has settled, or the strip would name a
+        // game hidden behind another. Twice, for a slow window.
+        foreach (var settle in (int[])[600, 1500])
+        {
+            _ = Task.Delay(settle).ContinueWith(
+                _ => Dispatcher.BeginInvoke(() =>
+                {
+                    if (Selected is { ShowsGame: true } shown)
+                    {
+                        BringForward(shown.Window, activate: true);
+                    }
+                }),
+                TaskScheduler.Default);
+        }
+
         return true;
     }
 
@@ -357,9 +385,9 @@ public sealed partial class TabbedGameWindow : Window
         PlaceGames();
         Retitle();
 
-        if (tab.ShowsGame)
+        if (tab.ShowsGame && !_adopting)
         {
-            _windows.Focus(tab.Window);
+            BringForward(tab.Window, activate: true);
         }
     }
 
@@ -411,7 +439,12 @@ public sealed partial class TabbedGameWindow : Window
 
         foreach (var tab in Items.Where(t => t.ShowsGame).OrderBy(t => t.IsSelected))
         {
-            _windows.MoveWindow(tab.Window, zone, bringToFront: tab.IsSelected);
+            _windows.MoveWindow(tab.Window, zone);
+        }
+
+        if (Selected is { ShowsGame: true } selected && !_adopting)
+        {
+            BringForward(selected.Window, activate: false);
         }
     }
 
@@ -436,7 +469,69 @@ public sealed partial class TabbedGameWindow : Window
     {
         if (Selected is { ShowsGame: true } tab)
         {
-            _windows.Raise(tab.Window);
+            BringForward(tab.Window, activate: false);
+        }
+    }
+
+    /// <summary>
+    /// Docked windows ignore the launcher's raises (see
+    /// <see cref="DtHub.Mac.Platform.MacWindowController.Focus"/>): the
+    /// frame goes past that to show its own selection.
+    /// </summary>
+    private void BringForward(nint window, bool activate)
+    {
+        if (_windows is DtHub.Mac.Platform.MacWindowController mac)
+        {
+            if (activate)
+            {
+                mac.ShowDocked(window);
+            }
+            else
+            {
+                _ = DtHub.Mac.Platform.MacNative.dthub_raise_window(window, activate: false);
+            }
+        }
+        else if (activate)
+        {
+            _windows.Focus(window);
+        }
+        else
+        {
+            _windows.Raise(window);
+        }
+    }
+
+    /// <summary>
+    /// macOS lets an application that is not in front bring another one
+    /// forward only if it is itself active, which DT Hub is not while it
+    /// reopens the games at startup. When the selected tab's game could not
+    /// be brought forward, the strip selects the tab whose game is shown,
+    /// rather than name a game hidden behind it.
+    /// </summary>
+    private void AdoptFront()
+    {
+        var games = Items.Where(t => t.ShowsGame).ToList();
+
+        if (games.Count < 2)
+        {
+            return;
+        }
+
+        var front = (nint)DtHub.Mac.Platform.MacNative.dthub_front_most_of(
+            [.. games.Select(t => (long)t.Window)], games.Count);
+
+        if (front != 0 && games.FirstOrDefault(t => t.Window == front) is { IsSelected: false } shown)
+        {
+            _adopting = true;
+
+            try
+            {
+                shown.IsSelected = true;
+            }
+            finally
+            {
+                _adopting = false;
+            }
         }
     }
 

@@ -103,7 +103,7 @@ internal sealed class MacWindowController : IWindowController
     {
         _ = MacNative.dthub_move_window(handle, rect.X, rect.Y, rect.Width, rect.Height);
 
-        if (bringToFront)
+        if (bringToFront && !IsDocked(handle))
         {
             _ = MacNative.dthub_raise_window(handle, activate: false);
         }
@@ -111,8 +111,27 @@ internal sealed class MacWindowController : IWindowController
 
     public WindowFrame GetWindowChrome(string? monitorDeviceName) => new(0, TitleBarHeight, 0, TitleBarHeight);
 
+    /// <summary>
+    /// A docked window is brought forward by its frame only, through
+    /// <see cref="ShowDocked"/>: the launcher raises every window in list
+    /// order, which on the PC leaves a hidden tab hidden, but here would
+    /// put the last tab in front of the selected one.
+    /// </summary>
     public void Focus(nint handle)
     {
+        if (IsDocked(handle))
+        {
+            return;
+        }
+
+        ShowDocked(handle);
+    }
+
+    /// <summary>The frame's own way to bring its selected tab forward.</summary>
+    public void ShowDocked(nint handle)
+    {
+        CancelHide(handle);
+
         if (MacNative.dthub_is_minimized(handle))
         {
             _ = MacNative.dthub_set_minimized(handle, minimized: false);
@@ -123,7 +142,13 @@ internal sealed class MacWindowController : IWindowController
 
     public void RequestClose(nint handle) => _ = MacNative.dthub_close_window(handle);
 
-    public void Raise(nint handle) => _ = MacNative.dthub_raise_window(handle, activate: false);
+    public void Raise(nint handle)
+    {
+        if (!IsDocked(handle))
+        {
+            _ = MacNative.dthub_raise_window(handle, activate: false);
+        }
+    }
 
     /// <summary>Another application's title cannot be changed on macOS.</summary>
     public void SetTitle(nint handle, string title)
