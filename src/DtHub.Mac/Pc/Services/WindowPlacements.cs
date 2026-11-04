@@ -51,6 +51,13 @@ public sealed class WindowPlacements(IWindowController windows, SettingsService 
             return false;
         }
 
+        // The tabbed frame's window is only its strip: the placement, the
+        // whole frame's, is the frame's to apply, games included.
+        if (window is DtHub.App.Windows.TabbedGameWindow frame)
+        {
+            return frame.RestorePlacement(placement);
+        }
+
         var handle = new System.Windows.Interop.WindowInteropHelper(window).Handle;
         return handle != 0 && _windows.SetPlacement(handle, placement);
     }

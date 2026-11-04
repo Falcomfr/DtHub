@@ -7,9 +7,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:loc="using:DtHub.Mac.Localization"
         xmlns:vm="using:DtHub.App.ViewModels"
+        xmlns:win="using:DtHub.App.Windows"
         x:DataType="vm:GameTabViewModel"
         WindowDecorations="None"
         CanResize="False"
+        MinWidth="480"
         ShowInTaskbar="False"
         Background="{DynamicResource SurfaceBrush}">
   <DockPanel>
@@ -21,21 +23,35 @@
                 VerticalAlignment="Center" ToolTip.Tip="{loc:T Close}" Click="OnCloseAll">
           <Path Classes="rowGlyph" Data="M 4,4 L 11,11 M 11,4 L 4,11" />
         </Button>
-        <ItemsControl Name="Tabs" Margin="6,4,6,0">
+        <!-- What the PC's title bar carries and this borderless strip has
+             nowhere else to show: the phone's state and the shortcuts. -->
+        <TextBlock Name="Hint" DockPanel.Dock="Right" Classes="muted" FontSize="{DynamicResource FontSmall}"
+                   VerticalAlignment="Center" Margin="8,0,8,0" MaxWidth="360"
+                   TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+        <ItemsControl Name="Tabs" Margin="4,4,4,0">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
-              <StackPanel Orientation="Horizontal" Spacing="2" />
+              <StackPanel Orientation="Horizontal" />
             </ItemsPanelTemplate>
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="vm:GameTabViewModel">
-              <Grid>
-                <RadioButton Theme="{StaticResource Tab}" GroupName="GameTabs"
-                             IsChecked="{Binding IsSelected}">
+              <!-- The two gutters frame the tab at all times, even empty:
+                   showing them on hover would shift the strip as one aims.
+                   The whole cell is where a dragged tab is dropped. -->
+              <Grid Classes="dropSurface" Background="Transparent" ColumnDefinitions="4,Auto,4">
+                <Border Grid.Column="0" Width="2" Margin="1,4,1,4" CornerRadius="1"
+                        Background="{DynamicResource AccentBrush}" IsVisible="{Binding DropBefore}" />
+                <!-- Not focusable, as on the PC: clicking a tab must not take
+                     the keyboard from the game. -->
+                <RadioButton Grid.Column="1" Theme="{StaticResource Tab}" GroupName="GameTabs"
+                             Focusable="False" IsChecked="{Binding IsSelected}"
+                             ToolTip.Tip="{Binding Title}">
                   <StackPanel Orientation="Horizontal">
                     <Border Width="4" CornerRadius="2" Margin="0,2,7,2" IsVisible="{Binding HasColour}"
                             Background="{Binding ColourBrushKey, Converter={StaticResource KeyToBrush}}" />
                     <TextBlock Margin="0,0,5,0" VerticalAlignment="Center" Classes="muted"
+                               FontSize="{DynamicResource FontTiny}"
                                Text="{Binding AccountKey}"
                                IsVisible="{Binding AccountKey, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                     <Image Width="16" Height="16" Margin="0,0,6,0" Stretch="Uniform"
@@ -47,16 +63,26 @@
                     </Button>
                   </StackPanel>
                 </RadioButton>
+                <!-- The selected tab's underline in its account's colour, over
+                     the accent one; an account without a colour keeps the
+                     accent. -->
+                <Border Grid.Column="1" Height="2" VerticalAlignment="Bottom" IsHitTestVisible="False"
+                        Background="{Binding ColourBrushKey, Converter={StaticResource KeyToBrush}}">
+                  <Border.IsVisible>
+                    <MultiBinding Converter="{StaticResource AllTrue}">
+                      <Binding Path="IsSelected" />
+                      <Binding Path="HasColour" />
+                    </MultiBinding>
+                  </Border.IsVisible>
+                </Border>
+                <Border Grid.Column="2" Width="2" Margin="1,4,1,4" CornerRadius="1"
+                        Background="{DynamicResource AccentBrush}" IsVisible="{Binding DropAfter}" />
               </Grid>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
       </DockPanel>
     </Border>
-    <StackPanel Name="Waiting" IsVisible="False" Spacing="10" Margin="24" VerticalAlignment="Center">
-      <TextBlock Text="{loc:T WaitingPhoneTitle}" Classes="title" HorizontalAlignment="Center" />
-      <TextBlock Text="{loc:T WaitingPhoneText}" TextWrapping="Wrap" TextAlignment="Center" Classes="muted" />
-      <Button Content="{loc:T Close}" HorizontalAlignment="Center" Click="OnWaitingClose" />
-    </StackPanel>
+    <win:WaitingPhoneView Name="Waiting" IsVisible="False" />
   </DockPanel>
 </Window>

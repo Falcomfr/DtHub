@@ -29,7 +29,14 @@ internal sealed class MacWindowController : IWindowController
     /// </summary>
     private static readonly TimeSpan HideDelay = TimeSpan.FromMilliseconds(400);
 
-    private readonly HashSet<nint> _docked = [];
+    /// <summary>Each docked window, with the frame that keeps it.</summary>
+    private readonly Dictionary<nint, nint> _docked = [];
+
+    /// <summary>
+    /// What each tabbed frame covers, its strip and the games below it:
+    /// the frame's own window is only the strip.
+    /// </summary>
+    private readonly Dictionary<nint, ScreenRect> _hosts = [];
     private readonly Dictionary<nint, CancellationTokenSource> _pendingHides = [];
     private readonly Lock _gate = new();
 
@@ -91,8 +98,52 @@ internal sealed class MacWindowController : IWindowController
 
     public int GetWindowProcessId(nint handle) => handle == 0 ? 0 : MacNative.dthub_window_pid(handle);
 
-    public ScreenRect? GetWindowRect(nint handle) =>
-        handle != 0 && MacNative.Frame(handle) is { } frame ? Rect(frame) : null;
+    /// <summary>
+    /// A tabbed frame's rectangle is the whole of it, strip and game area,
+    /// as on the PC where the game is inside it: the launcher saves, sizes
+    /// and places the frame from this rectangle.
+    /// </summary>
+    public ScreenRect? GetWindowRect(nint handle)
+    {
+        if (handle == 0)
+        {
+            return null;
+        }
+
+        lock (_gate)
+        {
+            if (_hosts.TryGetValue(handle, out var outer))
+            {
+                return outer;
+            }
+        }
+
+        return MacNative.Frame(handle) is { } frame ? Rect(frame) : null;
+    }
+
+    /// <summary>
+    /// The tabbed frame says what it covers, or null once it is gone. Read
+    /// back by <see cref="GetWindowRect"/>, from any thread.
+    /// </summary>
+    public void SetHostRect(nint host, ScreenRect? outer)
+    {
+        if (host == 0)
+        {
+            return;
+        }
+
+        lock (_gate)
+        {
+            if (outer is { Width: > 0, Height: > 0 } rect)
+            {
+                _hosts[host] = rect;
+            }
+            else
+            {
+                _ = _hosts.Remove(host);
+            }
+        }
+    }
 
     public ScreenRect? GetClientRect(nint handle) =>
         GetWindowRect(handle) is { } rect
@@ -168,7 +219,20 @@ internal sealed class MacWindowController : IWindowController
     {
     }
 
-    public nint GetForegroundWindow() => (nint)MacNative.dthub_front_window();
+    /// <summary>
+    /// A docked game in front counts as its frame, as on the PC where it
+    /// is a child of the frame and the frame is the foreground window: the
+    /// launcher compares the foreground with the frame's handle.
+    /// </summary>
+    public nint GetForegroundWindow()
+    {
+        var front = (nint)MacNative.dthub_front_window();
+
+        lock (_gate)
+        {
+            return _docked.TryGetValue(front, out var host) ? host : front;
+        }
+    }
 
     /// <summary>
     /// macOS cannot house another application's window in ours: a docked
@@ -184,7 +248,7 @@ internal sealed class MacWindowController : IWindowController
 
         lock (_gate)
         {
-            _ = _docked.Add(child);
+            _docked[child] = host;
         }
 
         CancelHide(child);
@@ -209,7 +273,7 @@ internal sealed class MacWindowController : IWindowController
     {
         lock (_gate)
         {
-            return _docked.Contains(child);
+            return _docked.ContainsKey(child);
         }
     }
 
@@ -252,7 +316,7 @@ internal sealed class MacWindowController : IWindowController
                 // minimized and restores it.
                 lock (_gate)
                 {
-                    if (!_pendingHides.Remove(handle, out var current) || current != pending || _docked.Contains(handle))
+                    if (!_pendingHides.Remove(handle, out var current) || current != pending || _docked.ContainsKey(handle))
                     {
                         return;
                     }

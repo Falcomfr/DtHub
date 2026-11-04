@@ -1,7 +1,4 @@
 ﻿using Avalonia.Controls;
-using Avalonia.Layout;
-
-using DtHub.Core.Localization;
 
 namespace DtHub.App.Windows;
 
@@ -19,32 +16,10 @@ public sealed class WaitingWindow : Window
         ShowActivated = false;
         WindowStartupLocation = WindowStartupLocation.Manual;
 
-        var close = new Button { Content = Strings.Get("Close"), HorizontalAlignment = HorizontalAlignment.Center };
-        close.Click += (_, _) => Close();
-
-        Content = new StackPanel
-        {
-            Spacing = 10,
-            Margin = new Avalonia.Thickness(24),
-            VerticalAlignment = VerticalAlignment.Center,
-            Children =
-            {
-                new TextBlock
-                {
-                    Text = Strings.Get("WaitingPhoneTitle"),
-                    FontSize = 16,
-                    FontWeight = Avalonia.Media.FontWeight.SemiBold,
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                },
-                new TextBlock
-                {
-                    Text = Strings.Get("WaitingPhoneText"),
-                    TextWrapping = Avalonia.Media.TextWrapping.Wrap,
-                    TextAlignment = Avalonia.Media.TextAlignment.Center,
-                },
-                close,
-            },
-        };
+        // The PC's WaitingPhoneView, the same as in a tab.
+        var view = new WaitingPhoneView();
+        view.CloseRequested += (_, _) => Close();
+        Content = view;
     }
 
     public event EventHandler? CloseRequested;
