@@ -181,13 +181,24 @@ internal sealed class MacWindowController : IWindowController
     public void ShowDocked(nint handle)
     {
         CancelHide(handle);
-
-        if (MacNative.dthub_is_minimized(handle))
-        {
-            _ = MacNative.dthub_set_minimized(handle, minimized: false);
-        }
-
+        Restore(handle);
         _ = MacNative.dthub_raise_window(handle, activate: true);
+    }
+
+    /// <summary>
+    /// Takes a window out of the Dock, without asking first whether it is
+    /// in: a minimize still animating answers "not minimized", and the
+    /// window then landed in the Dock after the show. Again once the
+    /// animation is over, for the same reason.
+    /// </summary>
+    private static void Restore(nint handle)
+    {
+        _ = MacNative.dthub_set_minimized(handle, minimized: false);
+        _ = Task.Delay(TimeSpan.FromMilliseconds(600)).ContinueWith(
+            _ => MacNative.dthub_set_minimized(handle, minimized: false),
+            CancellationToken.None,
+            TaskContinuationOptions.None,
+            TaskScheduler.Default);
     }
 
     public void RequestClose(nint handle) => _ = MacNative.dthub_close_window(handle);
@@ -251,11 +262,7 @@ internal sealed class MacWindowController : IWindowController
         }
 
         CancelHide(child);
-
-        if (MacNative.dthub_is_minimized(child))
-        {
-            _ = MacNative.dthub_set_minimized(child, minimized: false);
-        }
+        Restore(child);
 
         return true;
     }
@@ -292,11 +299,7 @@ internal sealed class MacWindowController : IWindowController
 
         if (visible)
         {
-            if (MacNative.dthub_is_minimized(handle))
-            {
-                _ = MacNative.dthub_set_minimized(handle, minimized: false);
-            }
-
+            Restore(handle);
             return;
         }
 
