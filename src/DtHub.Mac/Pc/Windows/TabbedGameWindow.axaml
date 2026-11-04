@@ -1,0 +1,62 @@
+﻿<!-- The PC's tab strip (src/DtHub.App/Windows/TabbedGameWindow.xaml) as a
+     window of its own: on the Mac the game windows cannot be housed inside
+     it, so it sits right above them instead. Below the strip, the waiting
+     view, shown only while the selected tab has lost its phone. -->
+<Window x:Class="DtHub.App.Windows.TabbedGameWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:DtHub.Mac.Localization"
+        xmlns:vm="using:DtHub.App.ViewModels"
+        x:DataType="vm:GameTabViewModel"
+        WindowDecorations="None"
+        CanResize="False"
+        ShowInTaskbar="False"
+        Background="{DynamicResource SurfaceBrush}">
+  <DockPanel>
+    <Border Name="Strip" DockPanel.Dock="Top" Height="34" Background="{DynamicResource SurfaceBrush}"
+            BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1"
+            PointerPressed="OnStripPressed">
+      <DockPanel>
+        <Button DockPanel.Dock="Right" Theme="{StaticResource IconButton}" Margin="0,0,6,0"
+                VerticalAlignment="Center" ToolTip.Tip="{loc:T Close}" Click="OnCloseAll">
+          <Path Classes="rowGlyph" Data="M 4,4 L 11,11 M 11,4 L 4,11" />
+        </Button>
+        <ItemsControl Name="Tabs" Margin="6,4,6,0">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Orientation="Horizontal" Spacing="2" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:GameTabViewModel">
+              <Grid>
+                <RadioButton Theme="{StaticResource Tab}" GroupName="GameTabs"
+                             IsChecked="{Binding IsSelected}">
+                  <StackPanel Orientation="Horizontal">
+                    <Border Width="4" CornerRadius="2" Margin="0,2,7,2" IsVisible="{Binding HasColour}"
+                            Background="{Binding ColourBrushKey, Converter={StaticResource KeyToBrush}}" />
+                    <TextBlock Margin="0,0,5,0" VerticalAlignment="Center" Classes="muted"
+                               Text="{Binding AccountKey}"
+                               IsVisible="{Binding AccountKey, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    <Image Width="16" Height="16" Margin="0,0,6,0" Stretch="Uniform"
+                           Source="{Binding IconPath, Converter={StaticResource IconPath}}" />
+                    <TextBlock Text="{Binding Title}" VerticalAlignment="Center" Opacity="0.85" />
+                    <Button Theme="{StaticResource IconButton}" Margin="4,0,0,0" Focusable="False"
+                            ToolTip.Tip="{loc:T Close}" Click="OnTabClose">
+                      <Path Classes="rowGlyph" Data="M 4,4 L 11,11 M 11,4 L 4,11" />
+                    </Button>
+                  </StackPanel>
+                </RadioButton>
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </DockPanel>
+    </Border>
+    <StackPanel Name="Waiting" IsVisible="False" Spacing="10" Margin="24" VerticalAlignment="Center">
+      <TextBlock Text="{loc:T WaitingPhoneTitle}" Classes="title" HorizontalAlignment="Center" />
+      <TextBlock Text="{loc:T WaitingPhoneText}" TextWrapping="Wrap" TextAlignment="Center" Classes="muted" />
+      <Button Content="{loc:T Close}" HorizontalAlignment="Center" Click="OnWaitingClose" />
+    </StackPanel>
+  </DockPanel>
+</Window>
