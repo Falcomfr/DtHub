@@ -19,7 +19,7 @@ public sealed class Win32ShortcutWriterTests : IDisposable
         }
     }
 
-    [Fact]
+    [WindowsFact]
     public void Ne_reecrit_pas_un_raccourci_qui_mene_deja_au_bon_endroit()
     {
         // A program that rewrites a shortcut to itself at every startup
@@ -33,7 +33,7 @@ public sealed class Win32ShortcutWriterTests : IDisposable
         Assert.Equal(LongAgo, File.GetLastWriteTimeUtc(link));
     }
 
-    [Fact]
+    [WindowsFact]
     public void Reecrit_un_raccourci_qui_mene_a_un_autre_executable()
     {
         var link = Path.Combine(_directory, "DT Hub.lnk");

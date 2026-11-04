@@ -57,7 +57,9 @@ public sealed class SdlFocusFixTests : IDisposable
         Assert.Equal("SDL d'une autre version"u8.ToArray(), File.ReadAllBytes(Sdl));
     }
 
-    [Fact]
+    // Windows refuses to overwrite a file another process has open; macOS
+    // does not, so the patch would go through there.
+    [WindowsFact]
     public async Task Ne_plante_pas_quand_scrcpy_tient_encore_le_fichier()
     {
         File.WriteAllBytes(Sdl, Original);
