@@ -325,6 +325,9 @@
   <data name="Le jour {Jour} de l'Almanax n'a rien rendu en vingt secondes." xml:space="preserve">
     <value>Le jour {Jour} de l'Almanax n'a rien rendu en vingt secondes.</value>
   </data>
+  <data name="Le moteur de rendu a renvoyé une erreur sur l'événement {Kind}." xml:space="preserve">
+    <value>Le moteur de rendu a renvoyé une erreur sur l'événement {Kind}.</value>
+  </data>
   <data name="Le moteur de rendu n'a pas pu être endormi." xml:space="preserve">
     <value>Le moteur de rendu n'a pas pu être endormi.</value>
   </data>
