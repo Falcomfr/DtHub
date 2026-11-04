@@ -30,6 +30,29 @@ private func ownerPid(_ id: CGWindowID) -> pid_t? {
     (windowInfo(id)?[kCGWindowOwnerPID as String] as? Int).map { pid_t($0) }
 }
 
+/// One of our own windows. The Accessibility API cannot be used on
+/// ourselves: the request is served by our own main thread, which is the
+/// one waiting for the answer, so it times out. Our windows are moved
+/// through AppKit instead.
+private func ownWindow(_ id: CGWindowID) -> NSWindow? {
+    // Looked up among our windows directly: the window server's list does
+    // not hold a window shown a moment ago yet.
+    let find = { NSApp?.windows.first { $0.windowNumber == Int(id) } }
+    return Thread.isMainThread ? find() : DispatchQueue.main.sync(execute: find)
+}
+
+/// Runs on the main thread, as AppKit requires; from another thread the
+/// gesture is queued rather than waited for.
+private func onMain(_ body: @escaping () -> Void) {
+    if Thread.isMainThread { body() } else { DispatchQueue.main.async(execute: body) }
+}
+
+/// Top-left origin, as the rest of DT Hub, to AppKit's bottom-left one.
+private func appKitFrame(_ x: Double, _ y: Double, _ width: Double, _ height: Double) -> NSRect {
+    let top = NSScreen.screens.first?.frame.height ?? 0
+    return NSRect(x: x, y: top - y - height, width: width, height: height)
+}
+
 /// The Accessibility element of a window, found among its application's.
 private func element(_ id: CGWindowID) -> AXUIElement? {
     guard let pid = ownerPid(id) else { return nil }
@@ -95,6 +118,10 @@ public func dthubWindowFrame(_ id: Int64, _ frame: UnsafeMutablePointer<Double>?
 
 @_cdecl("dthub_window_title")
 public func dthubWindowTitle(_ id: Int64, _ buffer: UnsafeMutablePointer<CChar>?, _ capacity: Int32) -> Bool {
+    if let own = ownWindow(CGWindowID(id)) {
+        copy(own.title, buffer, capacity)
+        return true
+    }
     let title = (element(CGWindowID(id)).flatMap { attribute($0, kAXTitleAttribute as String) as? String })
         ?? (windowInfo(CGWindowID(id))?[kCGWindowName as String] as? String)
     guard let title else { return false }
@@ -106,6 +133,10 @@ public func dthubWindowTitle(_ id: Int64, _ buffer: UnsafeMutablePointer<CChar>?
 /// move: macOS clamps a size that would not fit where the window still is.
 @_cdecl("dthub_move_window")
 public func dthubMoveWindow(_ id: Int64, _ x: Double, _ y: Double, _ width: Double, _ height: Double) -> Bool {
+    if let own = ownWindow(CGWindowID(id)) {
+        onMain { own.setFrame(appKitFrame(x, y, width, height), display: true) }
+        return true
+    }
     guard let window = element(CGWindowID(id)) else { return false }
     var size = CGSize(width: width, height: height)
     var origin = CGPoint(x: x, y: y)
@@ -121,6 +152,17 @@ public func dthubMoveWindow(_ id: Int64, _ x: Double, _ y: Double, _ width: Doub
 /// Brings the window and its application to the front.
 @_cdecl("dthub_raise_window")
 public func dthubRaiseWindow(_ id: Int64, _ activate: Bool) -> Bool {
+    if let own = ownWindow(CGWindowID(id)) {
+        onMain {
+            if activate {
+                NSApp.activate()
+                own.makeKeyAndOrderFront(nil)
+            } else {
+                own.orderFront(nil)
+            }
+        }
+        return true
+    }
     guard let window = element(CGWindowID(id)) else { return false }
     let raised = AXUIElementPerformAction(window, kAXRaiseAction as CFString) == .success
     if activate, let pid = ownerPid(CGWindowID(id)) {
@@ -133,6 +175,10 @@ public func dthubRaiseWindow(_ id: Int64, _ activate: Bool) -> Bool {
 /// Presses the window's close button, as the player would.
 @_cdecl("dthub_close_window")
 public func dthubCloseWindow(_ id: Int64) -> Bool {
+    if let own = ownWindow(CGWindowID(id)) {
+        onMain { own.performClose(nil) }
+        return true
+    }
     guard let window = element(CGWindowID(id)),
           let button = attribute(window, kAXCloseButtonAttribute as String) else { return false }
     return AXUIElementPerformAction(button as! AXUIElement, kAXPressAction as CFString) == .success
@@ -140,6 +186,10 @@ public func dthubCloseWindow(_ id: Int64) -> Bool {
 
 @_cdecl("dthub_set_minimized")
 public func dthubSetMinimized(_ id: Int64, _ minimized: Bool) -> Bool {
+    if let own = ownWindow(CGWindowID(id)) {
+        onMain { if minimized { own.miniaturize(nil) } else { own.deminiaturize(nil) } }
+        return true
+    }
     guard let window = element(CGWindowID(id)) else { return false }
     let value: CFBoolean = minimized ? kCFBooleanTrue : kCFBooleanFalse
     return AXUIElementSetAttributeValue(window, kAXMinimizedAttribute as CFString, value) == .success
@@ -147,6 +197,7 @@ public func dthubSetMinimized(_ id: Int64, _ minimized: Bool) -> Bool {
 
 @_cdecl("dthub_is_minimized")
 public func dthubIsMinimized(_ id: Int64) -> Bool {
+    if let own = ownWindow(CGWindowID(id)) { return own.isMiniaturized }
     guard let window = element(CGWindowID(id)) else { return false }
     return (attribute(window, kAXMinimizedAttribute as String) as? Bool) ?? false
 }

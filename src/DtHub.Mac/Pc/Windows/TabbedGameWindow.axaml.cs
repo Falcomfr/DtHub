@@ -98,9 +98,16 @@ public sealed partial class TabbedGameWindow : Window
     public bool Attach(
         string key, string title, string? iconPath, nint window, double aspect, string? colourBrushKey)
     {
-        if (window == 0)
+        if (window == 0 || !_windows.Dock(window, Handle))
         {
             return false;
+        }
+
+        // The first game window to arrive gives the frame its place: the
+        // strip goes right above where the game already is.
+        if (_outer.Width <= 0 && _windows.GetWindowRect(window) is { Width: > 0 } at)
+        {
+            _outer = new ScreenRect(at.X, at.Y - StripHeight, at.Width, at.Height + StripHeight);
         }
 
         if (Find(key) is { } existing)
@@ -120,14 +127,6 @@ public sealed partial class TabbedGameWindow : Window
         tab.PropertyChanged += OnTabChanged;
         Items.Add(tab);
 
-        // The first window gives the frame its place: the strip goes right
-        // above where the game already is.
-        if (Items.Count == 1 && _windows.GetWindowRect(window) is { } at)
-        {
-            _outer = new ScreenRect(at.X, at.Y - StripHeight, at.Width, at.Height + StripHeight);
-            PlaceStrip();
-        }
-
         Select(Items.Count == 1 ? tab : Selected ?? tab);
         return true;
     }
@@ -141,6 +140,11 @@ public sealed partial class TabbedGameWindow : Window
 
         tab.PropertyChanged -= OnTabChanged;
         Items.Remove(tab);
+
+        if (tab.Window != 0)
+        {
+            _ = _windows.Undock(tab.Window);
+        }
 
         if (tab.IsSelected && Items.Count > 0 && !_closing)
         {
@@ -181,8 +185,9 @@ public sealed partial class TabbedGameWindow : Window
                 continue;
             }
 
-            if (!alive)
+            if (!alive && tab.Window != 0)
             {
+                _ = _windows.Undock(tab.Window);
                 tab.Window = 0;
             }
 

@@ -21,6 +21,18 @@ internal sealed class MacWindowController : IWindowController
     /// </summary>
     public const int TitleBarHeight = 32;
 
+    /// <summary>
+    /// How long a hide waits before minimizing: the launcher hides a window
+    /// right before handing it to the tabbed frame, and minimizing then
+    /// restoring it a moment later fails halfway through the Dock's
+    /// animation.
+    /// </summary>
+    private static readonly TimeSpan HideDelay = TimeSpan.FromMilliseconds(400);
+
+    private readonly HashSet<nint> _docked = [];
+    private readonly Dictionary<nint, CancellationTokenSource> _pendingHides = [];
+    private readonly Lock _gate = new();
+
     public IReadOnlyList<MonitorInfo> GetMonitors() =>
     [
         .. MacNative.Screens().Select((screen, index) => new MonitorInfo
@@ -133,15 +145,102 @@ internal sealed class MacWindowController : IWindowController
 
     public nint GetForegroundWindow() => (nint)MacNative.dthub_front_window();
 
-    /// <summary>macOS cannot house another application's window in ours.</summary>
-    public bool Dock(nint child, nint host) => false;
+    /// <summary>
+    /// macOS cannot house another application's window in ours: a docked
+    /// window here is one the tabbed frame keeps stacked below its strip.
+    /// It is only remembered, and left visible; the frame places it.
+    /// </summary>
+    public bool Dock(nint child, nint host)
+    {
+        if (child == 0 || host == 0 || !IsWindow(child))
+        {
+            return false;
+        }
 
-    public bool Undock(nint child) => false;
+        lock (_gate)
+        {
+            _ = _docked.Add(child);
+        }
 
-    public bool IsDocked(nint child) => false;
+        CancelHide(child);
 
-    /// <summary>Hidden is minimized into the Dock, as close as macOS comes.</summary>
-    public void SetVisible(nint handle, bool visible) => _ = MacNative.dthub_set_minimized(handle, !visible);
+        if (MacNative.dthub_is_minimized(child))
+        {
+            _ = MacNative.dthub_set_minimized(child, minimized: false);
+        }
+
+        return true;
+    }
+
+    public bool Undock(nint child)
+    {
+        lock (_gate)
+        {
+            return _docked.Remove(child);
+        }
+    }
+
+    public bool IsDocked(nint child)
+    {
+        lock (_gate)
+        {
+            return _docked.Contains(child);
+        }
+    }
+
+    /// <summary>
+    /// Hidden is minimized into the Dock, as close as macOS comes, after a
+    /// short wait that a show or a dock cancels. A docked window is left to
+    /// its frame, which brings the selected tab's to the front.
+    /// </summary>
+    public void SetVisible(nint handle, bool visible)
+    {
+        if (handle == 0 || IsDocked(handle))
+        {
+            return;
+        }
+
+        CancelHide(handle);
+
+        if (visible)
+        {
+            if (MacNative.dthub_is_minimized(handle))
+            {
+                _ = MacNative.dthub_set_minimized(handle, minimized: false);
+            }
+
+            return;
+        }
+
+        var pending = new CancellationTokenSource();
+
+        lock (_gate)
+        {
+            _pendingHides[handle] = pending;
+        }
+
+        _ = Task.Delay(HideDelay, pending.Token).ContinueWith(
+            waited =>
+            {
+                lock (_gate)
+                {
+                    if (!_pendingHides.Remove(handle, out var current) || current != pending)
+                    {
+                        return;
+                    }
+                }
+
+                pending.Dispose();
+
+                if (!IsDocked(handle))
+                {
+                    _ = MacNative.dthub_set_minimized(handle, minimized: true);
+                }
+            },
+            CancellationToken.None,
+            TaskContinuationOptions.OnlyOnRanToCompletion,
+            TaskScheduler.Default);
+    }
 
     public bool GiveKeyboardFocus(nint child) => false;
 
@@ -153,6 +252,22 @@ internal sealed class MacWindowController : IWindowController
     /// </summary>
     public void ReleaseModifierKeys(nint handle, bool alt)
     {
+    }
+
+    private void CancelHide(nint handle)
+    {
+        CancellationTokenSource? pending;
+
+        lock (_gate)
+        {
+            _ = _pendingHides.Remove(handle, out pending);
+        }
+
+        if (pending is not null)
+        {
+            pending.Cancel();
+            pending.Dispose();
+        }
     }
 
     private static ScreenRect Rect(double[] values) =>
