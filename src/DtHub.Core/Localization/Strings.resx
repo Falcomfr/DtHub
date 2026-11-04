@@ -3209,6 +3209,53 @@ Team: quests at least 2 ticked characters can do.</value>
   <data name="MacYes" xml:space="preserve">
     <value>Yes</value>
   </data>
+  <data name="MacAccessibilityNeeded" xml:space="preserve">
+    <value>To place the game windows (grid, tabs, full screen, sizes), macOS asks for the Accessibility permission. OK opens the setting: tick DT Hub in the list, then reopen DT Hub. Without it, the games still open, each where it appears.</value>
+  </data>
+  <data name="MacAccessibilityTitle" xml:space="preserve">
+    <value>Allow DT Hub to arrange the game windows</value>
+  </data>
+  <data name="MacText_CableHelpSteps" xml:space="preserve">
+    <value>1. Another cable: charger cables often have no data wires.
+2. Another USB port of the Mac, without a hub or adapter if possible.
+3. Restart the Mac.
+4. Clean the phone's connector.
+5. This phone on another computer, to know which one is at fault.</value>
+  </data>
+  <data name="MacText_CableHelpTitle" xml:space="preserve">
+    <value>A plugged-in device the Mac cannot read</value>
+  </data>
+  <data name="MacText_CheckNoDevice" xml:space="preserve">
+    <value>No phone detected. Charging is not enough:
+1. Plug in a data cable.
+2. Pick "File transfer" if the phone asks.
+3. Turn on USB debugging.
+A phone already paired over Wi-Fi comes back on its own.</value>
+  </data>
+  <data name="MacText_HelpFixCableWindows" xml:space="preserve">
+    <value>• The Mac does not see the phone? The Devices tab says what to do.</value>
+  </data>
+  <data name="MacText_HotkeyRefusedByWindows" xml:space="preserve">
+    <value>Refused by macOS, probably taken by another program: {0}</value>
+  </data>
+  <data name="MacText_HotkeyReserved" xml:space="preserve">
+    <value>This combination is reserved by macOS.</value>
+  </data>
+  <data name="MacText_LanguageTip" xml:space="preserve">
+    <value>"macOS" follows the system's language, or English if it is not translated. Applies at the next startup.</value>
+  </data>
+  <data name="MacText_ReportContents" xml:space="preserve">
+    <value>The report carries the version, your screens, the error and the useful lines of today's log. Device serials, addresses and your macOS account name are removed from it.</value>
+  </data>
+  <data name="MacText_SimulatedMouseHelp" xml:space="preserve">
+    <value>The Mac's cursor disappears while a game window has focus: left Option or Command gives it back. Fine for one account, a pain with several.</value>
+  </data>
+  <data name="MacText_StaysOfflineFirewall" xml:space="preserve">
+    <value>• The macOS firewall, if on: allow incoming connections for DT Hub (System Settings › Network › Firewall).</value>
+  </data>
+  <data name="MacText_StaysOfflinePrivate" xml:space="preserve">
+    <value>• macOS: allow DT Hub in System Settings › Privacy &amp; Security › Local Network.</value>
+  </data>
   <data name="MacNo" xml:space="preserve">
     <value>No</value>
   </data>

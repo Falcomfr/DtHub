@@ -703,7 +703,15 @@
                           HorizontalAlignment="Left" MinWidth="150"
                           SelectedValueBinding="{ReflectionBinding Value}"
                           SelectedValue="{Binding Language, Mode=TwoWay}"
-                          ToolTip.Tip="{loc:T LanguageTip}" />
+                          ToolTip.Tip="{loc:T LanguageTip}">
+                  <!-- The PC names the system's language "Windows"; the
+                       Mac's system is macOS. -->
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:TextChoice">
+                      <TextBlock Text="{Binding Label, Converter={StaticResource SystemName}}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
 
                 <TextBlock Classes="muted" FontSize="{DynamicResource FontSmall}" Margin="0,0,0,10"
                            Text="{loc:T LanguageRestart}"

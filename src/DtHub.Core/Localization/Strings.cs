@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.Resources;
+using System.Text.RegularExpressions;
 
 namespace DtHub.Core.Localization;
 
@@ -19,6 +20,28 @@ public static class Strings
 {
     private static readonly ResourceManager Manager =
         new("DtHub.Core.Localization.Strings", typeof(Strings).Assembly);
+
+    /// <summary>
+    /// The texts are written for the PC. On the Mac a key may have a
+    /// <c>MacText_</c> twin, for the steps that only exist on Windows
+    /// (its firewall, its network profiles, its key), and the computer is
+    /// called a Mac rather than a PC. Never used on Windows: there,
+    /// lookups are exactly what they were.
+    /// </summary>
+    private const string MacTextPrefix = "MacText_";
+
+    private static readonly Regex PcWord = new(@"\bPC\b", RegexOptions.CultureInvariant);
+
+    private static string? Lookup(string key, CultureInfo culture)
+    {
+        if (!OperatingSystem.IsMacOS())
+        {
+            return Manager.GetString(key, culture);
+        }
+
+        var text = Manager.GetString(MacTextPrefix + key, culture) ?? Manager.GetString(key, culture);
+        return text is null ? null : PcWord.Replace(text, "Mac");
+    }
 
     /// <summary>
     /// The language chosen for this run, once it has been chosen.
@@ -58,7 +81,7 @@ public static class Strings
     /// Returns the text of this key in the interface language.
     /// </summary>
     public static string Get(string key)
-        => Manager.GetString(key, Spoken) ?? key;
+        => Lookup(key, Spoken) ?? key;
 
     /// <summary>
     /// Returns the text of this key, or <c>null</c> if it is not
@@ -67,7 +90,7 @@ public static class Strings
     /// show one.
     /// </summary>
     public static string? Optional(string key)
-        => Manager.GetString(key, Spoken);
+        => Lookup(key, Spoken);
 
     /// <summary>
     /// Returns the text of this key, with its placeholders filled
@@ -88,5 +111,5 @@ public static class Strings
     /// what is wanted on screen.
     /// </summary>
     public static string GetIn(string key, CultureInfo culture)
-        => Manager.GetString(key, culture) ?? key;
+        => Lookup(key, culture) ?? key;
 }

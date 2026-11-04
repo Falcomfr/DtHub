@@ -8,6 +8,7 @@
        has no parent yet when its resources are looked up. -->
 
   <conv:BoolToVisibilityConverter x:Key="BoolToVisibility" />
+  <conv:SystemNameConverter x:Key="SystemName" />
   <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility" />
   <conv:InverseBoolConverter x:Key="InverseBool" />
   <conv:EnumMatchConverter x:Key="EnumMatch" />
