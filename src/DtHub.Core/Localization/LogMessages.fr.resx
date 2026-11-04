@@ -81,6 +81,9 @@
   <data name="Aucune nouvelle de la page après vingt secondes : la vue est rendue." xml:space="preserve">
     <value>Aucune nouvelle de la page après vingt secondes : la vue est rendue.</value>
   </data>
+  <data name="Autorisation Accessibilité absente : les fenêtres de jeu ne seront pas rangées." xml:space="preserve">
+    <value>Autorisation Accessibilité absente : les fenêtres de jeu ne seront pas rangées.</value>
+  </data>
   <data name="Cache du moteur de rendu balayé : {megabytes} Mo." xml:space="preserve">
     <value>Cache du moteur de rendu balayé : {megabytes} Mo.</value>
   </data>

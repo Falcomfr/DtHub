@@ -81,6 +81,9 @@
   <data name="Aucune nouvelle de la page après vingt secondes : la vue est rendue." xml:space="preserve">
     <value>Sin respuesta de la página tras veinte segundos: se libera la vista.</value>
   </data>
+  <data name="Autorisation Accessibilité absente : les fenêtres de jeu ne seront pas rangées." xml:space="preserve">
+    <value>Falta el permiso de Accesibilidad: las ventanas del juego no se ordenarán.</value>
+  </data>
   <data name="Cache du moteur de rendu balayé : {megabytes} Mo." xml:space="preserve">
     <value>Caché del motor de renderizado vaciada: {megabytes} MB.</value>
   </data>

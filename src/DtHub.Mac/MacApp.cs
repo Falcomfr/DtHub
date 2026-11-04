@@ -58,6 +58,8 @@ internal sealed class MacApp : Application
 
     public override void Initialize()
     {
+        AccessibleNames.Install();
+
         // The name macOS shows in the menu bar's app menu ("Hide", "Quit").
         Name = "DT Hub";
 
@@ -178,6 +180,10 @@ internal sealed class MacApp : Application
         await PreparationWindow
             .RunAsync(services.GetRequiredService<MacToolPreparation>())
             .ConfigureAwait(true);
+
+        // Before any game window: without the Accessibility permission the
+        // layout cannot move them.
+        AccessibilityCheck.Run(services.GetRequiredService<IDialogService>());
 
         // The first launch is recognized by an empty device registry.
         var firstRun = (await services.GetRequiredService<IDeviceRegistry>()

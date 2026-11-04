@@ -81,6 +81,9 @@
   <data name="Aucune nouvelle de la page après vingt secondes : la vue est rendue." xml:space="preserve">
     <value>No response from the page after twenty seconds: the view is released.</value>
   </data>
+  <data name="Autorisation Accessibilité absente : les fenêtres de jeu ne seront pas rangées." xml:space="preserve">
+    <value>Accessibility permission missing: the game windows will not be arranged.</value>
+  </data>
   <data name="Cache du moteur de rendu balayé : {megabytes} Mo." xml:space="preserve">
     <value>Rendering engine cache cleared: {megabytes} MB.</value>
   </data>
