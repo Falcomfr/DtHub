@@ -3201,7 +3201,7 @@ Equipo: misiones realizables por al menos 2 personajes marcados.</value>
     <value>Mayús+clic: un rango</value>
   </data>
   <data name="ToolNotInstalled" xml:space="preserve">
-    <value>{0} no está instalado. En el Terminal: brew install {1}</value>
+    <value>{0} no está instalado. {1}</value>
   </data>
   <data name="MacRefresh" xml:space="preserve">
     <value>Actualizar</value>
@@ -3226,5 +3226,11 @@ Equipo: misiones realizables por al menos 2 personajes marcados.</value>
   </data>
   <data name="MacFound" xml:space="preserve">
     <value>Cuentas encontradas: {0}</value>
+  </data>
+  <data name="InstallWithBrew" xml:space="preserve">
+    <value>En el Terminal: brew install {0}</value>
+  </data>
+  <data name="InstallLinuxTools" xml:space="preserve">
+    <value>Descarga el archivo oficial de scrcpy para Linux (github.com/Genymobile/scrcpy/releases): contiene scrcpy, scrcpy-server y adb. Copia esos tres archivos en ~/.local/bin. El scrcpy de tu distribución suele ser demasiado antiguo.</value>
   </data>
 </root>

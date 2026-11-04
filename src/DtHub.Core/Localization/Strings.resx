@@ -3201,7 +3201,7 @@ Team: quests at least 2 ticked characters can do.</value>
     <value>Shift+click: a range</value>
   </data>
   <data name="ToolNotInstalled" xml:space="preserve">
-    <value>{0} is not installed. In Terminal: brew install {1}</value>
+    <value>{0} is not installed. {1}</value>
   </data>
   <data name="MacRefresh" xml:space="preserve">
     <value>Refresh</value>
@@ -3226,5 +3226,11 @@ Team: quests at least 2 ticked characters can do.</value>
   </data>
   <data name="MacFound" xml:space="preserve">
     <value>Accounts found: {0}</value>
+  </data>
+  <data name="InstallWithBrew" xml:space="preserve">
+    <value>In Terminal: brew install {0}</value>
+  </data>
+  <data name="InstallLinuxTools" xml:space="preserve">
+    <value>Take scrcpy's official Linux archive (github.com/Genymobile/scrcpy/releases): it holds scrcpy, scrcpy-server and adb. Copy those three files into ~/.local/bin. Your distribution's scrcpy is often too old.</value>
   </data>
 </root>

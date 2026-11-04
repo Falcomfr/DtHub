@@ -12050,3 +12050,34 @@ ne passe que par Mac Catalyst.
 **Non vérifié** : rien n'a encore tourné sur macOS. La liste des contrôles et
 le placement des fenêtres à étalonner sont dans
 `docs/superpowers/specs/2026-11-04-macos-design.md`.
+
+## D228 - Linux partage l'appli du Mac
+
+Demandé le 04/11/2026 : une version Linux. L'utilisateur a choisi de ne pas
+créer de troisième projet. `src/DtHub.Mac` devient l'appli de bureau pour
+macOS et Linux (cibles `osx-arm64`, `linux-x64`, `linux-arm64`), sans
+changer de nom : la session Mac y travaille en même temps. Le PC Windows
+n'est pas touché.
+
+- **Outils** : sur Linux, le scrcpy des distributions est souvent trop
+  ancien pour les écrans virtuels (Ubuntu 24.04 : 1.25). La consigne est
+  donc l'archive Linux officielle de scrcpy, qui contient scrcpy,
+  scrcpy-server et adb assortis, à copier dans `~/.local/bin`.
+  `InstalledTool` cherche ce dossier en premier, puis ceux de Homebrew,
+  puis le PATH. La consigne d'installation est maintenant une phrase
+  complète, propre au système (`InstallWithBrew`, `InstallLinuxTools`).
+- **Corrigé en passant, Mac compris** : un adb absent s'affichait
+  « aucun téléphone trouvé ». La recherche ne lève pas d'erreur, elle le
+  signale dans son résultat (`AdbFailed`), que la fenêtre ne lisait pas.
+
+Vérifié le 04/11/2026 dans WSL (Ubuntu 24.04, affichage WSLg), avec un SDK
+.NET 10 pour Linux :
+- compilation `-warnaserror` sans avertissement ;
+- 3011 tests réussis, 3 sautés (propres à Windows) ;
+- sans outils, la fenêtre affiche la consigne ;
+- avec les trois fichiers de l'archive scrcpy 5.0.1 dans `~/.local/bin`,
+  adb démarre et la fenêtre attend un téléphone.
+
+**Non vérifié** : un vrai téléphone, WSL ne voyant pas l'USB du PC. Il faut
+aussi étalonner le placement des fenêtres : la hauteur de barre de titre est
+celle du Mac, et sous Wayland scrcpy ne peut pas placer sa fenêtre du tout.

@@ -2,6 +2,7 @@
 using DtHub.Core.Android;
 using DtHub.Core.Devices;
 using DtHub.Core.Dofus;
+using DtHub.Core.Localization;
 using DtHub.Core.Processes;
 using DtHub.Core.Scrcpy;
 using DtHub.Core.Sessions;
@@ -51,10 +52,14 @@ internal static class MacServices
         services.AddSingleton<IProcessRunner, ProcessRunner>();
         services.AddSingleton<IProcessLauncher, ProcessLauncher>();
 
-        // Installed through Homebrew rather than downloaded: the manifest
-        // only knows the Windows archives.
-        services.AddSingleton<IAdbLocator>(new InstalledTool("adb", "android-platform-tools"));
-        services.AddSingleton<IScrcpyLocator>(new InstalledTool("scrcpy", "scrcpy"));
+        // Installed by the player rather than downloaded: the manifest only
+        // knows the Windows archives. Homebrew on macOS; on Linux scrcpy's
+        // official archive, which carries adb too.
+        var linuxHint = OperatingSystem.IsLinux() ? Strings.Get("InstallLinuxTools") : null;
+        services.AddSingleton<IAdbLocator>(
+            new InstalledTool("adb", linuxHint ?? Strings.Format("InstallWithBrew", "android-platform-tools")));
+        services.AddSingleton<IScrcpyLocator>(
+            new InstalledTool("scrcpy", linuxHint ?? Strings.Format("InstallWithBrew", "scrcpy")));
 
         services.AddSingleton<IAdbClient, AdbClient>();
         services.AddSingleton<IDeviceRegistry, DeviceRegistry>();

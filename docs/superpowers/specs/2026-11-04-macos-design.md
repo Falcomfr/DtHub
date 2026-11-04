@@ -1,4 +1,4 @@
-# DT Hub on macOS, first version
+# DT Hub on macOS and Linux, first version
 
 Asked on 2026-11-04: a Mac version of DT Hub, without any risk for the
 Windows one. The game keeps running on the Android phone, as Ankama requires;
@@ -133,7 +133,41 @@ through `PATH`: .NET SDK 10.0.403, adb 37.0.1, scrcpy 5.0.1, gh 2.103.3.
 - Fixed in passing: the macOS app menu read "Avalonia Application" with an
   "About Avalonia" item; it now reads DT Hub, without that item.
 
-## Rules for the next session
+## Linux (D228)
+
+The same project, `src/DtHub.Mac`, also targets `linux-x64` and
+`linux-arm64`. It keeps its name because the Mac session works on it.
+
+Setting up a Linux PC:
+
+```bash
+# .NET 10 SDK: from the distribution, or https://dot.net/v1/dotnet-install.sh
+# scrcpy's official archive holds scrcpy, scrcpy-server and adb, matched:
+curl -LO https://github.com/Genymobile/scrcpy/releases/download/v5.0.1/scrcpy-linux-x86_64-v5.0.1.tar.gz
+tar xzf scrcpy-linux-x86_64-v5.0.1.tar.gz
+mkdir -p ~/.local/bin
+cp scrcpy-linux-x86_64-v5.0.1/{scrcpy,scrcpy-server,adb} ~/.local/bin/
+dotnet run --project src/DtHub.Mac
+```
+
+Avoid the distribution's scrcpy: Ubuntu 24.04 ships 1.25, too old for
+`--new-display`. USB debugging also needs the phone's udev rule on some
+distributions (`android-sdk-platform-tools-common` on Debian and Ubuntu).
+
+Checked on 2026-11-04 in WSL (Ubuntu 24.04, WSLg):
+- build with `-warnaserror`, 0 warnings;
+- 3011 tests passed, 3 skipped (Windows only);
+- without the tools, the window shows the Linux hint;
+- with the three files in `~/.local/bin`, adb starts and the window waits
+  for a phone.
+
+No phone could be tried: WSL does not see the PC's USB. Still to do on a
+real Linux PC:
+- items 2 to 7 of the Mac list above;
+- window placement: `TitleBarHeight` is the Mac's, and under Wayland scrcpy
+  cannot place its window at all (X11 or XWayland needed for the grid).
+
+
 
 - Never touch `src/DtHub.App`. Anything in `Core` or `Infrastructure` must
   leave Windows unchanged: guard Mac-only behavior with

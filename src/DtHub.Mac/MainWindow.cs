@@ -23,8 +23,10 @@ internal sealed class MainWindow : Window
     // Height in points of the title bar macOS puts on scrcpy's window,
     // measured on macOS 27 with scrcpy 5.0.1: a 434-point picture gives a
     // 466-point window.
-    // shortcut: a fixed value, not read from the system; a Mac
-    // IWindowController (next steps of the macOS design) would measure it.
+    // shortcut: a fixed value, not read from the system, and never measured
+    // on Linux, where it depends on the desktop; under Wayland scrcpy cannot
+    // place its window at all. A window controller per system (next steps
+    // of the macOS design) would measure it.
     private const int TitleBarHeight = 32;
 
     private readonly DeviceDiscoveryService _discovery;
@@ -85,6 +87,18 @@ internal sealed class MainWindow : Window
         try
         {
             var result = await _discovery.RefreshAsync(CancellationToken.None);
+
+            // adb missing or not answering is reported here, not thrown: its
+            // message says how to install it.
+            if (result.AdbFailed)
+            {
+                _devices = [];
+                _found = [];
+                _status.Text = result.Warnings[0];
+                ShowRows();
+                return;
+            }
+
             _devices = [.. result.Connected];
             _found = await _instances.DiscoverAsync(_devices);
 
