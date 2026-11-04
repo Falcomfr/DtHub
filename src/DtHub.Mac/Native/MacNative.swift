@@ -164,12 +164,17 @@ public func dthubRaiseWindow(_ id: Int64, _ activate: Bool) -> Bool {
         return true
     }
     guard let window = element(CGWindowID(id)) else { return false }
-    let raised = AXUIElementPerformAction(window, kAXRaiseAction as CFString) == .success
     if activate, let pid = ownerPid(CGWindowID(id)) {
+        // Through the Accessibility API, not NSRunningApplication.activate:
+        // since macOS 14 an app that is not in front may not activate
+        // another, and DT Hub is rarely in front while the player plays.
+        // Setting the application frontmost is what a trusted process may
+        // still do.
+        let app = AXUIElementCreateApplication(pid)
+        _ = AXUIElementSetAttributeValue(app, kAXFrontmostAttribute as CFString, kCFBooleanTrue)
         _ = AXUIElementSetAttributeValue(window, kAXMainAttribute as CFString, kCFBooleanTrue)
-        NSRunningApplication(processIdentifier: pid)?.activate()
     }
-    return raised
+    return AXUIElementPerformAction(window, kAXRaiseAction as CFString) == .success
 }
 
 /// Presses the window's close button, as the player would.
