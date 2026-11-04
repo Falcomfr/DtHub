@@ -26,16 +26,25 @@ public sealed class ProblemWindow : Window
         _report = report;
         _headline = headline;
         Title = headline;
-        Width = 560;
-        Height = 520;
+
+        // The PC's size: as wide as a report line, as tall as it needs up
+        // to a screen's worth.
+        Width = 640;
+        MaxHeight = 720;
+        SizeToContent = SizeToContent.Height;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
 
+        // The PC's order, Copy answering Enter and Close answering Escape.
         var buttons = new WrapPanel { Orientation = Orientation.Horizontal };
-        buttons.Children.Add(Key("CopyReport", OnCopy));
+        buttons.Children.Add(Key("OpenLogFolder", OnOpenLogs));
         buttons.Children.Add(Key("ReportProblem", OnReport));
         buttons.Children.Add(Key("ReportOnDiscord", OnDiscord));
-        buttons.Children.Add(Key("OpenLogFolder", OnOpenLogs));
-        buttons.Children.Add(Key("Close", Close));
+        var copy = Key("CopyReport", OnCopy);
+        copy.IsDefault = true;
+        buttons.Children.Add(copy);
+        var close = Key("Close", Close);
+        close.IsCancel = true;
+        buttons.Children.Add(close);
 
         var top = new StackPanel { Spacing = 8 };
         top.Children.Add(new TextBlock
@@ -70,7 +79,10 @@ public sealed class ProblemWindow : Window
                 {
                     Text = report,
                     IsReadOnly = true,
-                    TextWrapping = Avalonia.Media.TextWrapping.Wrap,
+                    MinHeight = 240,
+
+                    // Unwrapped, as the PC's: a log line reads as written.
+                    TextWrapping = Avalonia.Media.TextWrapping.NoWrap,
                     FontFamily = new Avalonia.Media.FontFamily("Menlo"),
                     FontSize = 11,
                     Margin = new Avalonia.Thickness(0, 6, 0, 0),

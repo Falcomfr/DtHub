@@ -54,6 +54,8 @@ public partial class ConfiguratorWindow : Window
     private int _vanishing;
 
     /// <summary>For the XAML previewer only.</summary>
+    private bool _loaded;
+
     public ConfiguratorWindow() => AvaloniaXamlLoader.Load(this);
 
     public ConfiguratorWindow(
@@ -72,10 +74,22 @@ public partial class ConfiguratorWindow : Window
 
         AvaloniaXamlLoader.Load(this);
         DataContext = viewModel;
+        this.FindControl<ComboBox>("DensityBox")?.AddHandler(
+            KeyDownEvent, OnDensityKey, Avalonia.Interactivity.RoutingStrategies.Tunnel);
 
+        // Once, as the PC loads on Loaded: Avalonia raises Opened again on
+        // every show after a hide, which reloaded the settings and folded
+        // the open shortcut groups each time the panel came back.
         Opened += async (_, _) =>
         {
             NativeHandle = new System.Windows.Interop.WindowInteropHelper(this).Handle;
+
+            if (_loaded)
+            {
+                return;
+            }
+
+            _loaded = true;
             await _viewModel.LoadAsync(CancellationToken.None).ConfigureAwait(true);
         };
 

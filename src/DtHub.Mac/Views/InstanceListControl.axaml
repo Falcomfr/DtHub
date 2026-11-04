@@ -655,6 +655,7 @@
                               ToolTip.Tip="{loc:T RestartTip}"
                               Opacity="{Binding IsRunning, Converter={StaticResource BoolToOpacity}}"
                               IsHitTestVisible="{Binding IsRunning}"
+                              IsTabStop="{Binding IsRunning}"
                               Command="{Binding $parent[views:InstanceListControl].((vm:InstanceListViewModel)DataContext).RestartCommand}"
                               CommandParameter="{Binding}">
                         <Path Classes="rowGlyph"

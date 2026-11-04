@@ -51,7 +51,11 @@ public partial class InstanceListControl : UserControl
     private InstanceRowViewModel? _pending;
     private InstanceRowViewModel? _dragged;
 
-    public InstanceListControl() => AvaloniaXamlLoader.Load(this);
+    public InstanceListControl()
+    {
+        AvaloniaXamlLoader.Load(this);
+        AddHandler(KeyDownEvent, OnDragKey, RoutingStrategies.Tunnel);
+    }
 
     public bool ShowDeviceStatus
     {
@@ -184,9 +188,23 @@ public partial class InstanceListControl : UserControl
 
         _pending = row;
         _origin = e.GetPosition(this);
+        _pointer = e.Pointer;
         e.Pointer.Capture(handle);
         e.Handled = true;
     }
+
+    /// <summary>Escape gives up a drag, the row staying where it was.</summary>
+    private void OnDragKey(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape && (_dragged is not null || _pending is not null))
+        {
+            EndDrag();
+            _pointer?.Capture(null);
+            e.Handled = true;
+        }
+    }
+
+    private IPointer? _pointer;
 
     private void OnDragSourceMoved(object? sender, PointerEventArgs e)
     {
@@ -220,9 +238,15 @@ public partial class InstanceListControl : UserControl
             return;
         }
 
-        // Above the item being dragged itself, no marker: dropping it there
-        // would make no sense, and the previous marker would stay stuck.
-        if (Hovered(position) is not { } target || ReferenceEquals(target.Row, _dragged))
+        // Between two rows the last marker stays, as on the PC, rather than
+        // blink off; above the item being dragged itself, none: dropping it
+        // there would make no sense.
+        if (Hovered(position) is not { } target)
+        {
+            return;
+        }
+
+        if (ReferenceEquals(target.Row, _dragged))
         {
             model.ClearDropHints();
             return;

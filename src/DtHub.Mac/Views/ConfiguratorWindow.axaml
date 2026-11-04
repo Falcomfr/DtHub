@@ -589,10 +589,15 @@
                               <Grid Margin="0,0,0,7" ColumnDefinitions="118,*">
                                 <TextBlock Text="{loc:T Density}" VerticalAlignment="Center"
                                            Classes="muted" ToolTip.Tip="{loc:T DensityTip}" />
-                                <ComboBox Grid.Column="1" HorizontalAlignment="Stretch" IsEditable="True"
+                                <!-- No text search, as the PC's: typing "1" must not
+                                     jump to the first density starting with 1. Enter is
+                                     caught in the tunnel (code-behind), before the box
+                                     takes it. -->
+                                <ComboBox Name="DensityBox" Grid.Column="1" HorizontalAlignment="Stretch" IsEditable="True"
+                                          IsTextSearchEnabled="False"
                                           ItemsSource="{Binding DensityChoices}"
                                           Text="{Binding DensityText, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
-                                          DropDownClosed="OnDensityPicked" KeyDown="OnDensityKey"
+                                          DropDownClosed="OnDensityPicked"
                                           ToolTip.Tip="{loc:T DensityTip}" />
                               </Grid>
                               <TextBlock Text="{Binding DensityDetail}" Classes="muted"
