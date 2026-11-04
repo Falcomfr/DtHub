@@ -153,6 +153,15 @@ public sealed class ProcessSession : IProcessSession
         {
             // Termination already in progress on the system side.
         }
+        catch (NotSupportedException)
+        {
+            // Platform without a process tree.
+        }
+        catch (AggregateException)
+        {
+            // Part of the tree could not be killed: it ends with DT Hub's
+            // job object at worst.
+        }
     }
 
     public async ValueTask DisposeAsync()

@@ -3204,7 +3204,7 @@ Equipo: misiones realizables por al menos 2 personajes marcados.</value>
     <value>Tengo un iPhone o un iPad</value>
   </data>
   <data name="IPhoneTitle" xml:space="preserve">
-    <value>iPhone y iPad (prueba)</value>
+    <value>iPhone y iPad</value>
   </data>
   <data name="IPhoneIntro" xml:space="preserve">
     <value>El juego se ejecuta en el iPhone, DT Hub lo muestra y lo controla. Necesitas iOS 27 o posterior, el Modo de desarrollador activado (Ajustes &gt; Privacidad y seguridad), la app Dispositivos Apple de Microsoft Store en este PC, y el iPhone conectado por USB y autorizado. Una sola cuenta por iPhone: iOS no permite duplicar una app.</value>

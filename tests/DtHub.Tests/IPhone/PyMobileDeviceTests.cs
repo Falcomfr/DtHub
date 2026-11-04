@@ -4,7 +4,7 @@ using DtHub.Infrastructure.IPhone;
 namespace DtHub.Tests.IPhone;
 
 /// <summary>
-/// How DT Hub calls pymobiledevice3 through uv, and what it tells the
+/// How DT Hub sets up and calls pymobiledevice3, and what it tells the
 /// player when that fails. The error lines are the ones the tool printed
 /// on 2026-11-04.
 /// </summary>
@@ -13,39 +13,49 @@ public class PyMobileDeviceTests
     private static readonly string Root = Path.Combine("C:", "outils", "iphone");
 
     [Fact]
-    public void La_commande_passe_par_uv_avec_une_version_figee()
+    public void Uv_n_utilise_que_son_Python_et_reste_dans_le_dossier_de_DT_Hub()
     {
-        var request = PyMobileDevice.Request("uv.exe", Root, udid: null, "usbmux", "list");
+        var request = PyMobileDevice.UvRequest("uv.exe", Root, "venv");
 
-        Assert.Equal("uv.exe", request.FileName);
-        Assert.Equal(
-            ["tool", "run", "--python", "3.13", "--from", $"pymobiledevice3=={PyMobileDevice.Version}",
-             "pymobiledevice3", "usbmux", "list"],
-            request.Arguments);
-    }
-
-    [Fact]
-    public void Python_et_les_paquets_restent_dans_le_dossier_de_DT_Hub()
-    {
-        var request = PyMobileDevice.Request("uv.exe", Root, udid: null, "usbmux", "list");
-
-        // Only uv's own Python: one the player installed would make every
-        // machine behave differently.
+        // One the player installed would make every machine behave differently.
         Assert.Equal("only-managed", request.Environment["UV_PYTHON_PREFERENCE"]);
         Assert.Equal(Path.Combine(Root, "cache"), request.Environment["UV_CACHE_DIR"]);
         Assert.Equal(Path.Combine(Root, "python"), request.Environment["UV_PYTHON_INSTALL_DIR"]);
-        Assert.Equal(Path.Combine(Root, "tools"), request.Environment["UV_TOOL_DIR"]);
+        Assert.True(request.KillEntireTree);
+    }
+
+    [Fact]
+    public void L_outil_tourne_dans_le_Python_installe_et_s_arrete_avec_ses_enfants()
+    {
+        var request = PyMobileDevice.ToolRequest("python.exe", udid: null, "usbmux", "list", "--usb");
+
+        Assert.Equal("python.exe", request.FileName);
+        Assert.Equal(["-m", "pymobiledevice3", "usbmux", "list", "--usb"], request.Arguments);
         Assert.False(request.Environment.ContainsKey("PYMOBILEDEVICE3_UDID"));
+        Assert.True(request.KillEntireTree);
     }
 
     [Fact]
     public void L_iPhone_vise_passe_par_l_environnement()
     {
-        // The tool reads --udid itself from its command line for the tunnel,
-        // the variable reaches every subcommand the same way.
-        var request = PyMobileDevice.Request("uv.exe", Root, "00008020-000A", "mounter", "auto-mount");
+        var request = PyMobileDevice.ToolRequest("python.exe", "00008020-000A", "mounter", "auto-mount");
 
         Assert.Equal("00008020-000A", request.Environment["PYMOBILEDEVICE3_UDID"]);
+    }
+
+    [Fact]
+    public void La_liste_figee_porte_pymobiledevice3_a_sa_version_et_des_empreintes()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "DtHub.slnx")))
+        {
+            directory = directory.Parent;
+        }
+
+        var lines = File.ReadAllLines(Path.Combine(directory!.FullName, "build", "iphone-requirements.txt"));
+
+        Assert.Contains($"pymobiledevice3=={PyMobileDevice.Version} \\", lines);
+        Assert.Contains(lines, l => l.TrimStart().StartsWith("--hash=sha256:", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -53,7 +63,6 @@ public class PyMobileDeviceTests
     {
         const string error = """
              Downloaded pymobiledevice3
-            Installed 90 packages in 1.86s
             2026-11-04 14:09:12 Falcom pymobiledevice3.__main__[17364] ERROR Screen streaming needs iOS 27.0 or later; this device runs iOS 18.7.9
             2026-11-04 14:09:12 Falcom pymobiledevice3.__main__[17364] INFO Run again with -v for the full traceback (include it when reporting an issue)
             """;
@@ -82,6 +91,17 @@ public class PyMobileDeviceTests
     }
 
     [Fact]
+    public void Seule_la_derniere_erreur_compte()
+    {
+        const string error = """
+            INFO Starting the RemotePairing tunnel over usbmuxd
+            ERROR Device is not connected.
+            """;
+
+        Assert.Equal(Strings.Get("IPhoneUnplugged"), PyMobileDevice.Explain(error));
+    }
+
+    [Fact]
     public void Une_erreur_inconnue_garde_le_texte_de_l_outil()
     {
         const string error = "2026-11-04 14:09:12 Falcom pymobiledevice3.__main__[1] ERROR Something odd happened";
@@ -89,9 +109,11 @@ public class PyMobileDeviceTests
         Assert.Equal("Something odd happened", PyMobileDevice.Explain(error));
     }
 
-    [Fact]
-    public void Une_sortie_vide_donne_un_message_general()
+    [Theory]
+    [InlineData("")]
+    [InlineData("error: Failed to download distribution")]
+    public void Sans_ligne_d_erreur_de_l_outil_le_message_est_general(string error)
     {
-        Assert.Equal(Strings.Get("IPhoneFailed"), PyMobileDevice.Explain(string.Empty));
+        Assert.Equal(Strings.Get("IPhoneFailed"), PyMobileDevice.Explain(error));
     }
 }

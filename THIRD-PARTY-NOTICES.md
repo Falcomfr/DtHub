@@ -28,7 +28,7 @@ No copyright notice or third-party licence text may be removed.
 | papycha.fr quest data | Proprietary, see below | File embedded in the executable |
 | xUnit, coverlet | Apache License 2.0, MIT | Test dependencies, not distributed |
 
-## uv, Python and pymobiledevice3 (iPhone trial)
+## uv, Python and pymobiledevice3 (iPhone)
 
 - uv: https://github.com/astral-sh/uv, MIT or Apache License 2.0
 - pymobiledevice3: https://github.com/doronz88/pymobiledevice3,
@@ -37,9 +37,10 @@ No copyright notice or third-party licence text may be removed.
 
 None of them is in the installer, and none is fetched unless the player
 opens the iPhone window. uv comes through the same verified mechanism as
-scrcpy (`build/dependencies.json`); uv then installs its own Python and
-pymobiledevice3, at the version pinned in `PyMobileDevice.Version`, into
-the user's DT Hub folder (`tools/iphone`).
+scrcpy (`build/dependencies.json`). uv then installs one exact Python
+(`PyMobileDevice.PythonVersion`), and only the packages listed with their
+hashes in `build/iphone-requirements.txt`, into the user's DT Hub folder
+(`tools/iphone`).
 
 pymobiledevice3 runs as a separate program that DT Hub starts and talks to
 over its command line and a local web page. DT Hub is not linked with it

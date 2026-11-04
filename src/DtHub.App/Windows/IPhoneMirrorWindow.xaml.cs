@@ -50,6 +50,10 @@ public partial class IPhoneMirrorWindow : Window
 
     private bool _closed;
 
+    // Set once a message replaced the screen: the page finishing to load
+    // must not cover it with a black canvas.
+    private bool _failed;
+
     public IPhoneMirrorWindow(IPhoneDevice device, int port, IProcessSession session, WebViewEnvironment engine)
     {
         ArgumentNullException.ThrowIfNull(device);
@@ -101,6 +105,11 @@ public partial class IPhoneMirrorWindow : Window
             if (!await loaded.Task.ConfigureAwait(true))
             {
                 ShowStatus(Strings.Get("IPhoneFailed"));
+                return;
+            }
+
+            if (_failed)
+            {
                 return;
             }
 
@@ -183,6 +192,7 @@ public partial class IPhoneMirrorWindow : Window
             return;
         }
 
+        _failed = true;
         View.Visibility = Visibility.Hidden;
         Status.Visibility = Visibility.Visible;
         Status.Text = text;

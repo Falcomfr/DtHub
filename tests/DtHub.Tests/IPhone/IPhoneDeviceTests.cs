@@ -74,9 +74,19 @@ public class IPhoneDeviceTests
         Assert.Empty(IPhoneDevice.ParseList("[]"));
     }
 
-    [Fact]
-    public void Une_sortie_illisible_echoue()
+    [Theory]
+    [InlineData("Failed to connect")]
+    [InlineData("{}")]
+    [InlineData("null")]
+    public void Une_sortie_qui_n_est_pas_une_liste_echoue_en_json(string output)
     {
-        Assert.ThrowsAny<JsonException>(() => IPhoneDevice.ParseList("Failed to connect"));
+        // The only exception the caller turns into a message for the player.
+        Assert.ThrowsAny<JsonException>(() => IPhoneDevice.ParseList(output));
+    }
+
+    [Fact]
+    public void Un_element_sans_identifiant_est_ecarte()
+    {
+        Assert.Empty(IPhoneDevice.ParseList("""[42, { "DeviceName": "x" }]"""));
     }
 }

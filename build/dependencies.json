@@ -44,7 +44,7 @@
       "license": "MIT ou Apache License 2.0",
       "licenseUrl": "https://github.com/astral-sh/uv/blob/main/LICENSE-MIT",
       "redistributable": true,
-      "redistributionNote": "Téléchargé seulement à la première ouverture de la fenêtre iPhone, jamais au démarrage. uv récupère à son tour un Python officiel (python-build-standalone) et pymobiledevice3 (GPL-3.0 ou ultérieure) depuis PyPI, à une version figée dans PyMobileDevice.Version, et les range dans tools/iphone : rien n'est embarqué ni lié à DT Hub, pymobiledevice3 tourne dans son propre processus."
+      "redistributionNote": "Téléchargé seulement à la première ouverture de la fenêtre iPhone, jamais au démarrage. uv récupère à son tour un Python exact (python-build-standalone, PyMobileDevice.PythonVersion) puis pymobiledevice3 (GPL-3.0 ou ultérieure) et ses paquets depuis PyPI, chacun vérifié par l'empreinte de build/iphone-requirements.txt, et les range dans tools/iphone : rien n'est embarqué ni lié à DT Hub, pymobiledevice3 tourne dans son propre processus."
     }
   }
 }

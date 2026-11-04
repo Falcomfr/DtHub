@@ -12037,11 +12037,20 @@ Store.
 DT Hub ne réécrit rien de cela : il lance l'outil et affiche sa page dans son
 moteur web, en masquant les boutons de pymobiledevice3.
 
+- **Exception à AGENTS.md**, décidée par l'utilisateur le 04/11/2026 : les
+  règles interdisent Python à l'exécution. La fenêtre iPhone en fait une
+  exception écrite et bornée, faute d'autre moyen d'afficher un iPhone.
 - **uv** (0.13.7) entre dans `build/dependencies.json`, téléchargé et vérifié
   comme scrcpy, mais seulement à la première ouverture de la fenêtre iPhone.
-  Il installe son propre Python (`UV_PYTHON_PREFERENCE=only-managed`) et
-  pymobiledevice3 à version figée dans `tools/iphone`, environ 300 Mo,
-  15 secondes mesurées sur la fibre.
+  Il crée un environnement avec un Python exact (3.13.18, à lui :
+  `UV_PYTHON_PREFERENCE=only-managed`), puis y installe
+  `build/iphone-requirements.txt` en `--require-hashes` : pymobiledevice3 et
+  ses 89 paquets, chacun vérifié par empreinte. Le tout dans `tools/iphone`,
+  environ 300 Mo. Mesuré depuis un dossier vide : 24 secondes, compilation
+  de l'essai comprise ; 4 secondes ensuite, l'installation n'étant pas
+  refaite. Que uv vérifie aussi l'empreinte du Python qu'il télécharge est
+  probable (son binaire porte le message « Hash mismatch for ») mais pas
+  prouvé.
 - **Arrêt** : couper uv laisse tourner son Python (mesuré). `ProcessRequest`
   gagne `KillEntireTree`, désactivé par défaut. Il est activé pour l'iPhone
   seulement : scrcpy garde le comportement d'avant, qui épargne le serveur adb
@@ -12061,7 +12070,16 @@ code de DT Hub dans un dossier d'essai :
 
 Le moteur web de ce PC (Edge 156, carte NVIDIA) décode le HEVC en matériel.
 
-**Non vérifié** : l'image et les appuis sur un vrai iPhone en iOS 27. Il faut
-aussi vérifier que le masquage des boutons laisse les clics tomber au bon
-endroit. Branche `feat/iphone`, à ne fusionner qu'après un essai par un joueur
-équipé.
+Revue du 04/11/2026, corrigée sur la même branche :
+- un délai dépassé coupe aussi l'arborescence ;
+- un seul appel à l'outil à la fois, toutes fenêtres confondues ;
+- seuls les appareils USB sont listés (`--usb`) ;
+- seule la dernière ligne d'erreur décide du message ;
+- un message d'échec n'est plus recouvert par l'écran noir ;
+- fermer la liste annule ce qui est en cours ;
+- toute erreur de lancement est expliquée au joueur.
+
+**Non vérifié** : l'image et les appuis sur un vrai iPhone en iOS 27, et la
+justesse des clics une fois les boutons masqués. L'utilisateur a décidé de
+livrer sans essai préalable : la fonction part en production, et le premier
+joueur équipé fera l'essai (liste dans la spec).

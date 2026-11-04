@@ -1,12 +1,16 @@
-# iPhone on the PC, trial version
+# iPhone on the PC
 
 Asked on 2026-11-04: DT Hub on Windows shows and drives an iPhone, made as
 ready as possible without an iOS 27 device to try it on. The game keeps
 running on the iPhone, as Ankama requires. Decision: D227.
 
-This document is the handoff for whoever tests it with a real iOS 27
-iPhone. **The picture and the touches have never been seen.** Everything
-up to the stream has run on the PC against an iPhone XR on iOS 18.7.9.
+The owner decided to ship it without a prior trial: the first player with
+an iOS 27 iPhone tries it, with the list below. **The picture and the
+touches have never been seen.** Everything up to the stream has run on the
+PC against an iPhone XR on iOS 18.7.9.
+
+Python at runtime breaks a rule of AGENTS.md; the owner made it a written,
+bounded exception for this window (see AGENTS.md and D227).
 
 ## What Apple allows
 
@@ -27,17 +31,29 @@ up to the stream has run on the PC against an iPhone XR on iOS 18.7.9.
   user space, so no administrator rights are needed.
 - **uv** brings Python and pymobiledevice3, so the player installs nothing.
   It is a third entry in `build/dependencies.json`, fetched only when the
-  iPhone window is first opened. Every call is `uv tool run --python 3.13
-  --from pymobiledevice3==11.49.5 pymobiledevice3 ...`, with uv's Python only
-  and all its folders under `tools/iphone` (`PyMobileDevice.Request`).
+  iPhone window is first opened. Once, and again whenever the embedded list
+  changes (a hash stamp in the venv):
+  - `uv venv --python 3.13.18`, with uv's Python only;
+  - `uv pip sync --require-hashes build/iphone-requirements.txt`, which
+    holds pymobiledevice3 11.49.5 and its 89 packages with their hashes;
+  - everything goes under `tools/iphone`.
+
+  Then every call is `<venv>\Scripts\python.exe -m pymobiledevice3 ...`
+  (`PyMobileDevice.ToolRequest`). To update pymobiledevice3, regenerate the
+  list with the command at its top.
 - `PyMobileDevice` (Infrastructure):
-  - `ListAsync` runs `usbmux list`;
+  - `ListAsync` runs `usbmux list --usb` (a Wi-Fi-synced iPhone would show
+    twice);
   - `StartMirrorAsync` runs `mounter auto-mount` (the display service comes
     with the developer disk image), then starts `serve-web`;
-  - `Explain` turns the tool's error text into a message for the player.
+  - `Explain` turns the tool's last error line into a message for the
+    player;
+  - one call at a time across every window (a semaphore), with a timeout
+    per step: 10 minutes for the setup, 5 for the mount, 1 for the list.
 - `ProcessRequest.KillEntireTree`: killing uv leaves its Python running
-  (measured), so the iPhone session kills the whole tree. The flag is off
-  for everything else: scrcpy may have started the shared adb server.
+  (measured), and the venv's `python.exe` is a launcher too. So every
+  iPhone call kills the whole tree, on close and on timeout. The flag is
+  off for everything else: scrcpy may have started the shared adb server.
 - `IPhoneWindow`: the list. It opens from a link in the add-device window
   ("J'ai un iPhone ou un iPad").
 - `IPhoneMirrorWindow`: one per iPhone. It polls the page until it answers,
@@ -60,15 +76,16 @@ up to the stream has run on the PC against an iPhone XR on iOS 18.7.9.
 
 ## Checked on the PC on 2026-11-04
 
-Release build with `-warnaserror`, 0 warnings; 3034/3034 tests; `dotnet
+Release build with `-warnaserror`, 0 warnings; 3040/3040 tests; `dotnet
 format --verify-no-changes` clean. Then DT Hub's own `PyMobileDevice`, from
 a scratch program, against the XR:
-- uv downloaded and hash-checked, then Python 3.13.18 and 90 packages,
-  about 290 MB, in 15 seconds;
+- from an empty folder: uv downloaded and hash-checked, then Python 3.13.18
+  and the 90 hash-checked packages, about 300 MB, in 24 seconds with the
+  scratch program's build; 4 seconds on the next run, setup skipped;
 - the XR listed as "iOS 18.7.9, CanMirror=False";
 - the disk image mounted;
 - `serve-web` started and stopped with the French "this iPhone does not
-  have iOS 27" message.
+  have iOS 27" message; no `python.exe` left running.
 
 Edge 156 on this PC (NVIDIA) reports HEVC decoding as supported in hardware.
 

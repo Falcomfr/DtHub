@@ -80,6 +80,20 @@ public class ProcessRunnerTests
     }
 
     [Fact]
+    public async Task Un_processus_expire_peut_emporter_ses_enfants()
+    {
+        // The child keeps the error pipe: killing the shell alone leaves the
+        // runner waiting five seconds for it to close.
+        var command = OnWindows ? "ping -n 30 127.0.0.1 > nul" : "sh -c 'sleep 30'";
+
+        var result = await new ProcessRunner().RunAsync(
+            Shell(command, TimeSpan.FromMilliseconds(600)) with { KillEntireTree = true }, CancellationToken.None);
+
+        Assert.True(result.TimedOut);
+        Assert.True(result.Duration < TimeSpan.FromSeconds(4), $"Durée observée : {result.Duration}");
+    }
+
+    [Fact]
     public async Task Une_annulation_de_l_appelant_remonte_en_exception()
     {
         var command = OnWindows ? "ping -n 30 127.0.0.1 > nul" : "sleep 30";

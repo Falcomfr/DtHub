@@ -3204,7 +3204,7 @@ Pas de donjon en équipe.
     <value>J'ai un iPhone ou un iPad</value>
   </data>
   <data name="IPhoneTitle" xml:space="preserve">
-    <value>iPhone et iPad (essai)</value>
+    <value>iPhone et iPad</value>
   </data>
   <data name="IPhoneIntro" xml:space="preserve">
     <value>Le jeu tourne sur l'iPhone, DT Hub l'affiche et le pilote. Il faut iOS 27 ou plus récent, le Mode développeur activé (Réglages &gt; Confidentialité et sécurité), l'appli Appareils Apple du Microsoft Store sur ce PC, et l'iPhone branché en USB et autorisé. Un seul compte par iPhone : iOS ne permet pas de dupliquer une appli.</value>

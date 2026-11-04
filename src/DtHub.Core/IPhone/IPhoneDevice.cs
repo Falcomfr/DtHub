@@ -23,18 +23,25 @@ public sealed record IPhoneDevice(string Udid, string Name, string IosVersion, s
     {
         using var document = JsonDocument.Parse(json);
 
+        if (document.RootElement.ValueKind != JsonValueKind.Array)
+        {
+            throw new JsonException("pymobiledevice3 did not print a device list.");
+        }
+
         return
         [
             .. document.RootElement.EnumerateArray().Select(device => new IPhoneDevice(
                 Text(device, "Identifier"),
                 Text(device, "DeviceName").Trim(),
                 Text(device, "ProductVersion"),
-                Text(device, "ConnectionType"))),
+                Text(device, "ConnectionType")))
+                .Where(device => device.Udid.Length > 0),
         ];
     }
 
     private static string Text(JsonElement device, string name) =>
-        device.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String
+        device.ValueKind == JsonValueKind.Object
+        && device.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String
             ? value.GetString()!
             : string.Empty;
 }

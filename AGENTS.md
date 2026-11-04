@@ -1,4 +1,4 @@
-# AGENTS.md
+﻿# AGENTS.md
 
 Guide for AI agents and contributors taking over this repository.
 Read it in full before changing anything.
@@ -211,12 +211,23 @@ server for the whole machine. A test verifies this.
   the game it displays inevitably appears.
 - PowerShell, AutoHotkey, Node.js or Python at the application's
   runtime. These tools are tolerated in development scripts only.
+
+  One exception, decided by the owner on 2026-11-04 (D227): the iPhone
+  window runs pymobiledevice3 in Python, because iOS offers no other way
+  to show an iPhone's screen. It is bounded: nothing is fetched or run
+  until the player opens that window; uv comes from
+  `build/dependencies.json`, installs one exact Python
+  (`PyMobileDevice.PythonVersion`), then only the packages of
+  `build/iphone-requirements.txt`, each checked against its hash
+  (`--require-hashes`). No other Python, and nothing outside that list.
 - Touching Windows Defender, creating antivirus exclusions,
   requesting elevation.
 - A low-level keyboard hook. Shortcuts go through `RegisterHotKey`,
   active only when a DT Hub window is active.
 - Downloading or running a binary from an unofficial source. The
-  URLs are centralized in `build/dependencies.json`.
+  URLs are centralized in `build/dependencies.json`; the iPhone window's
+  Python packages come from PyPI, pinned by hash in
+  `build/iphone-requirements.txt`.
 - Hardcoding a serial number, an IP address, an Android profile
   identifier. The cloned profile is not always 999.
 - Writing a pairing code into the logs.

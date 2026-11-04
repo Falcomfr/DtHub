@@ -12,7 +12,7 @@ namespace DtHub.App.Windows;
 
 /// <summary>
 /// The iPhones and iPads plugged into the PC, each with a button that
-/// opens its screen. Trial: written on 2026-11-04 without an iOS 27
+/// opens its screen. Written on 2026-11-04 without an iOS 27
 /// device at hand, see D227.
 /// </summary>
 public partial class IPhoneWindow : Window
@@ -20,8 +20,11 @@ public partial class IPhoneWindow : Window
     private readonly PyMobileDevice _tools;
     private readonly WebViewEnvironment _engine;
 
-    // One tool call at a time: the first one installs uv and Python, and
-    // two in parallel would download them twice into the same folder.
+    // Closing the list stops its search or its opening.
+    private readonly CancellationToken _closing;
+
+    // One action at a time in this window; PyMobileDevice serializes the
+    // tool itself across windows.
     private bool _busy;
 
     public IPhoneWindow(PyMobileDevice tools, WebViewEnvironment engine)
@@ -32,6 +35,13 @@ public partial class IPhoneWindow : Window
         InitializeComponent();
 
         Loaded += async (_, _) => await RefreshAsync().ConfigureAwait(true);
+        var closing = new CancellationTokenSource();
+        _closing = closing.Token;
+        Closed += (_, _) =>
+        {
+            closing.Cancel();
+            closing.Dispose();
+        };
     }
 
     private async void OnRefresh(object sender, RoutedEventArgs e) => await RefreshAsync().ConfigureAwait(true);
@@ -47,7 +57,7 @@ public partial class IPhoneWindow : Window
 
         try
         {
-            var devices = await _tools.ListAsync(CancellationToken.None).ConfigureAwait(true);
+            var devices = await _tools.ListAsync(_closing).ConfigureAwait(true);
             ShowRows(devices);
             Status.Text = devices.Count == 0 ? Strings.Get("IPhoneNone") : string.Empty;
         }
@@ -55,6 +65,10 @@ public partial class IPhoneWindow : Window
         {
             // Shown to the player: it says what to do.
             Status.Text = exception.Message;
+        }
+        catch (OperationCanceledException)
+        {
+            // The window was closed during the search.
         }
         finally
         {
@@ -72,16 +86,30 @@ public partial class IPhoneWindow : Window
         try
         {
             var port = FreePort();
-            var session = await _tools.StartMirrorAsync(device, port, CancellationToken.None).ConfigureAwait(true);
+            var session = await _tools.StartMirrorAsync(device, port, _closing).ConfigureAwait(true);
 
-            // Not owned: it stays open when this list is closed.
-            new IPhoneMirrorWindow(device, port, session, _engine).Show();
+            try
+            {
+                // Not owned: it stays open when this list is closed.
+                new IPhoneMirrorWindow(device, port, session, _engine).Show();
+            }
+            catch
+            {
+                // Without its window, nothing would ever stop the stream.
+                await session.DisposeAsync().ConfigureAwait(true);
+                throw;
+            }
+
             Status.Text = string.Empty;
         }
         catch (IPhoneException exception)
         {
             // Shown to the player: it says what to do.
             Status.Text = exception.Message;
+        }
+        catch (OperationCanceledException)
+        {
+            // The window was closed during the opening.
         }
         finally
         {
@@ -140,6 +168,9 @@ public partial class IPhoneWindow : Window
     /// <summary>A port nothing listens on, for this iPhone's viewer page.</summary>
     private static int FreePort()
     {
+        // shortcut: the port is free when picked, not guaranteed when
+        // serve-web binds it a few seconds later; let the tool pick and
+        // print it if a player ever hits "address in use".
         using var listener = new TcpListener(IPAddress.Loopback, 0);
         listener.Start();
         return ((IPEndPoint)listener.LocalEndpoint).Port;

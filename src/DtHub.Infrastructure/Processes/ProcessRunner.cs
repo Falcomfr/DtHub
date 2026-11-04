@@ -107,7 +107,7 @@ public sealed class ProcessRunner : IProcessRunner
         }
         catch (OperationCanceledException)
         {
-            KillQuietly(process);
+            KillQuietly(process, request.KillEntireTree);
 
             // Cancellation requested by the caller is propagated; the
             // timeout is a normal result that the caller will know
@@ -233,7 +233,7 @@ public sealed class ProcessRunner : IProcessRunner
         }
         catch (OperationCanceledException)
         {
-            KillQuietly(process);
+            KillQuietly(process, request.KillEntireTree);
 
             cancellationToken.ThrowIfCancellationRequested();
             timedOut = true;
@@ -274,16 +274,16 @@ public sealed class ProcessRunner : IProcessRunner
         }
     }
 
-    private static void KillQuietly(Process process)
+    private static void KillQuietly(Process process, bool entireTree)
     {
         try
         {
             if (!process.HasExited)
             {
-                // Without the tree, as in ProcessSession: a client that
-                // timed out may have started the ADB server, shared by
-                // every window, and killing it cut them all.
-                process.Kill(entireProcessTree: false);
+                // Without the tree unless asked, as in ProcessSession: a
+                // client that timed out may have started the ADB server,
+                // shared by every window, and killing it cut them all.
+                process.Kill(entireTree);
             }
         }
         catch (InvalidOperationException)
@@ -297,6 +297,11 @@ public sealed class ProcessRunner : IProcessRunner
         catch (System.ComponentModel.Win32Exception)
         {
             // Termination already in progress on the system side.
+        }
+        catch (AggregateException)
+        {
+            // Part of the tree could not be killed: it ends with DT Hub's
+            // job object at worst.
         }
     }
 
