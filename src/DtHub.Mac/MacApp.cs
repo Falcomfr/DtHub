@@ -1,4 +1,5 @@
 ﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Themes.Fluent;
 using DtHub.Core.Devices;
@@ -11,7 +12,16 @@ namespace DtHub.Mac;
 
 internal sealed class MacApp : Application
 {
-    public override void Initialize() => Styles.Add(new FluentTheme());
+    public override void Initialize()
+    {
+        // The name macOS shows in the menu bar's app menu ("Hide", "Quit").
+        Name = "DT Hub";
+
+        // An app menu of our own, even empty, replaces Avalonia's default
+        // one and its "About Avalonia" item.
+        NativeMenu.SetMenu(this, []);
+        Styles.Add(new FluentTheme());
+    }
 
     public override void OnFrameworkInitializationCompleted()
     {
