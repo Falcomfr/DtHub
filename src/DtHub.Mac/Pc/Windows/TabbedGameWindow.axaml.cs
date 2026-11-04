@@ -122,7 +122,17 @@ public sealed partial class TabbedGameWindow : Window
         // on a game below.
         _watch.Tick += (_, _) => AdoptFront();
         _follow.Tick += (_, _) => FollowGame();
-        Opened += (_, _) => _watch.Start();
+        Opened += (_, _) =>
+        {
+            _watch.Start();
+
+            // A player in a game clicks a tab: that click must pick the tab,
+            // not only bring DT Hub forward.
+            if (OperatingSystem.IsMacOS() && TryGetPlatformHandle() is { Handle: not 0 } native)
+            {
+                MacNative.dthub_accept_first_mouse(native.Handle);
+            }
+        };
         Closed += (_, _) =>
         {
             _watch.Stop();
@@ -845,6 +855,8 @@ public sealed partial class TabbedGameWindow : Window
             return;
         }
 
+        KeepStripWithGame();
+
         if (_gameAt is not { } expected)
         {
             _gameAt = seen;
@@ -1060,6 +1072,28 @@ public sealed partial class TabbedGameWindow : Window
     }
 
     /// <summary>Our strip in front of the games, without taking activation.</summary>
+    /// <summary>
+    /// The strip is DT Hub's window, the games scrcpy's: a click in a game
+    /// brings scrcpy's windows forward and leaves the strip under whatever
+    /// application was in front, out of sight. Whenever one of the frame's
+    /// games comes to the front, the strip comes with it, without taking
+    /// the keyboard.
+    /// </summary>
+    private void KeepStripWithGame()
+    {
+        var front = (nint)MacNative.dthub_front_window();
+        var inFront = front != 0 && Items.Any(t => t.ShowsGame && t.Window == front);
+
+        if (inFront && front != _frontGame)
+        {
+            RaiseOwn();
+        }
+
+        _frontGame = inFront ? front : 0;
+    }
+
+    private nint _frontGame;
+
     private void RaiseOwn()
     {
         if (Handle != 0 && IsVisible)

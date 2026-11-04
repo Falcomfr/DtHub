@@ -114,4 +114,7 @@ internal static class MacNative
 
     [DllImport(Library)]
     public static extern long dthub_front_most_of(long[] ids, int count);
+
+    [DllImport(Library)]
+    public static extern void dthub_accept_first_mouse(nint nsWindow);
 }

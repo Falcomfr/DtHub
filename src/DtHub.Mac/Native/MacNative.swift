@@ -178,7 +178,9 @@ public func dthubRaiseWindow(_ id: Int64, _ activate: Bool) -> Bool {
                 NSApp.activate()
                 own.makeKeyAndOrderFront(nil)
             } else {
-                own.orderFront(nil)
+                // Regardless: plain orderFront leaves an inactive app's
+                // window behind the active app's.
+                own.orderFrontRegardless()
             }
         }
         return true
@@ -310,4 +312,31 @@ public func dthubCpuTicks(_ idle: UnsafeMutablePointer<Int64>?, _ total: UnsafeM
     idle.pointee = idleTicks
     total.pointee = user + system + idleTicks + nice
     return true
+}
+
+/// The first click on one of our windows acts, as on Windows, rather than
+/// only bringing DT Hub forward: a player in a game who clicks a tab of the
+/// strip expects that tab, not a second click. AppKit asks each view
+/// through acceptsFirstMouse; Avalonia's view says no, so its class is told
+/// to say yes, once.
+@_cdecl("dthub_accept_first_mouse")
+public func dthubAcceptFirstMouse(_ nsWindow: UnsafeMutableRawPointer?) {
+    guard let nsWindow else { return }
+    let window = Unmanaged<NSWindow>.fromOpaque(nsWindow).takeUnretainedValue()
+    let selector = #selector(NSView.acceptsFirstMouse(for:))
+    let yes: @convention(block) (NSView, NSEvent?) -> Bool = { _, _ in true }
+    let implementation = imp_implementationWithBlock(yes)
+    var views: [NSView] = window.contentView.map { [$0] } ?? []
+    var done = Set<ObjectIdentifier>()
+    while let view = views.popLast() {
+        let type: AnyClass = type(of: view)
+        let name = NSStringFromClass(type)
+        // Avalonia's own views only: AppKit's and WebKit's keep theirs.
+        if !name.hasPrefix("NS"), !name.hasPrefix("WK"), !name.hasPrefix("_"),
+           done.insert(ObjectIdentifier(type)).inserted,
+           let method = class_getInstanceMethod(type, selector) {
+            class_replaceMethod(type, selector, implementation, method_getTypeEncoding(method))
+        }
+        views.append(contentsOf: view.subviews)
+    }
 }

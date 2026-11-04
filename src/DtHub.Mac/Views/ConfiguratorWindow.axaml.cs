@@ -84,6 +84,13 @@ public partial class ConfiguratorWindow : Window
         {
             NativeHandle = new System.Windows.Interop.WindowInteropHelper(this).Handle;
 
+            // The first click on the panel acts, as on Windows, while a game
+            // has the keyboard.
+            if (OperatingSystem.IsMacOS() && TryGetPlatformHandle() is { Handle: not 0 } native)
+            {
+                DtHub.Mac.Platform.MacNative.dthub_accept_first_mouse(native.Handle);
+            }
+
             if (_loaded)
             {
                 return;
