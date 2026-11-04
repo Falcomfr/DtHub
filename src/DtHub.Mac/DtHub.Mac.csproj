@@ -46,7 +46,7 @@
              Link="Pc\Shared\Services\%(Filename)%(Extension)" />
   </ItemGroup>
 
-  <!-- Native/MacNative.swift, the window calls into macOS, built into
+  <!-- Native/*.swift, the calls into macOS (windows, shortcuts, web view), built into
        libDtHubMac.dylib next to the executable. Only on a Mac: the Windows
        CI compiles the C# side, whose calls into it are never made there. -->
   <PropertyGroup>
@@ -54,10 +54,13 @@
   </PropertyGroup>
   <Target Name="MacNativeLibrary" BeforeTargets="AssignTargetPaths"
           Condition="$([MSBuild]::IsOSPlatform('OSX'))"
-          Inputs="Native/MacNative.swift" Outputs="$(MacNativeLibrary)">
+          Inputs="@(MacSwiftSource)" Outputs="$(MacNativeLibrary)">
     <MakeDir Directories="$(BaseIntermediateOutputPath)native" />
-    <Exec Command="swiftc -emit-library -O -target arm64-apple-macos14.0 -o &quot;$(MacNativeLibrary)&quot; Native/MacNative.swift" />
+    <Exec Command="swiftc -emit-library -O -target arm64-apple-macos14.0 -o &quot;$(MacNativeLibrary)&quot; @(MacSwiftSource->'&quot;%(Identity)&quot;', ' ')" />
   </Target>
+  <ItemGroup>
+    <MacSwiftSource Include="Native/*.swift" />
+  </ItemGroup>
   <ItemGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
     <None Include="$(MacNativeLibrary)" Link="libDtHubMac.dylib"
           CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" />
