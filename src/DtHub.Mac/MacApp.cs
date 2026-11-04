@@ -17,6 +17,7 @@ using DtHub.Core.Localization;
 using DtHub.Core.Scrcpy;
 using DtHub.Core.Sessions;
 using DtHub.Core.Settings;
+using DtHub.Core.Storage;
 using DtHub.Infrastructure.Adb;
 using DtHub.Mac.Platform;
 using DtHub.Mac.Views;
@@ -182,6 +183,9 @@ internal sealed class MacApp : Application
     {
         var settings = services.GetRequiredService<SettingsService>();
         var launcher = services.GetRequiredService<GameLauncher>();
+
+        // DT Hub's icon on the game windows, as the PC gives it to scrcpy.
+        launcher.IconDirectory = MacWindowIcons.EnsureDirectory(services.GetRequiredService<IAppPaths>());
 
         // The language is set before the first window: texts are read when
         // views are built. Reading is kept apart from applying, see
