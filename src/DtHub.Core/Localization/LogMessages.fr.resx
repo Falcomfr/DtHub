@@ -352,6 +352,9 @@
   <data name="Le raccourci du menu Démarrer n'a pas pu être posé." xml:space="preserve">
     <value>Le raccourci du menu Démarrer n'a pas pu être posé.</value>
   </data>
+  <data name="Le raccourci {shortcut} pour « {action} » est refusé par macOS (code {status}) ; un autre logiciel le détient probablement, ou la touche n'existe pas sur Mac." xml:space="preserve">
+    <value>Le raccourci {shortcut} pour « {action} » est refusé par macOS (code {status}) ; un autre logiciel le détient probablement, ou la touche n'existe pas sur Mac.</value>
+  </data>
   <data name="Le raccourci {shortcut} pour « {action} » est refusé par Windows ; un autre logiciel le détient probablement." xml:space="preserve">
     <value>Le raccourci {shortcut} pour « {action} » est refusé par Windows ; un autre logiciel le détient probablement.</value>
   </data>
@@ -376,6 +379,9 @@
   </data>
   <data name="Les pics de latence Wi-Fi vers l'appareil {serial} ont cessé." xml:space="preserve">
     <value>Les pics de latence Wi-Fi vers l'appareil {serial} ont cessé.</value>
+  </data>
+  <data name="Les raccourcis globaux n'ont pas pu être installés auprès de macOS." xml:space="preserve">
+    <value>Les raccourcis globaux n'ont pas pu être installés auprès de macOS.</value>
   </data>
   <data name="Liaison : filaire, ou Wi-Fi que l'appareil ne décrit pas. Aucun tampon." xml:space="preserve">
     <value>Liaison : filaire, ou Wi-Fi que l'appareil ne décrit pas. Aucun tampon.</value>

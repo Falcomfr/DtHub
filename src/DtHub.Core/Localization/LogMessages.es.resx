@@ -352,6 +352,9 @@
   <data name="Le raccourci du menu Démarrer n'a pas pu être posé." xml:space="preserve">
     <value>No se ha podido crear el acceso directo del menú Inicio.</value>
   </data>
+  <data name="Le raccourci {shortcut} pour « {action} » est refusé par macOS (code {status}) ; un autre logiciel le détient probablement, ou la touche n'existe pas sur Mac." xml:space="preserve">
+    <value>macOS ha rechazado el atajo {shortcut} para «{action}» (código {status}); probablemente lo esté usando otra aplicación, o la tecla no existe en un Mac.</value>
+  </data>
   <data name="Le raccourci {shortcut} pour « {action} » est refusé par Windows ; un autre logiciel le détient probablement." xml:space="preserve">
     <value>Windows ha rechazado el atajo {shortcut} para «{action}»; probablemente lo esté usando otra aplicación.</value>
   </data>
@@ -376,6 +379,9 @@
   </data>
   <data name="Les pics de latence Wi-Fi vers l'appareil {serial} ont cessé." xml:space="preserve">
     <value>Han cesado los picos de latencia Wi-Fi hacia el dispositivo {serial}.</value>
+  </data>
+  <data name="Les raccourcis globaux n'ont pas pu être installés auprès de macOS." xml:space="preserve">
+    <value>No se han podido instalar los atajos globales en macOS.</value>
   </data>
   <data name="Liaison : filaire, ou Wi-Fi que l'appareil ne décrit pas. Aucun tampon." xml:space="preserve">
     <value>Conexión: por cable o Wi-Fi sin detalles proporcionados por el dispositivo. Sin búfer.</value>

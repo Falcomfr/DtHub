@@ -352,6 +352,9 @@
   <data name="Le raccourci du menu Démarrer n'a pas pu être posé." xml:space="preserve">
     <value>Failed to create the Start menu shortcut.</value>
   </data>
+  <data name="Le raccourci {shortcut} pour « {action} » est refusé par macOS (code {status}) ; un autre logiciel le détient probablement, ou la touche n'existe pas sur Mac." xml:space="preserve">
+    <value>macOS rejected the {shortcut} hotkey for “{action}” (code {status}); another application probably owns it, or the key does not exist on a Mac.</value>
+  </data>
   <data name="Le raccourci {shortcut} pour « {action} » est refusé par Windows ; un autre logiciel le détient probablement." xml:space="preserve">
     <value>Windows rejected the {shortcut} hotkey for “{action}”; another application probably owns it.</value>
   </data>
@@ -376,6 +379,9 @@
   </data>
   <data name="Les pics de latence Wi-Fi vers l'appareil {serial} ont cessé." xml:space="preserve">
     <value>Wi-Fi latency spikes to device {serial} have stopped.</value>
+  </data>
+  <data name="Les raccourcis globaux n'ont pas pu être installés auprès de macOS." xml:space="preserve">
+    <value>The global hotkeys could not be installed with macOS.</value>
   </data>
   <data name="Liaison : filaire, ou Wi-Fi que l'appareil ne décrit pas. Aucun tampon." xml:space="preserve">
     <value>Connection: wired, or Wi-Fi with no details reported by the device. No buffering.</value>

@@ -434,11 +434,14 @@ public partial class ConfiguratorWindow : Window
 
     private void ClosePartnerMenu() => this.FindControl<Button>("PartnerToggle")?.Flyout?.Hide();
 
-    /// <summary>Opens the hotkey editor on the PC, then rereads what changed.</summary>
-    private void OnEditHotkeys(object? sender, RoutedEventArgs e) =>
-        // shortcut: HotkeyEditorWindow is not on the Mac yet (nor are the
-        // global shortcuts it would edit, see MacHotkeyRegistrar).
-        _dialogs.ShowInformation(Strings.Get("MacNotYet"));
+    /// <summary>Opens the hotkey editor, then rereads what changed.</summary>
+    private async void OnEditHotkeys(object? sender, RoutedEventArgs e)
+    {
+        var editor = MacApp.Services.GetRequiredService<HotkeyEditorWindow>();
+        await editor.ShowDialog(this).ConfigureAwait(true);
+
+        await _viewModel.RefreshHotkeysAsync(CancellationToken.None).ConfigureAwait(true);
+    }
 
     /// <summary>
     /// The first launch's pairing, once the panel is laid out: without a

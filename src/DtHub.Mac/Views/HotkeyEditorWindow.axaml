@@ -1,0 +1,150 @@
+﻿<!-- The PC's hotkey editor (src/DtHub.App/Windows/HotkeyEditorWindow.xaml),
+     on the same view model: three sections, each series folded into one
+     line, a box per shortcut that the Edit button turns into a capture. -->
+<Window x:Class="DtHub.Mac.Views.HotkeyEditorWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:DtHub.Mac.Localization"
+        xmlns:vm="using:DtHub.App.ViewModels"
+        x:DataType="vm:HotkeyEditorViewModel"
+        Title="{loc:T TabShortcuts}"
+        Width="560" Height="620" MinWidth="480" MinHeight="420"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource SurfaceAltBrush}"
+        FontSize="{DynamicResource FontMedium}"
+        Foreground="{DynamicResource TextBrush}">
+
+  <Window.Resources>
+    <!-- The configurator's series toggle: no frame, a lighter background
+         under the pointer, the chevron turned when open. -->
+    <ControlTheme x:Key="SeriesToggle" TargetType="ToggleButton">
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Border Name="Back" Background="{TemplateBinding Background}" CornerRadius="{DynamicResource Radius}">
+            <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Content}"
+                              HorizontalContentAlignment="Stretch" />
+          </Border>
+        </ControlTemplate>
+      </Setter>
+      <Style Selector="^:pointerover /template/ Border#Back">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+      </Style>
+      <Style Selector="^:pressed /template/ Border#Back">
+        <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+      </Style>
+    </ControlTheme>
+  </Window.Resources>
+
+  <Window.DataTemplates>
+    <DataTemplate DataType="vm:HotkeyRowViewModel">
+      <StackPanel Margin="0,2">
+        <Grid ColumnDefinitions="*,190,30,Auto" Background="Transparent" ToolTip.Tip="{Binding ActionDetail}">
+          <TextBlock Grid.Column="0" Text="{Binding ActionLabel}" VerticalAlignment="Center"
+                     TextTrimming="CharacterEllipsis" />
+
+          <Border Grid.Column="1" CornerRadius="{DynamicResource Radius}" Padding="9,6" Margin="8,0"
+                  Background="{DynamicResource SurfaceBrush}"
+                  BorderThickness="1" BorderBrush="{DynamicResource BorderBrush}">
+            <TextBlock Text="{Binding ShortcutText}" FontFamily="{DynamicResource MonoFont}"
+                       TextAlignment="Center" />
+          </Border>
+
+          <!-- Empties the box. Its column keeps its width without it, so
+               the boxes stay aligned. -->
+          <Button Grid.Column="2" Theme="{StaticResource DangerIconButton}" HorizontalAlignment="Left"
+                  ToolTip.Tip="{loc:T HotkeyClearTip}"
+                  IsVisible="{Binding IsAssigned}"
+                  Command="{Binding $parent[Window].((vm:HotkeyEditorViewModel)DataContext).ClearCommand}"
+                  CommandParameter="{Binding}">
+            <Path Classes="rowGlyph" Data="M 4.5,4.5 L 10.5,10.5 M 10.5,4.5 L 4.5,10.5" />
+          </Button>
+
+          <Button Grid.Column="3" Content="{loc:T Edit}"
+                  Command="{Binding $parent[Window].((vm:HotkeyEditorViewModel)DataContext).BeginCaptureCommand}"
+                  CommandParameter="{Binding}" />
+        </Grid>
+
+        <TextBlock Text="{Binding Error}" Foreground="{DynamicResource DangerBrush}"
+                   FontSize="{DynamicResource FontSmall}" Margin="2,4,0,0" TextWrapping="Wrap"
+                   IsVisible="{Binding HasError}" />
+
+        <TextBlock Text="{Binding BareKeyNotice}" Foreground="{DynamicResource WarningBrush}"
+                   FontSize="{DynamicResource FontSmall}" Margin="2,4,0,0" TextWrapping="Wrap"
+                   IsVisible="{Binding TakesKeyFromGame}" />
+      </StackPanel>
+    </DataTemplate>
+
+    <!-- The hidden button keeps the column of the rows' own Edit buttons,
+         so the summary sits over their keys. -->
+    <DataTemplate DataType="vm:HotkeySeriesViewModel">
+      <StackPanel Margin="0,2">
+        <ToggleButton Classes="series" Theme="{StaticResource SeriesToggle}" IsChecked="{Binding IsExpanded, Mode=TwoWay}"
+                      HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+          <Grid ColumnDefinitions="Auto,*,190,30,Auto" Background="Transparent">
+            <Path Name="Chevron" Data="M 0 0 L 4 4 L 0 8" Width="8" Height="8"
+                  Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.4"
+                  StrokeLineCap="Round" StrokeJoin="Round"
+                  Margin="3,0,9,0" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="1" Text="{Binding Label}" VerticalAlignment="Center"
+                       TextTrimming="CharacterEllipsis" />
+            <TextBlock Grid.Column="2" Text="{Binding Summary}" FontFamily="{DynamicResource MonoFont}"
+                       TextAlignment="Center" VerticalAlignment="Center" Margin="8,0"
+                       Foreground="{DynamicResource TextMutedBrush}" />
+            <Button Grid.Column="4" Content="{loc:T Edit}" Opacity="0" IsHitTestVisible="False" Focusable="False" />
+          </Grid>
+        </ToggleButton>
+
+        <Border IsVisible="{Binding IsExpanded}" Margin="6,2,0,2" Padding="13,0,0,0"
+                BorderThickness="1,0,0,0" BorderBrush="{DynamicResource BorderBrush}">
+          <ItemsControl ItemsSource="{Binding Rows}" />
+        </Border>
+      </StackPanel>
+    </DataTemplate>
+  </Window.DataTemplates>
+
+  <Window.Styles>
+    <Style Selector="ToggleButton.series:checked Path#Chevron">
+      <Setter Property="RenderTransform" Value="rotate(90deg)" />
+    </Style>
+    <Style Selector="ToggleButton.series:pointerover Path#Chevron">
+      <Setter Property="Stroke" Value="{DynamicResource TextBrush}" />
+    </Style>
+  </Window.Styles>
+
+  <DockPanel Margin="20">
+
+    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,14">
+      <TextBlock Text="{loc:T TabShortcuts}" Classes="title" />
+      <TextBlock Classes="muted" Margin="0,6,0,0" Text="{loc:T ShortcutsScopeNotice}" />
+      <TextBlock Classes="muted" Margin="0,6,0,0" Text="{loc:T ShortcutsMouseNotice}" />
+    </StackPanel>
+
+    <Grid DockPanel.Dock="Bottom" Margin="0,14,0,0" ColumnDefinitions="Auto,*,Auto">
+      <Button Grid.Column="0" Content="{loc:T Defaults}" Theme="{StaticResource QuietButton}"
+              Command="{Binding RestoreDefaultsCommand}" />
+      <Button Grid.Column="2" Content="{loc:T Close}" MinWidth="110" Click="OnClose" IsCancel="True" />
+    </Grid>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,10,0">
+      <StackPanel>
+        <ItemsControl ItemsSource="{Binding Sections}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:HotkeySectionViewModel">
+              <StackPanel Margin="0,0,0,20">
+                <TextBlock Text="{Binding Title}" Classes="section" />
+                <ItemsControl ItemsSource="{Binding Entries}" />
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <TextBlock Text="{Binding Problem}" Classes="muted"
+                   Foreground="{DynamicResource WarningBrush}" Margin="2,12,0,0"
+                   IsVisible="{Binding Problem, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+      </StackPanel>
+    </ScrollViewer>
+
+  </DockPanel>
+</Window>

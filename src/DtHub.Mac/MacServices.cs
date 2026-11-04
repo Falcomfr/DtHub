@@ -145,6 +145,7 @@ internal static class MacServices
         services.AddTransient<InputHelpViewModel>();
         services.AddTransient<InputHelpWindow>();
         services.AddTransient<HotkeyEditorViewModel>();
+        services.AddTransient<Views.HotkeyEditorWindow>();
 
         // A missing registration fails at launch, not on the first click.
         return services.BuildServiceProvider(new ServiceProviderOptions { ValidateOnBuild = true });
