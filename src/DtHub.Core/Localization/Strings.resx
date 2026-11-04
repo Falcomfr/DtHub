@@ -3210,7 +3210,7 @@ Team: quests at least 2 ticked characters can do.</value>
     <value>Yes</value>
   </data>
   <data name="MacAccessibilityNeeded" xml:space="preserve">
-    <value>To place the game windows (grid, tabs, full screen, sizes), macOS asks for the Accessibility permission. OK opens the setting: tick DT Hub in the list, then reopen DT Hub. Without it, the games still open, each where it appears.</value>
+    <value>To place the game windows (grid, tabs, full screen, sizes), macOS asks for the Accessibility permission. OK opens the setting: tick DT Hub in the list, then reopen DT Hub. Already ticked? Untick it and tick it again: macOS forgets the permission when DT Hub is updated. Without it, the games still open, each where it appears.</value>
   </data>
   <data name="MacAccessibilityTitle" xml:space="preserve">
     <value>Allow DT Hub to arrange the game windows</value>
