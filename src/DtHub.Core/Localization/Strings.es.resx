@@ -3200,4 +3200,31 @@ Equipo: misiones realizables por al menos 2 personajes marcados.</value>
   <data name="BatchRangeHint" xml:space="preserve">
     <value>Mayús+clic: un rango</value>
   </data>
+  <data name="ToolNotInstalled" xml:space="preserve">
+    <value>{0} no está instalado. En el Terminal: brew install {1}</value>
+  </data>
+  <data name="MacRefresh" xml:space="preserve">
+    <value>Actualizar</value>
+  </data>
+  <data name="MacOpenAll" xml:space="preserve">
+    <value>Abrir todo</value>
+  </data>
+  <data name="MacCloseAll" xml:space="preserve">
+    <value>Cerrar todo</value>
+  </data>
+  <data name="MacOpen" xml:space="preserve">
+    <value>Abrir</value>
+  </data>
+  <data name="MacClose" xml:space="preserve">
+    <value>Cerrar</value>
+  </data>
+  <data name="MacSearching" xml:space="preserve">
+    <value>Buscando teléfonos…</value>
+  </data>
+  <data name="MacNoGame" xml:space="preserve">
+    <value>Ningún teléfono con DOFUS Touch. Conecte el teléfono con la depuración USB activada y actualice.</value>
+  </data>
+  <data name="MacFound" xml:space="preserve">
+    <value>Cuentas encontradas: {0}</value>
+  </data>
 </root>

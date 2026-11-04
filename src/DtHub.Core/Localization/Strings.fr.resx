@@ -3200,4 +3200,31 @@ Pas de donjon en équipe.
   <data name="BatchRangeHint" xml:space="preserve">
     <value>Maj+clic : une plage</value>
   </data>
+  <data name="ToolNotInstalled" xml:space="preserve">
+    <value>{0} est introuvable. Dans le Terminal : brew install {1}</value>
+  </data>
+  <data name="MacRefresh" xml:space="preserve">
+    <value>Actualiser</value>
+  </data>
+  <data name="MacOpenAll" xml:space="preserve">
+    <value>Tout ouvrir</value>
+  </data>
+  <data name="MacCloseAll" xml:space="preserve">
+    <value>Tout fermer</value>
+  </data>
+  <data name="MacOpen" xml:space="preserve">
+    <value>Ouvrir</value>
+  </data>
+  <data name="MacClose" xml:space="preserve">
+    <value>Fermer</value>
+  </data>
+  <data name="MacSearching" xml:space="preserve">
+    <value>Recherche des téléphones…</value>
+  </data>
+  <data name="MacNoGame" xml:space="preserve">
+    <value>Aucun téléphone avec DOFUS Touch. Branchez le téléphone, débogage USB activé, puis actualisez.</value>
+  </data>
+  <data name="MacFound" xml:space="preserve">
+    <value>Comptes trouvés : {0}</value>
+  </data>
 </root>

@@ -12019,3 +12019,30 @@ courante, pas de seuils, ou forçage par `cmd thermalservice override-status`
 
 **Non vérifié** : la sortie d'un téléphone Samsung. S'il ne publie pas de
 seuils, rien ne change pour lui.
+
+## D226 - Une version Mac en Avalonia, sur le cœur partagé, sans iPhone
+
+**2026-11-04 - Acceptée, première version non essayée sur Mac**
+
+Demandé le 04/11/2026 : une version Mac, sans rien risquer pour la version PC.
+Le jeu reste sur le téléphone Android, comme Ankama l'exige ; le Mac l'affiche
+et le pilote comme le PC.
+
+L'iPhone est écarté : iOS n'offre ni adb, ni écran virtuel créé de l'extérieur,
+ni injection des clics, ni appli dupliquée. Rien de ce que fait DT Hub n'y est
+possible.
+
+Décision : un projet `src/DtHub.Mac` en Avalonia, qui reprend `DtHub.Core` et
+`DtHub.Infrastructure` tels quels. `DtHub.App` n'est pas touché. adb et scrcpy
+viennent de Homebrew (`InstalledTool`) plutôt que des archives Windows du
+manifeste. Le code partagé ne change qu'à deux endroits, neutres sous
+Windows : le job object n'est posé que sous Windows, et des clés de traduction
+s'ajoutent. Le projet Mac entre dans `DtHub.slnx` pour que la CI le compile
+(D49), mais la livraison ne publie que `src/DtHub.App`.
+
+Écartés : une appli Swift native, qui réécrirait tout le cœur ; .NET MAUI, qui
+ne passe que par Mac Catalyst.
+
+**Non vérifié** : rien n'a encore tourné sur macOS. La liste des contrôles et
+le placement des fenêtres à étalonner sont dans
+`docs/superpowers/specs/2026-11-04-macos-design.md`.

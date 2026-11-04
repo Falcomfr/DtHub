@@ -3200,4 +3200,31 @@ Team: quests at least 2 ticked characters can do.</value>
   <data name="BatchRangeHint" xml:space="preserve">
     <value>Shift+click: a range</value>
   </data>
+  <data name="ToolNotInstalled" xml:space="preserve">
+    <value>{0} is not installed. In Terminal: brew install {1}</value>
+  </data>
+  <data name="MacRefresh" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="MacOpenAll" xml:space="preserve">
+    <value>Open all</value>
+  </data>
+  <data name="MacCloseAll" xml:space="preserve">
+    <value>Close all</value>
+  </data>
+  <data name="MacOpen" xml:space="preserve">
+    <value>Open</value>
+  </data>
+  <data name="MacClose" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="MacSearching" xml:space="preserve">
+    <value>Looking for phones…</value>
+  </data>
+  <data name="MacNoGame" xml:space="preserve">
+    <value>No phone with DOFUS Touch found. Plug the phone in with USB debugging on, then refresh.</value>
+  </data>
+  <data name="MacFound" xml:space="preserve">
+    <value>Accounts found: {0}</value>
+  </data>
 </root>

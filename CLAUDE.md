@@ -1,5 +1,9 @@
 # DT Hub - consignes agent
 
+**Sur un Mac**, les règles WSL et rtk ci-dessous ne s'appliquent pas : lire
+`docs/superpowers/specs/2026-11-04-macos-design.md` avant tout, puis travailler
+sur la branche `feat/macos`.
+
 Dépôt .NET 10 sous WSL, binaire Windows. Les règles rtk globales
 (`~/.claude/RTK.md`) s'appliquent, avec les exceptions ci-dessous.
 
