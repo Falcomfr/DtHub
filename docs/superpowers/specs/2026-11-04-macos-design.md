@@ -109,7 +109,8 @@ through `PATH`: .NET SDK 10.0.403, adb 37.0.1, scrcpy 5.0.1, gh 2.103.3.
   3010/3013. The three failures test Windows-only code the Mac does not use:
   `Win32ShortcutWriterTests` (two tests, `.lnk` through the Windows shell)
   and `SdlFocusFixTests.Ne_plante_pas_quand_scrcpy_tient_encore_le_fichier`
-  (relies on Windows file locking). Left as they are for now.
+  (relies on Windows file locking). They now use `WindowsFact`: run as
+  before on Windows, skipped elsewhere (3010 passed, 3 skipped on the Mac).
 - 1. Starts, window "DT Hub", no error in the log.
 - 2. The three accounts are listed.
 - 3. Each opens on its own virtual display (824x536, 119 dpi), game shown
@@ -127,8 +128,8 @@ through `PATH`: .NET SDK 10.0.403, adb 37.0.1, scrcpy 5.0.1, gh 2.103.3.
 - 7. Closing a window by hand sets its row back to "Ouvrir"; "Tout fermer"
   and quitting leave no scrcpy and no virtual display.
 - 8. scrcpy 5.0.1, as on the PC: no argument rejected.
-- Seen in passing: the macOS menu reads "Avalonia Application" and "About
-  Avalonia" instead of DT Hub.
+- Fixed in passing: the macOS app menu read "Avalonia Application" with an
+  "About Avalonia" item; it now reads DT Hub, without that item.
 
 ## Rules for the next session
 
