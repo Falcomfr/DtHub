@@ -28,11 +28,15 @@ guides and Papycha, updates, packaging as a signed `.app`.
   they are. `DtHub.App` (WPF) is not touched.
 - `MacServices.cs` is the Mac's share of `DtHub.App/AppServices.cs`. The
   container is validated at startup (`ValidateOnBuild`).
-- adb and scrcpy come from Homebrew through `InstalledTool`
-  (Infrastructure, tested), instead of the Windows archives of
-  `build/dependencies.json`. It looks in `/opt/homebrew/bin`,
-  `/usr/local/bin`, then `PATH`: an app opened from the Finder does not
-  inherit the shell's `PATH`.
+- adb and scrcpy are downloaded on first launch, as on the PC, from the
+  macOS entries of `build/dependencies.json` (`platform-tools-macos`, a
+  zip from Google, and `scrcpy-macos`, a .tar.gz from GitHub, same
+  versions as the PC), with the PC's progress window
+  (`Views/PreparationWindow`). `ProvisionedTool` (Infrastructure,
+  tested) serves them, and falls back to `InstalledTool` only when the
+  download fails: Homebrew's copies, found in `/opt/homebrew/bin`,
+  `/usr/local/bin`, then `PATH` (an app opened from the Finder does not
+  inherit the shell's `PATH`). Homebrew is no longer required.
 - Shared code, two changes only, both neutral on Windows:
   - `ProcessSession` adopts scrcpy into the Windows job object only on
     Windows. On macOS, `MacApp` stops the sessions on exit instead.

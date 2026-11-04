@@ -1,0 +1,65 @@
+﻿<!-- The PC's first launch window (src/DtHub.App/Windows/PreparationWindow.xaml):
+     one card per missing component, its source and its progress, and the
+     way out only once something has failed. -->
+<Window x:Class="DtHub.Mac.Views.PreparationWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:DtHub.Mac.Localization"
+        xmlns:views="using:DtHub.Mac.Views"
+        Title="{loc:T PreparationTitle}"
+        Width="520" SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource SurfaceAltBrush}"
+        FontSize="{DynamicResource FontMedium}"
+        Foreground="{DynamicResource TextBrush}">
+
+  <StackPanel Margin="20">
+
+    <TextBlock Text="{loc:T PreparationTitle}" Classes="title" />
+    <TextBlock Classes="muted" Margin="0,6,0,14" TextWrapping="Wrap"
+               Text="{loc:T PreparationLead}" />
+
+    <!-- One block per missing component, none for those in place: on the
+         launches after the first, this window does not appear at all. -->
+    <ItemsControl x:Name="Rows">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="views:PreparationRow">
+          <Border Classes="card">
+            <StackPanel>
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="{Binding Name}" FontSize="{DynamicResource FontMedium}" />
+                <!-- The source is named: what is downloaded, and from where. -->
+                <TextBlock Grid.Column="1" Text="{Binding Host}" Classes="muted"
+                           FontSize="{DynamicResource FontSmall}" VerticalAlignment="Center" />
+              </Grid>
+
+              <ProgressBar Height="3" MinHeight="3" Margin="0,9,0,0"
+                           Minimum="0" Maximum="1"
+                           Value="{Binding Fraction}"
+                           IsIndeterminate="{Binding IsBusy}"
+                           Background="{DynamicResource SurfaceAltBrush}"
+                           Foreground="{DynamicResource AccentBrush}" />
+
+              <TextBlock Margin="0,7,0,0" Classes="muted" FontSize="{DynamicResource FontSmall}"
+                         TextWrapping="Wrap" Text="{Binding Status}" />
+            </StackPanel>
+          </Border>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+
+    <TextBlock x:Name="Footer" Classes="muted" Margin="0,6,0,0" TextWrapping="Wrap"
+               Text="{loc:T PreparationChecksum}" />
+
+    <!-- Shown only when something has failed. The application knows how to
+         live without these tools: "Continue without" is an exit. -->
+    <StackPanel x:Name="Choices" Orientation="Horizontal" HorizontalAlignment="Right"
+                Spacing="8" Margin="0,14,0,0" IsVisible="False">
+      <Button Content="{loc:T PreparationRetry}" Click="OnRetry" MinWidth="110"
+              Theme="{StaticResource PrimaryButton}" />
+      <Button Content="{loc:T PreparationSkip}" Click="OnSkip" MinWidth="110"
+              Theme="{StaticResource OutlineButton}" IsCancel="True" />
+    </StackPanel>
+  </StackPanel>
+</Window>

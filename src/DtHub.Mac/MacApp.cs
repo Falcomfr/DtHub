@@ -17,6 +17,7 @@ using DtHub.Core.Scrcpy;
 using DtHub.Core.Sessions;
 using DtHub.Core.Settings;
 using DtHub.Infrastructure.Adb;
+using DtHub.Mac.Platform;
 using DtHub.Mac.Views;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -29,9 +30,9 @@ namespace DtHub.Mac;
 /// The application, the Mac's share of the PC's App
 /// (src/DtHub.App/App.xaml.cs): the same startup, the configurator shown
 /// the same way, the same quit. Left out, being Windows' alone: the single
-/// instance guard, the tray icon, updates, desktop shortcuts, the tool
-/// download window, the sweep of old extraction folders and of scrcpy
-/// processes left over (the Mac's scrcpy is the player's own copy, which
+/// instance guard, the tray icon, updates, desktop shortcuts, the sweep
+/// of old extraction folders and of scrcpy processes left over (the Mac's
+/// scrcpy can be the player's own copy, when the download failed, which
 /// that sweep must never touch).
 /// </summary>
 internal sealed class MacApp : Application
@@ -171,6 +172,12 @@ internal sealed class MacApp : Application
         Log.Information(
             "Langue de l'interface : {Langue} (réglage {Reglage}, Windows {Windows}).",
             language, languageSettings.Language, CultureInfo.InstalledUICulture.Name);
+
+        // Before the first window, as on the PC: adb and scrcpy are set up
+        // with their progress shown. Shows nothing once they are there.
+        await PreparationWindow
+            .RunAsync(services.GetRequiredService<MacToolPreparation>())
+            .ConfigureAwait(true);
 
         // The first launch is recognized by an empty device registry.
         var firstRun = (await services.GetRequiredService<IDeviceRegistry>()

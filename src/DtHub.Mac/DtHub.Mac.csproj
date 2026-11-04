@@ -68,8 +68,8 @@
 
   <!-- The Mac application: "dotnet publish src/DtHub.Mac -c Release -r
        osx-arm64", on a Mac, leaves "DT Hub.app" next to the publish
-       folder. It carries its own .NET, so the player installs nothing but
-       adb and scrcpy. Name, version and copyright come from
+       folder. It carries its own .NET, and downloads adb and scrcpy on
+       first launch, so the player installs nothing. Name, version and copyright come from
        Directory.Build.props, like the PC's. -->
   <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'osx-arm64'">
     <SelfContained>true</SelfContained>

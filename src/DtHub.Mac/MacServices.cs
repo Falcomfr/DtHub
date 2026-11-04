@@ -37,8 +37,8 @@ namespace DtHub.Mac;
 /// <summary>
 /// The PC's composition (src/DtHub.App/AppServices.cs), service for
 /// service, with the Mac's own where Windows has its: window control
-/// through the Accessibility API, the dialogs, adb and scrcpy found where
-/// they are installed. Left out until the Mac has them: updates (the PC's
+/// through the Accessibility API, the dialogs, adb and scrcpy from the
+/// manifest's macOS archives. Left out until the Mac has them: updates (the PC's
 /// install a Windows executable), the guides' web view, desktop shortcuts.
 /// </summary>
 internal static class MacServices
@@ -74,13 +74,16 @@ internal static class MacServices
         services.AddSingleton<IProcessRunner, ProcessRunner>();
         services.AddSingleton<IProcessLauncher, ProcessLauncher>();
 
-        // Third-party components. adb and scrcpy come from where the
-        // player installed them, not from the PC's Windows archives.
+        // Third-party components: the manifest's macOS archives, downloaded
+        // on first need as on the PC, the copy the player installed only
+        // when that download fails. scrcpy is always handed this adb.
         services.AddSingleton(_ => new HttpClient { Timeout = TimeSpan.FromMinutes(10) });
         services.AddSingleton<IDependencyProvisioner, ArchiveDependencyProvisioner>();
-        services.AddSingleton<IAdbLocator>(new InstalledTool("adb", "android-platform-tools"));
-        services.AddSingleton<IScrcpyLocator>(new InstalledTool("scrcpy", "scrcpy"));
-        services.AddSingleton<ToolPreparation>();
+        services.AddSingleton<IAdbLocator>(provider => Provisioned(
+            provider, DependencyManifest.PlatformToolsMacKey, new InstalledTool("adb", "android-platform-tools")));
+        services.AddSingleton<IScrcpyLocator>(provider => Provisioned(
+            provider, DependencyManifest.ScrcpyMacKey, new InstalledTool("scrcpy", "scrcpy")));
+        services.AddSingleton<MacToolPreparation>();
 
         // Quest guides and the game's names, as on the PC.
         services.AddSingleton<IPapychaClient>(provider => new PapychaClient(
@@ -146,6 +149,13 @@ internal static class MacServices
         // A missing registration fails at launch, not on the first click.
         return services.BuildServiceProvider(new ServiceProviderOptions { ValidateOnBuild = true });
     }
+
+    private static ProvisionedTool Provisioned(IServiceProvider provider, string key, InstalledTool fallback) =>
+        new(
+            provider.GetRequiredService<IDependencyProvisioner>(),
+            DependencyManifest.Get(key),
+            fallback,
+            provider.GetRequiredService<ILogger<ProvisionedTool>>());
 
     private static Func<IServiceProvider, IDocumentStore<T>> CreateStore<T>(string path)
         where T : class, new() =>
