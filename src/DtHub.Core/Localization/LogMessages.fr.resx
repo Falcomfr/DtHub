@@ -398,6 +398,9 @@
   <data name="Livraison {version} téléchargée et vérifiée." xml:space="preserve">
     <value>Livraison {version} téléchargée et vérifiée.</value>
   </data>
+  <data name="Mise en place de {name} impossible, repli sur la copie installée {path} : {reason}" xml:space="preserve">
+    <value>Mise en place de {name} impossible, repli sur la copie installée {path} : {reason}</value>
+  </data>
   <data name="Mise à jour posée, elle démarrera au prochain lancement." xml:space="preserve">
     <value>Mise à jour posée, elle démarrera au prochain lancement.</value>
   </data>

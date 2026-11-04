@@ -36,13 +36,16 @@ public class EmbeddedResourceTests
     }
 
     [Fact]
-    public void Les_deux_dependances_sont_declarees()
+    public void Les_deux_dependances_sont_declarees_pour_chaque_systeme()
     {
         // The manifest is read from the resource: this test also
-        // fails if the file is present but unreadable.
-        Assert.Equal(2, DependencyManifest.All.Count);
+        // fails if the file is present but unreadable. Windows and
+        // macOS each have their adb and their scrcpy.
+        Assert.Equal(4, DependencyManifest.All.Count);
         Assert.NotNull(DependencyManifest.Get(DependencyManifest.PlatformToolsKey));
         Assert.NotNull(DependencyManifest.Get(DependencyManifest.ScrcpyKey));
+        Assert.NotNull(DependencyManifest.Get(DependencyManifest.PlatformToolsMacKey));
+        Assert.NotNull(DependencyManifest.Get(DependencyManifest.ScrcpyMacKey));
     }
 
     /// <summary>

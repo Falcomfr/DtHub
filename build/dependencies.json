@@ -33,6 +33,33 @@
       "licenseUrl": "https://github.com/Genymobile/scrcpy/blob/master/LICENSE",
       "redistributable": true,
       "redistributionNote": "Apache 2.0 autorise la redistribution. Le composant est tout de même téléchargé chez l'utilisateur, par le même mécanisme vérifié qu'ADB : l'installateur reste léger et il n'y a qu'un seul chemin de mise en place à maintenir et à tester. L'archive amont contient son propre LICENSE.txt, conservé tel quel à l'extraction."
+    },
+    "platform-tools-macos": {
+      "displayName": "Android SDK Platform-Tools",
+      "version": "37.0.1",
+      "url": "https://dl.google.com/android/repository/platform-tools_r37.0.1-darwin.zip",
+      "sizeBytes": 16110554,
+      "sha256": "ee39ad5967e95c2a07f04dbcbde96b1a0c916ba376096db5d2f498b7727a5d1d",
+      "sha1": "6ae73f4de6452dc57e62ec02b68eed92a4c21661",
+      "archiveRootDirectory": "platform-tools",
+      "executable": "adb",
+      "license": "Android Software Development Kit License Agreement",
+      "licenseUrl": "https://developer.android.com/studio/terms",
+      "redistributable": false,
+      "redistributionNote": "Version macOS (Apple Silicon et Intel) du même composant, sous la même licence : téléchargée chez l'utilisateur depuis l'URL officielle Google, jamais embarquée dans l'application."
+    },
+    "scrcpy-macos": {
+      "displayName": "scrcpy",
+      "version": "5.0.1",
+      "url": "https://github.com/Genymobile/scrcpy/releases/download/v5.0.1/scrcpy-macos-aarch64-v5.0.1.tar.gz",
+      "sizeBytes": 12565912,
+      "sha256": "33611e51977a8289e2e124b220f727895181ef2eb9060e0987a4dc2db9cf0d6b",
+      "archiveRootDirectory": "scrcpy-macos-aarch64-v5.0.1",
+      "executable": "scrcpy",
+      "license": "Apache License 2.0",
+      "licenseUrl": "https://github.com/Genymobile/scrcpy/blob/master/LICENSE",
+      "redistributable": true,
+      "redistributionNote": "Version macOS Apple Silicon, téléchargée par le même mécanisme vérifié. L'archive amont contient aussi un adb : DT Hub ne s'en sert pas et passe toujours à scrcpy celui de platform-tools-macos, pour qu'un seul serveur ADB tourne. Son LICENSE est conservé tel quel à l'extraction."
     }
   }
 }
