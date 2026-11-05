@@ -255,17 +255,25 @@ public partial class InstanceListControl : UserControl
         model.ShowDropHint(target.Row, target.Above);
     }
 
+    /// <summary>
+    /// Drops where the blue line stands, wherever in the list the button is
+    /// let go. Asking which row was under the pointer instead lost every
+    /// release on a gap between rows, under a line still showing, as on the
+    /// PC (2026-11-05). Let go outside the list, the drag is given up.
+    /// </summary>
     private async void OnDragSourceReleased(object? sender, PointerReleasedEventArgs e)
     {
         var dragged = _dragged;
-        var target = dragged is null ? null : Hovered(e.GetPosition(this));
+        var hint = ViewModel?.DropHint;
+        var inside = new Rect(Bounds.Size).Contains(e.GetPosition(this));
 
         EndDrag();
         e.Pointer.Capture(null);
 
         if (dragged is null
-            || target is not { } onto
-            || ReferenceEquals(onto.Row, dragged)
+            || !inside
+            || hint is not { } onto
+            || ReferenceEquals(onto.Onto, dragged)
             || ViewModel is not { } model)
         {
             return;
@@ -275,7 +283,7 @@ public partial class InstanceListControl : UserControl
         // the reopen would otherwise surface as an unhandled fault.
         try
         {
-            await model.ReorderAsync(dragged, onto.Row, onto.Above).ConfigureAwait(true);
+            await model.ReorderAsync(dragged, onto.Onto, onto.Above).ConfigureAwait(true);
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
