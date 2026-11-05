@@ -21,7 +21,7 @@ var package = args.Length > 1 ? args[1] : "com.ankama.dofustouch";
 
 var paths = new AppPaths();
 var adbPath = Path.Combine(
-    paths.ToolsDirectory, "platform-tools-37.0.1", "platform-tools", "adb.exe");
+    paths.ToolsDirectory, "platform-tools-37.0.2", "platform-tools", "adb.exe");
 
 var adb = new AdbClient(new ProcessRunner(), new FixedLocator(adbPath), NullLogger<AdbClient>.Instance);
 var provider = new AppIconProvider(adb, paths, NullLogger<AppIconProvider>.Instance);

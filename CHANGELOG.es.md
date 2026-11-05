@@ -10,6 +10,12 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Cambiado
+
+- La herramienta adb de Android pasa a platform-tools 37.0.2, descargada de Google en el primer arranque.
+
 ## [0.13.2] - 2026-11-05
 
 ### Corregido

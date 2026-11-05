@@ -17,6 +17,12 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Changed
+
+- Android's adb tool is updated to platform-tools 37.0.2, downloaded from Google on first launch.
+
 ## [0.13.2] - 2026-11-05
 
 ### Fixed

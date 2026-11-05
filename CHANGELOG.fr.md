@@ -11,6 +11,12 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Modifié
+
+- L'outil adb d'Android passe en platform-tools 37.0.2, téléchargé chez Google au premier lancement.
+
 ## [0.13.2] - 2026-11-05
 
 ### Corrigé
