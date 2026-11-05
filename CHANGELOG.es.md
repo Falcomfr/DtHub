@@ -10,6 +10,12 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Cambiado
+
+- Cuando las cuentas de un teléfono quedan separadas por las de otro en la lista, la segunda parte muestra «↳ teléfono · continuación» en lugar de parecer un segundo teléfono; su información emergente explica qué controla el orden de la lista.
+
 ## [0.13.0] - 2026-11-05
 
 ### Añadido

@@ -1606,13 +1606,16 @@ public sealed partial class InstanceListViewModel : ObservableObject
     {
         var ids = Rows.Select(r => r.DeviceId).ToList();
 
-        var headers = DeviceHeaders.For(ids);
         var firsts = DeviceHeaders.FirstOccurrences(ids);
+        var continuations = DeviceHeaders.Continuations(ids);
 
         for (var i = 0; i < Rows.Count; i++)
         {
-            Rows[i].ShowDeviceHeader = headers[i];
+            // The full header only on the first run: later runs get the
+            // slim "continued" line.
+            Rows[i].ShowDeviceHeader = firsts[i];
             Rows[i].IsFirstOfDevice = firsts[i];
+            Rows[i].IsDeviceContinued = continuations[i];
         }
     }
 

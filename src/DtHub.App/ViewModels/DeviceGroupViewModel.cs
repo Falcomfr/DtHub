@@ -23,7 +23,11 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
     public string DeviceId { get; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ContinuedLabel))]
     private string _name;
+
+    /// <summary>The slim line over a later run of this phone's accounts.</summary>
+    public string ContinuedLabel => Strings.Format("DeviceContinued", Name);
 
     /// <summary>
     /// ADB serial number, which is an address over Wi-Fi and therefore

@@ -288,6 +288,13 @@
                 </StackPanel>
               </Grid>
 
+              <!-- A later run of a phone already shown above. A second full
+                   header read as a second phone (2026-11-05). -->
+              <TextBlock Text="{Binding Device.ContinuedLabel}"
+                         Style="{StaticResource Muted}" FontSize="{StaticResource FontTiny}"
+                         Margin="2,6,0,3" ToolTip="{loc:T DeviceContinuedTip}"
+                         Visibility="{Binding IsDeviceContinued, Converter={StaticResource BoolToVisibility}}" />
+
               <!-- What's wrong with this device, under its name.
 
                    These findings used to live in a single banner at the

@@ -228,8 +228,8 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     private DeviceGroupViewModel? _device;
 
     /// <summary>
-    /// True when this row opens a run of instances from the same device, and
-    /// must therefore carry its name.
+    /// True when this row opens the first run of instances from its device,
+    /// and must therefore carry its full header.
     /// </summary>
     [ObservableProperty]
     private bool _showDeviceHeader;
@@ -241,6 +241,14 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     /// </summary>
     [ObservableProperty]
     private bool _isFirstOfDevice;
+
+    /// <summary>
+    /// True when this row opens a later run of a device shown above: it
+    /// gets a slim "continued" line instead of a second full header,
+    /// which players read as a second phone.
+    /// </summary>
+    [ObservableProperty]
+    private bool _isDeviceContinued;
 
     public bool IsDeviceConnected => Instance.IsDeviceConnected;
 

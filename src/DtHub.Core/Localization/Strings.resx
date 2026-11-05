@@ -525,6 +525,12 @@
   <data name="StopDeviceTip" xml:space="preserve">
     <value>Close every account of this phone. The other phones are not touched.</value>
   </data>
+  <data name="DeviceContinued" xml:space="preserve">
+    <value>↳ {0} · continued</value>
+  </data>
+  <data name="DeviceContinuedTip" xml:space="preserve">
+    <value>Same phone as above: the list order also sets the startup, tab and F1-F8 order. Drag its accounts together to regroup them.</value>
+  </data>
   <data name="ForgetDeviceShortTip" xml:space="preserve">
     <value>Forgets this phone on this PC: its accounts and settings are erased. The phone is not touched. Asks for confirmation.</value>
   </data>

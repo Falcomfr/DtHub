@@ -525,6 +525,12 @@
   <data name="StopDeviceTip" xml:space="preserve">
     <value>Cerrar todas las cuentas de este teléfono. Los demás teléfonos no se tocan.</value>
   </data>
+  <data name="DeviceContinued" xml:space="preserve">
+    <value>↳ {0} · continuación</value>
+  </data>
+  <data name="DeviceContinuedTip" xml:space="preserve">
+    <value>Mismo teléfono que más arriba: el orden de la lista también fija el arranque, las pestañas y F1 a F8. Arrastra sus cuentas juntas para reagruparlas.</value>
+  </data>
   <data name="ForgetDeviceShortTip" xml:space="preserve">
     <value>Olvida este teléfono en este PC: sus cuentas y ajustes se borran. El teléfono no se toca. Pide confirmación.</value>
   </data>

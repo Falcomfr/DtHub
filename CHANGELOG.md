@@ -17,6 +17,12 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Changed
+
+- When a phone's accounts are split by another phone's in the list, the second part now reads "↳ phone · continued" instead of looking like a second phone; its tooltip says what the list order controls.
+
 ## [0.13.0] - 2026-11-05
 
 ### Added
