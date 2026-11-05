@@ -93,7 +93,8 @@ public sealed class BundleUpdateServiceTests : IDisposable
 
     private string Mark() => File.ReadAllText(Path.Combine(_bundle, "Contents", "Resources", "version.txt"));
 
-    [Fact]
+    // Mac paths, written with "/": Windows writes them back with "\".
+    [UnixFact]
     public void Reconnait_l_application_d_apres_son_executable()
     {
         Assert.Equal(
@@ -103,7 +104,8 @@ public sealed class BundleUpdateServiceTests : IDisposable
         Assert.Equal(string.Empty, BundleUpdateService.BundleOf(null, _ => false));
     }
 
-    [Fact]
+    // Mac paths, written with "/": Windows writes them back with "\".
+    [UnixFact]
     public void N_offre_rien_a_une_application_sortie_d_un_arbre_de_sources()
     {
         // The build would overwrite the update within the minute.
