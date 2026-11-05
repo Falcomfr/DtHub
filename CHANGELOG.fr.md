@@ -11,6 +11,21 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.13.0] - 2026-11-05
+
+### Ajouté
+
+- DT Hub sur Mac (puce Apple, macOS 14 ou plus récent) : une ligne dans le Terminal l'installe, puis il se met à jour tout seul. Marche à suivre sur dthub.app.
+- DT Hub sur Linux (64 bits) : une ligne dans un terminal l'installe ; relancez-la pour mettre à jour. Pas encore de raccourcis globaux ni d'onglets.
+
+### Modifié
+
+- Le site propose le téléchargement qui convient à votre ordinateur : Windows, Mac ou Linux.
+
+### Corrigé
+
+- Les 32 quêtes « On recherche… » n'apparaissent plus parmi les donjons.
+
 ## [0.12.2] - 2026-11-01
 
 ### Corrigé

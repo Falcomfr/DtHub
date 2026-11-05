@@ -17,6 +17,21 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.13.0] - 2026-11-05
+
+### Added
+
+- DT Hub on Mac (Apple silicon, macOS 14 or later): one line in Terminal installs it, then it updates itself. Instructions on dthub.app.
+- DT Hub on Linux (64-bit): one line in a terminal installs it; run it again to update. No global shortcuts or tabs there yet.
+
+### Changed
+
+- The website offers the download that fits your computer: Windows, Mac or Linux.
+
+### Fixed
+
+- The 32 "On recherche…" quests no longer show up among the dungeons.
+
 ## [0.12.2] - 2026-11-01
 
 ### Fixed

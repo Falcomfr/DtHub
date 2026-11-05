@@ -10,6 +10,21 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.13.0] - 2026-11-05
+
+### Añadido
+
+- DT Hub en Mac (chip de Apple, macOS 14 o posterior): una línea en Terminal lo instala y luego se actualiza solo. Instrucciones en dthub.app.
+- DT Hub en Linux (64 bits): una línea en una terminal lo instala; vuelve a ejecutarla para actualizar. Todavía sin atajos globales ni pestañas.
+
+### Cambiado
+
+- La web ofrece la descarga adecuada para tu ordenador: Windows, Mac o Linux.
+
+### Corregido
+
+- Las 32 misiones «On recherche…» ya no aparecen entre las mazmorras.
+
 ## [0.12.2] - 2026-11-01
 
 ### Corregido
