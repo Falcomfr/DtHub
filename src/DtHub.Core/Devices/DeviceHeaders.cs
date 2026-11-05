@@ -52,4 +52,18 @@ public static class DeviceHeaders
 
         return first;
     }
+
+    /// <summary>
+    /// For each position, true if the row opens a later run of a
+    /// device already shown above. Those runs get a slim "continued"
+    /// line: a second full header was read as a second phone
+    /// (2026-11-05).
+    /// </summary>
+    public static IReadOnlyList<bool> Continuations(IReadOnlyList<string> deviceIds)
+    {
+        var headers = For(deviceIds);
+        var firsts = FirstOccurrences(deviceIds);
+
+        return [.. headers.Select((header, i) => header && !firsts[i])];
+    }
 }

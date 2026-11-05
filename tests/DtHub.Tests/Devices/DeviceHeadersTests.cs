@@ -41,4 +41,12 @@ public sealed class DeviceHeadersTests
         // twice for the same phone.
         Assert.Equal([true, true, false], DeviceHeaders.FirstOccurrences(["A", "B", "A"]));
     }
+
+    [Fact]
+    public void Un_appareil_coupe_en_deux_ne_repete_que_sa_suite()
+    {
+        // Players took the repeated full header for a second phone.
+        Assert.Equal([false, false, true, false, true], DeviceHeaders.Continuations(["A", "B", "A", "A", "B"]));
+        Assert.Equal([false, false, false], DeviceHeaders.Continuations(["A", "A", "B"]));
+    }
 }
