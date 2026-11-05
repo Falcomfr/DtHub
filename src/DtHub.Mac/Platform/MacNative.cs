@@ -78,6 +78,10 @@ internal static class MacNative
     [return: MarshalAs(UnmanagedType.I1)]
     private static extern bool dthub_window_title(long id, byte[] buffer, int capacity);
 
+    /// <summary>The wireless debugging announcements, one "adb mdns services" line each; -1 when they do not fit.</summary>
+    [DllImport(Library)]
+    public static extern int dthub_mdns_services(byte[] buffer, int capacity);
+
     [DllImport(Library)]
     [return: MarshalAs(UnmanagedType.I1)]
     public static extern bool dthub_move_window(long id, double x, double y, double width, double height);

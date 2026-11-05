@@ -15,8 +15,7 @@ it from Windows: a separate track, untried, see D226.
 The PC's application, on the Mac: the same main window (devices and their
 accounts, windows and shortcuts tabs, profiles, tools, guides, Almanax),
 the same launcher, layouts, tabs, full screen, global shortcuts, Wi-Fi
-pairing, help, app picker, guides and web tools. Left out: updates (the
-PC's install a Windows executable; a Mac release channel is to decide),
+pairing, help, app picker, guides, web tools and updates. Left out:
 desktop shortcuts, and what macOS forbids (see below).
 
 ## How it is built, and why the PC version cannot break
@@ -206,6 +205,53 @@ places its windows from its arguments; no grid, tabs or full screen
 afterwards), no global shortcuts, the guides and web tools open in the
 browser, adb and scrcpy from the player's install. Not run on Linux since.
 
+## Updates and installing (2026-11-05)
+
+As on the PC, and from the same releases: the release pipeline's `mac`
+job adds `DtHub-mac.zip` (the `.app`, by `ditto`) and its `.sha256` to the
+draft. `BundleUpdateService` (Infrastructure, used by the Mac alone) asks
+for the latest release at startup, downloads the archive in the
+background when "Update itself automatically" is checked, checks its
+digest, unpacks it with `ditto` and checks its signature with `codesign`;
+at shutdown the running bundle steps aside into the updates folder and the
+new one takes its place; the next startup shows the note and sweeps. A
+development build (under the source tree) or Linux is offered nothing.
+Checked on this Mac on 2026-11-05: a 0.12.2 in `/Applications` found a
+0.12.3 served from a local folder, showed the banner and the note, put it
+in place at Quit, started as 0.12.3 with the note "just installed" and the
+Accessibility permission kept (same certificate).
+
+The first install is `curl -fsSL https://dthub.app/install-mac.sh | bash`
+(`site/install-mac.sh`, served by the site once on `main`). A file curl
+writes carries no quarantine mark, so Gatekeeper opens the app without a
+Developer ID, and the archive DT Hub downloads itself is not marked either.
+A `.app` downloaded with a browser is refused instead, unless the player
+goes through Privacy & Security, "Open Anyway". Checked with a local
+archive: refuses while DT Hub runs, installs and opens it, refuses a
+wrong checksum and leaves the installed app alone.
+
+Signing in the pipeline: ad hoc unless the `MAC_SIGNING_P12` and
+`MAC_SIGNING_PASSWORD` secrets hold a certificate (a self-signed one
+does, the local "DT Hub Local Signing" exported to .p12). Ad hoc, each
+version is a new identity to macOS, and the player ticks Accessibility
+again after each update.
+
+## Wi-Fi phones on the Mac (2026-11-05)
+
+Two things the PC never meets:
+
+- **macOS's local network protection follows the application that started
+  a process.** The adb server outlives DT Hub; once DT Hub has quit, that
+  server gets "No route to host" for every phone on Wi-Fi, and the next
+  DT Hub, reusing it, saw the phone as refusing it and showed "pair
+  again". The Mac now stops the adb server at startup
+  (`SweepLeftoversAsync`), so the one the first call starts is this run's.
+- **adb's own mDNS discovery finds nothing on a Mac**, whatever
+  `ADB_MDNS_OPENSCREEN` says. `BonjourAdbClient` adds what macOS's Bonjour
+  sees (`Native/MacBonjour.swift`): after the phone's wireless debugging
+  was switched off and on, its new port was found and the phone came back
+  by itself ("ReconnectedByDiscovery").
+
 ## Rules for the next session
 
 - Never touch `src/DtHub.App`. Anything in `Core` or `Infrastructure` must
@@ -220,8 +266,7 @@ browser, adb and scrcpy from the player's install. Not run on Linux since.
 
 1. The player ticks DT Hub in Accessibility once, then the layouts work
    from the `.app` as they do in development.
-2. Updates on the Mac: a macOS job building `DT Hub.app` for releases, and
-   an update target that installs it. The user's decision, with the next
-   point.
-3. Notarization: an Apple developer account (99 $ a year), without which
-   another Mac's Gatekeeper refuses the ad-hoc signed app.
+2. The first real release with the `mac` job, once merged: the job has
+   only been rehearsed step by step on this Mac, never run by GitHub.
+3. No notarization, by choice (2026-11-05): the install goes through
+   `install-mac.sh`. The site's install page does not mention the Mac yet.

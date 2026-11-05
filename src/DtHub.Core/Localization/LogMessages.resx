@@ -797,4 +797,10 @@
   <data name="Table d'identifiants embarquée illisible ({reason}) ; les noms restent en français." xml:space="preserve">
     <value>Embedded ID table unreadable ({reason}); names stay in French.</value>
   </data>
+  <data name="La livraison {version} n'a pas pu être décompressée : {detail}" xml:space="preserve">
+    <value>Could not unpack release {version}: {detail}</value>
+  </data>
+  <data name="La signature de la livraison {version} ne tient pas : {detail}" xml:space="preserve">
+    <value>The signature of release {version} does not hold: {detail}</value>
+  </data>
 </root>

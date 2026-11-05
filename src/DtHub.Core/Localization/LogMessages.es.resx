@@ -797,4 +797,10 @@
   <data name="Table d'identifiants embarquée illisible ({reason}) ; les noms restent en français." xml:space="preserve">
     <value>Tabla de identificadores integrada ilegible ({reason}); los nombres siguen en francés.</value>
   </data>
+  <data name="La livraison {version} n'a pas pu être décompressée : {detail}" xml:space="preserve">
+    <value>No se ha podido descomprimir la versión {version}: {detail}</value>
+  </data>
+  <data name="La signature de la livraison {version} ne tient pas : {detail}" xml:space="preserve">
+    <value>La firma de la versión {version} no es válida: {detail}</value>
+  </data>
 </root>

@@ -15,6 +15,7 @@ using DtHub.Core.Scrcpy;
 using DtHub.Core.Sessions;
 using DtHub.Core.Settings;
 using DtHub.Core.Storage;
+using DtHub.Core.Updates;
 using DtHub.Core.Users;
 using DtHub.Core.Windows;
 using DtHub.Infrastructure.Adb;
@@ -24,6 +25,7 @@ using DtHub.Infrastructure.Devices;
 using DtHub.Infrastructure.Papycha;
 using DtHub.Infrastructure.Processes;
 using DtHub.Infrastructure.Storage;
+using DtHub.Infrastructure.Updates;
 using DtHub.Mac.Pc;
 using DtHub.Mac.Platform;
 using DtHub.Mac.Views;
@@ -138,7 +140,10 @@ internal static class MacServices
         services.AddSingleton<ItemSourceService>();
 
         // Phones.
-        services.AddSingleton<IAdbClient, AdbClient>();
+        services.AddSingleton<AdbClient>();
+        services.AddSingleton<IAdbClient>(provider => OperatingSystem.IsMacOS()
+            ? new BonjourAdbClient(provider.GetRequiredService<AdbClient>())
+            : provider.GetRequiredService<AdbClient>());
         services.AddSingleton<IDeviceRegistry, DeviceRegistry>();
         services.AddSingleton<IUsbEnumerationInspector, MacUsbInspector>();
         services.AddSingleton<DeviceDiscoveryService>();
@@ -169,6 +174,32 @@ internal static class MacServices
         }
 
         services.AddSingleton<WindowManagerService>();
+
+        // Updates, as the PC's: the same releases, the Mac's archive in
+        // them. Its own client: a sixty-megabyte archive does not download
+        // in the time allotted to a web page. Off a bundle (a development
+        // build, Linux), nothing is offered.
+        services.AddSingleton<IReleaseSource>(provider => new GitHubReleaseSource(
+            new HttpClient { Timeout = TimeSpan.FromMinutes(10) },
+            ReleaseChannel.Owner,
+            ReleaseChannel.Repository,
+            provider.GetRequiredService<ILogger<GitHubReleaseSource>>(),
+            BundleUpdateService.Asset));
+        services.AddSingleton(provider => new BundleUpdateService(
+            provider.GetRequiredService<IReleaseSource>(),
+            provider.GetRequiredService<IAppPaths>(),
+            provider.GetRequiredService<IProcessRunner>(),
+            ReleaseParser.Normalize(ReleaseParser.VersionOf(
+                System.Reflection.Assembly.GetEntryAssembly()
+                    ?.GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute), false)
+                    .OfType<System.Reflection.AssemblyInformationalVersionAttribute>()
+                    .FirstOrDefault()
+                    ?.InformationalVersion
+                    .Split('+')[0])),
+            OperatingSystem.IsMacOS()
+                ? BundleUpdateService.BundleOf(Environment.ProcessPath, File.Exists)
+                : string.Empty,
+            provider.GetRequiredService<ILogger<BundleUpdateService>>()));
 
         // Interface.
         services.AddSingleton<IDialogService, MacDialogService>();

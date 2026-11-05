@@ -3259,9 +3259,6 @@ Un teléfono ya vinculado por Wi-Fi vuelve solo.</value>
   <data name="MacNo" xml:space="preserve">
     <value>No</value>
   </data>
-  <data name="MacNotYet" xml:space="preserve">
-    <value>Todavía no en Mac.</value>
-  </data>
   <data name="MacRefresh" xml:space="preserve">
     <value>Actualizar</value>
   </data>

@@ -19,8 +19,10 @@ using DtHub.Core.Scrcpy;
 using DtHub.Core.Sessions;
 using DtHub.Core.Settings;
 using DtHub.Core.Storage;
+using DtHub.Core.Updates;
 using DtHub.Infrastructure.Adb;
 using DtHub.Infrastructure.Processes;
+using DtHub.Infrastructure.Updates;
 using DtHub.Mac.Platform;
 using DtHub.Mac.Views;
 
@@ -312,6 +314,20 @@ internal sealed class MacApp : Application
             await quests.RestoreAsync(document.LastQuestUrl, document.LastQuestStep).ConfigureAwait(true);
         }
 
+        // Updates, as on the PC: cleanup first, then what was just
+        // installed announces itself, then a check for something better,
+        // not awaited: the application must not start at the pace of the
+        // network.
+        var updates = services.GetRequiredService<BundleUpdateService>();
+        updates.Sweep();
+
+        if (updates.TakeNotes() is { Length: > 0 } installed)
+        {
+            ShowNotes($"DT Hub {updates.Running}", Strings.Get("UpdateJustInstalled"), installed);
+        }
+
+        _ = updates.CheckAsync(document.UpdatesAutomatic);
+
         _started = true;
 
         if (openNothing)
@@ -347,10 +363,13 @@ internal sealed class MacApp : Application
         model.AlmanaxRequested += (_, _) => dispatcher.Post(() => ShowAlmanax(services));
         model.WebToolRequested += (_, tool) => dispatcher.Post(() => ShowWebTool(services, tool));
 
-        // shortcut: UpdateWindow and the update service are not on the Mac;
-        // the banner never shows, so its button is never reached.
-        model.UpdateNotesRequested += (_, _) =>
-            dispatcher.Post(() => dialogs.ShowInformation(Strings.Get("MacNotYet")));
+        var updates = services.GetRequiredService<BundleUpdateService>();
+
+        updates.Changed += (_, _) => dispatcher.Post(() => ShowUpdateState(updates, model));
+        model.UpdateNotesRequested += (_, _) => dispatcher.Post(() => ShowNotes(
+            $"DT Hub {updates.Available?.Version}",
+            updates.Ready ? Strings.Get("UpdateReadyNotes") : Strings.Get("UpdateAvailableNotes"),
+            ReleaseNotes.Readable(updates.Available?.Notes)));
 
         launcher.QuitRequested += (_, _) => dispatcher.Post(() => _ = RequestQuitAsync());
 
@@ -586,6 +605,62 @@ internal sealed class MacApp : Application
 
         await SaveSessionStateAsync(_configurator?.IsVisible == true).ConfigureAwait(true);
         await CloseDownAsync().ConfigureAwait(true);
+        await ApplyUpdateAsync().ConfigureAwait(true);
+    }
+
+    /// <summary>
+    /// Places a prepared update, here and nowhere else: nothing is running
+    /// anymore. The box is read now: unchecked after the download, the
+    /// player keeps his version.
+    /// </summary>
+    private static async Task ApplyUpdateAsync()
+    {
+        if (_services is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var settings = await _services.GetRequiredService<SettingsService>().GetAsync().ConfigureAwait(true);
+
+            if (_services.GetRequiredService<BundleUpdateService>().Apply(settings.UpdatesAutomatic))
+            {
+                Log.Information("Mise à jour posée, elle démarrera au prochain lancement.");
+            }
+        }
+        catch (IOException exception)
+        {
+            Log.Warning(exception, "La mise à jour n'a pas pu être posée.");
+        }
+    }
+
+    /// <summary>States in one line where the update stands, as the PC's banner.</summary>
+    private static void ShowUpdateState(BundleUpdateService updates, ConfiguratorViewModel model) =>
+        model.UpdateText = updates.Available is not { } release
+            ? string.Empty
+            : updates.Ready
+                ? Strings.Format("UpdateReadyBanner", release.Version)
+                : Strings.Format("UpdateAvailableBanner", release.Version);
+
+    /// <summary>Opens the release note, over the panel when it is shown.</summary>
+    private static void ShowNotes(string heading, string lead, string notes)
+    {
+        if (notes.Length == 0)
+        {
+            return;
+        }
+
+        var window = new UpdateWindow(heading, lead, notes);
+
+        if (_configurator?.IsVisible == true)
+        {
+            window.Show(_configurator);
+        }
+        else
+        {
+            window.Show();
+        }
     }
 
     /// <summary>
@@ -753,7 +828,8 @@ internal sealed class MacApp : Application
     /// The PC's KillOrphansAsync, and on the Mac the adb shells too: what a
     /// run that ended badly left running, scrcpy windows and the commands
     /// of a phone that stopped answering. Only DT Hub's own copies: the
-    /// tools are its own on the Mac, so nothing of the player's is touched.
+    /// tools are its own on the Mac, so nothing of the player's is touched,
+    /// but for the adb server, shared by every adb and restarted.
     /// </summary>
     private static async Task SweepLeftoversAsync(IServiceProvider services)
     {
@@ -776,6 +852,15 @@ internal sealed class MacApp : Application
             {
                 Log.Information("{Count} commande(s) adb restée(s) d'une exécution précédente arrêtée(s).", shells);
             }
+
+            // macOS's local network protection follows the application
+            // that started a process, and the adb server outlives it: left
+            // by a DT Hub since closed, it is cut off from the phones on
+            // Wi-Fi ("No route to host"), and this run, reusing it, saw
+            // every wireless phone as refusing it and asked to pair again.
+            // Stopped here, the server the first adb call starts is this
+            // run's own. The PC has no such protection and keeps it.
+            await services.GetRequiredService<IAdbClient>().StopServerAsync().ConfigureAwait(true);
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
