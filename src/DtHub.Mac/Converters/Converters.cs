@@ -336,12 +336,12 @@ public sealed class BoolToOpacityConverter : IValueConverter
 
 /// <summary>
 /// The PC's language list names the system's own language "Windows": on
-/// the Mac, that choice is macOS.
+/// the Mac, that choice is macOS, and on Linux, Linux.
 /// </summary>
 public sealed class SystemNameConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-        value is "Windows" ? "macOS" : value;
+        value is "Windows" ? (OperatingSystem.IsMacOS() ? "macOS" : "Linux") : value;
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         throw new NotSupportedException();

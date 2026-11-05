@@ -119,7 +119,7 @@ internal static class MacServices
         }
         else
         {
-            var linuxHint = Strings.Get("InstallLinuxTools");
+            var linuxHint = Strings.Get("InstallLinuxToolsArm");
             services.AddSingleton<IAdbLocator>(new InstalledTool("adb", linuxHint));
             services.AddSingleton<IScrcpyLocator>(new InstalledTool("scrcpy", linuxHint));
         }

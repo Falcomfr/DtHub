@@ -25,7 +25,11 @@ public sealed partial class MacTextTests
     {
         var reserved = Strings.GetIn("HotkeyReserved", CultureInfo.GetCultureInfo(language));
 
-        Assert.Contains(OperatingSystem.IsMacOS() ? "macOS" : "Windows", reserved, StringComparison.Ordinal);
+        Assert.DoesNotContain(OperatingSystem.IsWindows() ? "macOS" : "Windows", reserved, StringComparison.Ordinal);
+        if (!OperatingSystem.IsLinux())
+        {
+            Assert.Contains(OperatingSystem.IsMacOS() ? "macOS" : "Windows", reserved, StringComparison.Ordinal);
+        }
     }
 
     [Fact]
@@ -40,7 +44,7 @@ public sealed partial class MacTextTests
     [InlineData("fr")]
     [InlineData("en")]
     [InlineData("es")]
-    public void Chaque_texte_Mac_double_une_cle_avec_les_memes_parametres(string language)
+    public void Chaque_texte_Mac_ou_Linux_double_une_cle_avec_les_memes_parametres(string language)
     {
         var culture = CultureInfo.GetCultureInfo(language);
         var set = Resources.GetResourceSet(culture, true, true)!;
@@ -50,13 +54,16 @@ public sealed partial class MacTextTests
         {
             var key = (string)entry.Key;
 
-            if (!key.StartsWith("MacText_", StringComparison.Ordinal))
+            var prefix = key.StartsWith("MacText_", StringComparison.Ordinal) ? "MacText_"
+                : key.StartsWith("LinuxText_", StringComparison.Ordinal) ? "LinuxText_"
+                : null;
+            if (prefix is null)
             {
                 continue;
             }
 
             variants++;
-            var original = Resources.GetString(key["MacText_".Length..], culture);
+            var original = Resources.GetString(key[prefix.Length..], culture);
 
             Assert.NotNull(original);
             Assert.Equal(Placeholders(original), Placeholders((string)entry.Value!));

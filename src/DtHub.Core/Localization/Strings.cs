@@ -30,10 +30,21 @@ public static class Strings
     /// </summary>
     private const string MacTextPrefix = "MacText_";
 
+    /// <summary>
+    /// The same for Linux, whose steps are neither Windows' nor the Mac's
+    /// (its USB rules, its firewalls). The word "PC" stays: it is one.
+    /// </summary>
+    private const string LinuxTextPrefix = "LinuxText_";
+
     private static readonly Regex PcWord = new(@"\bPC\b", RegexOptions.CultureInvariant);
 
     private static string? Lookup(string key, CultureInfo culture)
     {
+        if (OperatingSystem.IsLinux())
+        {
+            return Manager.GetString(LinuxTextPrefix + key, culture) ?? Manager.GetString(key, culture);
+        }
+
         if (!OperatingSystem.IsMacOS())
         {
             return Manager.GetString(key, culture);

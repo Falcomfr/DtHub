@@ -55,6 +55,19 @@ public sealed class RedactionTests
         Assert.Contains(@"AppData\Local\DtHub", clean, StringComparison.Ordinal);
     }
 
+    [Theory]
+    // The report promised it on the Mac and Linux too, where only the
+    // Windows shape used to be recognized.
+    [InlineData("/Users/alice/Library/Application Support/DtHub/logs/dthub.log", "/Users/…/Library/Application Support/DtHub")]
+    [InlineData("/home/alice/.local/share/DtHub/tools/scrcpy", "/home/…/.local/share/DtHub")]
+    public void Le_nom_du_compte_mac_ou_linux_disparait_du_chemin(string path, string kept)
+    {
+        var clean = Redaction.Apply(path);
+
+        Assert.DoesNotContain("alice", clean, StringComparison.Ordinal);
+        Assert.Contains(kept, clean, StringComparison.Ordinal);
+    }
+
     /// <summary>
     /// Whatever the application knows about goes away wherever it
     /// appears, matched on the longest string: a serial number caught

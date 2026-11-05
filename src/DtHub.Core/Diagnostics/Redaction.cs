@@ -54,6 +54,7 @@ public static partial class Redaction
         clean = SerialOptionPattern().Replace(clean, "--serial=" + Placeholder);
         clean = DisplayPattern().Replace(clean, Placeholder);
         clean = UserPathPattern().Replace(clean, @"C:\Users\" + Placeholder + @"\");
+        clean = UnixUserPathPattern().Replace(clean, "/${root}/" + Placeholder + "/");
 
         // Then what the application already knows, by the longest
         // string first, for the same reason: a name contained inside
@@ -108,4 +109,8 @@ public static partial class Redaction
     /// </summary>
     [GeneratedRegex(@"[A-Za-z]:\\Users\\[^\\/:*?""<>|\r\n]+\\", RegexOptions.IgnoreCase, 500)]
     private static partial Regex UserPathPattern();
+
+    /// <summary>The same name in a Mac path, /Users/name/, or a Linux one, /home/name/.</summary>
+    [GeneratedRegex(@"/(?<root>Users|home)/[^/\r\n]+/", RegexOptions.None, 500)]
+    private static partial Regex UnixUserPathPattern();
 }

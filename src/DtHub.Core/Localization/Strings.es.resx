@@ -3388,4 +3388,54 @@ Un teléfono ya vinculado por Wi-Fi vuelve solo.</value>
   <data name="IPhoneFailed" xml:space="preserve">
     <value>No se pudo mostrar el iPhone. El registro de DT Hub da más detalles.</value>
   </data>
+  <data name="LinuxText_ReportContents" xml:space="preserve">
+    <value>El informe lleva la versión, tus pantallas, el error y las líneas útiles del registro de hoy. Los números de serie, las direcciones y el nombre de tu cuenta de Linux se quitan de él.</value>
+  </data>
+  <data name="LinuxText_CheckDriverRefused" xml:space="preserve">
+    <value>Linux rechaza el acceso USB a este teléfono: faltan las reglas USB de Android. Instálalas (android-sdk-platform-tools-common en Debian y Ubuntu, android-udev en Arch), desconecta y vuelve a conectar el teléfono, y acepta la solicitud en él.</value>
+  </data>
+  <data name="LinuxText_CheckNoDevice" xml:space="preserve">
+    <value>No se detecta ningún teléfono. Que cargue no basta:
+1. Conecta un cable de datos.
+2. Elige «Transferencia de archivos» si el teléfono lo pide.
+3. Activa la depuración USB.
+Un teléfono ya vinculado por Wi-Fi vuelve solo.</value>
+  </data>
+  <data name="LinuxText_CableHelpTitle" xml:space="preserve">
+    <value>Un dispositivo conectado que el ordenador no lee</value>
+  </data>
+  <data name="LinuxText_CableHelpSteps" xml:space="preserve">
+    <value>1. Otro cable: los de los cargadores a menudo no tienen hilos de datos.
+2. Otro puerto USB, sin hub si es posible.
+3. Las reglas USB de Android: android-sdk-platform-tools-common en Debian y Ubuntu.
+4. Limpiar el conector del teléfono.
+5. Este teléfono en otro ordenador, para saber cuál falla.</value>
+  </data>
+  <data name="LinuxText_StaysOfflinePrivate" xml:space="preserve">
+    <value>• Linux: un cortafuegos activo (ufw, firewalld) debe dejar pasar adb en la red local.</value>
+  </data>
+  <data name="LinuxText_StaysOfflineFirewall" xml:space="preserve">
+    <value>• Sigue sin aparecer: «Escribir la dirección a mano», en la ventana de vinculación.</value>
+  </data>
+  <data name="LinuxText_HelpFixCableWindows" xml:space="preserve">
+    <value>• ¿El ordenador no ve el teléfono? La pestaña Dispositivos dice qué hacer.</value>
+  </data>
+  <data name="LinuxText_LanguageTip" xml:space="preserve">
+    <value>«Linux» sigue el idioma del sistema, o el inglés si no está traducido. Se aplica en el próximo inicio.</value>
+  </data>
+  <data name="LinuxText_HotkeyReserved" xml:space="preserve">
+    <value>Esta combinación está reservada por el sistema.</value>
+  </data>
+  <data name="LinuxText_ShortcutsScopeNotice" xml:space="preserve">
+    <value>Los atajos todavía no funcionan en Linux: esta lista vale para Windows y Mac.</value>
+  </data>
+  <data name="LinuxText_TabbedTip" xml:space="preserve">
+    <value>El marco con pestañas todavía no existe en Linux: esta cuenta conserva su propia ventana.</value>
+  </data>
+  <data name="LinuxText_AutomaticUpdatesTip" xml:space="preserve">
+    <value>En Linux, DT Hub no se actualiza solo: vuelve a ejecutar la línea de instalación de dthub.app para pasar a la nueva versión.</value>
+  </data>
+  <data name="InstallLinuxToolsArm" xml:space="preserve">
+    <value>En un procesador ARM, DT Hub no puede descargar adb y scrcpy: instálalos con tu distribución (scrcpy 3 o posterior) y ponlos en ~/.local/bin o en el PATH.</value>
+  </data>
 </root>

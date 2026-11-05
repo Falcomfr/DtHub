@@ -3388,4 +3388,54 @@ A phone already paired over Wi-Fi comes back on its own.</value>
   <data name="IPhoneFailed" xml:space="preserve">
     <value>The iPhone could not be shown. DT Hub's log says more.</value>
   </data>
+  <data name="LinuxText_ReportContents" xml:space="preserve">
+    <value>The report carries the version, your screens, the error and the useful lines of today's log. Device serials, addresses and your Linux account name are removed from it.</value>
+  </data>
+  <data name="LinuxText_CheckDriverRefused" xml:space="preserve">
+    <value>Linux refuses USB access to this phone: Android's USB rules are missing. Install them (android-sdk-platform-tools-common on Debian and Ubuntu, android-udev on Arch), unplug and plug the phone in again, and accept the prompt on it.</value>
+  </data>
+  <data name="LinuxText_CheckNoDevice" xml:space="preserve">
+    <value>No phone detected. Charging is not enough:
+1. Plug in a data cable.
+2. Pick "File transfer" if the phone asks.
+3. Turn on USB debugging.
+A phone already paired over Wi-Fi comes back on its own.</value>
+  </data>
+  <data name="LinuxText_CableHelpTitle" xml:space="preserve">
+    <value>A plugged-in device the computer cannot read</value>
+  </data>
+  <data name="LinuxText_CableHelpSteps" xml:space="preserve">
+    <value>1. Another cable: charger cables often have no data wires.
+2. Another USB port, without a hub if possible.
+3. Android's USB rules: android-sdk-platform-tools-common on Debian and Ubuntu.
+4. Clean the phone's connector.
+5. This phone on another computer, to know which one is at fault.</value>
+  </data>
+  <data name="LinuxText_StaysOfflinePrivate" xml:space="preserve">
+    <value>• Linux: an active firewall (ufw, firewalld) must let adb through on the local network.</value>
+  </data>
+  <data name="LinuxText_StaysOfflineFirewall" xml:space="preserve">
+    <value>• Still nothing: "Type the address by hand", in the pairing window.</value>
+  </data>
+  <data name="LinuxText_HelpFixCableWindows" xml:space="preserve">
+    <value>• The computer does not see the phone? The Devices tab says what to do.</value>
+  </data>
+  <data name="LinuxText_LanguageTip" xml:space="preserve">
+    <value>"Linux" follows the system's language, or English if it is not translated. Applies at the next startup.</value>
+  </data>
+  <data name="LinuxText_HotkeyReserved" xml:space="preserve">
+    <value>This combination is reserved by the system.</value>
+  </data>
+  <data name="LinuxText_ShortcutsScopeNotice" xml:space="preserve">
+    <value>Shortcuts do not work on Linux yet: this list applies to Windows and Mac.</value>
+  </data>
+  <data name="LinuxText_TabbedTip" xml:space="preserve">
+    <value>The tabbed frame does not exist on Linux yet: this account keeps its own window.</value>
+  </data>
+  <data name="LinuxText_AutomaticUpdatesTip" xml:space="preserve">
+    <value>On Linux, DT Hub does not update itself: run the install line from dthub.app again to get the new version.</value>
+  </data>
+  <data name="InstallLinuxToolsArm" xml:space="preserve">
+    <value>On an ARM processor DT Hub cannot download adb and scrcpy: install them from your distribution (scrcpy 3 or later) and put them in ~/.local/bin or in the PATH.</value>
+  </data>
 </root>
