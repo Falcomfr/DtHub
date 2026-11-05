@@ -26,6 +26,7 @@
 <meta property="og:description" content="Débogage USB ou sans fil, deuxième compte sur le même téléphone, réglages par marque (Xiaomi, Samsung, OnePlus, Honor, vivo) : tout pour jouer à DOFUS Touch sur PC avec DT Hub.">
 <meta property="og:image" content="https://dthub.app/screenshots/appareils.png">
 <meta name="twitter:card" content="summary_large_image">
+<script src="systeme.js"></script>
 </head>
 <body>
 
@@ -65,7 +66,7 @@
       <a href="https://discord.gg/aauJcga6eG"><svg class="ic"><use href="#i-discord"/></svg>Discord</a>
       <a href="install.html">English</a>
       <a href="install.es.html">Español</a>
-      <a class="bouton petit" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe"><svg class="ic"><use href="#i-telecharger"/></svg>Télécharger</a>
+      <a class="bouton petit" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe" data-mac-href="#mac" data-linux-href="#linux"><svg class="ic"><use href="#i-telecharger"/></svg>Télécharger</a>
     </nav>
   </div>
 </div>
@@ -78,13 +79,38 @@
 </header>
 
 <section id="dthub">
-  <h2><svg class="ic"><use href="#i-telecharger"/></svg><span>1. Télécharger DT Hub</span></h2>
+  <h2><svg class="ic"><use href="#i-telecharger"/></svg><span>1. Installer DT Hub</span></h2>
+  <p class="systemes"><a href="#windows">Windows</a> · <a href="#mac">Mac</a> · <a href="#linux">Linux</a></p>
+
+  <h3 id="windows">Windows</h3>
   <div class="telecharger">
     <a class="bouton" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe"><svg class="ic"><use href="#i-telecharger"/></svg>Télécharger DtHub.exe</a>
   </div>
   <ul class="liste">
     <li>Windows 10 ou 11, 64 bits, rien à installer</li>
     <li>Au premier lancement, Windows met en garde : <a href="index.fr.html#telecharger">voici quoi faire</a></li>
+  </ul>
+
+  <h3 id="mac">Mac</h3>
+  <p>Ouvrez le Terminal (Applications › Utilitaires), collez cette ligne, puis Entrée :</p>
+  <pre data-copier="Copier" data-copie="Copié"><code>curl -fsSL https://dthub.app/install-mac.sh | bash</code></pre>
+  <ul class="liste">
+    <li>Mac à puce Apple (M1 ou plus récent), macOS 14 Sonoma ou plus récent</li>
+    <li>DT Hub s'installe dans Applications et se met ensuite à jour tout seul</li>
+    <li>Au premier lancement, macOS demande l'autorisation d'Accessibilité : elle sert à placer les fenêtres de jeu</li>
+  </ul>
+
+  <h3 id="linux">Linux</h3>
+  <p>Ouvrez un terminal, collez cette ligne, puis Entrée :</p>
+  <pre data-copier="Copier" data-copie="Copié"><code>curl -fsSL https://dthub.app/install-linux.sh | bash</code></pre>
+  <ul class="liste">
+    <li>Linux 64 bits (x86_64), sans mot de passe : tout s'installe dans votre dossier personnel, avec une entrée dans le menu des applications</li>
+    <li>Relancez la même ligne pour mettre DT Hub à jour</li>
+    <li>Une session X11 est conseillée : sous Wayland, les fenêtres de jeu ne peuvent pas être placées</li>
+    <li>Version plus simple que sur Windows et Mac : ni raccourcis globaux, ni onglets</li>
+  </ul>
+
+  <ul class="liste">
     <li>Seuls les appareils Android conviennent. iOS ne permet ni d'ouvrir un écran supplémentaire, ni d'y installer deux fois la même application.</li>
   </ul>
 </section>
@@ -109,6 +135,7 @@
         <li>Essayez un autre câble : beaucoup ne font que charger.</li>
         <li>Dans la notification USB du téléphone, essayez « Transfert de fichiers ».</li>
         <li>Options pour les développeurs : « Révoquer les autorisations de débogage USB », puis rebranchez.</li>
+        <li>Linux : si le téléphone n'apparaît pas par câble, installez les règles USB d'Android (paquet <code>android-sdk-platform-tools-common</code> sur Debian et Ubuntu), puis rebranchez.</li>
       </ul>
     </section>
     <section class="carte">
@@ -123,6 +150,8 @@
         <li>Le PC et le téléphone sur le même Wi-Fi, pas sur le Wi-Fi invité de la box.</li>
         <li>Windows : le réseau en « Privé » (Paramètres › Réseau et Internet).</li>
         <li>Pare-feu Windows : autorisez « Android Debug Bridge » en Privé et en Public.</li>
+        <li>Mac : si macOS demande d'autoriser les connexions entrantes ou l'accès au réseau local pour DT Hub, acceptez.</li>
+        <li>Linux : un pare-feu actif (ufw, firewalld) doit laisser passer adb sur le réseau local.</li>
         <li>Coupez le VPN du PC, s'il y en a un.</li>
         <li>En dernier recours : « Saisir l'adresse à la main », dans la fenêtre d'association.</li>
       </ul>

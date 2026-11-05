@@ -54,8 +54,8 @@
   "name": "DT Hub",
   "alternateName": ["DTHub", "DOFUS Touch Hub"],
   "applicationCategory": "UtilitiesApplication",
-  "operatingSystem": "Windows 10, Windows 11",
-  "softwareRequirements": "Windows 10 or 11, 64 bits. Android 11 or later on the phone.",
+  "operatingSystem": "Windows 10, Windows 11, macOS 14, Linux",
+  "softwareRequirements": "Windows 10 or 11 (64-bit), macOS 14 on Apple silicon, or 64-bit Linux. Android 11 or later on the phone.",
   "url": "https://dthub.app/index.fr.html",
   "downloadUrl": "https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe",
   "softwareHelp": "https://github.com/Falcomfr/DtHub",
@@ -75,6 +75,7 @@
   "description": "Jouez à DOFUS Touch sur PC, plusieurs comptes côte à côte, depuis vos propres téléphones. Pas un émulateur, aucune automatisation."
 }
 </script>
+<script src="systeme.js"></script>
 </head>
 <body>
 
@@ -116,7 +117,7 @@
       <a href="https://discord.gg/aauJcga6eG"><svg class="ic"><use href="#i-discord"/></svg>Discord</a>
       <a href="index.html?lang=en">English</a>
       <a href="index.es.html?lang=es">Español</a>
-      <a class="bouton petit" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe"><svg class="ic"><use href="#i-telecharger"/></svg>Télécharger</a>
+      <a class="bouton petit" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe" data-mac-href="install.fr.html#mac" data-linux-href="install.fr.html#linux"><svg class="ic"><use href="#i-telecharger"/></svg>Télécharger</a>
     </nav>
   </div>
 </div>
@@ -132,9 +133,11 @@
     </p>
 
     <div class="telecharger">
-      <a class="bouton" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe"><svg class="ic"><use href="#i-telecharger"/></svg>Télécharger DtHub.exe</a>
-      <span class="sous-bouton">Windows 10 ou 11, 64 bits · rien à installer · licence MIT</span>
-      <div class="avertissement"><svg class="ic"><use href="#i-info"/></svg><span>Au premier lancement, Windows met en garde&nbsp;: il ne connaît pas encore une application aussi récente. <b>Informations complémentaires</b>, puis <b>Exécuter quand même</b>. C'est le temps qu'elle soit signée. <a href="#telecharger">Le détail</a>.</span></div>
+      <a class="bouton" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe" data-mac-href="install.fr.html#mac" data-mac-texte="Installer sur Mac" data-linux-href="install.fr.html#linux" data-linux-texte="Installer sur Linux"><svg class="ic"><use href="#i-telecharger"/></svg>Télécharger DtHub.exe</a>
+      <span class="sous-bouton" data-pour="windows">Windows 10 ou 11, 64 bits · rien à installer · licence MIT</span>
+      <span class="sous-bouton" data-pour="mac">Mac à puce Apple, macOS 14 ou plus récent · une ligne dans le Terminal · licence MIT</span>
+      <span class="sous-bouton" data-pour="linux">Linux 64 bits · une ligne dans un terminal · licence MIT</span>
+      <div class="avertissement" data-pour="windows"><svg class="ic"><use href="#i-info"/></svg><span>Au premier lancement, Windows met en garde&nbsp;: il ne connaît pas encore une application aussi récente. <b>Informations complémentaires</b>, puis <b>Exécuter quand même</b>. C'est le temps qu'elle soit signée. <a href="#telecharger">Le détail</a>.</span></div>
     </div>
   </div>
 
@@ -326,7 +329,7 @@
   <h2><svg class="ic"><use href="#i-telecharger"/></svg><span>Télécharger</span></h2>
 
   <div class="telecharger">
-    <a class="bouton" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe"><svg class="ic"><use href="#i-telecharger"/></svg>Télécharger DtHub.exe</a>
+    <a class="bouton" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe" data-mac-href="install.fr.html#mac" data-mac-texte="Installer sur Mac" data-linux-href="install.fr.html#linux" data-linux-texte="Installer sur Linux"><svg class="ic"><use href="#i-telecharger"/></svg>Télécharger DtHub.exe</a>
     <span class="sous-bouton">
       <a href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe.sha256">empreinte SHA256</a> ·
       <a href="https://github.com/Falcomfr/DtHub/releases">toutes les versions</a>
@@ -334,14 +337,17 @@
   </div>
 
   <ul class="liste">
-    <li>Windows 10 ou 11, 64 bits</li>
+    <li data-pour="windows">Windows 10 ou 11, 64 bits</li>
+    <li data-pour="mac">Mac à puce Apple (M1 ou plus récent), macOS 14 ou plus récent</li>
+    <li data-pour="linux">Linux 64 bits (x86_64)</li>
+    <li>Sur un autre ordinateur : <a href="install.fr.html#windows">Windows</a> · <a href="install.fr.html#mac">Mac</a> · <a href="install.fr.html#linux">Linux</a></li>
     <li>Android 11 ou plus, avec un profil cloné</li>
     <li><a href="install.fr.html">Le guide d'installation pas à pas</a> : débogage, deuxième compte, réglages par marque de téléphone</li>
     <li>Une connexion au premier lancement, pour 19 Mo d'outils</li>
-    <li>Signature du code&nbsp;: demandée à <a href="https://signpath.org/">SignPath Foundation</a>, gratuite pour les logiciels libres. Le certificat sera émis à son nom, pas au mien.</li>
+    <li data-pour="windows">Signature du code&nbsp;: demandée à <a href="https://signpath.org/">SignPath Foundation</a>, gratuite pour les logiciels libres. Le certificat sera émis à son nom, pas au mien.</li>
   </ul>
 
-  <div class="encart">
+  <div class="encart" data-pour="windows">
     <h3>Au premier lancement, Windows met en garde</h3>
     <p>DT Hub est récent et n'est pas encore signé&nbsp;: Windows ne le connaît
       donc pas. Selon le PC, l'une de ces deux fenêtres paraît&nbsp;:</p>

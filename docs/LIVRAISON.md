@@ -46,7 +46,7 @@ nothing is shown.
    ```
 
 The pipeline builds, publishes, computes the checksum and creates the
-release with five files, then the Mac job adds two (see "The Mac"): `DtHub.exe`, `DtHub.exe.sha256`, `notes.en.md`,
+release with five files, then the Mac and Linux jobs add two each (see "The Mac" and "Linux"): `DtHub.exe`, `DtHub.exe.sha256`, `notes.en.md`,
 `notes.fr.md` and `notes.es.md`. The first two are the names the application
 requires: from 0.7.11 onward it builds their addresses from the tag, and a
 release missing either one fails to download without replacing anything. The
@@ -126,6 +126,28 @@ The signature is ad hoc unless the `MAC_SIGNING_P12` (the certificate,
 kept from version to version, even self-signed, keeps macOS's
 Accessibility permission across updates; ad hoc, the player ticks it again
 after each one.
+
+## Linux
+
+The same tag builds Linux too: the `linux` job, on Ubuntu, waits for the
+PC's job, runs the tests there, publishes `src/DtHub.Mac` self-contained for
+`linux-x64` (no .NET to install), adds `assets/app.png` for the application
+menu, and adds `DtHub-linux-x64.tar.gz` and `DtHub-linux-x64.tar.gz.sha256`
+to the draft. Those are the names `site/install-linux.sh` asks for.
+
+Players install it with one line in a terminal:
+
+```
+curl -fsSL https://dthub.app/install-linux.sh | bash
+```
+
+into their own folders, without a password: the application in
+`~/.local/share/dthub-app`, a `dthub` command in `~/.local/bin` and an entry
+in the application menu. Running the line again updates it; the application
+does not update itself on Linux. Its data stays in `~/.local/share/DtHub`.
+
+The per-push check (`controle.yml`) also builds it and starts it on a virtual
+screen, so a Linux regression shows before a tag.
 
 ## Getting the binary recognized
 

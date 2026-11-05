@@ -26,6 +26,7 @@
 <meta property="og:description" content="USB or wireless debugging, a second account on the same phone, settings for each brand (Xiaomi, Samsung, OnePlus, Honor, vivo): everything to play DOFUS Touch on PC with DT Hub.">
 <meta property="og:image" content="https://dthub.app/screenshots/appareils.en.png">
 <meta name="twitter:card" content="summary_large_image">
+<script src="systeme.js"></script>
 </head>
 <body>
 
@@ -65,7 +66,7 @@
       <a href="https://discord.gg/aauJcga6eG"><svg class="ic"><use href="#i-discord"/></svg>Discord</a>
       <a href="install.fr.html">Français</a>
       <a href="install.es.html">Español</a>
-      <a class="bouton petit" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe"><svg class="ic"><use href="#i-telecharger"/></svg>Download</a>
+      <a class="bouton petit" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe" data-mac-href="#mac" data-linux-href="#linux"><svg class="ic"><use href="#i-telecharger"/></svg>Download</a>
     </nav>
   </div>
 </div>
@@ -78,13 +79,38 @@
 </header>
 
 <section id="dthub">
-  <h2><svg class="ic"><use href="#i-telecharger"/></svg><span>1. Download DT Hub</span></h2>
+  <h2><svg class="ic"><use href="#i-telecharger"/></svg><span>1. Install DT Hub</span></h2>
+  <p class="systemes"><a href="#windows">Windows</a> · <a href="#mac">Mac</a> · <a href="#linux">Linux</a></p>
+
+  <h3 id="windows">Windows</h3>
   <div class="telecharger">
     <a class="bouton" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe"><svg class="ic"><use href="#i-telecharger"/></svg>Download DtHub.exe</a>
   </div>
   <ul class="liste">
     <li>Windows 10 or 11, 64 bit, nothing to install</li>
     <li>Windows warns on first run: <a href="index.html#download">here is what to do</a></li>
+  </ul>
+
+  <h3 id="mac">Mac</h3>
+  <p>Open Terminal (Applications › Utilities), paste this line, then press Return:</p>
+  <pre data-copier="Copy" data-copie="Copied"><code>curl -fsSL https://dthub.app/install-mac.sh | bash</code></pre>
+  <ul class="liste">
+    <li>A Mac with Apple silicon (M1 or later), macOS 14 Sonoma or later</li>
+    <li>DT Hub installs into Applications and then updates itself</li>
+    <li>On first launch, macOS asks for the Accessibility permission: it is what places the game windows</li>
+  </ul>
+
+  <h3 id="linux">Linux</h3>
+  <p>Open a terminal, paste this line, then press Enter:</p>
+  <pre data-copier="Copy" data-copie="Copied"><code>curl -fsSL https://dthub.app/install-linux.sh | bash</code></pre>
+  <ul class="liste">
+    <li>64-bit Linux (x86_64), no password: everything goes into your home folder, with an entry in the application menu</li>
+    <li>Run the same line again to update DT Hub</li>
+    <li>An X11 session is recommended: under Wayland, the game windows cannot be placed</li>
+    <li>A simpler version than on Windows and Mac: no global shortcuts, no tabs</li>
+  </ul>
+
+  <ul class="liste">
     <li>Only Android devices will do. iOS allows neither opening an extra display nor installing the same application twice.</li>
   </ul>
 </section>
@@ -109,6 +135,7 @@
         <li>Try another cable: many only charge.</li>
         <li>In the phone's USB notification, try “File transfer”.</li>
         <li>Developer options: “Revoke USB debugging authorisations”, then plug it back in.</li>
+        <li>Linux: if the phone does not show up over the cable, install Android's USB rules (the <code>android-sdk-platform-tools-common</code> package on Debian and Ubuntu), then plug it in again.</li>
       </ul>
     </section>
     <section class="carte">
@@ -123,6 +150,8 @@
         <li>The PC and the phone on the same Wi-Fi, not on the router's guest Wi-Fi.</li>
         <li>Windows: the network set to “Private” (Settings › Network &amp; internet).</li>
         <li>Windows firewall: allow “Android Debug Bridge” on Private and Public.</li>
+        <li>Mac: if macOS asks to allow incoming connections or local network access for DT Hub, accept.</li>
+        <li>Linux: an active firewall (ufw, firewalld) must let adb through on the local network.</li>
         <li>Turn off the PC's VPN, if there is one.</li>
         <li>As a last resort: “Type the address by hand”, in the pairing window.</li>
       </ul>

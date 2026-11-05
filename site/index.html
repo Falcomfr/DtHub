@@ -56,8 +56,8 @@
   "name": "DT Hub",
   "alternateName": ["DTHub", "DOFUS Touch Hub"],
   "applicationCategory": "UtilitiesApplication",
-  "operatingSystem": "Windows 10, Windows 11",
-  "softwareRequirements": "Windows 10 or 11, 64 bits. Android 11 or later on the phone.",
+  "operatingSystem": "Windows 10, Windows 11, macOS 14, Linux",
+  "softwareRequirements": "Windows 10 or 11 (64-bit), macOS 14 on Apple silicon, or 64-bit Linux. Android 11 or later on the phone.",
   "url": "https://dthub.app/",
   "downloadUrl": "https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe",
   "softwareHelp": "https://github.com/Falcomfr/DtHub",
@@ -92,6 +92,7 @@
   }
 })();
 </script>
+<script src="systeme.js"></script>
 </head>
 <body>
 
@@ -133,7 +134,7 @@
       <a href="https://discord.gg/aauJcga6eG"><svg class="ic"><use href="#i-discord"/></svg>Discord</a>
       <a href="index.fr.html?lang=fr">Français</a>
       <a href="index.es.html?lang=es">Español</a>
-      <a class="bouton petit" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe"><svg class="ic"><use href="#i-telecharger"/></svg>Download</a>
+      <a class="bouton petit" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe" data-mac-href="install.html#mac" data-linux-href="install.html#linux"><svg class="ic"><use href="#i-telecharger"/></svg>Download</a>
     </nav>
   </div>
 </div>
@@ -149,9 +150,11 @@
     </p>
 
     <div class="telecharger">
-      <a class="bouton" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe"><svg class="ic"><use href="#i-telecharger"/></svg>Download DtHub.exe</a>
-      <span class="sous-bouton">Windows 10 or 11, 64 bit · nothing to install · MIT licence</span>
-      <div class="avertissement"><svg class="ic"><use href="#i-info"/></svg><span>On the first launch, Windows warns: it does not yet know an application this new. <b>More info</b>, then <b>Run anyway</b>. Only until it is signed. <a href="#download">The detail</a>.</span></div>
+      <a class="bouton" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe" data-mac-href="install.html#mac" data-mac-texte="Install on Mac" data-linux-href="install.html#linux" data-linux-texte="Install on Linux"><svg class="ic"><use href="#i-telecharger"/></svg>Download DtHub.exe</a>
+      <span class="sous-bouton" data-pour="windows">Windows 10 or 11, 64 bit · nothing to install · MIT licence</span>
+      <span class="sous-bouton" data-pour="mac">Mac with Apple silicon, macOS 14 or later · one line in Terminal · MIT licence</span>
+      <span class="sous-bouton" data-pour="linux">64-bit Linux · one line in a terminal · MIT licence</span>
+      <div class="avertissement" data-pour="windows"><svg class="ic"><use href="#i-info"/></svg><span>On the first launch, Windows warns: it does not yet know an application this new. <b>More info</b>, then <b>Run anyway</b>. Only until it is signed. <a href="#download">The detail</a>.</span></div>
     </div>
   </div>
 
@@ -340,7 +343,7 @@
   <h2><svg class="ic"><use href="#i-telecharger"/></svg><span>Download</span></h2>
 
   <div class="telecharger">
-    <a class="bouton" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe"><svg class="ic"><use href="#i-telecharger"/></svg>Download DtHub.exe</a>
+    <a class="bouton" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe" data-mac-href="install.html#mac" data-mac-texte="Install on Mac" data-linux-href="install.html#linux" data-linux-texte="Install on Linux"><svg class="ic"><use href="#i-telecharger"/></svg>Download DtHub.exe</a>
     <span class="sous-bouton">
       <a href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe.sha256">SHA256 checksum</a> ·
       <a href="https://github.com/Falcomfr/DtHub/releases">all releases</a>
@@ -348,14 +351,17 @@
   </div>
 
   <ul class="liste">
-    <li>Windows 10 or 11, 64 bit</li>
+    <li data-pour="windows">Windows 10 or 11, 64 bit</li>
+    <li data-pour="mac">A Mac with Apple silicon (M1 or later), macOS 14 or later</li>
+    <li data-pour="linux">64-bit Linux (x86_64)</li>
+    <li>On another computer: <a href="install.html#windows">Windows</a> · <a href="install.html#mac">Mac</a> · <a href="install.html#linux">Linux</a></li>
     <li>Android 11 or later, with a cloned profile</li>
     <li><a href="install.html">Step by step install guide</a>: debugging, second account, settings for each phone brand</li>
     <li>An internet connection on first launch, for 19 MB of tools</li>
-    <li>Code signing: requested from <a href="https://signpath.org/">SignPath Foundation</a>, free for open source projects. The certificate will be issued in their name, not mine.</li>
+    <li data-pour="windows">Code signing: requested from <a href="https://signpath.org/">SignPath Foundation</a>, free for open source projects. The certificate will be issued in their name, not mine.</li>
   </ul>
 
-  <div class="encart">
+  <div class="encart" data-pour="windows">
     <h3>Windows warns on first run</h3>
     <p>DT Hub is new and not signed yet, so Windows does not know it.
       Depending on the PC, one of these two windows appears:</p>

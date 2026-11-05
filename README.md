@@ -54,6 +54,28 @@ You need Windows 10 version 1809 or later, 64 bit, and an internet connection
 the first time: DT Hub then fetches ADB and scrcpy from Google and Genymobile,
 19 MB in all, checking each archive against a known fingerprint before using it.
 
+### On a Mac or a Linux PC
+
+The same release carries a Mac and a Linux version, installed with one line
+in a terminal. Each script checks the archive against its checksum before
+replacing anything.
+
+```bash
+# Mac with Apple silicon (M1 or later), macOS 14 or later
+curl -fsSL https://dthub.app/install-mac.sh | bash
+
+# 64-bit Linux (x86_64)
+curl -fsSL https://dthub.app/install-linux.sh | bash
+```
+
+The Mac version lands in Applications and updates itself, as on Windows. On
+first launch macOS asks for the Accessibility permission, which is what places
+the game windows. The Linux version installs into your home folder, with no
+password, an entry in the application menu and a `dthub` command; run the same
+line again to update it. It is simpler than the others: no global shortcuts
+and no tabs, and under Wayland the game windows cannot be placed, so an X11
+session is recommended. Both fetch ADB and scrcpy themselves, as on Windows.
+
 ## What it looks like
 
 <img src="assets/screenshots/cadre-a-onglets.en.jpg" alt="Two accounts as tabs inside one window" width="820">
@@ -228,7 +250,8 @@ tabbed frame, since a frame is a single window.
 ## Where your data lives
 
 `%LOCALAPPDATA%\DtHub\` holds `settings.json`, `devices.json`, the downloaded
-tools and rotating logs. Pairing codes are never written to the logs. Delete
+tools and rotating logs; on a Mac, `~/Library/Application Support/DtHub/`, and
+on Linux, `~/.local/share/DtHub/`. Pairing codes are never written to the logs. Delete
 that folder to reset everything.
 
 ## Limitations

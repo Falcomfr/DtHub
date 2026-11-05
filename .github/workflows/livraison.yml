@@ -301,3 +301,43 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           ETIQUETTE: ${{ github.ref_name }}
         run: gh release upload "$ETIQUETTE" DtHub-mac.zip DtHub-mac.zip.sha256
+
+  # Linux's DtHub-linux-x64.tar.gz, added to the same draft. Self-contained:
+  # the player installs no .NET. site/install-linux.sh installs it into the
+  # user's own folders and updates it when run again (D228).
+  linux:
+    needs: livrer
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: '10.0.x'
+
+      # The front-end's tests on Linux, where the Windows ones are skipped.
+      - name: Test
+        run: dotnet test tests/DtHub.Tests --configuration Release --nologo
+
+      # The tag was checked against Directory.Build.props by the PC's job.
+      - name: Publish
+        env:
+          ETIQUETTE: ${{ github.ref_name }}
+        run: |
+          dotnet publish src/DtHub.Mac -c Release -r linux-x64 --self-contained true -warnaserror \
+            "-p:Version=${ETIQUETTE#v}" -o "$RUNNER_TEMP/DtHub" --nologo
+          cp assets/app.png "$RUNNER_TEMP/DtHub/"
+
+      # One top folder, which install-linux.sh strips when it unpacks.
+      - name: Archive
+        run: |
+          tar -czf DtHub-linux-x64.tar.gz -C "$RUNNER_TEMP" DtHub
+          sha256sum DtHub-linux-x64.tar.gz > DtHub-linux-x64.tar.gz.sha256
+          cat DtHub-linux-x64.tar.gz.sha256
+
+      - name: Add to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ETIQUETTE: ${{ github.ref_name }}
+        run: gh release upload "$ETIQUETTE" DtHub-linux-x64.tar.gz DtHub-linux-x64.tar.gz.sha256

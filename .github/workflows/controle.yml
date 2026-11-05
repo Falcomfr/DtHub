@@ -151,3 +151,36 @@ jobs:
             ~/Library/Application Support/DtHub/logs/
           if-no-files-found: ignore
           retention-days: 14
+
+  # Linux, as the Mac above: the tests where only the Windows ones are
+  # skipped, the self-contained build players install, and a first start on
+  # a virtual screen that must still be running forty seconds later. No
+  # phone here either: that was tried by hand (D228).
+  linux:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Test
+        run: dotnet test tests/DtHub.Tests --configuration Release --nologo
+
+      - name: Build the app
+        run: dotnet publish src/DtHub.Mac -c Release -r linux-x64 --self-contained true -warnaserror -o "$RUNNER_TEMP/DtHub" --nologo
+
+      - name: Check the install scripts
+        run: bash -n site/install-linux.sh && bash -n site/install-mac.sh
+
+      - name: Start it on a virtual screen
+        run: |
+          sudo apt-get install -y -q xvfb > /dev/null
+          set +e
+          timeout 40 xvfb-run -a "$RUNNER_TEMP/DtHub/DtHub.Mac"
+          code=$?
+          set -e
+          # 124: still running when the timeout stopped it, as it should.
+          [ "$code" -eq 124 ] || { echo "DT Hub ended on its own with code $code."; cat ~/.local/share/DtHub/logs/*.log || true; exit 1; }

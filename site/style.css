@@ -303,3 +303,20 @@ header.hero::before {
   color: var(--doux); font-size: 15px; line-height: 1.5;
 }
 .avertissement .ic { color: var(--accent); width: 17px; height: 17px; margin-top: 3px; }
+
+/* What concerns one system only (systeme.js). Without the script, and on
+ * Windows, the Windows lines show; on a Mac or a Linux PC, theirs instead. */
+
+html:not([data-os]) [data-pour]:not([data-pour~="windows"]),
+html[data-os="mac"] [data-pour]:not([data-pour~="mac"]),
+html[data-os="linux"] [data-pour]:not([data-pour~="linux"]) { display: none; }
+
+/* The install commands for Mac and Linux, and the button that copies them. */
+
+.copier {
+  margin: -6px 0 12px; padding: 5px 12px; cursor: pointer;
+  background: var(--releve); color: var(--texte); font: inherit; font-size: 14px;
+  border: 1px solid var(--trait); border-radius: var(--rayon);
+}
+.copier:hover { border-color: var(--accent); }
+.systemes { color: var(--doux); }
