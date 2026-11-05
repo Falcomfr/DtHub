@@ -316,6 +316,9 @@
   <data name="La place d'une fenêtre perdue n'a pas pu être retenue." xml:space="preserve">
     <value>La place d'une fenêtre perdue n'a pas pu être retenue.</value>
   </data>
+  <data name="{Count} commande(s) adb restée(s) d'une exécution précédente arrêtée(s)." xml:space="preserve">
+    <value>{Count} commande(s) adb restée(s) d'une exécution précédente arrêtée(s).</value>
+  </data>
   <data name="{serial} ne répond plus au ping depuis {seconds} s : liaison perdue, fenêtre de {instance} fermée pour être rouverte." xml:space="preserve">
     <value>{serial} ne répond plus au ping depuis {seconds} s : liaison perdue, fenêtre de {instance} fermée pour être rouverte.</value>
   </data>

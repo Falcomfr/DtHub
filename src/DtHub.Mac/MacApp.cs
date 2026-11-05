@@ -11,6 +11,7 @@ using Avalonia.Threading;
 using DtHub.App.Services;
 using DtHub.App.ViewModels;
 using DtHub.Core;
+using DtHub.Core.Adb;
 using DtHub.Core.Devices;
 using DtHub.Core.Dofus;
 using DtHub.Core.Localization;
@@ -19,6 +20,7 @@ using DtHub.Core.Sessions;
 using DtHub.Core.Settings;
 using DtHub.Core.Storage;
 using DtHub.Infrastructure.Adb;
+using DtHub.Infrastructure.Processes;
 using DtHub.Mac.Platform;
 using DtHub.Mac.Views;
 
@@ -211,6 +213,8 @@ internal sealed class MacApp : Application
             // Before any game window: without the Accessibility permission
             // the layout cannot move them.
             AccessibilityCheck.Run(services.GetRequiredService<IDialogService>());
+
+            await SweepLeftoversAsync(services).ConfigureAwait(true);
         }
 
         // The first launch is recognized by an empty device registry.
@@ -712,6 +716,41 @@ internal sealed class MacApp : Application
         {
             Log.Warning(exception, "La réouverture de {Nom} a échoué.", request.Instance.DisplayName);
             launcher.AwaitPhoneIfGone(request.Instance, []);
+        }
+    }
+
+    /// <summary>
+    /// The PC's KillOrphansAsync, and on the Mac the adb shells too: what a
+    /// run that ended badly left running, scrcpy windows and the commands
+    /// of a phone that stopped answering. Only DT Hub's own copies: the
+    /// tools are its own on the Mac, so nothing of the player's is touched.
+    /// </summary>
+    private static async Task SweepLeftoversAsync(IServiceProvider services)
+    {
+        try
+        {
+            if (services.GetRequiredService<IScrcpyLocator>().TryGetInstalledPath() is { } scrcpy)
+            {
+                var windows = OrphanProcesses.KillFrom(scrcpy);
+
+                if (windows > 0)
+                {
+                    Log.Information("{Count} fenêtre(s) restée(s) d'une exécution précédente fermée(s).", windows);
+                }
+            }
+
+            var adb = await services.GetRequiredService<IAdbLocator>().GetAdbPathAsync().ConfigureAwait(true);
+            var shells = MacOrphans.KillShellsFrom(adb);
+
+            if (shells > 0)
+            {
+                Log.Information("{Count} commande(s) adb restée(s) d'une exécution précédente arrêtée(s).", shells);
+            }
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            // A cleanup that cannot happen must not prevent startup.
+            Log.Warning(exception, "Le ménage des fenêtres restantes a échoué.");
         }
     }
 
