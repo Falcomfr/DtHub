@@ -124,6 +124,13 @@ internal sealed class MacApp : Application
                 });
             };
 
+            // Logout, restart or shutdown: saved and left before macOS asks,
+            // since the answer Avalonia gives that request stops the logout.
+            if (OperatingSystem.IsMacOS())
+            {
+                MacNative.dthub_on_power_off(PowerOff);
+            }
+
             // No job object on macOS to take the scrcpy windows down with
             // us: whatever survived the quit is closed here, or it would
             // outlive the app.
@@ -531,6 +538,29 @@ internal sealed class MacApp : Application
         {
             _desktop?.Shutdown();
         }
+    }
+
+    /// <summary>Kept alive while the native side holds it.</summary>
+    private static readonly MacNative.PowerOffCallback PowerOff = OnPowerOff;
+
+    /// <summary>
+    /// The PC's OnSessionEnding: the session saved and the games closed
+    /// within the quit's budget, then the application ends by itself.
+    /// </summary>
+    private static void OnPowerOff()
+    {
+        if (IsShuttingDown)
+        {
+            return;
+        }
+
+        Log.Information("Fermeture de session macOS : DT Hub enregistre et se ferme.");
+        _ = DtHub.Mac.Pc.Modal.Wait(async () =>
+        {
+            await Task.WhenAny(QuitWorkAsync(), Task.Delay(QuitBudget)).ConfigureAwait(true);
+            return true;
+        });
+        _desktop?.Shutdown();
     }
 
     /// <summary>

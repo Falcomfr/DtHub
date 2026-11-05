@@ -117,4 +117,10 @@ internal static class MacNative
 
     [DllImport(Library)]
     public static extern void dthub_accept_first_mouse(nint nsWindow);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate void PowerOffCallback();
+
+    [DllImport(Library)]
+    public static extern void dthub_on_power_off(PowerOffCallback? callback);
 }

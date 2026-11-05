@@ -141,6 +141,9 @@
   <data name="Fenêtre perdue, réouverture de {name} dans {seconds} s (tentative {attempt})." xml:space="preserve">
     <value>Window lost; reopening {name} in {seconds} s (attempt {attempt}).</value>
   </data>
+  <data name="Fermeture de session macOS : DT Hub enregistre et se ferme." xml:space="preserve">
+    <value>macOS session ending: DT Hub saves and quits.</value>
+  </data>
   <data name="Fin de session Windows : l'état est retenu avant l'arrêt." xml:space="preserve">
     <value>Windows session ending: saving state before shutdown.</value>
   </data>

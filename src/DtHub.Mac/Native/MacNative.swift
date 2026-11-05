@@ -340,3 +340,19 @@ public func dthubAcceptFirstMouse(_ nsWindow: UnsafeMutableRawPointer?) {
         views.append(contentsOf: view.subviews)
     }
 }
+
+private var powerOffObserver: NSObjectProtocol?
+
+/// Logout, restart or shutdown is coming: macOS says so before it asks the
+/// apps to quit. Avalonia answers that request with a cancel (and quits on
+/// its own afterwards), which would stop the logout; DT Hub instead saves
+/// and leaves on this notice, before it is asked. The callback runs on the
+/// main thread.
+@_cdecl("dthub_on_power_off")
+public func dthubOnPowerOff(_ callback: (@convention(c) () -> Void)?) {
+    if let powerOffObserver { NSWorkspace.shared.notificationCenter.removeObserver(powerOffObserver) }
+    powerOffObserver = nil
+    guard let callback else { return }
+    powerOffObserver = NSWorkspace.shared.notificationCenter.addObserver(
+        forName: NSWorkspace.willPowerOffNotification, object: nil, queue: .main) { _ in callback() }
+}
