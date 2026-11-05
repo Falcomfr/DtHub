@@ -12167,3 +12167,16 @@ Revérifié dans WSL depuis un dossier personnel vide :
 - les deux archives sont téléchargées et vérifiées en deux secondes ;
 - les données vont dans `~/.local/share/DtHub` ;
 - le journal ne contient aucune erreur.
+
+Essai avec un vrai téléphone, le 05/11/2026 : le Xiaomi 13T Pro de
+l'utilisateur, prêté à WSL par `usbipd`. La version Linux trouve le
+téléphone (connecté par USB, batterie, Wi-Fi) et ses trois comptes, et ouvre
+DOFUS Touch sur son écran virtuel. Le jeu s'affiche, et répond aux clics et
+au clavier (vu par l'utilisateur). Quitter ferme scrcpy et retire l'écran
+virtuel.
+
+**Non expliqué** : à la toute première ouverture, le serveur scrcpy s'est
+arrêté aussitôt sur le téléphone (« Aborted », puis « Server connection
+failed »), sans rien dans le journal Android. Lancée à la main avec les
+mêmes arguments, puis rouverte depuis DT Hub, l'ouverture a marché, et ce
+cas ne s'est pas reproduit. À surveiller chez un joueur Linux.

@@ -196,8 +196,13 @@ Checked on 2026-11-04 in WSL (Ubuntu 24.04, WSLg):
 - with the three files in `~/.local/bin`, adb starts and the window waits
   for a phone.
 
-No phone could be tried: WSL does not see the PC's USB. Still to do on a
-real Linux PC:
+Tried with a real phone on 2026-11-05: the owner's Xiaomi 13T Pro lent to
+WSL with usbipd (`usbipd bind`, `usbipd attach --wsl`, then read and write
+access on its /dev/bus/usb node, which a udev rule gives on a real Linux PC).
+The phone and its three accounts were listed, DOFUS Touch opened on its
+virtual display, showed, and answered clicks and keys. The very first
+opening failed once (the server printed "Aborted"), then never again: not
+explained, to watch. Still to do on a real Linux PC:
 - items 2 to 7 of the Mac list above;
 - window placement: `TitleBarHeight` is the Mac's, and under Wayland scrcpy
   cannot place its window at all (X11 or XWayland needed for the grid).
