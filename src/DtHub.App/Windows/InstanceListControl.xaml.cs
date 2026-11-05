@@ -217,16 +217,26 @@ public partial class InstanceListControl : UserControl
 
     /// <summary>
     /// Shows where the item will land: a line above or below the
-    /// one being hovered over, depending on which half the cursor
+    /// row being hovered over, depending on which half the cursor
     /// is in.
+    ///
+    /// **The whole list takes the drag, in the tunnelling pass.** The
+    /// rows used to, one by one, and every spot between them, the name
+    /// field and the row's buttons refused it: released there, under a
+    /// blue line still showing, the drop was cancelled. Players had to
+    /// drag twice (2026-11-05). Handled here, the name field never sees
+    /// a drop it would turn down. Between rows the line stays where it
+    /// was, and that line is what a release honours.
     /// </summary>
-    private void OnDragOver(object sender, DragEventArgs e)
+    private void OnPreviewDragOver(object sender, DragEventArgs e)
     {
         e.Handled = true;
 
-        e.Effects = DragDropEffects.Move;
+        // A file or text dragged in from elsewhere is still refused.
+        e.Effects = Dragged(e) is null ? DragDropEffects.None : DragDropEffects.Move;
 
-        if (Hovered(sender) is not { } onto || ViewModel is not { } model)
+        if (SurfaceUnder(e) is not { DataContext: InstanceRowViewModel onto } surface
+            || ViewModel is not { } model)
         {
             return;
         }
@@ -241,17 +251,8 @@ public partial class InstanceListControl : UserControl
             return;
         }
 
-        model.ShowDropHint(onto, IsUpperHalf(sender, e));
+        model.ShowDropHint(onto, e.GetPosition(surface).Y < surface.ActualHeight / 2);
     }
-
-    /// <summary>
-    /// The marker is not cleared on leaving an item. Moving from
-    /// one row to its neighbor, or simply hovering over an input
-    /// field, triggers a leave then an enter: clearing it every
-    /// time made the line flicker. It is only removed at the end
-    /// of the drag.
-    /// </summary>
-    private void OnDragLeave(object sender, DragEventArgs e) => e.Handled = true;
 
     /// <summary>
     /// Keeps the usual cursor during the drag. Windows's
@@ -266,16 +267,14 @@ public partial class InstanceListControl : UserControl
         e.Handled = true;
     }
 
-    private async void OnDrop(object sender, DragEventArgs e)
+    /// <summary>Drops where the blue line stands.</summary>
+    private async void OnPreviewDrop(object sender, DragEventArgs e)
     {
         e.Handled = true;
 
-        var above = IsUpperHalf(sender, e);
-
-        if (Hovered(sender) is not { } onto
-            || Dragged(e) is not { } dragged
-            || ReferenceEquals(dragged, onto)
-            || ViewModel is not { } model)
+        if (Dragged(e) is not { } dragged
+            || ViewModel is not { } model
+            || model.DropHint is not { } hint)
         {
             return;
         }
@@ -287,7 +286,7 @@ public partial class InstanceListControl : UserControl
         // drag already guards the same move this way.
         try
         {
-            await model.ReorderAsync(dragged, onto, above).ConfigureAwait(true);
+            await model.ReorderAsync(dragged, hint.Onto, hint.Above).ConfigureAwait(true);
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
@@ -295,17 +294,20 @@ public partial class InstanceListControl : UserControl
         }
     }
 
-    /// <summary>True if the cursor is in the target's upper half.</summary>
-    private static bool IsUpperHalf(object sender, DragEventArgs e) =>
-        sender is FrameworkElement target
-        && e.GetPosition(target).Y < target.ActualHeight / 2;
+    /// <summary>The row's drop surface under the cursor, or <c>null</c> between rows.</summary>
+    private static FrameworkElement? SurfaceUnder(DragEventArgs e)
+    {
+        for (var node = e.OriginalSource as DependencyObject; node is not null;
+             node = node is Visual ? VisualTreeHelper.GetParent(node) : LogicalTreeHelper.GetParent(node))
+        {
+            if (node is FrameworkElement { Name: "DropSurface" } surface)
+            {
+                return surface;
+            }
+        }
 
-    /// <summary>
-    /// Row being hovered over, or <c>null</c> if the cursor is on
-    /// none.
-    /// </summary>
-    private static InstanceRowViewModel? Hovered(object sender) =>
-        sender is FrameworkElement { DataContext: InstanceRowViewModel row } ? row : null;
+        return null;
+    }
 
     private static InstanceRowViewModel? Dragged(DragEventArgs e) =>
         e.Data.GetData(typeof(InstanceRowViewModel)) as InstanceRowViewModel;

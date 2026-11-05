@@ -1,5 +1,7 @@
 ﻿<UserControl x:Class="DtHub.App.Windows.InstanceListControl"
              GiveFeedback="OnGiveFeedback" MouseMove="OnDragSourceMoved"
+             AllowDrop="True" PreviewDragEnter="OnPreviewDragOver"
+             PreviewDragOver="OnPreviewDragOver" PreviewDrop="OnPreviewDrop"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:loc="clr-namespace:DtHub.App.Localization"
@@ -13,7 +15,11 @@
       <ItemsControl ItemsSource="{Binding Rows}">
         <ItemsControl.ItemTemplate>
           <DataTemplate>
-            <StackPanel>
+            <!-- A background so the gaps between the header, the markers
+                 and the row are hit too: a release there used to fall
+                 through to nothing and cancel the drop under the blue
+                 line (2026-11-05). -->
+            <StackPanel Background="Transparent">
               <!-- A row fades in when a phone is found.
 
                    It fires once per genuine discovery: the sweep looks
@@ -228,7 +234,7 @@
                      the two apart, since only the second changes the
                      phone. A solid plus sign, because adding has no
                      other icon. -->
-                <Button Style="{StaticResource IconButton}" AllowDrop="False"
+                <Button Style="{StaticResource IconButton}"
                         IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"
                         ToolTip="{loc:T AddAccountTip}"
                         Command="{Binding DataContext.ManageAppsCommand,
@@ -248,7 +254,7 @@
 
                 <!-- Close every account of this phone: the rows' own stop
                      square, while one of them is open. -->
-                <Button Style="{StaticResource IconButton}" AllowDrop="False"
+                <Button Style="{StaticResource IconButton}"
                         ToolTip="{loc:T StopDeviceTip}"
                         Command="{Binding DataContext.StopDeviceCommand,
                                           RelativeSource={RelativeSource AncestorType=UserControl}}"
@@ -270,7 +276,7 @@
                      appear twice for the same phone. -->
                 <!-- A broken link, drawn as two separated rings. -->
                 <Button Style="{StaticResource DangerIconButton}"
-                        AllowDrop="False"
+                       
                         ToolTip="{loc:T ForgetDeviceTip}"
                         Command="{Binding DataContext.ForgetDeviceCommand,
                                           RelativeSource={RelativeSource AncestorType=UserControl}}"
@@ -347,10 +353,11 @@
                         Click="OnProblemHelp" />
               </Grid>
 
-              <!-- Drop surface: the row and its two markers, nothing else. -->
-              <StackPanel AllowDrop="True"
-                          Opacity="{Binding IsDragging, Converter={StaticResource DraggedOpacity}}"
-                          DragOver="OnDragOver" Drop="OnDrop" DragLeave="OnDragLeave">
+              <!-- Drop surface: the row and its two markers, nothing else.
+                   Its halves decide "above" or "below"; the drag itself is
+                   handled by the whole list. -->
+              <StackPanel x:Name="DropSurface" Background="Transparent"
+                          Opacity="{Binding IsDragging, Converter={StaticResource DraggedOpacity}}">
 
                 <!-- **Visibility and not opacity.** Bound by opacity, the
                      two hints were laid out on every row at all times:
@@ -436,7 +443,7 @@
                        navigation, stacking, side by side, and the
                        sizing presets all ignore it. -->
                   <ToggleButton Grid.Column="2" Style="{StaticResource LockToggle}"
-                                IsChecked="{Binding IsLocked}" AllowDrop="False"
+                                IsChecked="{Binding IsLocked}"
                                 Margin="0,0,4,0" VerticalAlignment="Center"
                                 ToolTip="{loc:T LockWindowTip}"
                                 Visibility="{Binding ShowActions,
@@ -451,7 +458,7 @@
                   <!-- Puts the account in the tabbed frame, or takes it
                        out. The window is neither closed nor reopened:
                        it is docked as is. -->
-                  <ToggleButton Grid.Column="3" AllowDrop="False" Cursor="Hand"
+                  <ToggleButton Grid.Column="3" Cursor="Hand"
                                 Margin="0,0,5,0" VerticalAlignment="Center"
                                 IsChecked="{Binding IsTabbed}"
                                 ToolTip="{loc:T TabbedTip}"
@@ -510,7 +517,7 @@
                   </StackPanel>
 
                   <StackPanel Grid.Column="5" VerticalAlignment="Center">
-                    <TextBox Text="{Binding Name, UpdateSourceTrigger=LostFocus}" AllowDrop="False"
+                    <TextBox Text="{Binding Name, UpdateSourceTrigger=LostFocus}"
                              KeyDown="OnRenameKey"
                              Style="{StaticResource InlineEdit}"
                              ToolTip="{loc:T RenameTip}" />
@@ -576,7 +583,7 @@
                       <Grid Margin="0,0,4,0" VerticalAlignment="Center"
                             Visibility="{Binding HasReducedRender,
                                          Converter={StaticResource BoolToVisibility}}">
-                        <ToggleButton x:Name="ImageReduite" AllowDrop="False" Padding="6,3"
+                        <ToggleButton x:Name="ImageReduite" Padding="6,3"
                                       FontSize="{StaticResource FontSmall}"
                                       Style="{StaticResource RowChipToggle}"
                                       Foreground="{DynamicResource WarningBrush}"
@@ -630,7 +637,7 @@
                       </Grid>
 
                       <Grid Margin="0,0,4,0" VerticalAlignment="Center">
-                        <ToggleButton x:Name="Reglages" AllowDrop="False" Padding="6,3"
+                        <ToggleButton x:Name="Reglages" Padding="6,3"
                                       FontSize="{StaticResource FontSmall}"
                                       Style="{StaticResource RowChipToggle}"
                                       ToolTip="{loc:T InstanceSettingsTip}">
@@ -928,7 +935,7 @@
                              BasedOn is not optional: without it the style
                              would replace the named one rather than extend
                              it, and the button would lose its shape. -->
-                        <Button AllowDrop="False"
+                        <Button
                                 ToolTip="{loc:T RestartTip}"
                                 Command="{Binding DataContext.RestartCommand,
                                                   RelativeSource={RelativeSource AncestorType=UserControl}}"
@@ -952,7 +959,7 @@
                              found on their own and would come straight back. A
                              bin, because the row does leave the list; the
                              application itself stays on the phone. -->
-                        <Button Style="{StaticResource DangerIconButton}" AllowDrop="False"
+                        <Button Style="{StaticResource DangerIconButton}"
                                 ToolTip="{loc:T RemoveAppTip}"
                                 Command="{Binding DataContext.RemoveAppCommand,
                                                   RelativeSource={RelativeSource AncestorType=UserControl}}"
@@ -982,7 +989,7 @@
                            row" to almost everyone; nothing is deleted
                            here, which is also why it is not red. -->
                       <Grid>
-                        <Button Style="{StaticResource RowActionButton}" AllowDrop="False"
+                        <Button Style="{StaticResource RowActionButton}"
                                 ToolTip="{loc:T OpenInstanceTip}"
                                 Visibility="{Binding IsRunning,
                                                      Converter={StaticResource InverseBoolToVisibility}}"
@@ -994,7 +1001,7 @@
                                 Width="15" Height="15" Stretch="None" />
                         </Button>
 
-                        <Button Style="{StaticResource RowActionButton}" AllowDrop="False"
+                        <Button Style="{StaticResource RowActionButton}"
                                 ToolTip="{loc:T CloseWindowTip}"
                                 Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}"
                                 Command="{Binding DataContext.StopCommand,
@@ -1074,7 +1081,7 @@
               <!-- The same plus as on a row: a phone without the game can
                    still show its other apps, and once one is chosen the
                    phone gets rows like any other. -->
-              <Button Style="{StaticResource IconButton}" AllowDrop="False"
+              <Button Style="{StaticResource IconButton}"
                       ToolTip="{loc:T AddAppTip}"
                       Command="{Binding DataContext.ManageAppsCommand,
                                         RelativeSource={RelativeSource AncestorType=UserControl}}"

@@ -10,6 +10,12 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Corregido
+
+- Arrastrar una cuenta en la lista la deja donde aparece la línea azul, se suelte donde se suelte en la lista: soltada sobre un nombre, un botón o entre dos filas, el movimiento se perdía y había que repetirlo.
+
 ## [0.13.1] - 2026-11-05
 
 ### Cambiado

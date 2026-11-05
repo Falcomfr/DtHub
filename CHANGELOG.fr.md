@@ -11,6 +11,12 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Corrigé
+
+- Glisser un compte dans la liste le dépose là où s'affiche le trait bleu, où que l'on lâche dans la liste : lâché sur un nom, un bouton ou entre deux lignes, le déplacement se perdait et il fallait le refaire.
+
 ## [0.13.1] - 2026-11-05
 
 ### Modifié

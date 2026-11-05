@@ -1081,6 +1081,10 @@ public sealed partial class InstanceListViewModel : ObservableObject
         }
     }
 
+    /// <summary>Where the blue line stands, which is where a drop lands.</summary>
+    public (InstanceRowViewModel Onto, bool Above)? DropHint =>
+        _hinted is null ? null : (_hinted, _hintedAbove);
+
     /// <summary>
     /// Marks the spot where the drop would insert, above or below the
     /// row being hovered. Only one hint is visible at a time.

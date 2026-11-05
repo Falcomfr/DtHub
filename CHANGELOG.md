@@ -17,6 +17,12 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Fixed
+
+- Dragging an account in the list now drops it where the blue line shows, wherever you let go on the list: released over a name, a button or between two rows, the move used to be lost and had to be done twice.
+
 ## [0.13.1] - 2026-11-05
 
 ### Changed
