@@ -3210,7 +3210,7 @@ Pas de donjon en équipe.
     <value>Oui</value>
   </data>
   <data name="MacAccessibilityNeeded" xml:space="preserve">
-    <value>Pour placer les fenêtres de jeu (grille, onglets, plein écran, tailles), macOS demande l'autorisation Accessibilité. OK ouvre le réglage : cochez DT Hub dans la liste, puis rouvrez DT Hub. Déjà coché ? Décochez-le puis recochez-le : macOS oublie l'autorisation quand DT Hub est mis à jour. Sans elle, les jeux s'ouvrent quand même, chacun là où il apparaît.</value>
+    <value>Pour placer les fenêtres de jeu (grille, onglets, plein écran, tailles), macOS demande l'autorisation Accessibilité. OK ouvre le réglage : cochez DT Hub dans la liste, puis rouvrez DT Hub. Déjà coché ? Décochez-le puis recochez-le. Sans elle, les jeux s'ouvrent quand même, chacun là où il apparaît.</value>
   </data>
   <data name="MacAccessibilityTitle" xml:space="preserve">
     <value>Autoriser DT Hub à ranger les fenêtres de jeu</value>

@@ -3210,7 +3210,7 @@ Equipo: misiones realizables por al menos 2 personajes marcados.</value>
     <value>Sí</value>
   </data>
   <data name="MacAccessibilityNeeded" xml:space="preserve">
-    <value>Para colocar las ventanas del juego (cuadrícula, pestañas, pantalla completa, tamaños), macOS pide el permiso de Accesibilidad. Aceptar abre el ajuste: marque DT Hub en la lista y vuelva a abrir DT Hub. ¿Ya está marcado? Desmárquelo y vuelva a marcarlo: macOS olvida el permiso cuando DT Hub se actualiza. Sin él, los juegos se abren igualmente, cada uno donde aparece.</value>
+    <value>Para colocar las ventanas del juego (cuadrícula, pestañas, pantalla completa, tamaños), macOS pide el permiso de Accesibilidad. Aceptar abre el ajuste: marque DT Hub en la lista y vuelva a abrir DT Hub. ¿Ya está marcado? Desmárquelo y vuelva a marcarlo. Sin él, los juegos se abren igualmente, cada uno donde aparece.</value>
   </data>
   <data name="MacAccessibilityTitle" xml:space="preserve">
     <value>Permitir que DT Hub ordene las ventanas del juego</value>
