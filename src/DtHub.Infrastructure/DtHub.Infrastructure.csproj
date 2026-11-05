@@ -19,6 +19,9 @@
     <!-- The dependencies manifest is embedded: the CI and the runtime
          share exactly the same file. -->
     <EmbeddedResource Include="..\..\build\dependencies.json" LogicalName="DtHub.Infrastructure.dependencies.json" />
+    <!-- pymobiledevice3 and its packages, each with its hashes: uv installs
+         nothing else for the iPhone window (D227). -->
+    <EmbeddedResource Include="..\..\build\iphone-requirements.txt" LogicalName="DtHub.Infrastructure.iphone-requirements.txt" />
 
     <!-- The quest catalog as DT Hub indexed it on 2026-10-11, the last read
          through wp/v2. The base a new player starts from before the public

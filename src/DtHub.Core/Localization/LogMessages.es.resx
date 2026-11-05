@@ -809,4 +809,16 @@
   <data name="L'ancienne application n'a pas pu reprendre sa place, une copie la remplace." xml:space="preserve">
     <value>La aplicación anterior no ha podido volver a su sitio, una copia la sustituye.</value>
   </data>
+  <data name="L'écran de l'iPhone n'a pas pu s'afficher." xml:space="preserve">
+    <value>La pantalla del iPhone no se pudo mostrar.</value>
+  </data>
+  <data name="L'affichage de l'iPhone s'est arrêté : {Errors}" xml:space="preserve">
+    <value>La pantalla del iPhone se detuvo: {Errors}</value>
+  </data>
+  <data name="Affichage de l'iPhone {name} sur le port {port}." xml:space="preserve">
+    <value>Mostrando el iPhone {name} en el puerto {port}.</value>
+  </data>
+  <data name="{command} a échoué : {error}" xml:space="preserve">
+    <value>{command} falló: {error}</value>
+  </data>
 </root>

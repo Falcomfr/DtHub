@@ -44,6 +44,9 @@ public static class DependencyManifest
     /// <summary>Key of the Linux (x86_64) build of scrcpy.</summary>
     public const string ScrcpyLinuxKey = "scrcpy-linux";
 
+    /// <summary>Key of the dependency providing uv, for iPhones only.</summary>
+    public const string UvKey = "uv";
+
     /// <summary>All declared dependencies, indexed by key.</summary>
     public static IReadOnlyDictionary<string, ExternalDependency> All => Cached.Value;
 

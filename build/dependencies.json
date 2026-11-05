@@ -87,6 +87,18 @@
       "licenseUrl": "https://github.com/Genymobile/scrcpy/blob/master/LICENSE",
       "redistributable": true,
       "redistributionNote": "Version Linux x86_64, téléchargée par le même mécanisme vérifié ; empreinte recoupée avec celle que GitHub publie pour l'asset. Comme sur Mac, l'adb de l'archive n'est pas utilisé : DT Hub passe celui de platform-tools-linux, pour qu'un seul serveur ADB tourne. Son LICENSE est conservé tel quel à l'extraction."
+    },
+    "uv": {
+      "displayName": "uv",
+      "version": "0.13.7",
+      "url": "https://github.com/astral-sh/uv/releases/download/0.13.7/uv-x86_64-pc-windows-msvc.zip",
+      "sizeBytes": 15236317,
+      "sha256": "0cdc5b38fe5a8168ed6a25814f5ba43c21d313dd3187314fccb37b7cec46e021",
+      "executable": "uv.exe",
+      "license": "MIT ou Apache License 2.0",
+      "licenseUrl": "https://github.com/astral-sh/uv/blob/main/LICENSE-MIT",
+      "redistributable": true,
+      "redistributionNote": "Téléchargé seulement à la première ouverture de la fenêtre iPhone, jamais au démarrage. uv récupère à son tour un Python exact (python-build-standalone, PyMobileDevice.PythonVersion) puis pymobiledevice3 (GPL-3.0 ou ultérieure) et ses paquets depuis PyPI, chacun vérifié par l'empreinte de build/iphone-requirements.txt, et les range dans tools/iphone : rien n'est embarqué ni lié à DT Hub, pymobiledevice3 tourne dans son propre processus."
     }
   }
 }

@@ -12051,6 +12051,70 @@ ne passe que par Mac Catalyst.
 le placement des fenêtres à étalonner sont dans
 `docs/superpowers/specs/2026-11-04-macos-design.md`.
 
+## D227 - L'iPhone passe par pymobiledevice3, téléchargé par uv à la demande
+
+Demandé le 04/11/2026 : que DT Hub sur PC sache afficher et piloter un iPhone,
+prêt au plus loin possible sans iPhone en iOS 27 pour l'essayer. Le jeu reste
+sur l'iPhone (règle d'Ankama), un compte par iPhone : iOS ne permet pas de
+dupliquer une appli, ni de créer un écran virtuel.
+
+Depuis iOS 27, Apple donne l'écran et les appuis à un ordinateur en Mode
+développeur (Device Hub de Xcode 27). pymobiledevice3 11.49.5 le fait depuis
+Windows : `developer core-device display serve-web` sert l'écran dans une page
+web qui renvoie clics et touches en appuis, à travers un tunnel sans droits
+administrateur. Le service USB vient de l'appli Appareils Apple du Microsoft
+Store.
+
+DT Hub ne réécrit rien de cela : il lance l'outil et affiche sa page dans son
+moteur web, en masquant les boutons de pymobiledevice3.
+
+- **Exception à AGENTS.md**, décidée par l'utilisateur le 04/11/2026 : les
+  règles interdisent Python à l'exécution. La fenêtre iPhone en fait une
+  exception écrite et bornée, faute d'autre moyen d'afficher un iPhone.
+- **uv** (0.13.7) entre dans `build/dependencies.json`, téléchargé et vérifié
+  comme scrcpy, mais seulement à la première ouverture de la fenêtre iPhone.
+  Il crée un environnement avec un Python exact (3.13.18, à lui :
+  `UV_PYTHON_PREFERENCE=only-managed`), puis y installe
+  `build/iphone-requirements.txt` en `--require-hashes` : pymobiledevice3 et
+  ses 89 paquets, chacun vérifié par empreinte. Le tout dans `tools/iphone`,
+  environ 300 Mo. Mesuré depuis un dossier vide : 24 secondes, compilation
+  de l'essai comprise ; 4 secondes ensuite, l'installation n'étant pas
+  refaite. Que uv vérifie aussi l'empreinte du Python qu'il télécharge est
+  probable (son binaire porte le message « Hash mismatch for ») mais pas
+  prouvé.
+- **Arrêt** : couper uv laisse tourner son Python (mesuré). `ProcessRequest`
+  gagne `KillEntireTree`, désactivé par défaut. Il est activé pour l'iPhone
+  seulement : scrcpy garde le comportement d'avant, qui épargne le serveur adb
+  partagé. Mesuré : sortie close en 38 ms avec l'arborescence, processus
+  enfant encore vivant 15 s après sans elle.
+- **Entrée** : un lien « J'ai un iPhone ou un iPad » dans la fenêtre d'ajout
+  de téléphone, seule retouche d'une fenêtre existante. Le reste est dans des
+  fichiers neufs.
+
+Vérifié le 04/11/2026 sur le PC avec l'iPhone XR en iOS 18.7.9, par le vrai
+code de DT Hub dans un dossier d'essai :
+- téléchargement vérifié de uv, puis installation de Python et de
+  pymobiledevice3 ;
+- le XR est listé, son bouton Ouvrir désactivé ;
+- l'image disque développeur est montée ;
+- `serve-web` démarre puis s'arrête sur « Cet iPhone n'a pas iOS 27 ».
+
+Le moteur web de ce PC (Edge 156, carte NVIDIA) décode le HEVC en matériel.
+
+Revue du 04/11/2026, corrigée sur la même branche :
+- un délai dépassé coupe aussi l'arborescence ;
+- un seul appel à l'outil à la fois, toutes fenêtres confondues ;
+- seuls les appareils USB sont listés (`--usb`) ;
+- seule la dernière ligne d'erreur décide du message ;
+- un message d'échec n'est plus recouvert par l'écran noir ;
+- fermer la liste annule ce qui est en cours ;
+- toute erreur de lancement est expliquée au joueur.
+
+**Non vérifié** : l'image et les appuis sur un vrai iPhone en iOS 27, et la
+justesse des clics une fois les boutons masqués. L'utilisateur a décidé de
+livrer sans essai préalable : la fonction part en production, et le premier
+joueur équipé fera l'essai (liste dans la spec).
+
 ## D228 - Linux partage l'appli du Mac
 
 Demandé le 04/11/2026 : une version Linux. L'utilisateur a choisi de ne pas

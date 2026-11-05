@@ -25,6 +25,7 @@ using DtHub.Infrastructure.Android;
 using DtHub.Infrastructure.Dependencies;
 using DtHub.Infrastructure.Devices;
 using DtHub.Infrastructure.Hotkeys;
+using DtHub.Infrastructure.IPhone;
 using DtHub.Infrastructure.Papycha;
 using DtHub.Infrastructure.Processes;
 using DtHub.Infrastructure.Scrcpy;
@@ -69,6 +70,7 @@ public static class AppServices
         // Third-party components.
         services.AddSingleton(_ => new HttpClient { Timeout = TimeSpan.FromMinutes(10) });
         services.AddSingleton<IDependencyProvisioner, ArchiveDependencyProvisioner>();
+        services.AddSingleton<PyMobileDevice>();
 
         // Quest guides. Its own client: the one above waits ten
         // minutes, sized for an eleven-megabyte archive, which would
@@ -156,6 +158,7 @@ public static class AppServices
         services.AddTransient<HelpWindow>();
         services.AddTransient<SleepHelpViewModel>();
         services.AddTransient<SleepHelpWindow>();
+        services.AddTransient<IPhoneWindow>();
         services.AddTransient<InputHelpViewModel>();
         services.AddTransient<InputHelpWindow>();
         services.AddSingleton<QuestViewModel>();

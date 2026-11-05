@@ -13,6 +13,9 @@ No copyright notice or third-party licence text may be removed.
 | scrcpy | Apache License 2.0 | Downloaded from GitHub on first launch |
 | SDL (patched) | zlib | File embedded in the executable, written over scrcpy's |
 | Android SDK Platform Tools (adb) | Android SDK License Agreement | Downloaded from Google on first launch |
+| uv | MIT or Apache License 2.0 | Downloaded from GitHub on first opening of the iPhone window |
+| pymobiledevice3 and its Python packages | GPL-3.0-or-later and others | Fetched from PyPI by uv, iPhone window only |
+| Python (python-build-standalone) | PSF License | Fetched by uv, iPhone window only |
 | .NET runtime | MIT | Included by the self-contained publish |
 | CommunityToolkit.Mvvm | MIT | NuGet package |
 | Serilog and its sinks | Apache License 2.0 | NuGet packages |
@@ -26,6 +29,25 @@ No copyright notice or third-party licence text may be removed.
 | Names and steps from DOFUS Touch | Ankama content, see below | Read from the game's data server on the user's PC |
 | papycha.fr quest data | Proprietary, see below | File embedded in the executable |
 | xUnit, coverlet | Apache License 2.0, MIT | Test dependencies, not distributed |
+
+## uv, Python and pymobiledevice3 (iPhone)
+
+- uv: https://github.com/astral-sh/uv, MIT or Apache License 2.0
+- pymobiledevice3: https://github.com/doronz88/pymobiledevice3,
+  GPL-3.0-or-later
+- Python: https://github.com/astral-sh/python-build-standalone, PSF License
+
+None of them is in the installer, and none is fetched unless the player
+opens the iPhone window. uv comes through the same verified mechanism as
+scrcpy (`build/dependencies.json`). uv then installs one exact Python
+(`PyMobileDevice.PythonVersion`), and only the packages listed with their
+hashes in `build/iphone-requirements.txt`, into the user's DT Hub folder
+(`tools/iphone`).
+
+pymobiledevice3 runs as a separate program that DT Hub starts and talks to
+over its command line and a local web page. DT Hub is not linked with it
+and ships none of its code, so the GPL does not reach DT Hub. Its licence
+text comes with the package, as installed by uv.
 
 ## scrcpy
 
