@@ -184,6 +184,27 @@ public class PapychaClientTests
     }
 
     [Fact]
+    public async Task Une_quete_servie_parmi_les_donjons_n_y_entre_pas()
+    {
+        // Seen on 2026-11-05: the 32 "On recherche…" quests came back from
+        // /dungeons, kind "dungeon", still named "[Quête]" and still quests
+        // on the site. The catalog keeps them as quests.
+        var (client, _) = Create(new()
+        {
+            ["dungeons?per_page=100&page=1"] = """
+                {"items":[
+                  {"id":1452,"name":"[Donjon] Abraknydes","kind":"dungeon"},
+                  {"id":10886,"name":"[Quête] On recherche Aermyne ‘Bracos’ Scalptaras","kind":"dungeon","entrance_coordinates":"[1,-17]"}
+                ],"total":2,"total_pages":1}
+                """,
+        });
+
+        var dungeon = Assert.Single(await client.GetDungeonsAsync());
+
+        Assert.Equal(1452, dungeon.Id);
+    }
+
+    [Fact]
     public async Task La_pierre_d_ame_donnee_en_niveau_se_lit_comme_sa_taille()
     {
         // Seen on 2026-10-19: the API sends the level the stone captures

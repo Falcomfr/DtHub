@@ -69,8 +69,13 @@ public sealed class QuestCatalogDocument
     /// older catalog, the field would read "done once" for every quest, and
     /// a catalog already merged would not be read again before the site
     /// changes.
+    ///
+    /// Version 18: from 2026-11-02 the API served the 32 "On recherche…"
+    /// quests as dungeons. The client now leaves them out, but a catalog
+    /// merged since kept them in its dungeon list: rebuilt from the
+    /// embedded one, it loses them.
     /// </summary>
-    public const int CurrentSchemaVersion = 17;
+    public const int CurrentSchemaVersion = 18;
 
     public int SchemaVersion { get; set; } = CurrentSchemaVersion;
 

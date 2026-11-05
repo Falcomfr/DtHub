@@ -85,7 +85,15 @@ public sealed partial class PapychaClient : IPapychaClient
         var items = await ReadAllAsync<DungeonPayload>("dungeons", null, cancellationToken)
             .ConfigureAwait(false);
 
-        List<DungeonSummary> dungeons = [.. items.Select(ToDungeon)];
+        // Since 2026-11-02 the API also serves the 32 "On recherche…" quests
+        // here, still named "[Quête]" and still quests on the site: they stay
+        // quests, from the embedded catalog, and out of the dungeon list.
+        List<DungeonSummary> dungeons =
+        [
+            .. items
+                .Where(item => !Decode(item.Name).StartsWith("[Quête]", StringComparison.OrdinalIgnoreCase))
+                .Select(ToDungeon),
+        ];
 
         LogDungeons(dungeons.Count);
 

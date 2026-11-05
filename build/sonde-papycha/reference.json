@@ -1,14 +1,14 @@
 {
-  "quetes": 762,
+  "quetes": 730,
   "donjons": 82,
   "raids": 0,
   "tanieres": 8,
   "chemins": 22,
-  "quetes-avec-niveau": 103,
-  "quetes-avec-depart": 704,
-  "quetes-avec-prerequis": 580,
-  "lieux-avec-niveau": 88,
-  "quetes-du-catalogue-embarque-encore-servies": 757,
+  "quetes-avec-niveau": 71,
+  "quetes-avec-depart": 672,
+  "quetes-avec-prerequis": 570,
+  "lieux-avec-niveau": 90,
+  "quetes-du-catalogue-embarque-encore-servies": 725,
   "lieux-du-catalogue-embarque-encore-servis": 90,
   "chemins-du-catalogue-embarque-encore-servis": 22
 }
