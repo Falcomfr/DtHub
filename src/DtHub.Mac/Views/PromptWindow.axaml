@@ -1,0 +1,38 @@
+﻿<!-- The PC's one-line question (src/DtHub.App/Windows/PromptWindow.xaml):
+     the question, what the action will remember when the caller has
+     something to say about it, the field, and the two buttons. -->
+<Window x:Class="DtHub.Mac.Views.PromptWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:DtHub.Mac.Localization"
+        Width="400" SizeToContent="Height" CanResize="False"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="{DynamicResource SurfaceAltBrush}"
+        FontSize="{DynamicResource FontMedium}"
+        Foreground="{DynamicResource TextBrush}">
+
+  <StackPanel Margin="20">
+    <TextBlock Name="Question" Classes="muted" Margin="0,0,0,10" />
+
+    <!-- Hidden as long as nothing fills it in: an empty box would cost
+         height for nothing. -->
+    <Border Name="DetailsBox" IsVisible="False"
+            Background="{DynamicResource SurfaceBrush}"
+            BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+            CornerRadius="{DynamicResource Radius}"
+            Padding="12,10" Margin="0,0,0,12">
+      <TextBlock Name="Details" Classes="muted" LineHeight="18" />
+    </Border>
+
+    <!-- The field takes focus on opening: this is where one comes to type. -->
+    <TextBox Name="Entry" FontSize="{DynamicResource FontLarge}" MaxLength="40"
+             KeyDown="OnEntryKeyDown" />
+
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+      <Button Content="{loc:T Cancel}" Theme="{StaticResource QuietButton}" Padding="14,6"
+              Margin="0,0,8,0" IsCancel="True" Click="OnCancel" />
+      <Button Name="Accept" Content="{loc:T Save}" Padding="14,6"
+              IsDefault="True" Click="OnAccept" />
+    </StackPanel>
+  </StackPanel>
+</Window>

@@ -1,0 +1,140 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The macOS and Linux front-end (D228). It builds on Windows too, so the CI keeps it
+       from rotting, but only src/DtHub.App is ever shipped from there.
+       See docs/superpowers/specs/2026-11-04-macos-design.md. -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>DtHub.Mac</RootNamespace>
+    <AssemblyName>DtHub.Mac</AssemblyName>
+    <RuntimeIdentifiers>osx-arm64;linux-x64;linux-arm64</RuntimeIdentifiers>
+    <SatelliteResourceLanguages>en;fr;es</SatelliteResourceLanguages>
+    <!-- A binding to a property the view model does not have fails the
+         build, as a WPF one only fails on screen. -->
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DtHub.Core\DtHub.Core.csproj" />
+    <ProjectReference Include="..\DtHub.Infrastructure\DtHub.Infrastructure.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Serilog.Extensions.Hosting" />
+    <PackageReference Include="Serilog.Sinks.File" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+  </ItemGroup>
+
+  <!-- The PC's pictures, from the same folder: the logos and the tool
+       icons, under the "/assets/..." paths the shared code names. -->
+  <ItemGroup>
+    <AvaloniaResource Include="..\..\assets\*.png" Link="assets\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <!-- The PC's view models and services, compiled as they are: the Mac
+       behaves like the PC because it runs the same code, and a change on
+       the PC reaches the Mac without being copied. The few PC files that
+       are WPF through and through stay out; Pc/ holds their Mac
+       counterparts, under the same names. src/DtHub.App is never edited
+       for the Mac. -->
+  <ItemGroup Label="Shared with the PC">
+    <Compile Include="..\DtHub.App\ViewModels\*.cs" Link="Pc\Shared\ViewModels\%(Filename)%(Extension)" />
+    <Compile Include="..\DtHub.App\Services\*.cs"
+             Exclude="..\DtHub.App\Services\IDialogService.cs;..\DtHub.App\Services\DarkTitleBar.cs;..\DtHub.App\Services\WebViewEnvironment.cs;..\DtHub.App\Services\WindowIcons.cs;..\DtHub.App\Services\WindowPlacements.cs;..\DtHub.App\Services\FaultReporting.cs;..\DtHub.App\Services\PcProcessor.cs"
+             Link="Pc\Shared\Services\%(Filename)%(Extension)" />
+    <!-- The scripts the guides, the tracker and the Almanax inject, under
+         the PC's resource names, and the PC's two classes that read them. -->
+    <Compile Include="..\DtHub.App\Windows\QuestBridge.cs;..\DtHub.App\Windows\AlmanaxBridge.cs"
+             Link="Pc\Shared\Windows\%(Filename)%(Extension)" />
+    <EmbeddedResource Include="..\DtHub.App\Assets\quest-bridge.js" LogicalName="DtHub.App.quest-bridge.js" Link="Pc\Shared\Assets\quest-bridge.js" />
+    <EmbeddedResource Include="..\DtHub.App\Assets\papycha-report.js" LogicalName="DtHub.App.papycha-report.js" Link="Pc\Shared\Assets\papycha-report.js" />
+    <EmbeddedResource Include="..\DtHub.App\Assets\papycha-tracker.js" LogicalName="DtHub.App.papycha-tracker.js" Link="Pc\Shared\Assets\papycha-tracker.js" />
+    <EmbeddedResource Include="..\DtHub.App\Assets\almanax-bridge.js" LogicalName="DtHub.App.almanax-bridge.js" Link="Pc\Shared\Assets\almanax-bridge.js" />
+  </ItemGroup>
+
+  <!-- Native/*.swift, the calls into macOS (windows, shortcuts, web view), built into
+       libDtHubMac.dylib next to the executable. Only on a Mac: the Windows
+       CI compiles the C# side, whose calls into it are never made there. -->
+  <PropertyGroup>
+    <MacNativeLibrary>$(BaseIntermediateOutputPath)native/libDtHubMac.dylib</MacNativeLibrary>
+  </PropertyGroup>
+  <Target Name="MacNativeLibrary" BeforeTargets="AssignTargetPaths"
+          Condition="$([MSBuild]::IsOSPlatform('OSX'))"
+          Inputs="@(MacSwiftSource)" Outputs="$(MacNativeLibrary)">
+    <MakeDir Directories="$(BaseIntermediateOutputPath)native" />
+    <Exec Command="swiftc -emit-library -O -target arm64-apple-macos14.0 -o &quot;$(MacNativeLibrary)&quot; @(MacSwiftSource->'&quot;%(Identity)&quot;', ' ')" />
+  </Target>
+  <ItemGroup>
+    <MacSwiftSource Include="Native/*.swift" />
+  </ItemGroup>
+  <ItemGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+    <None Include="$(MacNativeLibrary)" Link="libDtHubMac.dylib"
+          CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" />
+  </ItemGroup>
+
+  <!-- The Mac application: "dotnet publish src/DtHub.Mac -c Release -r
+       osx-arm64", on a Mac, leaves "DT Hub.app" next to the publish
+       folder. It carries its own .NET, and downloads adb and scrcpy on
+       first launch, so the player installs nothing. Name, version and copyright come from
+       Directory.Build.props, like the PC's. -->
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'osx-arm64'">
+    <SelfContained>true</SelfContained>
+    <MacBundleIdentifier>io.github.falcomfr.dthub</MacBundleIdentifier>
+    <MacMinimumSystemVersion>14.0</MacMinimumSystemVersion>
+  </PropertyGroup>
+
+  <Target Name="MacAppBundle" AfterTargets="Publish"
+          Condition="'$(RuntimeIdentifier)' == 'osx-arm64' And $([MSBuild]::IsOSPlatform('OSX'))">
+    <PropertyGroup>
+      <MacAppDir>$([System.IO.Path]::GetFullPath('$(PublishDir)..'))/$(Product).app</MacAppDir>
+      <MacIconSet>$(IntermediateOutputPath)DtHub.iconset</MacIconSet>
+      <MacIconSource>$(MSBuildThisFileDirectory)../../assets/app.ico</MacIconSource>
+    </PropertyGroup>
+    <ItemGroup>
+      <MacPublishedFile Include="$(PublishDir)**/*" />
+      <MacIconSize Include="16;32;128;256" />
+      <MacPlistLine Include="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;" />
+      <MacPlistLine Include="&lt;!DOCTYPE plist PUBLIC &quot;-//Apple//DTD PLIST 1.0//EN&quot; &quot;http://www.apple.com/DTDs/PropertyList-1.0.dtd&quot;&gt;" />
+      <MacPlistLine Include="&lt;plist version=&quot;1.0&quot;&gt;&lt;dict&gt;" />
+      <MacPlistLine Include="&lt;key&gt;CFBundleName&lt;/key&gt;&lt;string&gt;$(Product)&lt;/string&gt;" />
+      <MacPlistLine Include="&lt;key&gt;CFBundleDisplayName&lt;/key&gt;&lt;string&gt;$(Product)&lt;/string&gt;" />
+      <MacPlistLine Include="&lt;key&gt;CFBundleIdentifier&lt;/key&gt;&lt;string&gt;$(MacBundleIdentifier)&lt;/string&gt;" />
+      <MacPlistLine Include="&lt;key&gt;CFBundleExecutable&lt;/key&gt;&lt;string&gt;$(AssemblyName)&lt;/string&gt;" />
+      <MacPlistLine Include="&lt;key&gt;CFBundleIconFile&lt;/key&gt;&lt;string&gt;DtHub&lt;/string&gt;" />
+      <MacPlistLine Include="&lt;key&gt;CFBundlePackageType&lt;/key&gt;&lt;string&gt;APPL&lt;/string&gt;" />
+      <MacPlistLine Include="&lt;key&gt;CFBundleShortVersionString&lt;/key&gt;&lt;string&gt;$(VersionPrefix)&lt;/string&gt;" />
+      <MacPlistLine Include="&lt;key&gt;CFBundleVersion&lt;/key&gt;&lt;string&gt;$(VersionPrefix)&lt;/string&gt;" />
+      <MacPlistLine Include="&lt;key&gt;NSHumanReadableCopyright&lt;/key&gt;&lt;string&gt;$(Copyright)&lt;/string&gt;" />
+      <MacPlistLine Include="&lt;key&gt;LSMinimumSystemVersion&lt;/key&gt;&lt;string&gt;$(MacMinimumSystemVersion)&lt;/string&gt;" />
+      <MacPlistLine Include="&lt;key&gt;LSApplicationCategoryType&lt;/key&gt;&lt;string&gt;public.app-category.games&lt;/string&gt;" />
+      <MacPlistLine Include="&lt;key&gt;NSHighResolutionCapable&lt;/key&gt;&lt;true/&gt;" />
+      <MacPlistLine Include="&lt;/dict&gt;&lt;/plist&gt;" />
+    </ItemGroup>
+
+    <RemoveDir Directories="$(MacAppDir);$(MacIconSet)" />
+    <Copy SourceFiles="@(MacPublishedFile)"
+          DestinationFiles="@(MacPublishedFile->'$(MacAppDir)/Contents/MacOS/%(RecursiveDir)%(Filename)%(Extension)')" />
+    <WriteLinesToFile File="$(MacAppDir)/Contents/Info.plist" Lines="@(MacPlistLine)" Overwrite="true" />
+
+    <!-- The icon is the PC's, resized into the sizes macOS asks for. -->
+    <MakeDir Directories="$(MacIconSet);$(MacAppDir)/Contents/Resources" />
+    <Exec Command="sips -s format png -z %(MacIconSize.Identity) %(MacIconSize.Identity) &quot;$(MacIconSource)&quot; --out &quot;$(MacIconSet)/icon_%(MacIconSize.Identity)x%(MacIconSize.Identity).png&quot; &gt; /dev/null" />
+    <Exec Command="iconutil -c icns &quot;$(MacIconSet)&quot; -o &quot;$(MacAppDir)/Contents/Resources/DtHub.icns&quot;" />
+
+    <!-- Signed with MacSigningIdentity when given (a certificate hash or
+         name, from MacSigningKeychain if set), ad hoc otherwise. Ad hoc is
+         enough to run on this Mac, but its identity is the binary's hash:
+         every build is a new app to macOS, which forgets the
+         Accessibility permission each time. A certificate, even a local
+         one, keeps the identity from build to build. Another Mac's
+         Gatekeeper still wants a Developer ID and notarization. -->
+    <PropertyGroup>
+      <MacSigningIdentity Condition="'$(MacSigningIdentity)' == ''">-</MacSigningIdentity>
+      <MacSigningKeychainArgument Condition="'$(MacSigningKeychain)' != ''">--keychain &quot;$(MacSigningKeychain)&quot;</MacSigningKeychainArgument>
+    </PropertyGroup>
+    <Exec Command="codesign --force --deep --sign &quot;$(MacSigningIdentity)&quot; $(MacSigningKeychainArgument) &quot;$(MacAppDir)&quot;" />
+    <Message Importance="high" Text="$(Product) -&gt; $(MacAppDir)" />
+  </Target>
+</Project>

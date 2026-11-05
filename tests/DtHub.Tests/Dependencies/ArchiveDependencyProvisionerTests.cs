@@ -1,4 +1,5 @@
-﻿using System.IO.Compression;
+﻿using System.Formats.Tar;
+using System.IO.Compression;
 using System.Net;
 using System.Security.Cryptography;
 
@@ -49,6 +50,72 @@ public sealed class ArchiveDependencyProvisionerTests : IDisposable
 
         return buffer.ToArray();
     }
+
+    private const UnixFileMode Executable = UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute
+        | UnixFileMode.GroupRead | UnixFileMode.GroupExecute | UnixFileMode.OtherRead | UnixFileMode.OtherExecute;
+
+    private const UnixFileMode Plain = UnixFileMode.UserRead | UnixFileMode.UserWrite
+        | UnixFileMode.GroupRead | UnixFileMode.OtherRead;
+
+    private const UnixFileMode AnyExecute =
+        UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute;
+
+    /// <summary>
+    /// Builds a .tar.gz as scrcpy's macOS release is: <c>outil/outil</c>
+    /// with the given mode, and <c>outil/outil-server</c>, a plain file
+    /// that must stay plain.
+    /// </summary>
+    private static byte[] BuildTarGz(UnixFileMode executableMode)
+    {
+        using var buffer = new MemoryStream();
+
+        using (var gzip = new GZipStream(buffer, CompressionLevel.Fastest, leaveOpen: true))
+        using (var tar = new TarWriter(gzip, TarEntryFormat.Ustar, leaveOpen: true))
+        {
+            tar.WriteEntry(new UstarTarEntry(TarEntryType.Directory, "outil/") { Mode = Executable });
+            tar.WriteEntry(Entry("outil/outil", "faux exécutable", executableMode));
+            tar.WriteEntry(Entry("outil/outil-server", "fausse donnée", Plain));
+        }
+
+        return buffer.ToArray();
+
+        static UstarTarEntry Entry(string name, string content, UnixFileMode mode) => new(TarEntryType.RegularFile, name)
+        {
+            Mode = mode,
+            DataStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(content)),
+        };
+    }
+
+    /// <summary>
+    /// A zip as Google's macOS platform-tools is, or as a Windows tool
+    /// makes one: with the Unix modes recorded, or with none.
+    /// </summary>
+    private static byte[] BuildUnixZip(UnixFileMode? executableMode)
+    {
+        using var buffer = new MemoryStream();
+
+        using (var archive = new ZipArchive(buffer, ZipArchiveMode.Create, leaveOpen: true))
+        {
+            var entry = archive.CreateEntry("outil/outil");
+            if (executableMode is { } mode)
+            {
+                // The high sixteen bits hold the mode, as Info-ZIP writes it.
+                entry.ExternalAttributes = (int)mode << 16;
+            }
+
+            using var writer = new StreamWriter(entry.Open());
+            writer.Write("faux exécutable");
+        }
+
+        return buffer.ToArray();
+    }
+
+    private static ExternalDependency UnixDependency(byte[] archive, string extension) =>
+        Dependency(archive) with
+        {
+            Url = new Uri($"https://exemple.invalid/outil-1.2.3{extension}"),
+            Executable = "outil",
+        };
 
     private static ExternalDependency Dependency(byte[] archive, string? sha256 = null, long? size = null) => new()
     {
@@ -199,5 +266,88 @@ public sealed class ArchiveDependencyProvisionerTests : IDisposable
         var (provisioner, _) = Build(archive);
 
         Assert.Null(provisioner.TryGetExistingPath(Dependency(archive)));
+    }
+
+    [Fact]
+    public async Task Une_archive_tar_gz_est_extraite_avec_son_dossier_racine()
+    {
+        var archive = BuildTarGz(Executable);
+        var (provisioner, handler) = Build(archive);
+        var dependency = UnixDependency(archive, ".tar.gz");
+
+        var path = await provisioner.EnsureAvailableAsync(dependency, null, CancellationToken.None);
+
+        Assert.Equal(Path.Combine(_root, "tools", "outil-1.2.3", "outil", "outil"), path);
+        Assert.Equal("faux exécutable", await File.ReadAllTextAsync(path));
+        Assert.True(File.Exists(Path.Combine(Path.GetDirectoryName(path)!, "outil-server")));
+        Assert.Equal(1, handler.RequestCount);
+
+        // Found in place on the next launch, without a request.
+        Assert.Equal(path, provisioner.TryGetExistingPath(dependency));
+    }
+
+    [Fact]
+    public async Task Une_archive_tar_gz_alteree_est_refusee_comme_un_zip()
+    {
+        var archive = BuildTarGz(Executable);
+        var (provisioner, _) = Build(archive);
+        var dependency = UnixDependency(archive, ".tar.gz") with { Sha256 = new string('0', 64) };
+
+        await Assert.ThrowsAsync<DependencyProvisioningException>(
+            () => provisioner.EnsureAvailableAsync(dependency, null, CancellationToken.None));
+
+        Assert.Null(provisioner.TryGetExistingPath(dependency));
+    }
+
+    [UnixFact]
+    public async Task Les_modes_d_une_archive_tar_gz_sont_conserves()
+    {
+        var archive = BuildTarGz(Executable);
+        var (provisioner, _) = Build(archive);
+
+        var path = await provisioner.EnsureAvailableAsync(
+            UnixDependency(archive, ".tar.gz"), null, CancellationToken.None);
+
+        Assert.Equal(AnyExecute, File.GetUnixFileMode(path) & AnyExecute);
+
+        // The server is pushed to the phone, never run here: it stays plain.
+        var server = Path.Combine(Path.GetDirectoryName(path)!, "outil-server");
+        Assert.Equal((UnixFileMode)0, File.GetUnixFileMode(server) & AnyExecute);
+    }
+
+    [UnixFact]
+    public async Task L_executable_d_une_archive_tar_gz_sans_droit_d_execution_est_rendu_executable()
+    {
+        var archive = BuildTarGz(Plain);
+        var (provisioner, _) = Build(archive);
+
+        var path = await provisioner.EnsureAvailableAsync(
+            UnixDependency(archive, ".tar.gz"), null, CancellationToken.None);
+
+        Assert.Equal(AnyExecute, File.GetUnixFileMode(path) & AnyExecute);
+    }
+
+    [UnixFact]
+    public async Task Les_modes_d_un_zip_unix_sont_conserves()
+    {
+        var archive = BuildUnixZip(Executable);
+        var (provisioner, _) = Build(archive);
+
+        var path = await provisioner.EnsureAvailableAsync(
+            UnixDependency(archive, ".zip"), null, CancellationToken.None);
+
+        Assert.Equal(Executable, File.GetUnixFileMode(path) & Executable);
+    }
+
+    [UnixFact]
+    public async Task L_executable_d_un_zip_sans_modes_est_rendu_executable()
+    {
+        var archive = BuildUnixZip(executableMode: null);
+        var (provisioner, _) = Build(archive);
+
+        var path = await provisioner.EnsureAvailableAsync(
+            UnixDependency(archive, ".zip"), null, CancellationToken.None);
+
+        Assert.Equal(AnyExecute, File.GetUnixFileMode(path) & AnyExecute);
     }
 }

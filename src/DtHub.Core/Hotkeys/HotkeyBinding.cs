@@ -74,7 +74,9 @@ public sealed record HotkeyBinding
 
             if (Modifiers.HasFlag(HotkeyModifiers.Windows))
             {
-                parts.Add("Win");
+                // The Mac holds this place with Command, see the Mac's
+                // MacKeyMap.
+                parts.Add(OperatingSystem.IsMacOS() ? "Cmd" : "Win");
             }
 
             parts.Add(VirtualKeys.Describe(VirtualKey));

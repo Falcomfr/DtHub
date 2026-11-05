@@ -29,6 +29,21 @@ public static class DependencyManifest
     /// <summary>Key of the dependency providing scrcpy.</summary>
     public const string ScrcpyKey = "scrcpy";
 
+    /// <summary>
+    /// Key of the macOS build of ADB. The Windows keys above are left
+    /// as they are: the PC only ever asks for those.
+    /// </summary>
+    public const string PlatformToolsMacKey = "platform-tools-macos";
+
+    /// <summary>Key of the macOS (Apple Silicon) build of scrcpy.</summary>
+    public const string ScrcpyMacKey = "scrcpy-macos";
+
+    /// <summary>Key of the Linux (x86_64) build of ADB.</summary>
+    public const string PlatformToolsLinuxKey = "platform-tools-linux";
+
+    /// <summary>Key of the Linux (x86_64) build of scrcpy.</summary>
+    public const string ScrcpyLinuxKey = "scrcpy-linux";
+
     /// <summary>All declared dependencies, indexed by key.</summary>
     public static IReadOnlyDictionary<string, ExternalDependency> All => Cached.Value;
 

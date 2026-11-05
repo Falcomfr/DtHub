@@ -1,0 +1,131 @@
+﻿<!-- The PC's palette (src/DtHub.App/Themes/PaletteDark.xaml), colour for
+     colour: the Mac shows the same dark device. Kept in step by hand; the
+     PC file is the reference. -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- The application's palette. There is only one: the light theme was
+       removed rather than kept half working, and the application no
+       longer follows Windows' setting.
+
+       Colours are written literally in each brush, with no
+       intermediate dynamic reference: a SolidColorBrush placed in a
+       resource dictionary is frozen, and a DynamicResource on its
+       colour never resolves, which made the whole interface black.
+
+       The panel is darker than the chassis that holds it: it recedes
+       rather than sitting on top. That is the deliberate design of
+       the device, and the bevel confirms it, light on top and shadow
+       below. -->
+
+  <SolidColorBrush x:Key="SurfaceBrush" Color="#FF121419" />
+  <SolidColorBrush x:Key="SurfaceAltBrush" Color="#FF1A1D22" />
+  <SolidColorBrush x:Key="SidebarBrush" Color="#FF0E1014" />
+  <SolidColorBrush x:Key="BorderBrush" Color="#FF2E333C" />
+
+  <!-- The two edges of a bevel. Used together and in this order: light
+       comes from above, as on any device sitting on a desk. -->
+  <SolidColorBrush x:Key="BevelBrush" Color="#FF3A414D" />
+  <SolidColorBrush x:Key="GrooveBrush" Color="#FF0A0C0F" />
+
+  <SolidColorBrush x:Key="TextBrush" Color="#FFE8EAEE" />
+  <SolidColorBrush x:Key="TextMutedBrush" Color="#FF939BA8" />
+
+  <!-- Steel blue: the colour of what you select and what you touch.
+       Colder and deeper than the previous one, which leaned toward
+       purple, and far enough from Windows blue not to be confused
+       with it. -->
+  <SolidColorBrush x:Key="AccentBrush" Color="#FF3D82BE" />
+  <SolidColorBrush x:Key="AccentHoverBrush" Color="#FF5098D6" />
+  <SolidColorBrush x:Key="AccentSoftBrush" Color="#FF16222E" />
+
+  <!-- The dots for the screens drawn in the help. Android files its
+       settings behind coloured icons, and that is what tells a
+       settings list apart from any other list: the artwork echoes it.
+       They do not claim the colour of any particular setting, which
+       the brand sheet does not give anyway, only that it has one.
+
+       The accent blue does not appear among them: it is the colour of
+       the line to tap, and it must remain the only one of its kind. -->
+  <SolidColorBrush x:Key="MenuTintA" Color="#FF2F6E66" />
+  <SolidColorBrush x:Key="MenuTintB" Color="#FF4C7A47" />
+  <SolidColorBrush x:Key="MenuTintC" Color="#FF8F6B33" />
+  <SolidColorBrush x:Key="MenuTintD" Color="#FF8C4A50" />
+  <SolidColorBrush x:Key="MenuTintE" Color="#FF63508C" />
+  <SolidColorBrush x:Key="MenuTintF" Color="#FF4A5566" />
+
+  <!-- The twelve account tints: six hues in a vivid tone, A to F, then
+       each one's light tone, G to L, in the same order.
+
+       **They are not the menu tints above, and could not be.** MenuTintF
+       sits eight degrees from the accent and MenuTintD six from the danger
+       LED, and the others are drawn for an eight-pixel dot.
+
+       The first palette was muted on purpose, saturation capped at
+       forty-four percent, because it filled whole title bars. Once the
+       colour only marked a row, a tab and a muted window border, the user
+       found it dull, and on 2026-10-03 chose these vivid tones from a side
+       by side preview, with the light tones for more choice.
+
+       Known closeness, accepted with that choice: Rose sits about thirteen
+       degrees from the danger LED and Honey about seven from the warning
+       one, Brass about ten. On a row the LED is a dot and the tint a bar,
+       and the two never share a meaning; if a session reads a Rose row as
+       an error, move Rose toward 330 degrees first. Indigo and Orchid stay
+       the closest vivid pair and are never handed out one after the
+       other. -->
+  <SolidColorBrush x:Key="AccountTintA" Color="#FF26B5A8" />
+  <SolidColorBrush x:Key="AccountTintB" Color="#FF6CBF43" />
+  <SolidColorBrush x:Key="AccountTintC" Color="#FFE39A35" />
+  <SolidColorBrush x:Key="AccountTintD" Color="#FF7D7FF2" />
+  <SolidColorBrush x:Key="AccountTintE" Color="#FFC66BDA" />
+  <SolidColorBrush x:Key="AccountTintF" Color="#FFE8637F" />
+  <SolidColorBrush x:Key="AccountTintG" Color="#FF7EDCD2" />
+  <SolidColorBrush x:Key="AccountTintH" Color="#FFB2E07F" />
+  <SolidColorBrush x:Key="AccountTintI" Color="#FFF5C779" />
+  <SolidColorBrush x:Key="AccountTintJ" Color="#FFB3B6FB" />
+  <SolidColorBrush x:Key="AccountTintK" Color="#FFE3A9EE" />
+  <SolidColorBrush x:Key="AccountTintL" Color="#FFF6A6B9" />
+
+  <!-- The socket of a LED that is not lit.
+       Named rather than left unbound: the key-to-brush converter falls
+       back to grey when a key does not resolve, and a grey dot says
+       "unknown" where this one has to say "nothing is running". The
+       groove ring around it still draws, which is what makes it read
+       as an empty socket rather than as a hole. -->
+  <SolidColorBrush x:Key="EmptySocketBrush" Color="Transparent" />
+
+  <!-- The three status LEDs. -->
+  <SolidColorBrush x:Key="SuccessBrush" Color="#FF46B478" />
+  <SolidColorBrush x:Key="WarningBrush" Color="#FFE8C24A" />
+  <SolidColorBrush x:Key="DangerBrush" Color="#FFE06A6A" />
+
+  <!-- The colours of the quest list icons.
+       Named for what they denote rather than their hue: they serve to
+       distinguish kinds of row, not to announce a state, and
+       borrowing the LEDs above for that would have blurred the two
+       uses.
+
+       Four distinct hues, not one more: beyond that, a list of sixty
+       rows reads like a stained-glass window. All are desaturated to
+       sit on the dark background without vibrating.
+
+       The quest scroll had a fifth, green. It was the only one in
+       colour on the home screen, where the four rows are equal, so it
+       takes on the neutral hue of the place. -->
+  <SolidColorBrush x:Key="GlyphDungeonBrush" Color="#FF8590A0" />
+  <SolidColorBrush x:Key="GlyphPlaceBrush" Color="#FFD9A05E" />
+  <SolidColorBrush x:Key="GlyphFamilyBrush" Color="#FF9D8ACF" />
+  <SolidColorBrush x:Key="GlyphSuccessBrush" Color="#FFE0BE58" />
+  <SolidColorBrush x:Key="GlyphNeedBrush" Color="#FF6F9CC4" />
+
+  <!-- The priority marks of recommended quests: an ember orange, warmer
+       than the places' amber and the achievements' gold beside it. -->
+  <SolidColorBrush x:Key="GlyphPriorityBrush" Color="#FFE5814F" />
+
+  <!-- A quest's two gains side by side: XP in a sky blue, kamas in a coin
+       gold, so the two numbers tell apart without a word after them. -->
+  <SolidColorBrush x:Key="GainXpBrush" Color="#FF7FB2E0" />
+  <SolidColorBrush x:Key="GainKamasBrush" Color="#FFD9B24E" />
+
+</ResourceDictionary>

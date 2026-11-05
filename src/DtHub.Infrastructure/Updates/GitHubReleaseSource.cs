@@ -18,16 +18,22 @@ namespace DtHub.Infrastructure.Updates;
 /// yet there, quota reached, the application keeps running without
 /// an update. This is a convenience service, not a dependency.
 /// </summary>
+/// <param name="asset">
+/// The file each release is downloaded as: the PC's executable unless
+/// told otherwise, the Mac's archive for the Mac front-end.
+/// </param>
 public sealed partial class GitHubReleaseSource(
     HttpClient client,
     string owner,
     string repository,
-    ILogger<GitHubReleaseSource> logger) : IReleaseSource
+    ILogger<GitHubReleaseSource> logger,
+    string asset = UpdatePaths.Executable) : IReleaseSource
 {
     private readonly HttpClient _client = client;
     private readonly string _owner = owner;
     private readonly string _repository = repository;
     private readonly ILogger<GitHubReleaseSource> _logger = logger;
+    private readonly string _asset = asset;
 
     /// <inheritdoc />
     public async Task<AppRelease?> GetLatestAsync(CancellationToken cancellationToken = default)
@@ -60,7 +66,7 @@ public sealed partial class GitHubReleaseSource(
             }
 
             return response.RequestMessage?.RequestUri is { } landed
-                ? ReleaseParser.FromTagPage(landed, UpdatePaths.Executable)
+                ? ReleaseParser.FromTagPage(landed, _asset)
                 : null;
         }
         catch (HttpRequestException exception)

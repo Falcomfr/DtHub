@@ -11,8 +11,12 @@ public sealed class AppPaths : IAppPaths
 {
     public AppPaths(string? root = null)
     {
+        // Create: on a fresh Linux home without ~/.local/share, .NET answers
+        // an empty path, and everything landed under the working folder.
+        // Always there on Windows.
         Root = root ?? Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            Environment.GetFolderPath(
+                Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create),
             ProductInfo.Slug);
 
         SettingsFile = Path.Combine(Root, "settings.json");

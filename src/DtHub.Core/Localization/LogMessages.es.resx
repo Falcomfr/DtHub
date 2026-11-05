@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+﻿<?xml version='1.0' encoding='utf-8'?>
 <root>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
@@ -81,6 +81,9 @@
   <data name="Aucune nouvelle de la page après vingt secondes : la vue est rendue." xml:space="preserve">
     <value>Sin respuesta de la página tras veinte segundos: se libera la vista.</value>
   </data>
+  <data name="Autorisation Accessibilité absente : les fenêtres de jeu ne seront pas rangées." xml:space="preserve">
+    <value>Falta el permiso de Accesibilidad: las ventanas del juego no se ordenarán.</value>
+  </data>
   <data name="Cache du moteur de rendu balayé : {megabytes} Mo." xml:space="preserve">
     <value>Caché del motor de renderizado vaciada: {megabytes} MB.</value>
   </data>
@@ -104,6 +107,9 @@
   </data>
   <data name="Chemins lus : {count}." xml:space="preserve">
     <value>Rutas leídas: {count}.</value>
+  </data>
+  <data name="Choix des applications : fenêtre pas encore disponible sur Mac." xml:space="preserve">
+    <value>Elección de aplicaciones: ventana aún no disponible en Mac.</value>
   </data>
   <data name="Compte « {name} » ajouté sur {device} : {succeeded}. {message}" xml:space="preserve">
     <value>Cuenta «{name}» añadida en {device}: {succeeded}. {message}</value>
@@ -134,6 +140,9 @@
   </data>
   <data name="Fenêtre perdue, réouverture de {name} dans {seconds} s (tentative {attempt})." xml:space="preserve">
     <value>Ventana perdida; se volverá a abrir {name} en {seconds} s (intento {attempt}).</value>
+  </data>
+  <data name="Fermeture de session macOS : DT Hub enregistre et se ferme." xml:space="preserve">
+    <value>Cierre de sesión de macOS: DT Hub guarda y se cierra.</value>
   </data>
   <data name="Fin de session Windows : l'état est retenu avant l'arrêt." xml:space="preserve">
     <value>Fin de sesión de Windows: se guarda el estado antes del cierre.</value>
@@ -209,6 +218,9 @@
   </data>
   <data name="La page de Calcofus n'a pas pu être retenue." xml:space="preserve">
     <value>No se ha podido guardar la página de Calcofus.</value>
+  </data>
+  <data name="La page n'a pas pu être chargée : {Etat}" xml:space="preserve">
+    <value>No se pudo cargar la página: {Etat}</value>
   </data>
   <data name="La place de l'Almanax n'a pas pu être rétablie." xml:space="preserve">
     <value>No se ha podido restaurar la posición de la ventana del Almanax.</value>
@@ -307,6 +319,9 @@
   <data name="La place d'une fenêtre perdue n'a pas pu être retenue." xml:space="preserve">
     <value>No se ha podido recordar el lugar de una ventana perdida.</value>
   </data>
+  <data name="{Count} commande(s) adb restée(s) d'une exécution précédente arrêtée(s)." xml:space="preserve">
+    <value>{Count} comando(s) adb dejado(s) por una ejecución anterior detenido(s).</value>
+  </data>
   <data name="{serial} ne répond plus au ping depuis {seconds} s : liaison perdue, fenêtre de {instance} fermée pour être rouverte." xml:space="preserve">
     <value>{serial} no responde al ping desde hace {seconds} s: conexión perdida, ventana de {instance} cerrada para volver a abrirla.</value>
   </data>
@@ -318,6 +333,9 @@
   </data>
   <data name="Le jour {Jour} de l'Almanax n'a rien rendu en vingt secondes." xml:space="preserve">
     <value>El día {Jour} del Almanax no ha devuelto nada en veinte segundos.</value>
+  </data>
+  <data name="Le moteur de rendu a renvoyé une erreur sur l'événement {Kind}." xml:space="preserve">
+    <value>El motor de renderizado devolvió un error en el evento {Kind}.</value>
   </data>
   <data name="Le moteur de rendu n'a pas pu être endormi." xml:space="preserve">
     <value>No se ha podido suspender el motor de renderizado.</value>
@@ -346,6 +364,9 @@
   <data name="Le raccourci du menu Démarrer n'a pas pu être posé." xml:space="preserve">
     <value>No se ha podido crear el acceso directo del menú Inicio.</value>
   </data>
+  <data name="Le raccourci {shortcut} pour « {action} » est refusé par macOS (code {status}) ; un autre logiciel le détient probablement, ou la touche n'existe pas sur Mac." xml:space="preserve">
+    <value>macOS ha rechazado el atajo {shortcut} para «{action}» (código {status}); probablemente lo esté usando otra aplicación, o la tecla no existe en un Mac.</value>
+  </data>
   <data name="Le raccourci {shortcut} pour « {action} » est refusé par Windows ; un autre logiciel le détient probablement." xml:space="preserve">
     <value>Windows ha rechazado el atajo {shortcut} para «{action}»; probablemente lo esté usando otra aplicación.</value>
   </data>
@@ -362,14 +383,23 @@
     <value>El sonido del juego no se ha restablecido en el dispositivo {serial} desde que se reabrieron las ventanas ({windows} ventana(s) de DT Hub). Sonido del teléfono:
 {state}</value>
   </data>
+  <data name="Le téléchargement a échoué : {Erreur}" xml:space="preserve">
+    <value>La descarga falló: {Erreur}</value>
+  </data>
   <data name="Le temps de jeu n'a pas pu être enregistré à la fermeture." xml:space="preserve">
     <value>No se ha podido guardar el tiempo de juego al cerrar.</value>
   </data>
   <data name="Lecture de la version d'ADB" xml:space="preserve">
     <value>Lectura de la versión de ADB</value>
   </data>
+  <data name="Les hôtes publicitaires n'ont pas pu être bloqués dans le moteur de rendu." xml:space="preserve">
+    <value>No se pudieron bloquear los hosts publicitarios en el motor de renderizado.</value>
+  </data>
   <data name="Les pics de latence Wi-Fi vers l'appareil {serial} ont cessé." xml:space="preserve">
     <value>Han cesado los picos de latencia Wi-Fi hacia el dispositivo {serial}.</value>
+  </data>
+  <data name="Les raccourcis globaux n'ont pas pu être installés auprès de macOS." xml:space="preserve">
+    <value>No se han podido instalar los atajos globales en macOS.</value>
   </data>
   <data name="Liaison : filaire, ou Wi-Fi que l'appareil ne décrit pas. Aucun tampon." xml:space="preserve">
     <value>Conexión: por cable o Wi-Fi sin detalles proporcionados por el dispositivo. Sin búfer.</value>
@@ -391,6 +421,9 @@
   </data>
   <data name="Livraison {version} téléchargée et vérifiée." xml:space="preserve">
     <value>Versión {version} descargada y verificada.</value>
+  </data>
+  <data name="Mise en place de {name} impossible, repli sur la copie installée {path} : {reason}" xml:space="preserve">
+    <value>No se pudo instalar {name}, se usa la copia instalada {path}: {reason}</value>
   </data>
   <data name="Mise à jour posée, elle démarrera au prochain lancement." xml:space="preserve">
     <value>Actualización instalada; se iniciará en el próximo arranque.</value>
@@ -507,6 +540,9 @@
   </data>
   <data name="Téléchargement de {name} depuis {url}." xml:space="preserve">
     <value>Descargando {name} desde {url}.</value>
+  </data>
+  <data name="Téléchargement enregistré : {Fichier}" xml:space="preserve">
+    <value>Descarga guardada: {Fichier}</value>
   </data>
   <data name="Téléphone revenu : réouverture de {name}." xml:space="preserve">
     <value>Teléfono reconectado: reabriendo {name}.</value>
@@ -760,5 +796,17 @@
   </data>
   <data name="Table d'identifiants embarquée illisible ({reason}) ; les noms restent en français." xml:space="preserve">
     <value>Tabla de identificadores integrada ilegible ({reason}); los nombres siguen en francés.</value>
+  </data>
+  <data name="La livraison {version} n'a pas pu être décompressée : {detail}" xml:space="preserve">
+    <value>No se ha podido descomprimir la versión {version}: {detail}</value>
+  </data>
+  <data name="La signature de la livraison {version} ne tient pas : {detail}" xml:space="preserve">
+    <value>La firma de la versión {version} no es válida: {detail}</value>
+  </data>
+  <data name="La livraison {version} n'est pas signée par le même certificat que l'application en place : {detail}" xml:space="preserve">
+    <value>La versión {version} no está firmada con el mismo certificado que la aplicación instalada: {detail}</value>
+  </data>
+  <data name="L'ancienne application n'a pas pu reprendre sa place, une copie la remplace." xml:space="preserve">
+    <value>La aplicación anterior no ha podido volver a su sitio, una copia la sustituye.</value>
   </data>
 </root>

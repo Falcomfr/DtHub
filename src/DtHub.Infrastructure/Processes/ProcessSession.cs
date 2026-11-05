@@ -118,8 +118,12 @@ public sealed class ProcessSession : IProcessSession
 
         // Attached right away: if the application dies without
         // going through its clean shutdown, Windows will stop this
-        // process along with it.
-        ChildProcessJob.Adopt(process.Handle);
+        // process along with it. A job object is Windows only: on macOS
+        // the front-end stops its sessions on quit.
+        if (OperatingSystem.IsWindows())
+        {
+            ChildProcessJob.Adopt(process.Handle);
+        }
 
         process.BeginOutputReadLine();
         process.BeginErrorReadLine();

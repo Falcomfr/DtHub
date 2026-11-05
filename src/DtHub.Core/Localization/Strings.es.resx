@@ -3200,4 +3200,141 @@ Equipo: misiones realizables por al menos 2 personajes marcados.</value>
   <data name="BatchRangeHint" xml:space="preserve">
     <value>Mayús+clic: un rango</value>
   </data>
+  <data name="ToolNotInstalled" xml:space="preserve">
+    <value>{0} no está instalado. {1}</value>
+  </data>
+  <data name="MacOk" xml:space="preserve">
+    <value>Aceptar</value>
+  </data>
+  <data name="MacYes" xml:space="preserve">
+    <value>Sí</value>
+  </data>
+  <data name="MacAccessibilityNeeded" xml:space="preserve">
+    <value>Para colocar las ventanas del juego (cuadrícula, pestañas, pantalla completa, tamaños), macOS pide el permiso de Accesibilidad. Aceptar abre el ajuste: marque DT Hub en la lista y vuelva a abrir DT Hub. ¿Ya está marcado? Desmárquelo y vuelva a marcarlo. Sin él, los juegos se abren igualmente, cada uno donde aparece.</value>
+  </data>
+  <data name="MacAccessibilityTitle" xml:space="preserve">
+    <value>Permitir que DT Hub ordene las ventanas del juego</value>
+  </data>
+  <data name="MacText_CableHelpSteps" xml:space="preserve">
+    <value>1. Otro cable: los de los cargadores a menudo no tienen hilos de datos.
+2. Otro puerto USB del Mac, sin hub ni adaptador si es posible.
+3. Reiniciar el Mac.
+4. Limpiar el conector del teléfono.
+5. Este teléfono en otro ordenador, para saber cuál falla.</value>
+  </data>
+  <data name="MacText_CableHelpTitle" xml:space="preserve">
+    <value>Un dispositivo conectado que el Mac no lee</value>
+  </data>
+  <data name="MacText_CheckNoDevice" xml:space="preserve">
+    <value>No se detecta ningún teléfono. Que cargue no basta:
+1. Conecta un cable de datos.
+2. Elige «Transferencia de archivos» si el teléfono lo pide.
+3. Activa la depuración USB.
+Un teléfono ya vinculado por Wi-Fi vuelve solo.</value>
+  </data>
+  <data name="MacText_HelpFixCableWindows" xml:space="preserve">
+    <value>• ¿El Mac no ve el teléfono? La pestaña Dispositivos dice qué hacer.</value>
+  </data>
+  <data name="MacText_HotkeyRefusedByWindows" xml:space="preserve">
+    <value>Rechazado por macOS, seguramente lo usa otro programa: {0}</value>
+  </data>
+  <data name="MacText_HotkeyReserved" xml:space="preserve">
+    <value>Esta combinación está reservada por macOS.</value>
+  </data>
+  <data name="MacText_LanguageTip" xml:space="preserve">
+    <value>«macOS» sigue el idioma del sistema, o el inglés si no está traducido. Se aplica en el próximo inicio.</value>
+  </data>
+  <data name="MacText_ReportContents" xml:space="preserve">
+    <value>El informe lleva la versión, tus pantallas, el error y las líneas útiles del registro de hoy. Los números de serie, las direcciones y el nombre de tu cuenta de macOS se quitan de él.</value>
+  </data>
+  <data name="MacText_SimulatedMouseHelp" xml:space="preserve">
+    <value>El cursor del Mac desaparece mientras una ventana de juego tiene el foco: Opción izquierda o Comando lo devuelven. Bien para una cuenta, molesto con varias.</value>
+  </data>
+  <data name="MacText_StaysOfflineFirewall" xml:space="preserve">
+    <value>• Firewall de macOS, si está activo: permite las conexiones entrantes para DT Hub (Ajustes del Sistema › Red › Firewall).</value>
+  </data>
+  <data name="MacText_StaysOfflinePrivate" xml:space="preserve">
+    <value>• macOS: permite DT Hub en Ajustes del Sistema › Privacidad y seguridad › Red local.</value>
+  </data>
+  <data name="MacNo" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="MacRefresh" xml:space="preserve">
+    <value>Actualizar</value>
+  </data>
+  <data name="MacOpenAll" xml:space="preserve">
+    <value>Abrir todo</value>
+  </data>
+  <data name="MacCloseAll" xml:space="preserve">
+    <value>Cerrar todo</value>
+  </data>
+  <data name="MacOpen" xml:space="preserve">
+    <value>Abrir</value>
+  </data>
+  <data name="MacClose" xml:space="preserve">
+    <value>Cerrar</value>
+  </data>
+  <data name="MacSearching" xml:space="preserve">
+    <value>Buscando teléfonos…</value>
+  </data>
+  <data name="MacNoGame" xml:space="preserve">
+    <value>Ningún teléfono con DOFUS Touch. Conecte el teléfono con la depuración USB activada y actualice.</value>
+  </data>
+  <data name="MacFound" xml:space="preserve">
+    <value>Cuentas encontradas: {0}</value>
+  </data>
+  <data name="MacMenuEdit" xml:space="preserve">
+    <value>Edición</value>
+  </data>
+  <data name="MacMenuUndo" xml:space="preserve">
+    <value>Deshacer</value>
+  </data>
+  <data name="MacMenuRedo" xml:space="preserve">
+    <value>Rehacer</value>
+  </data>
+  <data name="MacMenuCut" xml:space="preserve">
+    <value>Cortar</value>
+  </data>
+  <data name="MacMenuCopy" xml:space="preserve">
+    <value>Copiar</value>
+  </data>
+  <data name="MacMenuPaste" xml:space="preserve">
+    <value>Pegar</value>
+  </data>
+  <data name="MacMenuSelectAll" xml:space="preserve">
+    <value>Seleccionar todo</value>
+  </data>
+  <data name="MacMenuView" xml:space="preserve">
+    <value>Visualización</value>
+  </data>
+  <data name="MacMenuBack" xml:space="preserve">
+    <value>Atrás</value>
+  </data>
+  <data name="MacMenuForward" xml:space="preserve">
+    <value>Adelante</value>
+  </data>
+  <data name="MacMenuReload" xml:space="preserve">
+    <value>Volver a cargar la página</value>
+  </data>
+  <data name="MacMenuActualSize" xml:space="preserve">
+    <value>Tamaño real</value>
+  </data>
+  <data name="MacMenuZoomIn" xml:space="preserve">
+    <value>Ampliar</value>
+  </data>
+  <data name="MacMenuZoomOut" xml:space="preserve">
+    <value>Reducir</value>
+  </data>
+  <data name="MacPageFailed" xml:space="preserve">
+    <value>No se pudo cargar esta página.</value>
+  </data>
+  <data name="MacPageRetry" xml:space="preserve">
+    <value>Reintentar</value>
+  </data>
+  <data name="InstallWithBrew" xml:space="preserve">
+    <value>En el Terminal: brew install {0}</value>
+  </data>
+  <data name="InstallLinuxTools" xml:space="preserve">
+    <value>Descarga el archivo oficial de scrcpy para Linux (github.com/Genymobile/scrcpy/releases): contiene scrcpy, scrcpy-server y adb. Copia esos tres archivos en ~/.local/bin. El scrcpy de tu distribución suele ser demasiado antiguo.</value>
+  </data>
 </root>

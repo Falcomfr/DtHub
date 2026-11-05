@@ -1,0 +1,25 @@
+﻿<!-- The PC's waiting view (src/DtHub.App/Windows/WaitingPhoneView.xaml):
+     stands where the game was while its phone's link is down, in the tab
+     or in a small window at the free window's place. -->
+<UserControl x:Class="DtHub.App.Windows.WaitingPhoneView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:DtHub.Mac.Localization"
+             Background="{DynamicResource SurfaceAltBrush}">
+  <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="360" Margin="16">
+    <Panel Width="48" Height="48" HorizontalAlignment="Center" Margin="0,0,0,14">
+      <Path Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="3" StrokeLineCap="Round"
+            Data="M 4,18 A 28,28 0 0 1 44,18 M 10,25 A 20,20 0 0 1 38,25 M 16,32 A 11,11 0 0 1 32,32" />
+      <Ellipse Width="6" Height="6" Fill="{DynamicResource TextMutedBrush}"
+               HorizontalAlignment="Left" VerticalAlignment="Top" Margin="21,36,0,0" />
+      <Path Stroke="{DynamicResource WarningBrush}" StrokeThickness="3.5" StrokeLineCap="Round"
+            Data="M 8,6 L 40,42" />
+    </Panel>
+    <TextBlock Text="{loc:T WaitingPhoneTitle}" Classes="title"
+               HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" />
+    <TextBlock Text="{loc:T WaitingPhoneText}" Classes="muted"
+               HorizontalAlignment="Center" TextAlignment="Center" Margin="0,6,0,16" />
+    <Button Content="{loc:T Close}" Theme="{StaticResource OutlineButton}"
+            HorizontalAlignment="Center" Click="OnClose" />
+  </StackPanel>
+</UserControl>

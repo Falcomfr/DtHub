@@ -20,6 +20,12 @@
     <ProjectReference Include="..\..\src\DtHub.Infrastructure\DtHub.Infrastructure.csproj" />
   </ItemGroup>
 
+  <!-- The Mac's key translation, pure: linked, since the Mac project is an
+       Avalonia executable the tests do not reference. -->
+  <ItemGroup>
+    <Compile Include="..\..\src\DtHub.Mac\Platform\MacKeyMap.cs" Link="Mac\MacKeyMap.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>

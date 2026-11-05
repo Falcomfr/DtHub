@@ -1,0 +1,1071 @@
+﻿<!-- The PC's main window (src/DtHub.App/Windows/ConfiguratorWindow.xaml),
+     on the same view model: a floating panel above the game windows, its
+     own header and bottom bar, three tabs. -->
+<Window x:Class="DtHub.Mac.Views.ConfiguratorWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:DtHub.Mac.Localization"
+        xmlns:vm="using:DtHub.App.ViewModels"
+        xmlns:views="using:DtHub.Mac.Views"
+        xmlns:w="using:DtHub.Core.Windows"
+        x:DataType="vm:ConfiguratorViewModel"
+        Title="DT Hub"
+        Width="440" Height="580"
+        MinWidth="360" MinHeight="380" MaxHeight="1000"
+        Topmost="True"
+        CanResize="False"
+        WindowDecorations="None"
+        TransparencyLevelHint="Transparent"
+        Background="Transparent"
+        FontSize="{DynamicResource FontMedium}"
+        Foreground="{DynamicResource TextBrush}">
+
+  <Window.Resources>
+    <!-- The window's own controls. Themes rather than templates set by a
+         style, so Fluent's own hover colours stay out of them. -->
+
+    <!-- The series toggle: no frame, a lighter background under the
+         pointer, the chevron turned when open. -->
+    <ControlTheme x:Key="SeriesToggle" TargetType="ToggleButton">
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Border Name="Back" Background="{TemplateBinding Background}" CornerRadius="{DynamicResource Radius}">
+            <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Content}"
+                              HorizontalContentAlignment="Stretch" />
+          </Border>
+        </ControlTemplate>
+      </Setter>
+      <Style Selector="^:pointerover /template/ Border#Back">
+        <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
+      </Style>
+    </ControlTheme>
+
+    <!-- The tools toggle and the Discord link: no frame, a lighter
+         background under the pointer. -->
+    <ControlTheme x:Key="FlatButton" TargetType="Button">
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="Padding" Value="6,2" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Border Name="Back" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}"
+                  CornerRadius="{DynamicResource Radius}">
+            <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Content}" />
+          </Border>
+        </ControlTemplate>
+      </Setter>
+      <Style Selector="^:pointerover /template/ Border#Back">
+        <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
+      </Style>
+    </ControlTheme>
+
+    <!-- A tool tile: transparent until the pointer comes, greyed when no
+         phone can take it. -->
+    <ControlTheme x:Key="ToolTile" TargetType="Button">
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Border Name="Face" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}"
+                  CornerRadius="{DynamicResource Radius}">
+            <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Content}" />
+          </Border>
+        </ControlTemplate>
+      </Setter>
+      <Style Selector="^:pointerover /template/ Border#Face">
+        <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
+      </Style>
+      <Style Selector="^:disabled /template/ Border#Face">
+        <Setter Property="Opacity" Value="0.45" />
+      </Style>
+    </ControlTheme>
+
+    <!-- The custom quality's gear. -->
+    <ControlTheme x:Key="GearButton" TargetType="Button">
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Border Name="Back" Background="{TemplateBinding Background}" Padding="3"
+                  CornerRadius="{DynamicResource Radius}">
+            <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Content}" />
+          </Border>
+        </ControlTemplate>
+      </Setter>
+      <Style Selector="^:pointerover /template/ Border#Back">
+        <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
+      </Style>
+      <Style Selector="^:flyout-open /template/ Border#Back">
+        <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
+      </Style>
+      <Style Selector="^:pressed /template/ Border#Back">
+        <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+      </Style>
+    </ControlTheme>
+  </Window.Resources>
+
+  <Window.DataTemplates>
+    <!-- The shortcuts tab's two kinds of line: one shortcut, or a series
+         folded into one line. -->
+    <DataTemplate DataType="vm:HotkeyRowViewModel">
+      <Grid Margin="0,2" Background="Transparent" ColumnDefinitions="*,Auto"
+            ToolTip.Tip="{Binding ActionDetail}">
+        <TextBlock Grid.Column="0" Text="{Binding ActionLabel}" VerticalAlignment="Center"
+                   TextTrimming="CharacterEllipsis" Margin="0,0,8,0" />
+
+        <Border Grid.Column="1" CornerRadius="{DynamicResource Radius}" Padding="7,2"
+                Background="{DynamicResource SurfaceAltBrush}"
+                BorderThickness="1" BorderBrush="{DynamicResource BorderBrush}">
+          <TextBlock Text="{Binding ShortcutText}" FontSize="{DynamicResource FontBody}"
+                     FontFamily="{DynamicResource MonoFont}" />
+        </Border>
+      </Grid>
+    </DataTemplate>
+
+    <!-- The whole line is the toggle, with a thin chevron turning a
+         quarter; the unfolded rows hang off a thin line. -->
+    <DataTemplate DataType="vm:HotkeySeriesViewModel">
+      <StackPanel Margin="0,2">
+        <ToggleButton Classes="series" Theme="{StaticResource SeriesToggle}" IsChecked="{Binding IsExpanded, Mode=TwoWay}"
+                      HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+          <Grid ColumnDefinitions="Auto,*,Auto" Background="Transparent">
+            <Path Name="Chevron" Data="M 0 0 L 4 4 L 0 8" Width="8" Height="8"
+                  Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.4"
+                  StrokeLineCap="Round" StrokeJoin="Round"
+                  Margin="3,0,9,0" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="1" Text="{Binding Label}" VerticalAlignment="Center"
+                       TextTrimming="CharacterEllipsis" Margin="0,0,8,0" />
+            <Border Grid.Column="2" CornerRadius="{DynamicResource Radius}" Padding="7,2"
+                    Background="{DynamicResource SurfaceAltBrush}"
+                    BorderThickness="1" BorderBrush="{DynamicResource BorderBrush}">
+              <TextBlock Text="{Binding Summary}" FontSize="{DynamicResource FontBody}"
+                         FontFamily="{DynamicResource MonoFont}" />
+            </Border>
+          </Grid>
+        </ToggleButton>
+
+        <Border IsVisible="{Binding IsExpanded}" Margin="6,2,0,2" Padding="13,0,0,0"
+                BorderThickness="1,0,0,0" BorderBrush="{DynamicResource BorderBrush}">
+          <ItemsControl ItemsSource="{Binding Rows}" />
+        </Border>
+      </StackPanel>
+    </DataTemplate>
+  </Window.DataTemplates>
+
+  <Window.Styles>
+    <Style Selector="ToggleButton.series:checked Path#Chevron">
+      <Setter Property="RenderTransform" Value="rotate(90deg)" />
+    </Style>
+    <Style Selector="ToggleButton.series:pointerover Path#Chevron">
+      <Setter Property="Stroke" Value="{DynamicResource TextBrush}" />
+    </Style>
+
+    <!-- The chevron of the tools menu turns as the menu opens. -->
+    <Style Selector="Path#PartnerChevron">
+      <Setter Property="RenderTransform" Value="rotate(0deg)" />
+      <Setter Property="Transitions">
+        <Transitions>
+          <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.18" />
+        </Transitions>
+      </Setter>
+    </Style>
+    <Style Selector="Button#PartnerToggle:flyout-open Path#PartnerChevron">
+      <Setter Property="RenderTransform" Value="rotate(180deg)" />
+    </Style>
+
+    <!-- The panel fades in and out, sliding a few pixels inside the
+         window rather than moving the window: linear, a hundred and twenty
+         milliseconds, as on the PC. -->
+    <Style Selector="Border#Chassis">
+      <Setter Property="Transitions">
+        <Transitions>
+          <DoubleTransition Property="Opacity" Duration="0:0:0.12" />
+          <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.12" />
+        </Transitions>
+      </Setter>
+    </Style>
+  </Window.Styles>
+
+  <Border Name="Chassis"
+          Background="{DynamicResource SurfaceAltBrush}"
+          BorderBrush="{DynamicResource BevelBorderBrush}" BorderThickness="1"
+          CornerRadius="{DynamicResource Radius}"
+          ClipToBounds="True">
+    <DockPanel>
+
+      <!-- Header bar: also the drag handle, the window having no title bar
+           of its own, as on the PC. -->
+      <Border DockPanel.Dock="Top" Background="{DynamicResource BrushedPanelBrush}"
+              CornerRadius="{DynamicResource RadiusTop}" Padding="12,8"
+              BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,0,0,1"
+              PointerPressed="OnHeaderDrag">
+        <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+
+          <Image Grid.Column="0" Source="/assets/app.png" Width="26" Height="26" VerticalAlignment="Center"
+                 RenderOptions.BitmapInterpolationMode="HighQuality" />
+
+          <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
+            <!-- The game's name, once, on the product's line. -->
+            <TextBlock>
+              <!-- Out of scale on purpose: the product name is a brand. -->
+              <Run Text="{Binding ProductName, Mode=OneWay}" FontSize="17" FontWeight="SemiBold" />
+              <Run Text=" " />
+              <Run Text="{loc:T AppSubtitleForGame}" FontSize="{DynamicResource FontSmall}"
+                   Foreground="{DynamicResource TextMutedBrush}" />
+            </TextBlock>
+            <TextBlock Classes="muted" FontSize="{DynamicResource FontSmall}">
+              <Run Text="{Binding ToggleShortcutText, Mode=OneWay}" FontWeight="SemiBold"
+                   FontFamily="{DynamicResource MonoFont}" />
+              <Run Text=" " />
+              <Run Text="{loc:T ShortcutToggleSuffix}" />
+            </TextBlock>
+          </StackPanel>
+
+          <!-- Minimize, beside the cross that hides: the panel keeps its
+               Dock icon, where it comes back from. -->
+          <Button Grid.Column="2" Content="–" Theme="{StaticResource QuietButton}"
+                  FontSize="14" Padding="8,2" Click="OnMinimize"
+                  ToolTip.Tip="{loc:T MinimizeThisWindow}" />
+
+          <Button Grid.Column="3" Content="✕" Theme="{StaticResource QuietButton}"
+                  FontSize="14" Padding="8,2" Click="OnHide"
+                  ToolTip.Tip="{loc:T HideThisWindow}" />
+        </Grid>
+      </Border>
+
+      <!-- What the next version brings, when there is something to say. -->
+      <Border DockPanel.Dock="Top" Padding="12,7"
+              Background="{DynamicResource BrushedPanelBrush}"
+              BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,0,0,1"
+              IsVisible="{Binding UpdateText, Converter={StaticResource EmptyToVisibility}, ConverterParameter=inverse}">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Grid.Column="0" VerticalAlignment="Center" TextWrapping="Wrap"
+                     FontSize="{DynamicResource FontBody}" Text="{Binding UpdateText}" />
+
+          <Button Grid.Column="1" Content="{loc:T WhatsNew}" Theme="{StaticResource QuietButton}"
+                  Padding="8,3" Margin="8,0,0,0" VerticalAlignment="Center"
+                  Command="{Binding UpdateNotesCommand}"
+                  ToolTip.Tip="{loc:T WhatsNewTip}" />
+        </Grid>
+      </Border>
+
+      <!-- A startup setting changed while windows were open, or a game
+           shows bands in full screen: the reopen waits for this button. -->
+      <Border DockPanel.Dock="Top" Padding="12,7"
+              Background="{DynamicResource BrushedPanelBrush}"
+              BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,0,0,1"
+              IsVisible="{Binding ShowsReopenBanner}">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Grid.Column="0" VerticalAlignment="Center" TextWrapping="Wrap"
+                     FontSize="{DynamicResource FontBody}" Text="{loc:T ReopenPendingNotice}"
+                     IsVisible="{Binding ReopenPending}" />
+
+          <TextBlock Grid.Column="0" VerticalAlignment="Center" TextWrapping="Wrap"
+                     FontSize="{DynamicResource FontBody}" Text="{loc:T FullscreenBandsNotice}"
+                     IsVisible="{Binding ShowsFullscreenBands}" />
+
+          <Button Grid.Column="1" Content="{loc:T ReopenNow}" Theme="{StaticResource QuietButton}"
+                  Padding="8,3" Margin="8,0,0,0" VerticalAlignment="Center"
+                  Command="{Binding ReopenNowCommand}" />
+        </Grid>
+      </Border>
+
+      <!-- The bottom edge stretches the panel's height, between its
+           MinHeight and MaxHeight, drawn by DT Hub as on the PC. -->
+      <Thumb DockPanel.Dock="Bottom" Height="4" Cursor="SizeNorthSouth"
+             Background="{DynamicResource BrushedPanelBrush}"
+             DragDelta="OnHeightDrag">
+        <Thumb.Template>
+          <ControlTemplate>
+            <Border Background="{TemplateBinding Background}" />
+          </ControlTemplate>
+        </Thumb.Template>
+      </Thumb>
+
+      <!-- Bottom bar: the keys that open something on the left, the
+           arranging and quit on the right. -->
+      <Border DockPanel.Dock="Bottom" Padding="10,5,10,1"
+              Background="{DynamicResource BrushedPanelBrush}"
+              BorderBrush="{DynamicResource BevelBrush}" BorderThickness="0,1,0,0">
+        <Grid ColumnDefinitions="*,Auto">
+
+          <!-- The keys wrap rather than run under "Quit". -->
+          <WrapPanel Grid.Column="0" Orientation="Horizontal"
+                     VerticalAlignment="Center" HorizontalAlignment="Left"
+                     Margin="0,0,2,0">
+
+            <Border Name="GuidesKey" Classes="key" Margin="0,3,6,3">
+              <Button Theme="{StaticResource GroupKey}" Padding="5,3"
+                      ToolTip.Tip="{loc:T GuidesTip}"
+                      Command="{Binding QuestsCommand}">
+                <StackPanel Orientation="Horizontal">
+                  <!-- The site's logo, used with papycha.fr's agreement:
+                       see THIRD-PARTY-NOTICES.md. -->
+                  <Image Source="/assets/papycha.png" Width="20" Height="20"
+                         Margin="0,0,5,0" VerticalAlignment="Center"
+                         RenderOptions.BitmapInterpolationMode="HighQuality" />
+                  <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="{loc:T Guides}" FontWeight="SemiBold" />
+                    <TextBlock Text="{loc:T GuidesSource}" Margin="0,-2,0,0"
+                               FontSize="{DynamicResource FontTiny}"
+                               Foreground="{DynamicResource TextMutedBrush}" />
+                  </StackPanel>
+                </StackPanel>
+              </Button>
+            </Border>
+
+            <!-- Lomitall's portal at the guides' right, with the site's own
+                 logo: see THIRD-PARTY-NOTICES.md. -->
+            <Border Classes="key" Margin="0,3,6,3">
+              <Button Theme="{StaticResource GroupKey}" Padding="5,3"
+                      ToolTip.Tip="{loc:T LomitallTip}"
+                      Command="{Binding PortalCommand}">
+                <StackPanel Orientation="Horizontal">
+                  <Image Source="/assets/lomitall.png" Width="20" Height="20"
+                         Margin="0,0,5,0" VerticalAlignment="Center"
+                         RenderOptions.BitmapInterpolationMode="HighQuality" />
+                  <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="{loc:T ToolLomitallLine}" FontWeight="SemiBold" />
+                    <TextBlock Text="{loc:T ToolLomitallName}" Margin="0,-2,0,0"
+                               FontSize="{DynamicResource FontTiny}"
+                               Foreground="{DynamicResource TextMutedBrush}" />
+                  </StackPanel>
+                </StackPanel>
+              </Button>
+            </Border>
+
+            <!-- The Almanax: a drawn calendar rather than a logo, the page
+                 coming from Ankama, whose branding we do not display. -->
+            <Border Classes="key" Margin="0,3,6,3">
+              <Button Theme="{StaticResource GroupKey}"
+                      ToolTip.Tip="{loc:T AlmanaxTip}"
+                      Command="{Binding AlmanaxCommand}">
+                <StackPanel Orientation="Horizontal">
+                  <Path Width="16" Height="16" Stretch="None" Margin="1,0,6,0"
+                        VerticalAlignment="Center" StrokeJoin="Round"
+                        StrokeLineCap="Round"
+                        Stroke="{DynamicResource TextBrush}" StrokeThickness="1.3"
+                        Data="M 3,4.5 H 13 V 13.5 H 3 Z M 3,7.5 H 13 M 6,3 V 6 M 10,3 V 6" />
+                  <TextBlock Text="{loc:T Almanax}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+            </Border>
+          </WrapPanel>
+
+          <!-- Fullscreen always left of Quit; stacking, side by side and the
+               grid in its menu, only when there is something to arrange. -->
+          <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
+            <Border Classes="key" Margin="0,3,6,0"
+                    Height="{Binding #GuidesKey.Bounds.Height}"
+                    IsVisible="{Binding CanFullscreen}">
+              <StackPanel Orientation="Horizontal">
+                <Button Theme="{StaticResource GroupKey}"
+                        ToolTip.Tip="{loc:T ActionFullscreenDetail}"
+                        Command="{Binding FullscreenCommand}">
+                  <Path Classes="rowGlyph" VerticalAlignment="Center"
+                        Data="M 2,5.5 V 2.5 H 5 M 10,2.5 H 13 V 5.5 M 13,9.5 V 12.5 H 10 M 5,12.5 H 2 V 9.5" />
+                </Button>
+
+                <Border Width="1" Margin="0,6" Background="{DynamicResource BorderBrush}"
+                        IsVisible="{Binding CanArrange}" />
+
+                <Button Name="ArrangeMenuKey" Theme="{StaticResource GroupKey}" Padding="4,6"
+                        ToolTip.Tip="{loc:T ArrangeMenuTip}"
+                        IsVisible="{Binding CanArrange}">
+                  <Path Width="9" Height="5" Stretch="None" StrokeJoin="Round"
+                        Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.5"
+                        StrokeLineCap="Round"
+                        Data="M 0.8,4.2 L 4.5,0.8 L 8.2,4.2" />
+
+                  <!-- Opens upwards, over the list. -->
+                  <Button.Flyout>
+                    <Flyout Placement="TopEdgeAlignedRight" FlyoutPresenterClasses="bare">
+                      <Border Classes="menu" Margin="8" Padding="4">
+                        <Grid RowDefinitions="Auto,Auto,Auto">
+                          <Button Grid.Row="0" Theme="{StaticResource GroupKey}" Padding="8,5"
+                                  HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                  ToolTip.Tip="{loc:T StackTip}"
+                                  Command="{Binding RearrangeCommand}" Click="OnArrangeChosen">
+                            <StackPanel Orientation="Horizontal">
+                              <!-- Two overlapping windows: what the action does. -->
+                              <Path Classes="rowGlyph" VerticalAlignment="Center"
+                                    Data="M 1.8,2.2 H 10.2 V 8.4 H 1.8 Z M 4.8,6.6 H 13.2 V 12.8 H 4.8 Z" />
+                              <TextBlock Text="{loc:T ActionStackWindows}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                            </StackPanel>
+                          </Button>
+
+                          <Button Grid.Row="1" Theme="{StaticResource GroupKey}" Padding="8,5"
+                                  HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                  ToolTip.Tip="{loc:T SideBySideTip}"
+                                  Command="{Binding TileCommand}" Click="OnArrangeChosen">
+                            <StackPanel Orientation="Horizontal">
+                              <Path Classes="rowGlyph" VerticalAlignment="Center"
+                                    Data="M 2,2.6 H 13 V 12.4 H 2 Z M 7.5,2.6 V 12.4" />
+                              <TextBlock Text="{loc:T SideBySide}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                            </StackPanel>
+                          </Button>
+
+                          <!-- Below three windows side by side does the job. -->
+                          <Button Grid.Row="2" Theme="{StaticResource GroupKey}" Padding="8,5"
+                                  HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                  ToolTip.Tip="{loc:T GridTip}"
+                                  Command="{Binding GridCommand}" Click="OnArrangeChosen"
+                                  IsVisible="{Binding CanGrid}">
+                            <StackPanel Orientation="Horizontal">
+                              <Path Classes="rowGlyph" VerticalAlignment="Center"
+                                    Data="M 2,2.6 H 13 V 12.4 H 2 Z M 7.5,2.6 V 12.4 M 2,7.5 H 13" />
+                              <TextBlock Text="{loc:T Grid}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                            </StackPanel>
+                          </Button>
+                        </Grid>
+                      </Border>
+                    </Flyout>
+                  </Button.Flyout>
+                </Button>
+              </StackPanel>
+            </Border>
+
+            <!-- As tall as the keys. -->
+            <Button Content="{loc:T Quit}" Click="OnQuit"
+                    Height="{Binding #GuidesKey.Bounds.Height}"
+                    Margin="0,3,0,0"
+                    ToolTip.Tip="{loc:T QuitTip}" />
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <!-- Tabs -->
+      <Grid Margin="10,8,10,0" RowDefinitions="Auto,*,Auto">
+
+        <!-- From the concrete to the setting: the device first, then its
+             windows, then the shortcuts. The first tab is the one that
+             opens, at every launch. -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
+          <RadioButton Name="TabDevices" Theme="{StaticResource Tab}" Content="{loc:T TabDevices}"
+                       GroupName="Tabs" IsChecked="True" />
+          <RadioButton Name="TabGeneral" Theme="{StaticResource Tab}" Content="{loc:T TabWindows}"
+                       GroupName="Tabs" />
+          <RadioButton Name="TabHotkeys" Theme="{StaticResource Tab}" Content="{loc:T TabShortcuts}"
+                       GroupName="Tabs" />
+        </StackPanel>
+
+        <!-- The bar sits in the panel's right margin, so the content still
+             ends where the bottom bar's keys do. -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                      Margin="0,0,-10,0" Padding="0,0,10,0">
+          <Panel>
+
+            <!-- Shortcuts tab, read-only -->
+            <StackPanel IsVisible="{Binding #TabHotkeys.IsChecked}">
+              <Border Classes="card">
+                <StackPanel>
+                  <!-- Three sections, each series folded into one line. -->
+                  <ItemsControl ItemsSource="{Binding Hotkeys}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:HotkeySectionViewModel">
+                        <StackPanel Margin="0,0,0,6">
+                          <TextBlock Text="{Binding Title}" Classes="section" Margin="0,0,0,3" />
+                          <ItemsControl ItemsSource="{Binding Entries}" />
+                        </StackPanel>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+
+                  <Button Content="{loc:T EditShortcuts}" HorizontalAlignment="Left" Margin="0,8,0,0"
+                          Click="OnEditHotkeys" />
+                </StackPanel>
+              </Border>
+            </StackPanel>
+
+            <!-- Windows tab: quick placement and size -->
+            <StackPanel IsVisible="{Binding #TabGeneral.IsChecked}">
+
+              <Border Classes="card">
+                <StackPanel>
+                  <TextBlock Text="{loc:T PlaceWindowsHeading}" Classes="section" />
+
+                  <ItemsControl Name="AnchorGrid" ItemsSource="{Binding Anchors}" HorizontalAlignment="Left"
+                                Margin="0,4,0,0"
+                                ToolTip.Tip="{loc:T PlaceWindowsTip}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <UniformGrid Columns="3" Rows="3" />
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="w:WindowAnchor">
+                        <Button Theme="{StaticResource AnchorCell}"
+                                ToolTip.Tip="{Binding Converter={StaticResource AnchorLabel}}"
+                                Command="{Binding #AnchorGrid.((vm:ConfiguratorViewModel)DataContext).SetAnchorCommand}"
+                                CommandParameter="{Binding}" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+
+              <Border Classes="card">
+                <StackPanel>
+                  <TextBlock Text="{loc:T WindowSizeHeading}" Classes="section"
+                             ToolTip.Tip="{loc:T WindowSizeTip}" />
+
+                  <Grid ColumnDefinitions="*,Auto">
+                    <Slider Grid.Column="0" Minimum="20" Maximum="100" TickFrequency="1"
+                            IsSnapToTickEnabled="True" SmallChange="1" LargeChange="5"
+                            Value="{Binding SizePercent}" />
+
+                    <!-- In monospace: the number no longer jitters when it
+                         changes. -->
+                    <TextBlock Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0"
+                               MinWidth="46" TextAlignment="Right" FontWeight="SemiBold"
+                               FontFamily="{DynamicResource MonoFont}"
+                               Foreground="{DynamicResource AccentBrush}">
+                      <Run Text="{Binding SizePercent, Mode=OneWay}" /><Run Text=" %" />
+                    </TextBlock>
+                  </Grid>
+                </StackPanel>
+              </Border>
+
+              <Border Classes="card">
+                <StackPanel>
+                  <!-- The gear on the title's line, within the height the
+                       subheading already takes up. -->
+                  <Panel>
+                    <TextBlock Text="{loc:T QualityHeading}" Classes="section" />
+
+                    <Button Theme="{StaticResource GearButton}"
+                            HorizontalAlignment="Right" VerticalAlignment="Top"
+                            Margin="0,-3,0,0"
+                            ToolTip.Tip="{loc:T CustomQualityTip}"
+                            IsVisible="{Binding IsCustomQuality}">
+                      <Path Width="15" Height="15" Stretch="Uniform"
+                            Fill="{DynamicResource AccentBrush}" Data="F0 M 18.18,8.11 L 18.18,11.89 L 15.64,12.05 L 15.44,12.54 L 17.12,14.45 L 14.45,17.12 L 12.54,15.44 L 12.05,15.64 L 11.89,18.18 L 8.11,18.18 L 7.95,15.64 L 7.46,15.44 L 5.55,17.12 L 2.88,14.45 L 4.56,12.54 L 4.36,12.05 L 1.82,11.89 L 1.82,8.11 L 4.36,7.95 L 4.56,7.46 L 2.88,5.55 L 5.55,2.88 L 7.46,4.56 L 7.95,4.36 L 8.11,1.82 L 11.89,1.82 L 12.05,4.36 L 12.54,4.56 L 14.45,2.88 L 17.12,5.55 L 15.44,7.46 L 15.64,7.95 Z M 7.10,10.00 A 2.90,2.90 0 1 0 12.90,10.00 A 2.90,2.90 0 1 0 7.10,10.00 Z" />
+
+                      <Button.Flyout>
+                        <Flyout Placement="BottomEdgeAlignedRight" FlyoutPresenterClasses="bare">
+                          <Border Classes="bubble" Width="330" Margin="0,4,0,0" Padding="14,12,14,12">
+                            <StackPanel>
+                              <TextBlock Text="{loc:T FineSettingsHeading}" Classes="section" />
+
+                              <Grid Margin="0,0,0,7" ColumnDefinitions="118,*">
+                                <TextBlock Text="{loc:T MaxResolution}" VerticalAlignment="Center"
+                                           Classes="muted" ToolTip.Tip="{loc:T MaxResolutionTip}" />
+                                <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                                          ItemsSource="{Binding HeightChoices}"
+                                          SelectedValueBinding="{ReflectionBinding Value}"
+                                          SelectedValue="{Binding CustomHeight, Mode=TwoWay}" />
+                              </Grid>
+
+                              <Grid Margin="0,0,0,7" ColumnDefinitions="118,*">
+                                <TextBlock Text="{loc:T FrameRate}" VerticalAlignment="Center" Classes="muted" />
+                                <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                                          ItemsSource="{Binding FpsChoices}"
+                                          SelectedValueBinding="{ReflectionBinding Value}"
+                                          SelectedValue="{Binding CustomFps, Mode=TwoWay}" />
+                              </Grid>
+
+                              <Grid Margin="0,0,0,7" ColumnDefinitions="118,*">
+                                <TextBlock Text="{loc:T ImageDetail}" VerticalAlignment="Center"
+                                           Classes="muted" ToolTip.Tip="{loc:T ImageDetailTip}" />
+                                <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                                          ItemsSource="{Binding FinesseChoices}"
+                                          SelectedValueBinding="{ReflectionBinding Value}"
+                                          SelectedValue="{Binding CustomBitsPerPixel, Mode=TwoWay}" />
+                              </Grid>
+
+                              <Grid Margin="0,0,0,7" ColumnDefinitions="118,*">
+                                <TextBlock Text="{loc:T VideoCodec}" VerticalAlignment="Center"
+                                           Classes="muted" ToolTip.Tip="{loc:T VideoCodecTip}" />
+                                <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                                          ItemsSource="{Binding CodecChoices}"
+                                          SelectedValueBinding="{ReflectionBinding Value}"
+                                          SelectedValue="{Binding CustomCodec, Mode=TwoWay}" />
+                              </Grid>
+
+                              <!-- The density, typed or picked; it applies
+                                   once picked, or typed and confirmed. -->
+                              <Grid Margin="0,0,0,7" ColumnDefinitions="118,*">
+                                <TextBlock Text="{loc:T Density}" VerticalAlignment="Center"
+                                           Classes="muted" ToolTip.Tip="{loc:T DensityTip}" />
+                                <!-- No text search, as the PC's: typing "1" must not
+                                     jump to the first density starting with 1. Enter is
+                                     caught in the tunnel (code-behind), before the box
+                                     takes it. -->
+                                <ComboBox Name="DensityBox" Grid.Column="1" HorizontalAlignment="Stretch" IsEditable="True"
+                                          IsTextSearchEnabled="False"
+                                          ItemsSource="{Binding DensityChoices}"
+                                          Text="{Binding DensityText, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                          DropDownClosed="OnDensityPicked"
+                                          ToolTip.Tip="{loc:T DensityTip}" />
+                              </Grid>
+                              <TextBlock Text="{Binding DensityDetail}" Classes="muted"
+                                         FontSize="{DynamicResource FontSmall}" Margin="118,-3,0,7" TextWrapping="Wrap"
+                                         IsVisible="{Binding DensityDetail, Converter={StaticResource EmptyToVisibility}, ConverterParameter=inverse}" />
+
+                              <TextBlock Text="{Binding BitrateSummary}" FontWeight="SemiBold"
+                                         FontFamily="{DynamicResource MonoFont}" FontSize="{DynamicResource FontSmall}"
+                                         TextWrapping="Wrap" Margin="0,4,0,0"
+                                         Foreground="{DynamicResource AccentBrush}"
+                                         ToolTip.Tip="{loc:T BitsPerPixelTip}" />
+
+                              <!-- Several open accounts mean several streams
+                                   over the same link and encoder. -->
+                              <TextBlock Text="{Binding LinkSummary}" Classes="muted"
+                                         FontFamily="{DynamicResource MonoFont}" FontSize="{DynamicResource FontSmall}"
+                                         TextWrapping="Wrap"
+                                         ToolTip.Tip="{loc:T BitrateTip}" />
+
+                              <!-- The tier chosen is the first one above the
+                                   window. -->
+                              <TextBlock Text="{Binding DisplayFitSummary}" Classes="muted"
+                                         FontFamily="{DynamicResource MonoFont}" FontSize="{DynamicResource FontSmall}"
+                                         TextWrapping="Wrap"
+                                         ToolTip.Tip="{loc:T ResolutionAdviceTip}" />
+                            </StackPanel>
+                          </Border>
+                        </Flyout>
+                      </Button.Flyout>
+                    </Button>
+                  </Panel>
+
+                  <!-- Wrapped: five tiers do not fit across the window. -->
+                  <WrapPanel Margin="0,0,0,5">
+                    <RadioButton Theme="{StaticResource Tab}" GroupName="Quality" Content="{loc:T QualityLow}"
+                                 Margin="0,0,5,0"
+                                 ToolTip.Tip="{Binding QualityTips[Low]}"
+                                 IsChecked="{Binding Quality, Converter={StaticResource EnumMatch}, ConverterParameter=Low}" />
+                    <RadioButton Theme="{StaticResource Tab}" GroupName="Quality" Content="{loc:T QualityMedium}"
+                                 Margin="0,0,5,0"
+                                 ToolTip.Tip="{Binding QualityTips[Medium]}"
+                                 IsChecked="{Binding Quality, Converter={StaticResource EnumMatch}, ConverterParameter=Medium}" />
+                    <RadioButton Theme="{StaticResource Tab}" GroupName="Quality" Content="{loc:T QualityElevated}"
+                                 Margin="0,0,5,0"
+                                 ToolTip.Tip="{Binding QualityTips[Elevated]}"
+                                 IsChecked="{Binding Quality, Converter={StaticResource EnumMatch}, ConverterParameter=Elevated}" />
+                    <RadioButton Theme="{StaticResource Tab}" GroupName="Quality" Content="{loc:T QualityMaximum}"
+                                 Margin="0,0,5,0"
+                                 ToolTip.Tip="{Binding QualityTips[Maximum]}"
+                                 IsChecked="{Binding Quality, Converter={StaticResource EnumMatch}, ConverterParameter=Maximum}" />
+                    <RadioButton Theme="{StaticResource Tab}" GroupName="Quality" Content="{loc:T QualityCustom}"
+                                 ToolTip.Tip="{Binding QualityTips[Custom]}"
+                                 IsChecked="{Binding Quality, Converter={StaticResource EnumMatch}, ConverterParameter=Custom}" />
+                  </WrapPanel>
+
+                  <CheckBox Content="{loc:T SharpImage}" Margin="0,0,0,5"
+                            IsChecked="{Binding SharpImage}"
+                            ToolTip.Tip="{loc:T SharpImageTip}" />
+                </StackPanel>
+              </Border>
+
+              <Border Classes="card">
+                <StackPanel>
+                  <TextBlock Text="{loc:T GameDistanceHeading}" Classes="section"
+                             ToolTip.Tip="{loc:T GameDistanceTip}" />
+
+                  <WrapPanel Margin="0,0,0,5">
+                    <RadioButton Theme="{StaticResource Tab}" GroupName="Zoom" Content="{loc:T ZoomVeryFar}"
+                                 Margin="0,0,5,0"
+                                 ToolTip.Tip="{Binding ZoomTips[Widest]}"
+                                 IsChecked="{Binding Zoom, Converter={StaticResource EnumMatch}, ConverterParameter=Widest}" />
+                    <RadioButton Theme="{StaticResource Tab}" GroupName="Zoom" Content="{loc:T ZoomFar}"
+                                 Margin="0,0,5,0"
+                                 ToolTip.Tip="{Binding ZoomTips[Wide]}"
+                                 IsChecked="{Binding Zoom, Converter={StaticResource EnumMatch}, ConverterParameter=Wide}" />
+                    <RadioButton Theme="{StaticResource Tab}" GroupName="Zoom" Content="{loc:T ZoomSlightlyFar}"
+                                 Margin="0,0,5,0"
+                                 ToolTip.Tip="{Binding ZoomTips[SlightlyWide]}"
+                                 IsChecked="{Binding Zoom, Converter={StaticResource EnumMatch}, ConverterParameter=SlightlyWide}" />
+                    <RadioButton Theme="{StaticResource Tab}" GroupName="Zoom" Content="{loc:T ZoomNormal}"
+                                 Margin="0,0,5,0"
+                                 ToolTip.Tip="{Binding ZoomTips[Normal]}"
+                                 IsChecked="{Binding Zoom, Converter={StaticResource EnumMatch}, ConverterParameter=Normal}" />
+                    <RadioButton Theme="{StaticResource Tab}" GroupName="Zoom" Content="{loc:T ZoomClose}"
+                                 ToolTip.Tip="{Binding ZoomTips[Close]}"
+                                 IsChecked="{Binding Zoom, Converter={StaticResource EnumMatch}, ConverterParameter=Close}" />
+                  </WrapPanel>
+
+                  <!-- Said here, where the tiers seem to do nothing. -->
+                  <TextBlock Classes="muted" FontSize="{DynamicResource FontSmall}"
+                             TextWrapping="Wrap" Margin="0,0,0,4"
+                             IsVisible="{Binding ZoomReplacedByDensity}"
+                             Text="{loc:T ZoomReplacedByDensity}" />
+
+                  <TextBlock Classes="muted" FontSize="{DynamicResource FontSmall}"
+                             IsVisible="{Binding IsReopening}"
+                             Text="{loc:T ReopenNotice}" />
+                </StackPanel>
+              </Border>
+
+              <StackPanel Margin="2,4,0,10">
+                <!-- The language follows the system; the choice is there to
+                     override it. -->
+                <TextBlock Text="{loc:T LanguageHeading}" Classes="section"
+                           ToolTip.Tip="{loc:T LanguageTip}" />
+
+                <ComboBox ItemsSource="{Binding LanguageChoices}" Margin="0,0,0,4"
+                          HorizontalAlignment="Left" MinWidth="150"
+                          SelectedValueBinding="{ReflectionBinding Value}"
+                          SelectedValue="{Binding Language, Mode=TwoWay}"
+                          ToolTip.Tip="{loc:T LanguageTip}">
+                  <!-- The PC names the system's language "Windows"; the
+                       Mac's system is macOS. -->
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:TextChoice">
+                      <TextBlock Text="{Binding Label, Converter={StaticResource SystemName}}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+
+                <TextBlock Classes="muted" FontSize="{DynamicResource FontSmall}" Margin="0,0,0,10"
+                           Text="{loc:T LanguageRestart}"
+                           IsVisible="{Binding LanguageRestartNeeded}" />
+
+                <!-- The whole phone's sound, not one account's. -->
+                <CheckBox Content="{loc:T PhoneAudio}" Margin="0,0,0,8"
+                          IsChecked="{Binding AudioEnabled}"
+                          ToolTip.Tip="{loc:T PhoneAudioTip}" />
+
+                <CheckBox Content="{loc:T StopAppOnClose}" Margin="0,0,0,8"
+                          IsChecked="{Binding StopAppOnClose}"
+                          ToolTip.Tip="{loc:T StopAppOnCloseTip}" />
+
+                <CheckBox Content="{loc:T TurnScreenOff}" Margin="0,0,0,8"
+                          IsChecked="{Binding TurnScreenOff}"
+                          ToolTip.Tip="{loc:T TurnScreenOffTip}" />
+
+                <CheckBox Content="{loc:T TitleShowsStatus}" Margin="0,0,0,8"
+                          IsChecked="{Binding TitleShowsStatus}"
+                          ToolTip.Tip="{loc:T TitleShowsStatusTip}" />
+
+                <!-- The layout's trap is stated under the box: it decides the
+                     setting. -->
+                <CheckBox Content="{loc:T SimulatedKeyboard}"
+                          IsChecked="{Binding SimulatedPhysicalKeyboard}"
+                          ToolTip.Tip="{loc:T SimulatedKeyboardTip}" />
+                <TextBlock Classes="muted" FontSize="{DynamicResource FontSmall}"
+                           TextWrapping="Wrap" Margin="24,2,0,8"
+                           Text="{loc:T SimulatedKeyboardHelp}" />
+
+                <!-- Last resort, only on a device where the refusal was
+                     observed; the key that gives the mouse back is stated. -->
+                <StackPanel IsVisible="{Binding ShowsSimulatedMouse}">
+                  <CheckBox Content="{loc:T SimulatedMouse}"
+                            IsChecked="{Binding SimulatedPhysicalMouse}"
+                            ToolTip.Tip="{loc:T SimulatedMouseTip}" />
+                  <TextBlock Classes="muted" FontSize="{DynamicResource FontSmall}"
+                             TextWrapping="Wrap" Margin="24,2,0,8"
+                             Foreground="{DynamicResource WarningBrush}"
+                             Text="{loc:T SimulatedMouseHelp}" />
+                </StackPanel>
+
+                <CheckBox Content="{loc:T AutomaticUpdates}" Margin="0,0,0,8"
+                          IsChecked="{Binding UpdatesAutomatic}"
+                          ToolTip.Tip="{loc:T AutomaticUpdatesTip}" />
+
+                <TextBlock Classes="muted" FontSize="{DynamicResource FontSmall}">
+                  <Run Text="{Binding ProductName, Mode=OneWay}" />
+                  <Run Text=" " />
+                  <Run Text="{Binding Version, Mode=OneWay}" />
+                </TextBlock>
+                <TextBlock Text="{Binding Disclaimer}" Classes="muted" FontSize="{DynamicResource FontSmall}" />
+
+                <!-- A fault outside the interface thread is counted, and
+                     this line is the only place where it shows. -->
+                <TextBlock Text="{loc:T IncidentNoticed}" Classes="muted"
+                           FontSize="{DynamicResource FontSmall}" TextWrapping="Wrap" Margin="0,8,0,0"
+                           Foreground="{DynamicResource WarningBrush}"
+                           IsVisible="{Binding HasIncident}" />
+
+                <WrapPanel Margin="-9,4,0,0">
+                  <Button Content="{loc:T OpenLogFolder}" Theme="{StaticResource QuietButton}"
+                          Command="{Binding OpenLogsCommand}" />
+
+                  <Button Content="{loc:T ReportProblem}" Theme="{StaticResource QuietButton}"
+                          Command="{Binding ReportProblemCommand}"
+                          ToolTip.Tip="{loc:T ReportProblemTip}" />
+
+                  <Button Content="{loc:T ExportSettings}" Theme="{StaticResource QuietButton}"
+                          Command="{Binding ExportSettingsCommand}"
+                          ToolTip.Tip="{loc:T ExportSettingsTip}" />
+
+                  <Button Content="{loc:T ImportSettings}" Theme="{StaticResource QuietButton}"
+                          Command="{Binding ImportSettingsCommand}"
+                          ToolTip.Tip="{loc:T ImportSettingsTip}" />
+                </WrapPanel>
+              </StackPanel>
+            </StackPanel>
+
+            <!-- Devices tab -->
+            <StackPanel IsVisible="{Binding #TabDevices.IsChecked}">
+
+              <!-- The connection's state, before anything is launched. It
+                   disappears once the phone answers. -->
+              <Border Classes="card" Padding="10,8" Margin="0,0,0,12"
+                      IsVisible="{Binding ShowsConnection}">
+                <StackPanel>
+                  <TextBlock Text="{loc:T ConnectionHeading}" Classes="section" />
+
+                  <TextBlock Text="{Binding ConnectionMessage}" TextWrapping="Wrap"
+                             Classes="muted" FontSize="{DynamicResource FontSmall}" />
+
+                  <ToggleButton Name="CableHelpToggle" Theme="{StaticResource OutlineToggleButton}"
+                                Content="{loc:T CableHelp}" HorizontalAlignment="Left"
+                                Margin="0,8,0,0"
+                                IsVisible="{Binding ShowsCableHelp}" />
+
+                  <StackPanel Margin="0,8,0,0"
+                              IsVisible="{Binding #CableHelpToggle.IsChecked}">
+                    <TextBlock Text="{loc:T CableHelpTitle}" Classes="section" />
+                    <TextBlock Text="{loc:T CableHelpIntro}" TextWrapping="Wrap"
+                               Classes="muted" FontSize="{DynamicResource FontSmall}" />
+                    <TextBlock Text="{loc:T CableHelpSteps}" TextWrapping="Wrap" Margin="0,8,0,0"
+                               Classes="muted" FontSize="{DynamicResource FontSmall}" />
+                  </StackPanel>
+                </StackPanel>
+              </Border>
+
+              <!-- Profiles share the pairing button's line. -->
+              <Grid Margin="0,0,0,2" ColumnDefinitions="Auto,*,Auto">
+
+                <Button Theme="{StaticResource OutlineButton}"
+                        ToolTip.Tip="{loc:T PairDeviceTip}"
+                        Click="OnAddDevice">
+                  <StackPanel Orientation="Horizontal">
+                    <Path Width="15" Height="15" Stretch="None" Margin="0,0,8,0"
+                          VerticalAlignment="Center"
+                          Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.6"
+                          StrokeLineCap="Round"
+                          Data="M 7.5,2.2 V 12.8 M 2.2,7.5 H 12.8" />
+                    <TextBlock Text="{loc:T PairDevice}" VerticalAlignment="Center" />
+                  </StackPanel>
+                </Button>
+
+                <Button Grid.Column="2" Theme="{StaticResource OutlineToggle}"
+                        VerticalAlignment="Center"
+                        ToolTip.Tip="{Binding Instances.ProfilesTooltip}">
+                  <StackPanel Orientation="Horizontal">
+                    <!-- A bookmark, filled when a team is set for launch. -->
+                    <Panel Margin="0,0,8,0" VerticalAlignment="Center">
+                      <Path Width="11" Height="13" Stretch="None"
+                            StrokeJoin="Round"
+                            Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.5"
+                            Data="M 1,1 H 10 V 12 L 5.5,8.6 L 1,12 Z"
+                            IsVisible="{Binding !Instances.HasActiveProfile}" />
+
+                      <Path Width="11" Height="13" Stretch="None"
+                            StrokeJoin="Round"
+                            Fill="{DynamicResource AccentBrush}"
+                            Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.5"
+                            Data="M 1,1 H 10 V 12 L 5.5,8.6 L 1,12 Z"
+                            IsVisible="{Binding Instances.HasActiveProfile}" />
+                    </Panel>
+
+                    <!-- Truncated: a name can run up to forty characters. -->
+                    <TextBlock Text="{Binding Instances.ProfilesButtonText}"
+                               VerticalAlignment="Center"
+                               MaxWidth="150" TextTrimming="CharacterEllipsis" />
+                    <Path Width="9" Height="5" Margin="9,2,0,0" Stretch="None"
+                          VerticalAlignment="Center" StrokeJoin="Round"
+                          Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.5"
+                          StrokeLineCap="Round"
+                          Data="M 0.8,0.8 L 4.5,4.2 L 8.2,0.8" />
+                  </StackPanel>
+
+                  <Button.Flyout>
+                    <Flyout Placement="BottomEdgeAlignedRight" FlyoutPresenterClasses="bare">
+                      <Border Classes="bubble" Width="340" Margin="0,4,0,0" Padding="14,12,14,12">
+                        <StackPanel>
+                          <TextBlock Text="{loc:T LaunchProfilesHeading}" Classes="section" />
+
+                          <!-- Every choice is written out. -->
+                          <Grid Margin="0,2,0,8" ColumnDefinitions="Auto,*">
+                            <TextBlock Text="{loc:T StartupLabel}" VerticalAlignment="Center"
+                                       Classes="muted" Margin="2,0,10,0" />
+                            <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                                      ItemsSource="{Binding Instances.StartupChoices}"
+                                      SelectedItem="{Binding Instances.StartupChoice, Mode=TwoWay}" />
+                          </Grid>
+
+                          <!-- "No profile" said, not an empty panel. -->
+                          <TextBlock Classes="muted" TextWrapping="Wrap" Margin="0,2,0,0"
+                                     Text="{loc:T NoProfilesYet}"
+                                     IsVisible="{Binding !Instances.HasProfiles}" />
+
+                          <!-- The list is shown: pointing at a row no longer
+                               opens it. -->
+                          <ItemsControl Name="ProfileList" ItemsSource="{Binding Instances.Profiles}" Margin="0,2,0,0">
+                            <ItemsControl.ItemTemplate>
+                              <DataTemplate x:DataType="vm:LaunchProfileRowViewModel">
+                                <Grid Margin="0,1" ColumnDefinitions="*,Auto,Auto,Auto">
+                                  <StackPanel VerticalAlignment="Center" Margin="2,0,8,0">
+                                    <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Text="{Binding Summary}" Classes="muted"
+                                               TextTrimming="CharacterEllipsis" />
+                                  </StackPanel>
+
+                                  <Button Grid.Column="1" Theme="{StaticResource IconButton}"
+                                          ToolTip.Tip="{loc:T LaunchProfileTip}"
+                                          Command="{Binding #ProfileList.((vm:ConfiguratorViewModel)DataContext).Instances.OpenProfileCommand}"
+                                          CommandParameter="{Binding}">
+                                    <Path Classes="rowGlyph"
+                                          Fill="{Binding $parent[Button].Foreground}"
+                                          Data="M 5.5,3.5 L 12,7.5 L 5.5,11.5 Z" />
+                                  </Button>
+
+                                  <!-- Takes what is open now. -->
+                                  <Button Grid.Column="2" Theme="{StaticResource IconButton}"
+                                          ToolTip.Tip="{loc:T UpdateProfileTip}"
+                                          Command="{Binding #ProfileList.((vm:ConfiguratorViewModel)DataContext).Instances.UpdateProfileCommand}"
+                                          CommandParameter="{Binding}">
+                                    <Path Classes="rowGlyph"
+                                          Data="M 11.9,8.6 A 4.5,4.5 0 1 1 10.6,4.2 M 11.2,1.8 V 4.6 H 8.4" />
+                                  </Button>
+
+                                  <Button Grid.Column="3" Theme="{StaticResource DangerIconButton}"
+                                          ToolTip.Tip="{loc:T DeleteProfileTip}"
+                                          Command="{Binding #ProfileList.((vm:ConfiguratorViewModel)DataContext).Instances.DeleteProfileCommand}"
+                                          CommandParameter="{Binding}">
+                                    <Path Classes="rowGlyph binGlyph" />
+                                  </Button>
+                                </Grid>
+                              </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                          </ItemsControl>
+
+                          <Button Content="{loc:T CreateProfile}" Theme="{StaticResource QuietButton}"
+                                  Padding="10,5" Margin="0,10,0,0" HorizontalAlignment="Left"
+                                  ToolTip.Tip="{loc:T CreateProfileTip}"
+                                  Command="{Binding Instances.CreateProfileCommand}" />
+                        </StackPanel>
+                      </Border>
+                    </Flyout>
+                  </Button.Flyout>
+                </Button>
+              </Grid>
+
+              <views:InstanceListControl DataContext="{Binding Instances}"
+                                         ShowDeviceStatus="True" />
+            </StackPanel>
+          </Panel>
+        </ScrollViewer>
+
+        <!-- The bottom of the Devices tab, outside the scrolling content: a
+             small button opens the DOFUS Touch tools upwards, over the
+             list. -->
+        <Panel Grid.Row="2" Margin="0,6,0,0"
+               IsVisible="{Binding #TabDevices.IsChecked}">
+          <Button Name="PartnerToggle" Theme="{StaticResource FlatButton}" HorizontalAlignment="Left" Margin="-6,0,0,0">
+            <StackPanel Orientation="Horizontal">
+              <Image Source="/assets/dtmap.png" Width="16" Height="16"
+                     RenderOptions.BitmapInterpolationMode="HighQuality" />
+              <Image Source="/assets/dtstuff.png" Width="16" Height="16" Margin="-4,0,0,0"
+                     RenderOptions.BitmapInterpolationMode="HighQuality" />
+              <Image Source="/assets/ocrapp.png" Width="16" Height="16" Margin="-4,0,0,0"
+                     RenderOptions.BitmapInterpolationMode="HighQuality" />
+              <Image Source="/assets/calcofus.png" Width="16" Height="16" Margin="-4,0,0,0"
+                     RenderOptions.BitmapInterpolationMode="HighQuality" />
+              <Image Source="/assets/dofusroom.png" Width="16" Height="16" Margin="-4,0,0,0"
+                     RenderOptions.BitmapInterpolationMode="HighQuality" />
+              <Image Source="/assets/dofusbook.png" Width="16" Height="16" Margin="-4,0,0,0"
+                     RenderOptions.BitmapInterpolationMode="HighQuality" />
+              <TextBlock Text="{loc:T PartnerMenu}" Classes="muted"
+                         FontSize="{DynamicResource FontSmall}" Margin="6,0,0,0"
+                         VerticalAlignment="Center" />
+              <Path Name="PartnerChevron" Data="M 0,4 L 3.5,0 L 7,4 Z" Width="7" Height="4"
+                    Fill="{DynamicResource TextMutedBrush}" Margin="5,0,0,0"
+                    VerticalAlignment="Center" RenderTransformOrigin="50%,50%" />
+            </StackPanel>
+
+            <Button.Flyout>
+              <Flyout Placement="TopEdgeAlignedLeft" FlyoutPresenterClasses="bare"
+                      Opened="OnPartnerMenuOpened" Closed="OnPartnerMenuClosed">
+                <Border Classes="menu" Margin="8" Padding="6">
+                  <!-- One row of tiles, icon over name: a click opens the
+                       tool, or installs it where it is missing. -->
+                  <StackPanel>
+                    <ItemsControl ItemsSource="{Binding PartnerTiles}">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <StackPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:PartnerTileViewModel">
+                          <!-- 68 wide: six tiles stay within the panel's width. -->
+                          <Panel>
+                            <Button Theme="{StaticResource ToolTile}" Width="68" Padding="2,6" Margin="1,0"
+                                    ToolTip.Tip="{Binding Detail}" IsEnabled="{Binding CanAct}"
+                                    Click="OnToolTile">
+                              <StackPanel HorizontalAlignment="Center">
+                                <Image Source="{Binding Icon, Converter={StaticResource AssetImage}}"
+                                       Width="32" Height="32" HorizontalAlignment="Center"
+                                       RenderOptions.BitmapInterpolationMode="HighQuality" />
+                                <TextBlock Text="{Binding Name}" Margin="0,4,0,0" HorizontalAlignment="Center"
+                                           FontSize="{DynamicResource FontSmall}" TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                                <TextBlock Text="{Binding Badge}" HorizontalAlignment="Center"
+                                           Classes="muted" FontSize="{DynamicResource FontSmall}"
+                                           IsVisible="{Binding Badge, Converter={StaticResource EmptyToVisibility}, ConverterParameter=inverse}" />
+                              </StackPanel>
+                            </Button>
+                            <!-- Beside the tile, not in it: a click here must
+                                 not also open the app. -->
+                            <Button Theme="{StaticResource IconButton}" Width="20" Height="20"
+                                    HorizontalAlignment="Right" VerticalAlignment="Top"
+                                    ToolTip.Tip="{Binding TurnTip}" Command="{Binding Turn}"
+                                    IsVisible="{Binding CanTurn}">
+                              <Path Classes="rowGlyph"
+                                    Data="M 2.5,8.5 H 12.5 V 13 H 2.5 Z M 4,5.5 A 4,3 0 0 1 11,4.5 M 11,2 V 4.5 H 8.5" />
+                            </Button>
+                          </Panel>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Only when the tool is on several phones: which one. -->
+                    <StackPanel Margin="4,6,4,2" IsVisible="{Binding IsPickingDevice}">
+                      <TextBlock Text="{Binding PickingTile.PickPrompt}" Classes="muted"
+                                 FontSize="{DynamicResource FontSmall}" />
+                      <ItemsControl ItemsSource="{Binding PickingTile.Targets}" Margin="0,4,0,0">
+                        <ItemsControl.ItemsPanel>
+                          <ItemsPanelTemplate>
+                            <WrapPanel />
+                          </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:PartnerTarget">
+                            <Button Content="{Binding Label}" Command="{Binding Act}" Padding="10,3"
+                                    Margin="0,0,4,4" Theme="{StaticResource OutlineButton}" Click="OnPartnerChosen" />
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+                  </StackPanel>
+                </Border>
+              </Flyout>
+            </Button.Flyout>
+          </Button>
+
+          <!-- The community server, kept quiet across from the tools:
+               Discord's own mark, see THIRD-PARTY-NOTICES.md. -->
+          <Button Theme="{StaticResource FlatButton}" HorizontalAlignment="Right" Margin="0,0,-6,0"
+                  ToolTip.Tip="{loc:T DiscordTip}"
+                  AutomationProperties.Name="{loc:T DiscordTip}"
+                  Command="{Binding DiscordCommand}">
+            <StackPanel Orientation="Horizontal">
+              <Path Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center"
+                    Fill="{DynamicResource TextMutedBrush}"
+                    Data="M 20.317 4.3698 a 19.7913 19.7913 0 0 0 -4.8851 -1.5152 a .0741 .0741 0 0 0 -.0785 .0371 c -.211 .3753 -.4447 .8648 -.6083 1.2495 c -1.8447 -.2762 -3.68 -.2762 -5.4868 0 c -.1636 -.3933 -.4058 -.8742 -.6177 -1.2495 a .077 .077 0 0 0 -.0785 -.037 a 19.7363 19.7363 0 0 0 -4.8852 1.515 a .0699 .0699 0 0 0 -.0321 .0277 C .5334 9.0458 -.319 13.5799 .0992 18.0578 a .0824 .0824 0 0 0 .0312 .0561 c 2.0528 1.5076 4.0413 2.4228 5.9929 3.0294 a .0777 .0777 0 0 0 .0842 -.0276 c .4616 -.6304 .8731 -1.2952 1.226 -1.9942 a .076 .076 0 0 0 -.0416 -.1057 c -.6528 -.2476 -1.2743 -.5495 -1.8722 -.8923 a .077 .077 0 0 1 -.0076 -.1277 c .1258 -.0943 .2517 -.1923 .3718 -.2914 a .0743 .0743 0 0 1 .0776 -.0105 c 3.9278 1.7933 8.18 1.7933 12.0614 0 a .0739 .0739 0 0 1 .0785 .0095 c .1202 .099 .246 .1981 .3728 .2924 a .077 .077 0 0 1 -.0066 .1276 a 12.2986 12.2986 0 0 1 -1.873 .8914 a .0766 .0766 0 0 0 -.0407 .1067 c .3604 .698 .7719 1.3628 1.225 1.9932 a .076 .076 0 0 0 .0842 .0286 c 1.961 -.6067 3.9495 -1.5219 6.0023 -3.0294 a .077 .077 0 0 0 .0313 -.0552 c .5004 -5.177 -.8382 -9.6739 -3.5485 -13.6604 a .061 .061 0 0 0 -.0312 -.0286 z M 8.02 15.3312 c -1.1825 0 -2.1569 -1.0857 -2.1569 -2.419 c 0 -1.3332 .9555 -2.4189 2.157 -2.4189 c 1.2108 0 2.1757 1.0952 2.1568 2.419 c 0 1.3332 -.9555 2.4189 -2.1569 2.4189 z m 7.9748 0 c -1.1825 0 -2.1569 -1.0857 -2.1569 -2.419 c 0 -1.3332 .9554 -2.4189 2.1569 -2.4189 c 1.2108 0 2.1757 1.0952 2.1568 2.419 c 0 1.3332 -.946 2.4189 -2.1568 2.4189 Z" />
+              <TextBlock Text="{loc:T DiscordShort}" Classes="muted"
+                         FontSize="{DynamicResource FontSmall}" Margin="6,0,0,0"
+                         VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+        </Panel>
+      </Grid>
+
+    </DockPanel>
+  </Border>
+</Window>

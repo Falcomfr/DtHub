@@ -1,0 +1,1207 @@
+﻿<!-- The PC's QuestWindow (src/DtHub.App/Windows/QuestWindow.xaml), on the
+     same view model: a search, the player's Papycha tracker, the guide's
+     banner, the page as the site renders it, and the list on top of it.
+     The PC's row triggers live in QuestRowLook. -->
+<Window x:Class="DtHub.Mac.Views.QuestWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:DtHub.Mac.Localization"
+        xmlns:vm="using:DtHub.App.ViewModels"
+        xmlns:papycha="using:DtHub.Core.Papycha"
+        xmlns:platform="using:DtHub.Mac.Platform"
+        xmlns:views="using:DtHub.Mac.Views"
+        x:DataType="vm:QuestViewModel"
+        Title="{loc:T Guides}"
+        Width="520" Height="760" MinWidth="440" MinHeight="360"
+        Topmost="True"
+        ShowInTaskbar="True"
+        FontSize="{DynamicResource FontMedium}"
+        Foreground="{DynamicResource TextBrush}"
+        Background="{DynamicResource SurfaceAltBrush}">
+
+  <Window.Resources>
+    <views:QuestRowLook x:Key="Look" />
+    <views:NonZeroConverter x:Key="NonZero" />
+  </Window.Resources>
+
+  <Window.Styles>
+    <!-- The bar's toggles: transparent, the panel's border. -->
+    <Style Selector="ToggleButton.bar">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+    </Style>
+
+    <!-- A menu entry: a key face without its frame. -->
+    <Style Selector="Button.menuEntry">
+      <Setter Property="Padding" Value="8,5" />
+      <Setter Property="Margin" Value="0,1" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Left" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+
+    <!-- The accent at rest: the actions people look for in a bar. -->
+    <Style Selector="Button.accent">
+      <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    </Style>
+
+    <!-- The list's rows, edge to edge, the text ten pixels in: hover and
+         selection in the palette, a bar on the left for the selection. -->
+    <Style Selector="ListBox#NodeList ListBoxItem" x:DataType="papycha:QuestNode">
+      <!-- Screen readers read the row's title, not the record's ToString. -->
+      <Setter Property="AutomationProperties.Name" Value="{Binding Label}" />
+      <Setter Property="IsEnabled" Value="{Binding IsReachable}" />
+      <Setter Property="Margin" Value="0" />
+      <Setter Property="Padding" Value="10,0" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Border Name="Fond" Background="Transparent" Padding="{TemplateBinding Padding}"
+                  CornerRadius="{DynamicResource Radius}">
+            <Panel>
+              <Border Name="Mark" Width="2" HorizontalAlignment="Left"
+                      Margin="-8,1,0,1" CornerRadius="1" Opacity="0"
+                      Background="{DynamicResource AccentBrush}" />
+              <ContentPresenter Name="PART_ContentPresenter"
+                                Content="{TemplateBinding Content}"
+                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                HorizontalContentAlignment="Stretch" />
+            </Panel>
+          </Border>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+    <!-- Only a choice lights up: an achievement heading enabled for its
+         "Tout marquer terminé" is still not one. -->
+    <Style Selector="ListBox#NodeList ListBoxItem.choice:pointerover /template/ Border#Fond">
+      <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
+    </Style>
+    <Style Selector="ListBox#NodeList ListBoxItem:selected /template/ Border#Fond">
+      <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+    </Style>
+    <Style Selector="ListBox#NodeList ListBoxItem:selected /template/ Border#Mark">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+    <Style Selector="ListBox#NodeList ListBoxItem:focus /template/ Border#Mark">
+      <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+
+    <Style Selector="Path.listIcon">
+      <Setter Property="StrokeThickness" Value="1.5" />
+      <Setter Property="StrokeLineCap" Value="Round" />
+      <Setter Property="StrokeJoin" Value="Round" />
+      <Setter Property="Width" Value="15" />
+      <Setter Property="Height" Value="15" />
+      <Setter Property="Stretch" Value="None" />
+    </Style>
+  </Window.Styles>
+
+  <DockPanel>
+
+    <!-- Search bar -->
+    <Border DockPanel.Dock="Top" Padding="10,8"
+            Background="{DynamicResource BrushedPanelBrush}"
+            BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,0,0,1">
+      <StackPanel>
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBox VerticalContentAlignment="Center" x:Name="SearchBox" Padding="7,4,24,4"
+                   Text="{Binding Query, Delay=150}"
+                   ToolTip.Tip="{loc:T SearchTip}"
+                   PlaceholderText="{loc:T QuestSearchPlaceholder}" />
+
+          <!-- Inside the field, not next to it. -->
+          <Button Theme="{StaticResource IconButton}"
+                  HorizontalAlignment="Right" Margin="0,0,3,0"
+                  Click="OnClearQuery"
+                  ToolTip.Tip="{loc:T ClearSearchTip}"
+                  IsVisible="{Binding Query, Converter={StaticResource EmptyToVisibility}, ConverterParameter=inverse}">
+            <Path Classes="rowGlyph" Data="M 4,4 L 11,11 M 11,4 L 4,11" />
+          </Button>
+
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="6,0,0,0">
+            <!-- Only where they act: a list of quests, once linked. -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,4,0" IsVisible="{Binding ShowsFilters}">
+              <ToggleButton Theme="{StaticResource OutlineToggleButton}" Classes="bar" Padding="8,3"
+                            Content="{loc:T FilterDoable}"
+                            ToolTip.Tip="{loc:T FilterDoableTip}"
+                            IsChecked="{Binding FilterDoable, Mode=TwoWay}" />
+            </StackPanel>
+
+            <!-- OneWay: the click asks the view model, which knows where to go back. -->
+            <ToggleButton x:Name="RecommendedToggle" Theme="{StaticResource OutlineToggleButton}" Classes="bar" Padding="8,3"
+                          Content="{loc:T Recommended}"
+                          ToolTip.Tip="{loc:T RecommendedTip}"
+                          IsChecked="{Binding ShowsRecommended, Mode=OneWay}"
+                          Click="OnRecommendedClick" />
+
+            <!-- "Sélection": a glyph, the word on hover. -->
+            <ToggleButton Theme="{StaticResource OutlineToggleButton}" Classes="bar" Padding="6,3" Margin="4,0,0,0"
+                          ToolTip.Tip="{loc:T BatchSelection}"
+                          IsChecked="{Binding Selecting, Mode=TwoWay}"
+                          IsEnabled="{Binding !BatchRunning}"
+                          IsVisible="{Binding ShowsSelection}">
+              <Path Width="14" Height="14" Stretch="None"
+                    Stroke="{Binding $parent[ToggleButton].Foreground}"
+                    StrokeThickness="1.4" StrokeLineCap="Round" StrokeJoin="Round"
+                    Data="M 1.5,1.5 H 12.5 V 12.5 H 1.5 Z M 4,7 L 6.2,9.2 L 10.5,4.5" />
+            </ToggleButton>
+          </StackPanel>
+        </Grid>
+
+        <!-- Only when there's something to say: an indexing, or an error. -->
+        <ProgressBar Height="2" MinHeight="2" Margin="0,6,0,0" IsIndeterminate="True"
+                     Background="Transparent" BorderThickness="0"
+                     Foreground="{DynamicResource AccentBrush}"
+                     IsVisible="{Binding IsBusy}" />
+
+        <TextBlock Margin="0,4,0,0" Classes="muted" FontSize="{DynamicResource FontSmall}"
+                   Text="{Binding StatusText}"
+                   IsVisible="{Binding StatusText, Converter={StaticResource EmptyToVisibility}, ConverterParameter=inverse}" />
+
+        <!-- Selection mode: the batch button, the count and Cancel, the summary. -->
+        <StackPanel Margin="0,6,0,0" IsVisible="{Binding ShowsSelectionPanel}">
+          <WrapPanel>
+            <Button Theme="{StaticResource OutlineButton}" Padding="8,3"
+                    Content="{Binding MarkPickedLabel}" Click="OnMarkPickedClick"
+                    IsEnabled="{Binding CanMarkPicked}"
+                    IsVisible="{Binding !BatchRunning}" />
+            <TextBlock Margin="8,0,0,0" VerticalAlignment="Center" Classes="muted"
+                       FontSize="{DynamicResource FontSmall}" Text="{loc:T BatchRangeHint}"
+                       IsVisible="{Binding !BatchRunning}" />
+            <TextBlock VerticalAlignment="Center" Text="{Binding BatchProgress}"
+                       IsVisible="{Binding BatchRunning}" />
+            <Button Theme="{StaticResource QuietButton}" Padding="8,3" Margin="8,0,0,0"
+                    Content="{loc:T Cancel}" Click="OnCancelBatchClick"
+                    IsVisible="{Binding BatchRunning}" />
+          </WrapPanel>
+          <ScrollViewer MaxHeight="120" Margin="0,4,0,0" VerticalScrollBarVisibility="Auto"
+                        IsVisible="{Binding BatchSummary, Converter={StaticResource EmptyToVisibility}, ConverterParameter=inverse}">
+            <TextBlock Classes="muted" FontSize="{DynamicResource FontSmall}" Text="{Binding BatchSummary}" />
+          </ScrollViewer>
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+    <!-- The player's Papycha tracker: the link when there is none, the
+         character and the menu once linked. -->
+    <Border DockPanel.Dock="Top" Padding="10,6"
+            BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,0,0,1">
+      <!-- The right-hand group goes under the character when the two no
+           longer fit side by side: OnTrackerBarSizeChanged. -->
+      <Grid x:Name="TrackerBar" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto"
+            SizeChanged="OnTrackerBarSizeChanged">
+        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+          <WrapPanel>
+            <ComboBox ItemsSource="{Binding Tracker.Characters}" SelectedItem="{Binding Tracker.SelectedCharacter}"
+                      MinWidth="150" Margin="0,0,10,0"
+                      IsEnabled="{Binding !Tracker.IsBusy}"
+                      IsVisible="{Binding Tracker.HasSeveralCharacters}">
+              <!-- Screen readers read the name, not the record's ToString. -->
+              <ComboBox.Styles>
+                <Style Selector="ComboBoxItem" x:DataType="papycha:TrackerCharacter">
+                  <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                </Style>
+              </ComboBox.Styles>
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="papycha:TrackerCharacter">
+                  <TextBlock>
+                    <Run Text="{Binding Name}" />
+                    <Run Text="{Binding Level, StringFormat=' ({0})'}"
+                         Foreground="{DynamicResource TextMutedBrush}" />
+                  </TextBlock>
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+
+            <!-- One character only: no dropdown promising a choice. -->
+            <TextBlock Text="{Binding Tracker.SelectedCharacter.Name, FallbackValue=''}" FontWeight="SemiBold"
+                       VerticalAlignment="Center" Margin="0,0,10,0"
+                       IsVisible="{Binding !Tracker.HasSeveralCharacters}" />
+
+            <!-- Level and XP bonus feed the reward line and the gains. -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,10,0" VerticalAlignment="Center">
+              <TextBlock Text="{loc:T RewardLevelLabel}" Classes="muted"
+                         FontSize="{DynamicResource FontSmall}" VerticalAlignment="Center"
+                         Margin="0,0,6,0" />
+              <Panel VerticalAlignment="Center">
+                <TextBox VerticalContentAlignment="Center" Width="44" Padding="4,2" MaxLength="3" VerticalAlignment="Center"
+                         Text="{Binding Tracker.RewardLevel, Mode=OneWay}"
+                         KeyDown="OnRewardLevelKey" LostFocus="OnRewardLevelApply"
+                         ToolTip.Tip="{loc:T RewardLevelTipLocal}"
+                         IsVisible="{Binding !Tracker.IsLinked}" />
+                <TextBox VerticalContentAlignment="Center" Width="44" Padding="4,2" MaxLength="3" VerticalAlignment="Center"
+                         Text="{Binding Tracker.RewardLevel, Mode=OneWay}"
+                         KeyDown="OnRewardLevelKey" LostFocus="OnRewardLevelApply"
+                         ToolTip.Tip="{loc:T RewardLevelTipLinked}"
+                         IsVisible="{Binding Tracker.IsLinked}" />
+              </Panel>
+              <!-- OneWay survives the click. -->
+              <CheckBox Margin="10,0,0,0" VerticalAlignment="Center"
+                        FontSize="{DynamicResource FontSmall}"
+                        Foreground="{DynamicResource TextMutedBrush}"
+                        Content="{loc:T RewardXpBonusLabel}" ToolTip.Tip="{loc:T RewardXpBonusTip}"
+                        IsChecked="{Binding Tracker.HasBonusPack, Mode=OneWay}"
+                        Click="OnBonusPackClick" />
+            </StackPanel>
+          </WrapPanel>
+
+          <TextBlock Text="{loc:T TrackerPitch}" Classes="muted"
+                     FontSize="{DynamicResource FontSmall}" Margin="0,4,0,0"
+                     IsVisible="{Binding Tracker.ShowsPitch}" />
+
+          <TextBlock Text="{Binding Tracker.Notice}" Classes="muted"
+                     FontSize="{DynamicResource FontSmall}" Margin="0,4,0,0"
+                     IsVisible="{Binding Tracker.Notice, Converter={StaticResource EmptyToVisibility}, ConverterParameter=inverse}" />
+        </StackPanel>
+
+        <Panel x:Name="TrackerRight" Grid.Column="1" VerticalAlignment="Center"
+               SizeChanged="OnTrackerBarSizeChanged">
+          <Button Theme="{StaticResource OutlineButton}" Padding="8,3"
+                  VerticalAlignment="Center" Click="OnLinkTracker"
+                  Content="{loc:T TrackerLink}"
+                  IsVisible="{Binding Tracker.ShowsLinkButton}" />
+
+          <Grid VerticalAlignment="Center" ColumnDefinitions="Auto,Auto,Auto"
+                IsVisible="{Binding Tracker.IsLinked}">
+
+            <!-- The shown quest's status, only while a guide is on screen. -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,12,0" VerticalAlignment="Center">
+              <StackPanel.IsVisible>
+                <MultiBinding Converter="{StaticResource AllTrue}">
+                  <Binding Path="ShowsQuestChrome" />
+                  <Binding Path="Tracker.ShowsQuestStatus" />
+                </MultiBinding>
+              </StackPanel.IsVisible>
+              <TextBlock Text="{Binding Tracker.CurrentStatusLabel}" Classes="muted"
+                         FontSize="{DynamicResource FontSmall}" VerticalAlignment="Center"
+                         Margin="0,0,10,0" />
+
+              <Button Theme="{StaticResource OutlineButton}" Padding="8,2" VerticalAlignment="Center"
+                      Click="OnMarkDone"
+                      Classes.accent="{Binding Tracker.HighlightsDone}"
+                      IsEnabled="{Binding !Tracker.IsBusy}">
+                <Panel>
+                  <TextBlock Text="{loc:T QuestStatusCompleted}" IsVisible="{Binding !Tracker.IsDone}" />
+                  <TextBlock Text="{loc:T TrackerDone}" IsVisible="{Binding Tracker.IsDone}" />
+                </Panel>
+              </Button>
+
+              <Panel Margin="4,0,0,0" VerticalAlignment="Center">
+                <ToggleButton x:Name="StatusMenuToggle" Theme="{StaticResource OutlineToggleButton}" Classes="bar"
+                              Padding="7,2"
+                              ToolTip.Tip="{loc:T QuestStatusMenuTip}"
+                              IsEnabled="{Binding !Tracker.IsBusy}">
+                  <Path Width="8" Height="5" Stretch="None" StrokeJoin="Round" StrokeLineCap="Round"
+                        Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.4"
+                        Data="M 0.7,0.7 L 4,4 L 7.3,0.7" />
+                </ToggleButton>
+                <Popup IsOpen="{Binding #StatusMenuToggle.IsChecked, Mode=TwoWay}"
+                       IsLightDismissEnabled="True" Placement="Bottom"
+                       PlacementTarget="{Binding #StatusMenuToggle}">
+                  <Border Classes="menu" Margin="0,4,0,0" Padding="6">
+                    <StackPanel>
+                      <Button Theme="{StaticResource OutlineButton}" Classes="menuEntry" Click="OnPickStatus"
+                              Tag="{x:Static papycha:QuestStatus.NotStarted}"
+                              Content="{loc:T QuestStatusNotStarted}" />
+                      <Button Theme="{StaticResource OutlineButton}" Classes="menuEntry" Click="OnPickStatus"
+                              Tag="{x:Static papycha:QuestStatus.InProgress}"
+                              Content="{loc:T QuestStatusInProgress}" />
+                      <Button Theme="{StaticResource OutlineButton}" Classes="menuEntry" Click="OnPickStatus"
+                              Tag="{x:Static papycha:QuestStatus.Completed}"
+                              Content="{loc:T QuestStatusCompleted}" />
+                      <Button Theme="{StaticResource OutlineButton}" Classes="menuEntry" Click="OnPickStatus"
+                              Tag="{x:Static papycha:QuestStatus.Blocked}"
+                              Content="{loc:T QuestStatusBlocked}" />
+                      <Button Theme="{StaticResource OutlineButton}" Classes="menuEntry" Click="OnPickStatus"
+                              Tag="{x:Static papycha:QuestStatus.Ignored}"
+                              Content="{loc:T QuestStatusIgnored}" />
+                    </StackPanel>
+                  </Border>
+                </Popup>
+              </Panel>
+            </StackPanel>
+
+            <Button Grid.Column="1" Theme="{StaticResource OutlineButton}" Padding="8,3" Margin="0,0,8,0"
+                    VerticalAlignment="Center" Click="OnOpenTracker"
+                    Content="{loc:T TrackerMyQuests}" />
+
+            <Panel Grid.Column="2">
+              <ToggleButton x:Name="TrackerMenuToggle" Theme="{StaticResource OutlineToggleButton}" Classes="bar"
+                            Padding="8,2" VerticalAlignment="Center"
+                            ToolTip.Tip="{loc:T TrackerMenuTip}">
+                <Path Width="12" Height="4" Stretch="None" StrokeLineCap="Round"
+                      Stroke="{DynamicResource TextMutedBrush}"
+                      StrokeThickness="2" Data="M 1,2 H 1.1 M 6,2 H 6.1 M 11,2 H 11.1" />
+              </ToggleButton>
+              <Popup IsOpen="{Binding #TrackerMenuToggle.IsChecked, Mode=TwoWay}"
+                     IsLightDismissEnabled="True" Placement="Bottom"
+                     PlacementTarget="{Binding #TrackerMenuToggle}">
+                <Border Classes="menu" Margin="0,4,0,0" Padding="6">
+                  <StackPanel>
+                    <Button Theme="{StaticResource OutlineButton}" Classes="menuEntry" Click="OnUnlinkTracker"
+                            Content="{loc:T TrackerUnlink}" />
+                  </StackPanel>
+                </Border>
+              </Popup>
+            </Panel>
+          </Grid>
+        </Panel>
+      </Grid>
+    </Border>
+
+    <!-- Banner for the open quest: its name, its place within the
+         achievement, and the step arrows. Gone while the list is open. -->
+    <Border DockPanel.Dock="Top" Padding="10,6"
+            BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,0,0,1"
+            IsVisible="{Binding ShowsQuestChrome}">
+      <Grid ColumnDefinitions="Auto,*,Auto">
+
+        <!-- Going back where you came from: a curved arrow. -->
+        <Button Grid.Column="0" Theme="{StaticResource IconButton}"
+                Margin="0,0,4,0" VerticalAlignment="Center"
+                Click="OnGoBackPage"
+                ToolTip.Tip="{loc:T BackToPreviousPageTip}"
+                IsVisible="{Binding CanGoBackPage}">
+          <Path Classes="rowGlyph"
+                Data="M 3.5,6 L 7,2.5 M 3.5,6 L 7,9.5 M 3.5,6 H 9.5 C 12,6 12.5,7.6 12.5,9.6 V 12.5" />
+        </Button>
+
+        <!-- Without the achievement line, the block gives back a bit of room. -->
+        <StackPanel Grid.Column="1"
+                    Margin="{Binding #HeaderSeries.IsVisible, Converter={x:Static views:QuestWindow.SeriesMargin}}">
+          <TextBlock x:Name="HeaderSeries"
+                     Text="{Binding ChainText}" Classes="muted" FontSize="{DynamicResource FontSmall}"
+                     IsVisible="{Binding ChainText, Converter={StaticResource EmptyToVisibility}, ConverterParameter=inverse}" />
+
+          <TextBlock Text="{Binding QuestTitle}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+
+          <TextBlock Text="{Binding RewardText}" ToolTip.Tip="{Binding RewardText}" Classes="muted"
+                     FontSize="{DynamicResource FontSmall}" TextWrapping="NoWrap"
+                     TextTrimming="CharacterEllipsis"
+                     IsVisible="{Binding RewardText, Converter={StaticResource EmptyToVisibility}, ConverterParameter=inverse}" />
+
+          <!-- Where the items the quest asks for come from. -->
+          <TextBlock Text="{Binding SourcesLine}" ToolTip.Tip="{Binding SourcesText}" Classes="muted"
+                     FontSize="{DynamicResource FontSmall}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                     IsVisible="{Binding SourcesText, Converter={StaticResource EmptyToVisibility}, ConverterParameter=inverse}" />
+        </StackPanel>
+
+        <!-- The step arrows, on the title's row. -->
+        <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="8,0,0,0"
+                    VerticalAlignment="Center"
+                    IsVisible="{Binding ShowsSteps}">
+          <Button Theme="{StaticResource IconButton}"
+                  IsEnabled="{Binding CanGoPreviousStep}" Click="OnPreviousStep"
+                  ToolTip.Tip="{loc:T PreviousStepTip}">
+            <Path Classes="rowGlyph" Data="M 9,3 L 5,7.5 L 9,12" />
+          </Button>
+
+          <Button Theme="{StaticResource IconButton}"
+                  IsEnabled="{Binding CanGoNextStep}" Click="OnNextStep"
+                  ToolTip.Tip="{loc:T NextStepTip}">
+            <Path Classes="rowGlyph" Data="M 6,3 L 10,7.5 L 6,12" />
+          </Button>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- The source, always credited, and access to the real browser -->
+    <Border DockPanel.Dock="Bottom" Padding="10,6"
+            Background="{DynamicResource BrushedPanelBrush}"
+            BorderBrush="{DynamicResource BevelBrush}" BorderThickness="0,1,0,0">
+      <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+
+        <DockPanel Grid.Column="0" LastChildFill="True">
+          <!-- The tracker's offers, left of the report button. -->
+          <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center"
+                      Margin="8,0,8,0">
+            <!-- Offered after "next quest": asked, never written on its own. -->
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
+                        IsVisible="{Binding Tracker.ShowsFinishOffer}">
+              <TextBlock Text="{Binding Tracker.FinishOffer}" VerticalAlignment="Center"
+                         TextTrimming="CharacterEllipsis" MaxWidth="320" Margin="0,0,8,0" />
+              <Button Theme="{StaticResource OutlineButton}" Classes="accent" Padding="8,2" Margin="0,0,4,0"
+                      Click="OnAcceptFinish" Content="{loc:T TrackerYes}"
+                      IsEnabled="{Binding !Tracker.IsBusy}" />
+              <Button Theme="{StaticResource OutlineButton}" Padding="8,2"
+                      Click="OnDismissFinish" Content="{loc:T TrackerNo}" />
+            </StackPanel>
+
+            <!-- After "Terminée": the account's other characters still to finish it. -->
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0"
+                        IsVisible="{Binding Tracker.ShowsOthers}">
+              <TextBlock Text="{loc:T TrackerAlsoFor}" Classes="muted"
+                         VerticalAlignment="Center" Margin="0,0,6,0" />
+              <ItemsControl ItemsSource="{Binding Tracker.OthersToFinish}" VerticalAlignment="Center">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal" />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="papycha:TrackerCharacter">
+                    <Button Theme="{StaticResource OutlineButton}" Padding="8,2" Margin="0,0,4,0"
+                            Content="{Binding Name}" Tag="{Binding}" Click="OnFinishForOther" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <Button Theme="{StaticResource OutlineButton}" Padding="8,2"
+                      Click="OnFinishForAll" Content="{loc:T TrackerAllCharacters}"
+                      IsVisible="{Binding Tracker.ShowsAllOthers}" />
+            </StackPanel>
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+            <Image Source="/assets/papycha.png" Width="14" Height="14" Margin="0,0,5,0"
+                   VerticalAlignment="Center" RenderOptions.BitmapInterpolationMode="HighQuality" />
+            <TextBlock VerticalAlignment="Center" FontSize="{DynamicResource FontSmall}"
+                       TextTrimming="CharacterEllipsis"
+                       Foreground="{DynamicResource AccentBrush}"
+                       Text="{loc:T PapychaGuides}" />
+          </StackPanel>
+        </DockPanel>
+
+        <!-- The report button carries the accent colours, at rest. -->
+        <Button Grid.Column="1" Theme="{StaticResource OutlineButton}" Classes="accent" Margin="0,0,6,0"
+                Padding="9,5" FontSize="{DynamicResource FontBody}"
+                IsVisible="{Binding CanReport}"
+                ToolTip.Tip="{loc:T ReportErrorTip}"
+                Click="OnReportError">
+          <StackPanel Orientation="Horizontal">
+            <Path Width="15" Height="15" Stretch="None" Margin="0,0,7,0"
+                  VerticalAlignment="Center" StrokeJoin="Round" StrokeLineCap="Round"
+                  Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.5"
+                  Data="M 3.6,2.2 V 13.8 M 3.6,3.3 H 12.6 L 10.3,6.2 L 12.6,9.1 H 3.6" />
+            <TextBlock Text="{loc:T ReportError}" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+
+        <!-- Only on a site in another language than ours. -->
+        <StackPanel Grid.Column="2" Orientation="Horizontal">
+          <Button Theme="{StaticResource OutlineButton}" Padding="9,5" Margin="0,0,6,0"
+                  FontSize="{DynamicResource FontBody}"
+                  ToolTip.Tip="{loc:T OfficialStepsTip}"
+                  IsVisible="{Binding OffersOfficialSteps}"
+                  Command="{Binding ToggleOfficialStepsCommand}">
+            <TextBlock Text="{loc:T OfficialSteps}" VerticalAlignment="Center" />
+          </Button>
+          <Button x:Name="Translate" Theme="{StaticResource OutlineButton}"
+                  Padding="9,5" FontSize="{DynamicResource FontBody}"
+                  ToolTip.Tip="{loc:T TranslateTip}"
+                  IsVisible="False" Click="OnTranslate">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="{loc:T Translate}" VerticalAlignment="Center" />
+              <Path Classes="rowGlyph" Margin="6,0,0,0" VerticalAlignment="Center"
+                    Data="M 7,3.5 H 3.5 V 12.5 H 12.5 V 9 M 9.5,3.5 H 12.5 V 6.5 M 12.5,3.5 L 7.8,8.2" />
+            </StackPanel>
+          </Button>
+        </StackPanel>
+
+        <Button x:Name="OpenPage" Grid.Column="3" Theme="{StaticResource IconButton}"
+                ToolTip.Tip="{loc:T OpenCurrentPageTip}"
+                Click="OnOpenInBrowser">
+          <Path Classes="rowGlyph"
+                Data="M 7,3.5 H 3.5 V 12.5 H 12.5 V 9 M 9.5,3.5 H 12.5 V 6.5 M 12.5,3.5 L 7.8,8.2" />
+        </Button>
+      </Grid>
+    </Border>
+
+    <!-- The search's fallback exit: the site searches within its articles. -->
+    <Border DockPanel.Dock="Bottom" Padding="10,6"
+            Background="{DynamicResource AccentSoftBrush}"
+            BorderBrush="{DynamicResource BevelBrush}" BorderThickness="0,1,0,0"
+            IsVisible="{Binding ShowsSiteSearch}">
+      <Button Theme="{StaticResource QuietButton}" HorizontalAlignment="Left"
+              Padding="0" Background="Transparent" BorderThickness="0"
+              ToolTip.Tip="{loc:T SearchOnSiteTip}"
+              Click="OnSearchOnSite">
+        <StackPanel Orientation="Horizontal">
+          <Image Source="/assets/papycha.png" Width="14" Height="14" Margin="0,0,6,0"
+                 VerticalAlignment="Center" RenderOptions.BitmapInterpolationMode="HighQuality" />
+          <TextBlock VerticalAlignment="Center" FontSize="{DynamicResource FontSmall}"
+                     TextTrimming="CharacterEllipsis"
+                     Foreground="{DynamicResource AccentBrush}"
+                     Text="{Binding SiteSearchLabel}" />
+          <Path Classes="rowGlyph" Margin="7,0,0,0" VerticalAlignment="Center"
+                Data="M 7,3.5 H 3.5 V 12.5 H 12.5 V 9 M 9.5,3.5 H 12.5 V 6.5 M 12.5,3.5 L 7.8,8.2" />
+        </StackPanel>
+      </Button>
+    </Border>
+
+    <!-- The achievement's sequence: where you came from, where you're going. -->
+    <Border DockPanel.Dock="Bottom" Padding="10,6"
+            BorderBrush="{DynamicResource GrooveBrush}" BorderThickness="0,1,0,0"
+            IsVisible="{Binding ShowsChain}">
+      <Grid ColumnDefinitions="*,Auto,*">
+        <TextBlock Grid.Column="1" VerticalAlignment="Center" Margin="12,0"
+                   Classes="muted" FontSize="{DynamicResource FontSmall}"
+                   Text="{Binding ChainStep}"
+                   ToolTip.Tip="{loc:T QuestInSuccessTip}"
+                   IsVisible="{Binding ChainStep, Converter={StaticResource EmptyToVisibility}, ConverterParameter=inverse}" />
+
+        <Button Grid.Column="0" Theme="{StaticResource QuietButton}"
+                HorizontalAlignment="Left" HorizontalContentAlignment="Left"
+                Tag="{Binding PreviousQuest}" Click="OnFollowChain"
+                ToolTip.Tip="{loc:T PreviousQuestTip}"
+                IsVisible="{Binding PreviousQuest, Converter={x:Static ObjectConverters.IsNotNull}}">
+          <StackPanel Orientation="Horizontal">
+            <Path Classes="rowGlyph" Data="M 9,3 L 5,7.5 L 9,12" Margin="0,0,4,0" VerticalAlignment="Center" />
+            <StackPanel Margin="{Binding #PreviousSeries.IsVisible, Converter={x:Static views:QuestWindow.ChainMargin}}">
+              <TextBlock x:Name="PreviousSeries"
+                         Text="{Binding PreviousQuest.Series, FallbackValue=''}" MaxWidth="180"
+                         Classes="muted" FontSize="{DynamicResource FontTiny}" TextWrapping="NoWrap"
+                         TextTrimming="CharacterEllipsis"
+                         IsVisible="{Binding PreviousQuest.Series, FallbackValue='', Converter={StaticResource EmptyToVisibility}, ConverterParameter=inverse}" />
+              <TextBlock Text="{Binding PreviousQuest.Title, FallbackValue=''}" MaxWidth="180"
+                         TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+          </StackPanel>
+        </Button>
+
+        <Button Grid.Column="2" Theme="{StaticResource QuietButton}"
+                HorizontalAlignment="Right" HorizontalContentAlignment="Right"
+                Tag="{Binding NextQuest}" Click="OnFollowChain"
+                ToolTip.Tip="{loc:T NextQuestTip}"
+                IsVisible="{Binding NextQuest, Converter={x:Static ObjectConverters.IsNotNull}}">
+          <StackPanel Orientation="Horizontal">
+            <StackPanel Margin="{Binding #NextSeries.IsVisible, Converter={x:Static views:QuestWindow.ChainMargin}}">
+              <TextBlock x:Name="NextSeries"
+                         Text="{Binding NextQuest.Series, FallbackValue=''}" MaxWidth="180"
+                         Classes="muted" FontSize="{DynamicResource FontTiny}" TextWrapping="NoWrap"
+                         TextAlignment="Right" TextTrimming="CharacterEllipsis"
+                         IsVisible="{Binding NextQuest.Series, FallbackValue='', Converter={StaticResource EmptyToVisibility}, ConverterParameter=inverse}" />
+              <TextBlock Text="{Binding NextQuest.Title, FallbackValue=''}" MaxWidth="180"
+                         TextAlignment="Right" TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+            <Path Classes="rowGlyph" Data="M 6,3 L 10,7.5 L 6,12" Margin="4,0,0,0" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+      </Grid>
+    </Border>
+
+    <!-- The page, and the drop-down list on top of it -->
+    <Panel>
+      <!-- The pinned prerequisites: a single panel for the whole list, left
+           of the lock that opened it. The window closes it, on the first
+           click outside that lock. -->
+      <Popup x:Name="PanneauPrerequis" IsLightDismissEnabled="False"
+             Placement="LeftEdgeAlignedTop" HorizontalOffset="-6" VerticalOffset="-6">
+        <Border Classes="menu" Padding="11,8">
+          <StackPanel MaxWidth="330" x:DataType="papycha:QuestNode">
+            <TextBlock Text="{loc:T Prerequisites}" Margin="0,0,0,6"
+                       FontSize="{DynamicResource FontTiny}" FontWeight="SemiBold"
+                       Foreground="{DynamicResource GlyphNeedBrush}" />
+
+            <ItemsControl ItemsSource="{Binding Needs}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="papycha:QuestNeed">
+                  <Grid Margin="0,0,0,4" ColumnDefinitions="11,*">
+                    <Ellipse Grid.Column="0" Width="3" Height="3"
+                             HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,7,0,0"
+                             Fill="{DynamicResource TextMutedBrush}"
+                             IsVisible="{Binding Converter={StaticResource Look}, ConverterParameter=Dot}" />
+                    <Path Grid.Column="0" Width="9" Height="9"
+                          HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,4,0,0"
+                          StrokeThickness="1.4" StrokeLineCap="Round" StrokeJoin="Round"
+                          IsVisible="{Binding Converter={StaticResource Look}, ConverterParameter=MarkVisible}"
+                          Stroke="{Binding Converter={StaticResource Look}, ConverterParameter=MarkStroke}"
+                          Data="{Binding Converter={StaticResource Look}, ConverterParameter=MarkData}" />
+
+                    <!-- Only prerequisites that are quests are clickable. -->
+                    <Button Grid.Column="1" Theme="{StaticResource LinkButton}"
+                            Content="{Binding Text}" Tag="{Binding Quest}"
+                            Click="OnFollowNeed"
+                            IsVisible="{Binding IsQuest}" />
+
+                    <TextBlock Grid.Column="1" Text="{Binding Text}" TextWrapping="Wrap"
+                               FontSize="{DynamicResource FontBody}"
+                               Foreground="{DynamicResource TextBrush}"
+                               IsVisible="{Binding !IsQuest}" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+      </Popup>
+
+      <!-- The web view is a native view drawn above everything in the
+           window: hidden whenever something must show in its place, its
+           failure included (QuestWindow.ShowPage, after ShowsPage). -->
+      <platform:MacWebView x:Name="View" IsVisible="False" />
+      <views:PageFailure x:Name="Failure" />
+
+      <!-- The game's own steps, in the web view's place while it is hidden. -->
+      <DockPanel Background="{DynamicResource SurfaceBrush}" IsVisible="{Binding ShowsOfficialSteps}">
+        <Button DockPanel.Dock="Top" HorizontalAlignment="Left" Margin="12,8,0,0"
+                Theme="{StaticResource OutlineButton}" Padding="9,5"
+                FontSize="{DynamicResource FontBody}"
+                Content="{loc:T BackToGuide}"
+                Command="{Binding BackToGuideCommand}" />
+        <TextBlock DockPanel.Dock="Bottom" Classes="muted" Margin="12,6,12,8"
+                   Text="{loc:T OfficialNamesCredit}" />
+        <TextBlock DockPanel.Dock="Top" Classes="muted" Margin="12,12,12,0"
+                   Text="{loc:T OfficialStepsLoading}"
+                   IsVisible="{Binding IsLoadingOfficialSteps}" />
+        <TextBlock DockPanel.Dock="Top" Classes="muted" Margin="12,12,12,0"
+                   Text="{loc:T OfficialStepsUnavailable}"
+                   IsVisible="{Binding ShowsOfficialStepsUnavailable}" />
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+          <ItemsControl Margin="12,8,12,8" ItemsSource="{Binding OfficialSteps}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="papycha:TouchStep">
+                <StackPanel Margin="0,0,0,12">
+                  <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap"
+                             FontSize="{DynamicResource FontBody}" Foreground="{DynamicResource TextBrush}" />
+                  <TextBlock Text="{Binding Description}" TextWrapping="Wrap" Margin="0,2,0,4"
+                             FontSize="{DynamicResource FontBody}" Foreground="{DynamicResource TextBrush}" />
+                  <ItemsControl ItemsSource="{Binding Objectives}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="papycha:TouchObjectiveLine">
+                        <Grid Margin="0,1,0,1" ColumnDefinitions="*,Auto">
+                          <TextBlock Text="{Binding Text}" TextWrapping="Wrap"
+                                     FontSize="{DynamicResource FontBody}" Foreground="{DynamicResource TextBrush}" />
+                          <TextBlock Grid.Column="1" Classes="muted" Margin="10,0,0,0" Text="{Binding Position}" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+      </DockPanel>
+
+      <TextBlock Classes="muted" Margin="20"
+                 HorizontalAlignment="Center" VerticalAlignment="Center"
+                 TextAlignment="Center"
+                 Text="{Binding Placeholder}"
+                 IsVisible="{Binding !HasQuest}" />
+
+      <!-- The waiting indicator takes the view's place, at the top, where
+           the text is about to appear. -->
+      <ContentControl Theme="{StaticResource BusyIndicator}" Width="22" Height="22"
+                      HorizontalAlignment="Center" VerticalAlignment="Top"
+                      Margin="0,54,0,0"
+                      IsVisible="{Binding ShowsLoader}" />
+
+      <!-- It covers the page: the list is a choice in progress. -->
+      <Border VerticalAlignment="Stretch"
+              Background="{DynamicResource SurfaceBrush}"
+              BorderBrush="{DynamicResource BevelPressedBrush}" BorderThickness="0,0,0,1"
+              IsVisible="{Binding IsListOpen}">
+        <DockPanel>
+          <!-- The breadcrumb and the close button share a line always present. -->
+          <Grid DockPanel.Dock="Top" Margin="10,4,4,2" ColumnDefinitions="*,Auto,Auto">
+
+            <!-- The info glyph of "Recommandées" right after its title. -->
+            <DockPanel Grid.Column="0" LastChildFill="False">
+              <TextBlock DockPanel.Dock="Left" VerticalAlignment="Center"
+                         Classes="muted" FontSize="{DynamicResource FontSmall}"
+                         TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                         Text="{Binding Breadcrumb}" />
+              <Border DockPanel.Dock="Left" Background="Transparent" Margin="5,0,0,0"
+                      VerticalAlignment="Center" ToolTip.ShowDelay="200">
+                <Border.IsVisible>
+                  <MultiBinding Converter="{StaticResource AllTrue}">
+                    <Binding Path="ShowsRecommended" />
+                    <Binding Path="Tracker.IsLinked" />
+                  </MultiBinding>
+                </Border.IsVisible>
+                <ToolTip.Tip>
+                  <TextBlock MaxWidth="360" TextWrapping="Wrap" Text="{Binding ProfitHowTip}"
+                             Foreground="{DynamicResource TextBrush}" FontSize="{DynamicResource FontBody}" />
+                </ToolTip.Tip>
+                <Path Width="12" Height="12" Stretch="None"
+                      Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.1"
+                      Data="M 0.6,6 A 5.4,5.4 0 1 0 11.4,6 A 5.4,5.4 0 1 0 0.6,6 Z M 6,5.2 L 6,9 M 6,3 L 6,3.9" />
+              </Border>
+            </DockPanel>
+
+            <!-- "Moi / Équipe" in "Recommandées", once there are characters to add up. -->
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="6,0,6,0">
+              <StackPanel.IsVisible>
+                <MultiBinding Converter="{StaticResource AllTrue}">
+                  <Binding Path="ShowsRecommended" />
+                  <Binding Path="Tracker.HasSeveralCharacters" />
+                </MultiBinding>
+              </StackPanel.IsVisible>
+              <ToggleButton Theme="{StaticResource OutlineToggleButton}" Classes="bar" Padding="8,1"
+                            Content="{loc:T ProfitMe}" ToolTip.Tip="{loc:T ProfitMeTip}"
+                            IsChecked="{Binding !ProfitTeam, Mode=OneWay}"
+                            Click="OnProfitMe" />
+              <ToggleButton Theme="{StaticResource OutlineToggleButton}" Classes="bar" Padding="8,1" Margin="4,0,0,0"
+                            Content="{loc:T ProfitTeam}" ToolTip.Tip="{loc:T ProfitTeamTip}"
+                            IsChecked="{Binding ProfitTeam, Mode=OneWay}"
+                            Click="OnProfitTeam" />
+            </StackPanel>
+
+            <Button Grid.Column="2" Theme="{StaticResource IconButton}"
+                    Click="OnCloseList" ToolTip.Tip="{loc:T CloseListTip}"
+                    IsVisible="{Binding CanCloseList}">
+              <Path Classes="rowGlyph" Data="M 4,4 L 11,11 M 11,4 L 4,11" />
+            </Button>
+          </Grid>
+
+          <!-- The team view's boxes, and the ranking's tabs. -->
+          <StackPanel DockPanel.Dock="Top" Margin="10,0,4,4" IsVisible="{Binding ShowsRecommended}">
+            <TextBlock Margin="0,0,0,4" Classes="muted" FontSize="{DynamicResource FontSmall}"
+                       Text="{Binding ProfitHow}"
+                       IsVisible="{Binding Tracker.IsLinked}" />
+
+            <WrapPanel Margin="0,0,0,4" IsVisible="{Binding Tracker.IsLinked}">
+              <ToggleButton Theme="{StaticResource OutlineToggleButton}" Classes="bar" Padding="8,1"
+                            Content="{loc:T ProfitModeQuests}" ToolTip.Tip="{loc:T ProfitModeQuestsTip}"
+                            IsChecked="{Binding !ProfitSeries, Mode=OneWay}"
+                            Click="OnProfitQuests" />
+              <ToggleButton Theme="{StaticResource OutlineToggleButton}" Classes="bar" Padding="8,1" Margin="4,0,12,0"
+                            Content="{loc:T ProfitModeSeries}" ToolTip.Tip="{loc:T ProfitModeSeriesTip}"
+                            IsChecked="{Binding ProfitSeries, Mode=OneWay}"
+                            Click="OnProfitSeries" />
+              <ToggleButton Theme="{StaticResource OutlineToggleButton}" Classes="bar" Padding="8,1"
+                            ToolTip.Tip="{loc:T ProfitTabXpTip}"
+                            IsChecked="{Binding !ProfitKamas, Mode=OneWay}"
+                            Click="OnProfitXp">
+                <StackPanel Orientation="Horizontal">
+                  <Path Width="10" Height="10" Margin="0,0,4,0" VerticalAlignment="Center"
+                        Stretch="None" Fill="{DynamicResource GainXpBrush}"
+                        Data="M 5,0.5 C 5.4,3.6 6.4,4.6 9.5,5 C 6.4,5.4 5.4,6.4 5,9.5 C 4.6,6.4 3.6,5.4 0.5,5 C 3.6,4.6 4.6,3.6 5,0.5 Z" />
+                  <TextBlock Text="{loc:T ProfitTabXp}" VerticalAlignment="Center" />
+                </StackPanel>
+              </ToggleButton>
+              <ToggleButton Theme="{StaticResource OutlineToggleButton}" Classes="bar" Padding="8,1" Margin="4,0,0,0"
+                            ToolTip.Tip="{loc:T ProfitTabKamasTip}"
+                            IsChecked="{Binding ProfitKamas, Mode=OneWay}"
+                            Click="OnProfitKamas">
+                <StackPanel Orientation="Horizontal">
+                  <Path Width="10" Height="10" Margin="0,0,4,0" VerticalAlignment="Center"
+                        Stretch="None" Stroke="{DynamicResource GainKamasBrush}" StrokeThickness="1.2"
+                        Data="M 0.9,5 A 4.1,4.1 0 1 0 9.1,5 A 4.1,4.1 0 1 0 0.9,5 Z M 3.2,5 A 1.8,1.8 0 1 0 6.8,5 A 1.8,1.8 0 1 0 3.2,5 Z" />
+                  <TextBlock Text="{loc:T ProfitTabKamas}" VerticalAlignment="Center" />
+                </StackPanel>
+              </ToggleButton>
+              <ToggleButton Theme="{StaticResource OutlineToggleButton}" Classes="bar" Padding="8,1" Margin="12,0,0,0"
+                            Content="{loc:T ProfitDungeons}" ToolTip.Tip="{loc:T ProfitDungeonsTip}"
+                            IsChecked="{Binding ProfitDungeons, Mode=TwoWay}" />
+            </WrapPanel>
+
+            <ItemsControl ItemsSource="{Binding Tracker.TeamMembers}">
+              <ItemsControl.IsVisible>
+                <MultiBinding Converter="{StaticResource AllTrue}">
+                  <Binding Path="ProfitTeam" />
+                  <Binding Path="Tracker.HasSeveralCharacters" />
+                </MultiBinding>
+              </ItemsControl.IsVisible>
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <WrapPanel />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:TeamMember">
+                  <CheckBox Content="{Binding Character.Name}" IsChecked="{Binding Included}"
+                            FontSize="{DynamicResource FontSmall}" Margin="0,2,10,0" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+
+          <!-- The back button is fixed and not a row of the list. -->
+          <Button DockPanel.Dock="Top" Theme="{StaticResource QuietButton}"
+                  HorizontalAlignment="Left" HorizontalContentAlignment="Left"
+                  Margin="1,0,0,2" Click="OnGoBack"
+                  ToolTip.Tip="{loc:T GoUpOneTip}"
+                  IsVisible="{Binding CanGoBack}">
+            <StackPanel Orientation="Horizontal">
+              <Path Classes="rowGlyph" Data="M 9,3 L 5,7.5 L 9,12" Margin="0,0,6,0" />
+              <TextBlock Text="{loc:T Back}" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+
+          <!-- What "Recommandées" waits for or lacks, in place of its rows. -->
+          <Border DockPanel.Dock="Top" Classes="card" Padding="10,8" Margin="10,4,4,4">
+            <Border.IsVisible>
+              <MultiBinding Converter="{StaticResource AllTrue}">
+                <Binding Path="ShowsRecommended" />
+                <Binding Path="ShowsProfitWait" />
+              </MultiBinding>
+            </Border.IsVisible>
+            <DockPanel>
+              <ContentControl DockPanel.Dock="Left" Theme="{StaticResource Spinner}" VerticalAlignment="Center"
+                              Margin="0,0,9,0" IsVisible="{Binding ProfitWaitSpins}" />
+              <Button DockPanel.Dock="Right" Content="{loc:T PreparationRetry}" Click="OnRetryTracker"
+                      VerticalAlignment="Center" Margin="9,0,0,0"
+                      IsVisible="{Binding ProfitCanRetry}" />
+              <TextBlock Classes="muted" VerticalAlignment="Center" Text="{Binding ProfitWaitText}" />
+            </DockPanel>
+          </Border>
+
+          <TextBlock DockPanel.Dock="Bottom" Classes="muted" Margin="12,6,12,8"
+                     Text="{loc:T OfficialNamesCredit}"
+                     IsVisible="{Binding ShowsOfficialNamesCredit}" />
+
+          <ListBox x:Name="NodeList" ItemsSource="{Binding Nodes}"
+                   SelectedItem="{Binding SelectedNode, Mode=TwoWay}"
+                   Background="Transparent" BorderThickness="0"
+                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                   ContainerPrepared="OnRowPrepared"
+                   Tapped="OnNodeChosen"
+                   KeyDown="OnNodeKey">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="papycha:QuestNode">
+                <Grid Background="Transparent"
+                      Margin="{Binding Converter={StaticResource Look}, ConverterParameter=LineMargin}"
+                      Opacity="{Binding Converter={StaticResource Look}, ConverterParameter=LineOpacity}"
+                      IsEnabled="{Binding IsReachable}">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="{Binding $parent[ListBox].((vm:QuestViewModel)DataContext).ShowsRecommended, Converter={x:Static views:QuestWindow.GutterWidth}}" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                  </Grid.ColumnDefinitions>
+
+                  <!-- The divider under group titles. -->
+                  <Rectangle Grid.ColumnSpan="3" Height="1" VerticalAlignment="Top" Margin="0,-9,0,0"
+                             Fill="{DynamicResource BorderBrush}"
+                             IsVisible="{Binding Converter={StaticResource Look}, ConverterParameter=Filet}" />
+
+                  <!-- The line that connects the quests of an achievement. -->
+                  <Rectangle Grid.Column="0" Width="1" HorizontalAlignment="Right" VerticalAlignment="Stretch"
+                             Margin="0,-4,7,-4" Fill="{DynamicResource BorderBrush}"
+                             IsVisible="{Binding Converter={StaticResource Look}, ConverterParameter=Trait}" />
+
+                  <!-- The bracket that ties a dungeon's path to the dungeon below it. -->
+                  <Grid Grid.Column="0" Width="8" HorizontalAlignment="Right" Margin="0,0,2,0" RowDefinitions="*,*">
+                    <Border Grid.Row="1" Margin="0,0,0,-3" BorderThickness="2,2,0,0"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            IsVisible="{Binding Converter={StaticResource Look}, ConverterParameter=HookUp}" />
+                    <Border Grid.Row="0" Margin="0,-3,0,0" BorderThickness="2,0,0,2"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            IsVisible="{Binding Converter={StaticResource Look}, ConverterParameter=HookDown}" />
+                  </Grid>
+
+                  <Path Classes="listIcon" VerticalAlignment="Center"
+                        Grid.Column="{Binding Converter={StaticResource Look}, ConverterParameter=NatureColumn}"
+                        HorizontalAlignment="{Binding Converter={StaticResource Look}, ConverterParameter=NatureAlign}"
+                        Margin="{Binding Converter={StaticResource Look}, ConverterParameter=NatureMargin}"
+                        IsVisible="{Binding Converter={StaticResource Look}, ConverterParameter=NatureVisible}"
+                        Data="{Binding Converter={StaticResource Look}, ConverterParameter=NatureData}"
+                        Stroke="{Binding Converter={StaticResource Look}, ConverterParameter=NatureStroke}"
+                        Fill="{Binding Converter={StaticResource Look}, ConverterParameter=NatureFill}"
+                        StrokeLineCap="{Binding Converter={StaticResource Look}, ConverterParameter=NatureCap}" />
+
+                  <DockPanel Grid.Column="1">
+                    <!-- Selection mode: a box on each quest row; Shift+click ticks a range. -->
+                    <CheckBox DockPanel.Dock="Left" Margin="0,0,6,0" VerticalAlignment="Center"
+                              IsChecked="{Binding Checked, Mode=OneWay}" Click="OnPickClick"
+                              IsVisible="{Binding Converter={StaticResource Look}, ConverterParameter=CheckVisible}" />
+                    <TextBlock DockPanel.Dock="Left" Width="22" Margin="0,0,4,0"
+                               Text="{Binding Level}"
+                               TextAlignment="Right" TextWrapping="NoWrap"
+                               VerticalAlignment="Center"
+                               Classes="muted" FontSize="{DynamicResource FontSmall}">
+                      <TextBlock.IsVisible>
+                        <MultiBinding Converter="{x:Static views:QuestWindow.LevelShown}">
+                          <Binding Path="HasLevelColumn" />
+                          <Binding Path="Facts" />
+                          <Binding Path="$parent[ListBox].((vm:QuestViewModel)DataContext).ListHasQuestLevels" />
+                        </MultiBinding>
+                      </TextBlock.IsVisible>
+                    </TextBlock>
+
+                    <!-- The label, then muted words that only situate it. -->
+                    <TextBlock TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" VerticalAlignment="Center"
+                               FontWeight="{Binding Converter={StaticResource Look}, ConverterParameter=LabelWeight}"
+                               FontSize="{Binding Converter={StaticResource Look}, ConverterParameter=LabelSize}"
+                               Foreground="{Binding Converter={StaticResource Look}, ConverterParameter=LabelBrush}"
+                               Margin="{Binding Converter={StaticResource Look}, ConverterParameter=LabelMargin}">
+                      <Run Text="{Binding Label}" /><Run Text="{Binding Suffix}"
+                           Foreground="{DynamicResource TextMutedBrush}"
+                           FontSize="{DynamicResource FontSmall}" />
+                    </TextBlock>
+                  </DockPanel>
+
+                  <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="6,0,0,0" VerticalAlignment="Center">
+                    <!-- Selection mode, on an achievement or zone heading. -->
+                    <Button Theme="{StaticResource LinkButton}" VerticalAlignment="Center" Margin="0,0,6,0"
+                            FontSize="{DynamicResource FontSmall}"
+                            Content="{loc:T BatchMarkAll}" ToolTip.Tip="{loc:T BatchMarkAllTip}"
+                            Click="OnMarkAllClick"
+                            IsVisible="{Binding MarksAll}" />
+
+                    <!-- A dungeon's position, key and the quests it finishes, in fixed columns. -->
+                    <Grid ColumnDefinitions="Auto,Auto,Auto"
+                          IsVisible="{Binding Facts, Converter={x:Static ObjectConverters.IsNotNull}}">
+                      <TextBlock Grid.Column="0" Text="{Binding Facts.Position, FallbackValue=''}" Width="60"
+                                 TextWrapping="NoWrap" VerticalAlignment="Center"
+                                 Classes="muted" FontFamily="{DynamicResource MonoFont}"
+                                 FontSize="{DynamicResource FontSmall}" />
+
+                      <!-- The key required at a dungeon's entrance, its name on hover. -->
+                      <Border Grid.Column="1" Background="Transparent"
+                              HorizontalAlignment="Right" VerticalAlignment="Center"
+                              Width="{Binding $parent[ListBox].((vm:QuestViewModel)DataContext).KeyColumnWidth}"
+                              IsVisible="{Binding $parent[ListBox].((vm:QuestViewModel)DataContext).KeyColumnWidth, Converter={StaticResource NonZero}}"
+                              ToolTip.Tip="{Binding Dungeon.Key, FallbackValue=''}"
+                              ToolTip.ShowDelay="200">
+                        <Path Classes="listIcon" HorizontalAlignment="Right"
+                              IsVisible="{Binding Dungeon.NeedsKey, FallbackValue=False}"
+                              Stroke="{DynamicResource GlyphDungeonBrush}"
+                              Data="M 5.2,7.5 m -2.6,0 a 2.6,2.6 0 1 0 5.2,0 a 2.6,2.6 0 1 0 -5.2,0 M 7.8,7.5 H 12.8 M 10.3,7.5 V 9.8 M 12.4,7.5 V 9.3" />
+                      </Border>
+
+                      <!-- The quests the dungeon finishes, their titles on hover. -->
+                      <StackPanel Grid.Column="2" Orientation="Horizontal"
+                                  Width="{Binding $parent[ListBox].((vm:QuestViewModel)DataContext).FinishColumnWidth}"
+                                  IsVisible="{Binding $parent[ListBox].((vm:QuestViewModel)DataContext).FinishColumnWidth, Converter={StaticResource NonZero}}"
+                                  Opacity="{Binding Converter={StaticResource Look}, ConverterParameter=FinishOpacity}"
+                                  HorizontalAlignment="Right" VerticalAlignment="Center"
+                                  Background="Transparent"
+                                  ToolTip.Tip="{Binding ProfitTip}" ToolTip.ShowDelay="200">
+                        <Path Width="12" Height="12" Margin="0,0,2,0" VerticalAlignment="Center"
+                              Stretch="None" Stroke="{DynamicResource AccentBrush}"
+                              StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round"
+                              Data="M 2,6.5 L 5,9.5 L 10.5,3" />
+                        <TextBlock Text="{Binding Finishes}" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource AccentBrush}"
+                                   FontSize="{DynamicResource FontSmall}" />
+                      </StackPanel>
+                    </Grid>
+
+                    <!-- The right-hand text of every other kind of row. -->
+                    <TextBlock Text="{Binding Detail}" VerticalAlignment="Center"
+                               Classes="muted" FontSize="{DynamicResource FontSmall}" TextWrapping="NoWrap"
+                               Margin="{Binding Converter={StaticResource Look}, ConverterParameter=DetailMargin}"
+                               Width="{Binding Converter={StaticResource Look}, ConverterParameter=DetailWidth}"
+                               TextAlignment="{Binding Converter={StaticResource Look}, ConverterParameter=DetailAlign}"
+                               IsVisible="{Binding Converter={StaticResource Look}, ConverterParameter=DetailVisible}" />
+
+                    <!-- A zone's progress, in two columns. -->
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
+                                IsVisible="{Binding Tally, Converter={x:Static ObjectConverters.IsNotNull}}">
+                      <Border Margin="8,0,0,0"
+                              Width="{Binding $parent[ListBox].((vm:QuestViewModel)DataContext).StartedColumnWidth}"
+                              IsVisible="{Binding $parent[ListBox].((vm:QuestViewModel)DataContext).StartedColumnWidth, Converter={StaticResource NonZero}}">
+                        <StackPanel Orientation="Horizontal"
+                                    HorizontalAlignment="Right" VerticalAlignment="Center"
+                                    Background="Transparent"
+                                    Opacity="{Binding Converter={StaticResource Look}, ConverterParameter=StartedOpacity}"
+                                    ToolTip.Tip="{Binding Tally.StartedTip, FallbackValue=''}"
+                                    ToolTip.ShowDelay="200">
+                          <Path Width="12" Height="12" Margin="0,0,3,0" VerticalAlignment="Center"
+                                Stretch="None" Stroke="{DynamicResource AccentBrush}"
+                                StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round"
+                                Data="M 2.5,1.5 H 9.5 M 2.5,10.5 H 9.5 M 3.5,1.5 L 6,6 L 3.5,10.5 M 8.5,1.5 L 6,6 L 8.5,10.5" />
+                          <TextBlock Text="{Binding Tally.Started, FallbackValue=''}" VerticalAlignment="Center"
+                                     Foreground="{DynamicResource AccentBrush}"
+                                     FontSize="{DynamicResource FontSmall}" />
+                        </StackPanel>
+                      </Border>
+
+                      <Panel Margin="8,0,0,0"
+                             Width="{Binding $parent[ListBox].((vm:QuestViewModel)DataContext).CountColumnWidth}"
+                             IsVisible="{Binding Converter={StaticResource Look}, ConverterParameter=CountCaseVisible}">
+                        <TextBlock Text="{Binding Tally.Count, FallbackValue=''}"
+                                   HorizontalAlignment="Right" VerticalAlignment="Center"
+                                   Classes="muted" FontSize="{DynamicResource FontSmall}" TextWrapping="NoWrap"
+                                   Opacity="{Binding Converter={StaticResource Look}, ConverterParameter=CountOpacity}"
+                                   IsVisible="{Binding Converter={StaticResource Look}, ConverterParameter=CountVisible}" />
+
+                        <Border Width="12" Height="12"
+                                HorizontalAlignment="Right" VerticalAlignment="Center"
+                                Background="Transparent"
+                                IsVisible="{Binding Converter={StaticResource Look}, ConverterParameter=CompleteVisible}"
+                                ToolTip.Tip="{Binding Tally.Count, FallbackValue=''}"
+                                ToolTip.ShowDelay="200">
+                          <Path Stretch="None" Stroke="{DynamicResource AccentBrush}"
+                                StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round"
+                                Data="M 2,6.5 L 5,9.5 L 10.5,3" />
+                        </Border>
+                      </Panel>
+                    </StackPanel>
+
+                    <!-- The right-hand icons of a quest row: rhythm, status,
+                         priority, lock, gift, then the time and the two gains. -->
+                    <Border Width="15" Height="15" Margin="3,0,0,0"
+                            Background="Transparent" VerticalAlignment="Center"
+                            ToolTip.Tip="{Binding RecurrenceLabel}" ToolTip.ShowDelay="200"
+                            IsVisible="{Binding Converter={StaticResource Look}, ConverterParameter=RhythmVisible}">
+                      <Path Classes="listIcon" HorizontalAlignment="Center"
+                            Stroke="{DynamicResource TextMutedBrush}"
+                            Data="{Binding Converter={StaticResource Look}, ConverterParameter=RhythmData}" />
+                    </Border>
+
+                    <Border Width="15" Height="15" Margin="3,0,0,0" VerticalAlignment="Center"
+                            Background="Transparent" ToolTip.ShowDelay="200"
+                            ToolTip.Tip="{Binding Converter={StaticResource Look}, ConverterParameter=MarkTip}"
+                            IsVisible="{Binding Converter={StaticResource Look}, ConverterParameter=MarkVisible}">
+                      <Path Width="12" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Stretch="None" StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round"
+                            Stroke="{Binding Converter={StaticResource Look}, ConverterParameter=MarkStroke}"
+                            Data="{Binding Converter={StaticResource Look}, ConverterParameter=MarkData}" />
+                    </Border>
+
+                    <Border Width="15" Height="15" Margin="3,0,0,0" VerticalAlignment="Center"
+                            Background="Transparent"
+                            ToolTip.Tip="{Binding ProfitTip}" ToolTip.ShowDelay="200"
+                            IsVisible="{Binding Converter={StaticResource Look}, ConverterParameter=TierVisible}">
+                      <Path Width="12" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Stretch="None" StrokeJoin="Round"
+                            Stroke="{DynamicResource GlyphPriorityBrush}"
+                            Fill="{Binding Converter={StaticResource Look}, ConverterParameter=TierFill}"
+                            StrokeThickness="{Binding Converter={StaticResource Look}, ConverterParameter=TierThickness}"
+                            Data="{Binding Converter={StaticResource Look}, ConverterParameter=TierData}" />
+                    </Border>
+
+                    <!-- A lock: what keeps the quest closed; a click pins the list. -->
+                    <Button Theme="{StaticResource IconButton}" Padding="0"
+                            Width="15" Height="15" MinWidth="15" MinHeight="15"
+                            VerticalAlignment="Center" Margin="3,0,0,0"
+                            Click="OnShowNeeds"
+                            ToolTip.ShowDelay="200"
+                            IsVisible="{Binding Converter={StaticResource Look}, ConverterParameter=LockVisible}">
+                      <ToolTip.Tip>
+                        <StackPanel MaxWidth="330">
+                          <TextBlock Text="{loc:T Prerequisites}" Margin="0,0,0,6"
+                                     FontSize="{DynamicResource FontTiny}" FontWeight="SemiBold"
+                                     Foreground="{DynamicResource GlyphNeedBrush}" />
+                          <ItemsControl ItemsSource="{Binding Needs}">
+                            <ItemsControl.ItemTemplate>
+                              <DataTemplate x:DataType="papycha:QuestNeed">
+                                <Grid Margin="0,0,0,4" ColumnDefinitions="11,*">
+                                  <Ellipse Grid.Column="0" Width="3" Height="3"
+                                           HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,7,0,0"
+                                           Fill="{DynamicResource TextMutedBrush}"
+                                           IsVisible="{Binding Converter={StaticResource Look}, ConverterParameter=Dot}" />
+                                  <Path Grid.Column="0" Width="9" Height="9"
+                                        HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,4,0,0"
+                                        StrokeThickness="1.4" StrokeLineCap="Round" StrokeJoin="Round"
+                                        IsVisible="{Binding Converter={StaticResource Look}, ConverterParameter=MarkVisible}"
+                                        Stroke="{Binding Converter={StaticResource Look}, ConverterParameter=MarkStroke}"
+                                        Data="{Binding Converter={StaticResource Look}, ConverterParameter=MarkData}" />
+                                  <TextBlock Grid.Column="1" Text="{Binding Text}" TextWrapping="Wrap"
+                                             FontSize="{DynamicResource FontBody}"
+                                             Foreground="{DynamicResource TextBrush}" />
+                                </Grid>
+                              </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                          </ItemsControl>
+                          <TextBlock Margin="0,6,0,0" FontSize="{DynamicResource FontTiny}"
+                                     Foreground="{DynamicResource TextMutedBrush}"
+                                     Text="{loc:T ClickQuestsHint}" />
+                        </StackPanel>
+                      </ToolTip.Tip>
+                      <Path Classes="listIcon"
+                            Stroke="{Binding Converter={StaticResource Look}, ConverterParameter=LockStroke}"
+                            Data="M 5.1,7 L 5.1,5.2 A 2.4,2.4 0 0 1 9.9,5.2 L 9.9,7 M 3.7,7 L 11.3,7 L 11.3,12.9 L 3.7,12.9 Z M 7.5,9.3 L 7.5,10.8" />
+                    </Button>
+
+                    <!-- A gift: the quest gives more than XP and kamas. -->
+                    <Border Width="15" Height="15" Margin="3,0,0,0" VerticalAlignment="Center"
+                            Background="Transparent"
+                            ToolTip.Tip="{Binding OtherRewards}" ToolTip.ShowDelay="200"
+                            IsVisible="{Binding OtherRewards, Converter={StaticResource EmptyToVisibility}, ConverterParameter=inverse}">
+                      <Path Width="12" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Stretch="None" Stroke="{DynamicResource GlyphSuccessBrush}"
+                            StrokeThickness="1.2" StrokeJoin="Round" StrokeLineCap="Round"
+                            Data="M 1.5,4.5 H 10.5 V 6.5 H 1.5 Z M 2.5,6.5 V 11 H 9.5 V 6.5 M 6,4.5 V 11 M 6,4.5 C 5,1.8 2.6,2.2 3.8,4.5 M 6,4.5 C 7,1.8 9.4,2.2 8.2,4.5" />
+                    </Border>
+
+                    <!-- The estimated time, in a slot just left of the gains. -->
+                    <Border Margin="3,0,0,0" VerticalAlignment="Center"
+                            Width="{Binding $parent[ListBox].((vm:QuestViewModel)DataContext).TimeColumnWidth}"
+                            Opacity="{Binding Converter={StaticResource Look}, ConverterParameter=TimeOpacity}">
+                      <Border.IsVisible>
+                        <MultiBinding Converter="{StaticResource AllTrue}">
+                          <Binding Converter="{StaticResource Look}" ConverterParameter="QuestOrDungeon" />
+                          <Binding Path="$parent[ListBox].((vm:QuestViewModel)DataContext).TimeColumnWidth" Converter="{StaticResource NonZero}" />
+                        </MultiBinding>
+                      </Border.IsVisible>
+                      <TextBlock HorizontalAlignment="Right"
+                                 Text="{Binding Duration}" TextWrapping="NoWrap"
+                                 Classes="muted" FontSize="{DynamicResource FontSmall}"
+                                 ToolTip.Tip="{Binding ProfitTip}" ToolTip.ShowDelay="200" />
+                    </Border>
+
+                    <!-- What the quest gives the chosen character: XP then kamas.
+                         The hover adds, for a quest asking items, where they come
+                         from, read when it opens. -->
+                    <Border Margin="6,0,0,0"
+                            Width="{Binding $parent[ListBox].((vm:QuestViewModel)DataContext).XpColumnWidth}"
+                            Background="Transparent" VerticalAlignment="Center"
+                            Opacity="{Binding Converter={StaticResource Look}, ConverterParameter=GainOpacity}"
+                            ToolTip.ShowDelay="200"
+                            ToolTip.ToolTipOpening="OnGainTipOpening" ToolTip.ToolTipClosing="OnGainTipClosing">
+                      <Border.IsVisible>
+                        <MultiBinding Converter="{StaticResource AllTrue}">
+                          <Binding Converter="{StaticResource Look}" ConverterParameter="QuestOrDungeon" />
+                          <Binding Path="$parent[ListBox].((vm:QuestViewModel)DataContext).XpColumnWidth" Converter="{StaticResource NonZero}" />
+                          <Binding Path="$parent[ListBox].((vm:QuestViewModel)DataContext).ListHasQuestGains" />
+                        </MultiBinding>
+                      </Border.IsVisible>
+                      <ToolTip.Tip>
+                        <StackPanel MaxWidth="330">
+                          <TextBlock Text="{Binding ProfitTip}" TextWrapping="Wrap"
+                                     Foreground="{DynamicResource TextBrush}" FontSize="{DynamicResource FontBody}" />
+                          <TextBlock Margin="0,6,0,0" TextWrapping="Wrap" IsVisible="False"
+                                     Foreground="{DynamicResource TextBrush}" FontSize="{DynamicResource FontBody}" />
+                        </StackPanel>
+                      </ToolTip.Tip>
+                      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
+                                  IsVisible="{Binding Converter={StaticResource Look}, ConverterParameter=XpValueVisible}">
+                        <Path Width="10" Height="10" Margin="0,0,2,0" VerticalAlignment="Center"
+                              Stretch="None" Fill="{DynamicResource GainXpBrush}"
+                              Data="M 5,0.5 C 5.4,3.6 6.4,4.6 9.5,5 C 6.4,5.4 5.4,6.4 5,9.5 C 4.6,6.4 3.6,5.4 0.5,5 C 3.6,4.6 4.6,3.6 5,0.5 Z" />
+                        <TextBlock Text="{Binding GainXp}" TextWrapping="NoWrap"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource GainXpBrush}"
+                                   FontSize="{DynamicResource FontSmall}" FontFeatures="+tnum" />
+                      </StackPanel>
+                    </Border>
+                    <Border Margin="6,0,0,0"
+                            Width="{Binding $parent[ListBox].((vm:QuestViewModel)DataContext).KamasColumnWidth}"
+                            Background="Transparent" VerticalAlignment="Center"
+                            Opacity="{Binding Converter={StaticResource Look}, ConverterParameter=GainOpacity}"
+                            ToolTip.ShowDelay="200"
+                            ToolTip.ToolTipOpening="OnGainTipOpening" ToolTip.ToolTipClosing="OnGainTipClosing">
+                      <Border.IsVisible>
+                        <MultiBinding Converter="{StaticResource AllTrue}">
+                          <Binding Converter="{StaticResource Look}" ConverterParameter="QuestOrDungeon" />
+                          <Binding Path="$parent[ListBox].((vm:QuestViewModel)DataContext).KamasColumnWidth" Converter="{StaticResource NonZero}" />
+                          <Binding Path="$parent[ListBox].((vm:QuestViewModel)DataContext).ListHasQuestGains" />
+                        </MultiBinding>
+                      </Border.IsVisible>
+                      <ToolTip.Tip>
+                        <StackPanel MaxWidth="330">
+                          <TextBlock Text="{Binding ProfitTip}" TextWrapping="Wrap"
+                                     Foreground="{DynamicResource TextBrush}" FontSize="{DynamicResource FontBody}" />
+                          <TextBlock Margin="0,6,0,0" TextWrapping="Wrap" IsVisible="False"
+                                     Foreground="{DynamicResource TextBrush}" FontSize="{DynamicResource FontBody}" />
+                        </StackPanel>
+                      </ToolTip.Tip>
+                      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
+                                  IsVisible="{Binding Converter={StaticResource Look}, ConverterParameter=KamasValueVisible}">
+                        <Path Width="10" Height="10" Margin="0,0,2,0" VerticalAlignment="Center"
+                              Stretch="None" Stroke="{DynamicResource GainKamasBrush}" StrokeThickness="1.2"
+                              Data="M 0.9,5 A 4.1,4.1 0 1 0 9.1,5 A 4.1,4.1 0 1 0 0.9,5 Z M 3.2,5 A 1.8,1.8 0 1 0 6.8,5 A 1.8,1.8 0 1 0 3.2,5 Z" />
+                        <TextBlock Text="{Binding GainKamas}" TextWrapping="NoWrap"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource GainKamasBrush}"
+                                   FontSize="{DynamicResource FontSmall}" FontFeatures="+tnum" />
+                      </StackPanel>
+                    </Border>
+                  </StackPanel>
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </DockPanel>
+      </Border>
+    </Panel>
+
+  </DockPanel>
+</Window>

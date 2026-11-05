@@ -46,7 +46,7 @@ nothing is shown.
    ```
 
 The pipeline builds, publishes, computes the checksum and creates the
-release with five files: `DtHub.exe`, `DtHub.exe.sha256`, `notes.en.md`,
+release with five files, then the Mac job adds two (see "The Mac"): `DtHub.exe`, `DtHub.exe.sha256`, `notes.en.md`,
 `notes.fr.md` and `notes.es.md`. The first two are the names the application
 requires: from 0.7.11 onward it builds their addresses from the tag, and a
 release missing either one fails to download without replacing anything. The
@@ -100,6 +100,32 @@ sweeps away what remains. If the second half fails, the first is undone.
 **None of this counts as a failure.** No network, missing repository,
 quota reached, wrong checksum, locked file: the application carries on
 with the version it has.
+
+## The Mac
+
+The same tag also builds the Mac version: the `mac` job, on GitHub's
+Mac, waits for the PC's job, runs the tests there, publishes
+`src/DtHub.Mac` and adds `DtHub-mac.zip` and `DtHub-mac.zip.sha256` to the
+draft. Those two names are the ones the Mac application and
+`site/install-mac.sh` ask for.
+
+Players install it with one line in the Terminal:
+
+```
+curl -fsSL https://dthub.app/install-mac.sh | bash
+```
+
+and the application updates itself afterwards, as on the PC. No Apple
+Developer ID: downloaded by curl, and later by DT Hub itself, the archive
+carries no quarantine mark, so Gatekeeper lets it open. The same `.app`
+downloaded with a browser is refused unless the player goes through
+Privacy & Security, "Open Anyway".
+
+The signature is ad hoc unless the `MAC_SIGNING_P12` (the certificate,
+.p12 in base64) and `MAC_SIGNING_PASSWORD` secrets are set. A certificate
+kept from version to version, even self-signed, keeps macOS's
+Accessibility permission across updates; ad hoc, the player ticks it again
+after each one.
 
 ## Getting the binary recognized
 

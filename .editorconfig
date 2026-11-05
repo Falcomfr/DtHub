@@ -23,6 +23,11 @@ end_of_line = lf
 [.git{attributes,ignore}]
 charset = utf-8
 
+# Except the shell scripts: a BOM before "#!" is no longer a shebang, and
+# "curl ... | bash" reads it as a command that does not exist.
+[*.sh]
+charset = utf-8
+
 # Except the Windows scripts, which an older cmd.exe reads wrong in LF.
 # Same rule as .gitattributes, which marks them "eol=crlf".
 [*.{cmd,ps1}]

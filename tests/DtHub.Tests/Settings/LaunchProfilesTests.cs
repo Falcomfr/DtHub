@@ -139,7 +139,8 @@ public class LaunchProfilesTests
 
         Assert.Equal(
             "Cette team retiendra les 2 comptes ouverts, la position et la taille de leurs "
-            + "fenêtres, la qualité très haute, la distance éloignée et le son renvoyé sur le PC.",
+            + "fenêtres, la qualité très haute, la distance éloignée et le son renvoyé sur le "
+            + (OperatingSystem.IsMacOS() ? "Mac." : "PC."),
             phrase);
     }
 

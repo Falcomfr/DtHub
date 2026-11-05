@@ -18,6 +18,8 @@ No copyright notice or third-party licence text may be removed.
 | Serilog and its sinks | Apache License 2.0 | NuGet packages |
 | Microsoft.Extensions.* | MIT | NuGet packages |
 | Microsoft.Web.WebView2 | Proprietary Microsoft licence | NuGet package, engine provided by Windows |
+| Avalonia (Mac version) | MIT | NuGet packages, included in DT Hub.app |
+| SkiaSharp, HarfBuzzSharp (Mac version) | MIT | NuGet packages, native libraries included in DT Hub.app |
 | papycha.fr logo | Author's agreement, see below | File embedded in the executable |
 | Discord logo | Discord's brand guidelines, see below | Vector outline in the configurator's XAML |
 | DTStuff and OcrApp icons | MakeInTouch's agreement, see below | Files embedded in the executable |
@@ -56,6 +58,22 @@ not use it: it uses its own, obtained directly from Google, whose version
 it controls. The path to it is given by the `ADB` environment variable,
 which scrcpy honours.
 
+On macOS, DT Hub downloads the project's Apple Silicon archive of the same
+version, through the same verified mechanism:
+https://github.com/Genymobile/scrcpy/releases/download/v5.0.1/scrcpy-macos-aarch64-v5.0.1.tar.gz .
+Its `LICENSE` is extracted as is and kept next to the executable. That
+archive also contains a copy of `adb`, which DT Hub does not use either:
+scrcpy is given the platform tools' `adb` through the same `ADB`
+variable. Only the Windows archive receives the patched SDL; the macOS
+archive is left untouched. Should the download fail, a copy of scrcpy the
+player installed (with Homebrew, for instance) is used instead; DT Hub
+does not distribute that copy.
+
+On Linux x86_64 the same applies to the project's Linux archive,
+https://github.com/Genymobile/scrcpy/releases/download/v5.0.1/scrcpy-linux-x86_64-v5.0.1.tar.gz ,
+whose bundled `adb` is not used either. On Linux ARM, with no official
+archive, only a copy the player installed is used.
+
 DT Hub is not affiliated with Genymobile or the scrcpy authors, and does
 not use their name or logos as part of its own identity.
 
@@ -77,6 +95,9 @@ licence are in `third_party/sdl/`.
 - Licence: Android Software Development Kit License Agreement
 - Official, versioned source, and therefore of immutable content:
   https://dl.google.com/android/repository/platform-tools_r37.0.1-win.zip
+  on Windows, and
+  https://dl.google.com/android/repository/platform-tools_r37.0.1-darwin.zip
+  on macOS
 
   The "latest" address is not used: its content changes without notice,
   and the checksum recorded in `build/dependencies.json` would no longer
@@ -84,9 +105,12 @@ licence are in `third_party/sdl/`.
 
 The Android SDK's licence agreement does not allow redistribution of the
 binaries. The platform tools are therefore **not** included in the
-repository or in the installer. DT Hub downloads them from the official
-URL above, on first launch, into the user's data folder, and verifies
-the archive before extracting it.
+repository or in the installer, nor in the macOS application. DT Hub
+downloads them from the official URL above for its system, on first
+launch, into the user's data folder, and verifies the archive before
+extracting it. On macOS and Linux, should that download fail, an `adb`
+the player installed (with Homebrew or scrcpy's archive, for instance) is
+used instead; DT Hub does not distribute that copy either.
 
 The user is informed of this: on first launch, a window names each
 component, its version and the address it comes from, and shows the

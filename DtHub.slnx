@@ -3,6 +3,7 @@
     <Project Path="src/DtHub.App/DtHub.App.csproj" />
     <Project Path="src/DtHub.Core/DtHub.Core.csproj" />
     <Project Path="src/DtHub.Infrastructure/DtHub.Infrastructure.csproj" />
+    <Project Path="src/DtHub.Mac/DtHub.Mac.csproj" />
   </Folder>
   <!-- The launcher and the seven probes are in the solution so that they are
        at least built: outside it, sonde-icone rotted with nobody watching the

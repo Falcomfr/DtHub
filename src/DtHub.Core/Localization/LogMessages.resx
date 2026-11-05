@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+﻿<?xml version='1.0' encoding='utf-8'?>
 <root>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
@@ -81,6 +81,9 @@
   <data name="Aucune nouvelle de la page après vingt secondes : la vue est rendue." xml:space="preserve">
     <value>No response from the page after twenty seconds: the view is released.</value>
   </data>
+  <data name="Autorisation Accessibilité absente : les fenêtres de jeu ne seront pas rangées." xml:space="preserve">
+    <value>Accessibility permission missing: the game windows will not be arranged.</value>
+  </data>
   <data name="Cache du moteur de rendu balayé : {megabytes} Mo." xml:space="preserve">
     <value>Rendering engine cache cleared: {megabytes} MB.</value>
   </data>
@@ -104,6 +107,9 @@
   </data>
   <data name="Chemins lus : {count}." xml:space="preserve">
     <value>Routes read: {count}.</value>
+  </data>
+  <data name="Choix des applications : fenêtre pas encore disponible sur Mac." xml:space="preserve">
+    <value>App picker: window not available on the Mac yet.</value>
   </data>
   <data name="Compte « {name} » ajouté sur {device} : {succeeded}. {message}" xml:space="preserve">
     <value>Account “{name}” added on {device}: {succeeded}. {message}</value>
@@ -134,6 +140,9 @@
   </data>
   <data name="Fenêtre perdue, réouverture de {name} dans {seconds} s (tentative {attempt})." xml:space="preserve">
     <value>Window lost; reopening {name} in {seconds} s (attempt {attempt}).</value>
+  </data>
+  <data name="Fermeture de session macOS : DT Hub enregistre et se ferme." xml:space="preserve">
+    <value>macOS session ending: DT Hub saves and quits.</value>
   </data>
   <data name="Fin de session Windows : l'état est retenu avant l'arrêt." xml:space="preserve">
     <value>Windows session ending: saving state before shutdown.</value>
@@ -209,6 +218,9 @@
   </data>
   <data name="La page de Calcofus n'a pas pu être retenue." xml:space="preserve">
     <value>Could not save the Calcofus page.</value>
+  </data>
+  <data name="La page n'a pas pu être chargée : {Etat}" xml:space="preserve">
+    <value>The page could not be loaded: {Etat}</value>
   </data>
   <data name="La place de l'Almanax n'a pas pu être rétablie." xml:space="preserve">
     <value>Could not restore the Almanax window position.</value>
@@ -307,6 +319,9 @@
   <data name="La place d'une fenêtre perdue n'a pas pu être retenue." xml:space="preserve">
     <value>The place of a lost window could not be remembered.</value>
   </data>
+  <data name="{Count} commande(s) adb restée(s) d'une exécution précédente arrêtée(s)." xml:space="preserve">
+    <value>{Count} adb command(s) left by a previous run stopped.</value>
+  </data>
   <data name="{serial} ne répond plus au ping depuis {seconds} s : liaison perdue, fenêtre de {instance} fermée pour être rouverte." xml:space="preserve">
     <value>{serial} has not answered pings for {seconds} s: link lost, window of {instance} closed to be reopened.</value>
   </data>
@@ -318,6 +333,9 @@
   </data>
   <data name="Le jour {Jour} de l'Almanax n'a rien rendu en vingt secondes." xml:space="preserve">
     <value>Almanax day {Jour} returned nothing within twenty seconds.</value>
+  </data>
+  <data name="Le moteur de rendu a renvoyé une erreur sur l'événement {Kind}." xml:space="preserve">
+    <value>The rendering engine raised an error on event {Kind}.</value>
   </data>
   <data name="Le moteur de rendu n'a pas pu être endormi." xml:space="preserve">
     <value>Could not suspend the rendering engine.</value>
@@ -346,6 +364,9 @@
   <data name="Le raccourci du menu Démarrer n'a pas pu être posé." xml:space="preserve">
     <value>Failed to create the Start menu shortcut.</value>
   </data>
+  <data name="Le raccourci {shortcut} pour « {action} » est refusé par macOS (code {status}) ; un autre logiciel le détient probablement, ou la touche n'existe pas sur Mac." xml:space="preserve">
+    <value>macOS rejected the {shortcut} hotkey for “{action}” (code {status}); another application probably owns it, or the key does not exist on a Mac.</value>
+  </data>
   <data name="Le raccourci {shortcut} pour « {action} » est refusé par Windows ; un autre logiciel le détient probablement." xml:space="preserve">
     <value>Windows rejected the {shortcut} hotkey for “{action}”; another application probably owns it.</value>
   </data>
@@ -362,14 +383,23 @@
     <value>Game audio has not resumed on device {serial} since reopening the windows ({windows} DT Hub window(s)). Phone audio:
 {state}</value>
   </data>
+  <data name="Le téléchargement a échoué : {Erreur}" xml:space="preserve">
+    <value>The download failed: {Erreur}</value>
+  </data>
   <data name="Le temps de jeu n'a pas pu être enregistré à la fermeture." xml:space="preserve">
     <value>Failed to save playtime on exit.</value>
   </data>
   <data name="Lecture de la version d'ADB" xml:space="preserve">
     <value>Reading the ADB version</value>
   </data>
+  <data name="Les hôtes publicitaires n'ont pas pu être bloqués dans le moteur de rendu." xml:space="preserve">
+    <value>The ad hosts could not be blocked in the rendering engine.</value>
+  </data>
   <data name="Les pics de latence Wi-Fi vers l'appareil {serial} ont cessé." xml:space="preserve">
     <value>Wi-Fi latency spikes to device {serial} have stopped.</value>
+  </data>
+  <data name="Les raccourcis globaux n'ont pas pu être installés auprès de macOS." xml:space="preserve">
+    <value>The global hotkeys could not be installed with macOS.</value>
   </data>
   <data name="Liaison : filaire, ou Wi-Fi que l'appareil ne décrit pas. Aucun tampon." xml:space="preserve">
     <value>Connection: wired, or Wi-Fi with no details reported by the device. No buffering.</value>
@@ -391,6 +421,9 @@
   </data>
   <data name="Livraison {version} téléchargée et vérifiée." xml:space="preserve">
     <value>Release {version} downloaded and verified.</value>
+  </data>
+  <data name="Mise en place de {name} impossible, repli sur la copie installée {path} : {reason}" xml:space="preserve">
+    <value>Could not set up {name}, falling back to the installed copy {path}: {reason}</value>
   </data>
   <data name="Mise à jour posée, elle démarrera au prochain lancement." xml:space="preserve">
     <value>Update installed; it will run on the next launch.</value>
@@ -507,6 +540,9 @@
   </data>
   <data name="Téléchargement de {name} depuis {url}." xml:space="preserve">
     <value>Downloading {name} from {url}.</value>
+  </data>
+  <data name="Téléchargement enregistré : {Fichier}" xml:space="preserve">
+    <value>Download saved: {Fichier}</value>
   </data>
   <data name="Téléphone revenu : réouverture de {name}." xml:space="preserve">
     <value>Phone reconnected: reopening {name}.</value>
@@ -760,5 +796,17 @@
   </data>
   <data name="Table d'identifiants embarquée illisible ({reason}) ; les noms restent en français." xml:space="preserve">
     <value>Embedded ID table unreadable ({reason}); names stay in French.</value>
+  </data>
+  <data name="La livraison {version} n'a pas pu être décompressée : {detail}" xml:space="preserve">
+    <value>Could not unpack release {version}: {detail}</value>
+  </data>
+  <data name="La signature de la livraison {version} ne tient pas : {detail}" xml:space="preserve">
+    <value>The signature of release {version} does not hold: {detail}</value>
+  </data>
+  <data name="La livraison {version} n'est pas signée par le même certificat que l'application en place : {detail}" xml:space="preserve">
+    <value>Release {version} is not signed with the same certificate as the installed application: {detail}</value>
+  </data>
+  <data name="L'ancienne application n'a pas pu reprendre sa place, une copie la remplace." xml:space="preserve">
+    <value>The old application could not take its place back, a copy replaces it.</value>
   </data>
 </root>

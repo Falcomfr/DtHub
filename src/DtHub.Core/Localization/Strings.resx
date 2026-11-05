@@ -3200,4 +3200,141 @@ Team: quests at least 2 ticked characters can do.</value>
   <data name="BatchRangeHint" xml:space="preserve">
     <value>Shift+click: a range</value>
   </data>
+  <data name="ToolNotInstalled" xml:space="preserve">
+    <value>{0} is not installed. {1}</value>
+  </data>
+  <data name="MacOk" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="MacYes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="MacAccessibilityNeeded" xml:space="preserve">
+    <value>To place the game windows (grid, tabs, full screen, sizes), macOS asks for the Accessibility permission. OK opens the setting: tick DT Hub in the list, then reopen DT Hub. Already ticked? Untick it and tick it again. Without it, the games still open, each where it appears.</value>
+  </data>
+  <data name="MacAccessibilityTitle" xml:space="preserve">
+    <value>Allow DT Hub to arrange the game windows</value>
+  </data>
+  <data name="MacText_CableHelpSteps" xml:space="preserve">
+    <value>1. Another cable: charger cables often have no data wires.
+2. Another USB port of the Mac, without a hub or adapter if possible.
+3. Restart the Mac.
+4. Clean the phone's connector.
+5. This phone on another computer, to know which one is at fault.</value>
+  </data>
+  <data name="MacText_CableHelpTitle" xml:space="preserve">
+    <value>A plugged-in device the Mac cannot read</value>
+  </data>
+  <data name="MacText_CheckNoDevice" xml:space="preserve">
+    <value>No phone detected. Charging is not enough:
+1. Plug in a data cable.
+2. Pick "File transfer" if the phone asks.
+3. Turn on USB debugging.
+A phone already paired over Wi-Fi comes back on its own.</value>
+  </data>
+  <data name="MacText_HelpFixCableWindows" xml:space="preserve">
+    <value>• The Mac does not see the phone? The Devices tab says what to do.</value>
+  </data>
+  <data name="MacText_HotkeyRefusedByWindows" xml:space="preserve">
+    <value>Refused by macOS, probably taken by another program: {0}</value>
+  </data>
+  <data name="MacText_HotkeyReserved" xml:space="preserve">
+    <value>This combination is reserved by macOS.</value>
+  </data>
+  <data name="MacText_LanguageTip" xml:space="preserve">
+    <value>"macOS" follows the system's language, or English if it is not translated. Applies at the next startup.</value>
+  </data>
+  <data name="MacText_ReportContents" xml:space="preserve">
+    <value>The report carries the version, your screens, the error and the useful lines of today's log. Device serials, addresses and your macOS account name are removed from it.</value>
+  </data>
+  <data name="MacText_SimulatedMouseHelp" xml:space="preserve">
+    <value>The Mac's cursor disappears while a game window has focus: left Option or Command gives it back. Fine for one account, a pain with several.</value>
+  </data>
+  <data name="MacText_StaysOfflineFirewall" xml:space="preserve">
+    <value>• The macOS firewall, if on: allow incoming connections for DT Hub (System Settings › Network › Firewall).</value>
+  </data>
+  <data name="MacText_StaysOfflinePrivate" xml:space="preserve">
+    <value>• macOS: allow DT Hub in System Settings › Privacy &amp; Security › Local Network.</value>
+  </data>
+  <data name="MacNo" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="MacRefresh" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="MacOpenAll" xml:space="preserve">
+    <value>Open all</value>
+  </data>
+  <data name="MacCloseAll" xml:space="preserve">
+    <value>Close all</value>
+  </data>
+  <data name="MacOpen" xml:space="preserve">
+    <value>Open</value>
+  </data>
+  <data name="MacClose" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="MacSearching" xml:space="preserve">
+    <value>Looking for phones…</value>
+  </data>
+  <data name="MacNoGame" xml:space="preserve">
+    <value>No phone with DOFUS Touch found. Plug the phone in with USB debugging on, then refresh.</value>
+  </data>
+  <data name="MacFound" xml:space="preserve">
+    <value>Accounts found: {0}</value>
+  </data>
+  <data name="MacMenuEdit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="MacMenuUndo" xml:space="preserve">
+    <value>Undo</value>
+  </data>
+  <data name="MacMenuRedo" xml:space="preserve">
+    <value>Redo</value>
+  </data>
+  <data name="MacMenuCut" xml:space="preserve">
+    <value>Cut</value>
+  </data>
+  <data name="MacMenuCopy" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="MacMenuPaste" xml:space="preserve">
+    <value>Paste</value>
+  </data>
+  <data name="MacMenuSelectAll" xml:space="preserve">
+    <value>Select All</value>
+  </data>
+  <data name="MacMenuView" xml:space="preserve">
+    <value>View</value>
+  </data>
+  <data name="MacMenuBack" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="MacMenuForward" xml:space="preserve">
+    <value>Forward</value>
+  </data>
+  <data name="MacMenuReload" xml:space="preserve">
+    <value>Reload Page</value>
+  </data>
+  <data name="MacMenuActualSize" xml:space="preserve">
+    <value>Actual Size</value>
+  </data>
+  <data name="MacMenuZoomIn" xml:space="preserve">
+    <value>Zoom In</value>
+  </data>
+  <data name="MacMenuZoomOut" xml:space="preserve">
+    <value>Zoom Out</value>
+  </data>
+  <data name="MacPageFailed" xml:space="preserve">
+    <value>This page could not be loaded.</value>
+  </data>
+  <data name="MacPageRetry" xml:space="preserve">
+    <value>Try again</value>
+  </data>
+  <data name="InstallWithBrew" xml:space="preserve">
+    <value>In Terminal: brew install {0}</value>
+  </data>
+  <data name="InstallLinuxTools" xml:space="preserve">
+    <value>Take scrcpy's official Linux archive (github.com/Genymobile/scrcpy/releases): it holds scrcpy, scrcpy-server and adb. Copy those three files into ~/.local/bin. Your distribution's scrcpy is often too old.</value>
+  </data>
 </root>

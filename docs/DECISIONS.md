@@ -12019,3 +12019,87 @@ courante, pas de seuils, ou forçage par `cmd thermalservice override-status`
 
 **Non vérifié** : la sortie d'un téléphone Samsung. S'il ne publie pas de
 seuils, rien ne change pour lui.
+
+## D226 - Une version Mac en Avalonia, sur le cœur partagé, sans iPhone
+
+**2026-11-04 - Acceptée, première version non essayée sur Mac**
+
+Demandé le 04/11/2026 : une version Mac, sans rien risquer pour la version PC.
+Le jeu reste sur le téléphone Android, comme Ankama l'exige ; le Mac l'affiche
+et le pilote comme le PC.
+
+L'iPhone n'est pas couvert par cette version : iOS n'offre ni adb, ni écran
+virtuel créé de l'extérieur, ni appli dupliquée, donc un seul compte par iPhone
+au mieux. Corrigé le même jour : depuis iOS 27, le Device Hub de Xcode 27 permet
+à un ordinateur d'afficher l'écran d'un iPhone et d'y envoyer des appuis, en
+Mode développeur, et pymobiledevice3 le fait depuis Windows. Piste à part, non
+essayée : l'iPhone XR de test (iOS 18.7.9) ne peut pas passer en iOS 27, et
+pymobiledevice3 n'envoie l'image qu'à partir d'iOS 27.
+
+Décision : un projet `src/DtHub.Mac` en Avalonia, qui reprend `DtHub.Core` et
+`DtHub.Infrastructure` tels quels. `DtHub.App` n'est pas touché. adb et scrcpy
+viennent de Homebrew (`InstalledTool`) plutôt que des archives Windows du
+manifeste. Le code partagé ne change qu'à deux endroits, neutres sous
+Windows : le job object n'est posé que sous Windows, et des clés de traduction
+s'ajoutent. Le projet Mac entre dans `DtHub.slnx` pour que la CI le compile
+(D49), mais la livraison ne publie que `src/DtHub.App`.
+
+Écartés : une appli Swift native, qui réécrirait tout le cœur ; .NET MAUI, qui
+ne passe que par Mac Catalyst.
+
+**Non vérifié** : rien n'a encore tourné sur macOS. La liste des contrôles et
+le placement des fenêtres à étalonner sont dans
+`docs/superpowers/specs/2026-11-04-macos-design.md`.
+
+## D228 - Linux partage l'appli du Mac
+
+Demandé le 04/11/2026 : une version Linux. L'utilisateur a choisi de ne pas
+créer de troisième projet. `src/DtHub.Mac` devient l'appli de bureau pour
+macOS et Linux (cibles `osx-arm64`, `linux-x64`, `linux-arm64`), sans
+changer de nom : la session Mac y travaille en même temps. Le PC Windows
+n'est pas touché.
+
+- **Outils** : sur Linux, le scrcpy des distributions est souvent trop
+  ancien pour les écrans virtuels (Ubuntu 24.04 : 1.25). La consigne est
+  donc l'archive Linux officielle de scrcpy, qui contient scrcpy,
+  scrcpy-server et adb assortis, à copier dans `~/.local/bin`.
+  `InstalledTool` cherche ce dossier en premier, puis ceux de Homebrew,
+  puis le PATH. La consigne d'installation est maintenant une phrase
+  complète, propre au système (`InstallWithBrew`, `InstallLinuxTools`).
+- **Corrigé en passant, Mac compris** : un adb absent s'affichait
+  « aucun téléphone trouvé ». La recherche ne lève pas d'erreur, elle le
+  signale dans son résultat (`AdbFailed`), que la fenêtre ne lisait pas.
+
+Vérifié le 04/11/2026 dans WSL (Ubuntu 24.04, affichage WSLg), avec un SDK
+.NET 10 pour Linux :
+- compilation `-warnaserror` sans avertissement ;
+- 3011 tests réussis, 3 sautés (propres à Windows) ;
+- sans outils, la fenêtre affiche la consigne ;
+- avec les trois fichiers de l'archive scrcpy 5.0.1 dans `~/.local/bin`,
+  adb démarre et la fenêtre attend un téléphone.
+
+**Non vérifié** : un vrai téléphone, WSL ne voyant pas l'USB du PC. Il faut
+aussi étalonner le placement des fenêtres : la hauteur de barre de titre est
+celle du Mac, et sous Wayland scrcpy ne peut pas placer sa fenêtre du tout.
+
+Mise à jour du 05/11/2026, après la revue de la branche :
+- **Outils téléchargés aussi sous Linux.** Le téléchargeur lit maintenant
+  les .tar.gz (ajout de la session Mac). Linux x86_64 télécharge donc
+  lui-même les archives officielles de Google et de scrcpy
+  (`platform-tools-linux`, `scrcpy-linux`), comme le Mac, empreintes
+  recoupées avec celles que Google et GitHub publient. La copie du joueur
+  ne sert plus qu'en secours, et sur Linux ARM, faute d'archive.
+- **Défaut commun corrigé.** Sans `~/.local/share`, .NET rendait un chemin
+  vide, et DT Hub écrivait outils, journaux et réglages dans un dossier
+  « DtHub » sous son dossier de lancement. `AppPaths` demande maintenant à
+  .NET de créer le dossier ; rien ne change sous Windows, où il existe
+  toujours.
+- **Liens et dossiers** : ils s'ouvrent par `xdg-open`, au lieu du `open`
+  du Mac.
+- **Éditeur de raccourcis** : la touche tapée est lue par Avalonia, au lieu
+  de libDtHubMac, absente sous Linux.
+
+Revérifié dans WSL depuis un dossier personnel vide :
+- les deux archives sont téléchargées et vérifiées en deux secondes ;
+- les données vont dans `~/.local/share/DtHub` ;
+- le journal ne contient aucune erreur.

@@ -1,0 +1,134 @@
+﻿<!-- The PC's pairing window (src/DtHub.App/Windows/AddDeviceWindow.xaml), on
+     the same view model. On the Mac it is the way to add a wireless phone:
+     the network is watched, the phone shows up as soon as its pairing
+     screen is open, and only the code is typed. -->
+<Window x:Class="DtHub.Mac.Views.AddDeviceWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:DtHub.Mac.Localization"
+        xmlns:vm="using:DtHub.App.ViewModels"
+        x:DataType="vm:AddDeviceViewModel"
+        Title="{loc:T PairDevice}"
+        Width="520" Height="420" MinWidth="460" MinHeight="340"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource SurfaceAltBrush}"
+        FontSize="{DynamicResource FontMedium}"
+        Foreground="{DynamicResource TextBrush}">
+
+  <DockPanel Margin="20">
+
+    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,14">
+      <TextBlock Classes="title" Text="{loc:T PairDevice}" />
+
+      <!-- Wi-Fi first: it is the side that needs this window, a cable
+           phone shows up in the main one on its own. -->
+      <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+        <RadioButton Theme="{StaticResource Tab}" Content="{loc:T ByWifi}" GroupName="PairMode"
+                     IsChecked="{Binding ByCable, Converter={StaticResource InverseBool}}" />
+        <RadioButton Theme="{StaticResource Tab}" Content="{loc:T ByCable}" GroupName="PairMode"
+                     IsChecked="{Binding ByCable}" />
+      </StackPanel>
+
+      <TextBlock Classes="muted" Margin="0,12,0,0" LineHeight="20"
+                 Text="{loc:T PairCodeIntro}" IsVisible="{Binding !ByCable}" />
+      <TextBlock Classes="muted" Margin="0,12,0,0" LineHeight="20"
+                 Text="{loc:T PairCableSteps}" IsVisible="{Binding ByCable}" />
+    </StackPanel>
+
+    <Grid DockPanel.Dock="Bottom" Margin="0,14,0,0" ColumnDefinitions="Auto,*,Auto">
+      <Button Grid.Column="0" Content="{loc:T Help}" MinWidth="90" Click="OnHelp"
+              ToolTip.Tip="{loc:T HelpTip}" />
+      <Button Grid.Column="2" Content="{loc:T Close}" MinWidth="110" Click="OnClose"
+              IsCancel="True" />
+    </Grid>
+
+    <Border DockPanel.Dock="Top" Classes="card" IsVisible="{Binding ByCable}">
+      <StackPanel>
+        <TextBlock Text="{Binding CableStatus}" TextWrapping="Wrap" FontWeight="SemiBold"
+                   Foreground="{DynamicResource TextBrush}" />
+        <Button Theme="{StaticResource LinkButton}" Margin="0,8,0,0" HorizontalAlignment="Left"
+                FontSize="{DynamicResource FontSmall}"
+                Content="{loc:T NotDetectedOpenHelp}" Click="OnFixes" />
+      </StackPanel>
+    </Border>
+
+    <StackPanel IsVisible="{Binding !ByCable}">
+
+      <ItemsControl ItemsSource="{Binding Candidates}" Margin="0,0,0,12">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:PairingCandidateViewModel">
+            <RadioButton GroupName="Candidate" Margin="0,4" Foreground="{DynamicResource TextBrush}"
+                         IsCheckedChanged="OnCandidateChecked">
+              <StackPanel>
+                <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" />
+                <TextBlock Classes="muted" Text="{Binding Address}" FontSize="{DynamicResource FontSmall}" />
+              </StackPanel>
+            </RadioButton>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+      <Border Classes="card"
+              IsVisible="{Binding Candidates.Count, Converter={StaticResource EmptyToVisibility}}">
+        <StackPanel>
+          <TextBlock Text="{loc:T WaitingForDevice}" FontWeight="SemiBold"
+                     Foreground="{DynamicResource TextBrush}" />
+          <!-- Typed by hand, the address pairs the phone, but the network
+               that hid its announcement keeps hiding it, and the phone
+               never reconnects on its own: the help's fixes come first. -->
+          <Button Theme="{StaticResource LinkButton}" Margin="0,8,0,0" HorizontalAlignment="Left"
+                  FontSize="{DynamicResource FontSmall}"
+                  Content="{loc:T NotDetectedOpenHelp}" Click="OnFixes"
+                  IsVisible="{Binding OffersManualEntry}" />
+          <Button Theme="{StaticResource LinkButton}" Margin="0,6,0,0" HorizontalAlignment="Left"
+                  FontSize="{DynamicResource FontSmall}"
+                  Content="{loc:T ManualPairingLink}" Command="{Binding EnterManuallyCommand}"
+                  IsVisible="{Binding OffersManualEntry}" />
+          <TextBlock Classes="muted" Margin="0,6,0,0"
+                     Text="{loc:T ManualPairingHint}"
+                     IsVisible="{Binding ManualEntry}" />
+        </StackPanel>
+      </Border>
+
+      <!-- The address is asked for when the one the network announced did
+           not answer, and offered when nothing was announced at all: the
+           phone shows it under its code, and pairing needs nothing else. -->
+      <StackPanel Margin="0,0,0,12" IsVisible="{Binding ShowsAddress}">
+        <TextBlock Classes="muted" Text="{loc:T PairingAddressLabel}"
+                   FontSize="{DynamicResource FontSmall}" Margin="2,0,0,4" />
+        <TextBox Text="{Binding PairingAddress}"
+                 Width="220" HorizontalAlignment="Left"
+                 FontSize="{DynamicResource FontLarge}"
+                 PlaceholderText="{loc:T PairingAddressExample}" />
+      </StackPanel>
+
+      <StackPanel Orientation="Horizontal" IsVisible="{Binding ShowsCodeEntry}">
+        <TextBox Name="Code" Text="{Binding PairingCode}"
+                 Width="150" Margin="0,0,8,0" FontSize="{DynamicResource FontLarge}"
+                 KeyDown="OnCodeKey"
+                 ToolTip.Tip="{loc:T PairingCodeTip}"
+                 PlaceholderText="{loc:T PairingCodeExample}" />
+        <Button Content="{loc:T Pair}" Theme="{StaticResource PrimaryButton}"
+                Command="{Binding PairCommand}" IsEnabled="{Binding CanPair}" />
+      </StackPanel>
+
+      <!-- The port is only asked for when it is missing, that is when the
+           network announced nothing. The pairing is then already done:
+           nothing to redo, only a number to read on the phone. -->
+      <StackPanel Orientation="Horizontal" Margin="0,12,0,0" IsVisible="{Binding NeedsPort}">
+        <TextBox Text="{Binding ConnectPort}"
+                 Width="150" Margin="0,0,8,0" FontSize="{DynamicResource FontLarge}"
+                 KeyDown="OnPortKey"
+                 ToolTip.Tip="{loc:T PortTip}"
+                 PlaceholderText="{loc:T PairingPortExample}" />
+        <Button Content="{loc:T Connect}" Theme="{StaticResource PrimaryButton}"
+                Command="{Binding ConnectCommand}" IsEnabled="{Binding CanConnect}" />
+      </StackPanel>
+
+      <TextBlock Classes="muted" Text="{Binding Status}" Margin="2,12,0,0"
+                 IsVisible="{Binding Status, Converter={StaticResource EmptyToVisibility}, ConverterParameter=inverse}" />
+
+    </StackPanel>
+
+  </DockPanel>
+</Window>

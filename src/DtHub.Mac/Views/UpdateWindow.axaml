@@ -1,0 +1,35 @@
+﻿<!-- The PC's release note (src/DtHub.App/Windows/UpdateWindow.xaml): what
+     a version brings, as the repository announces it. -->
+<Window x:Class="DtHub.Mac.Views.UpdateWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:DtHub.Mac.Localization"
+        Title="{loc:T WhatsNew}"
+        Width="560" Height="620" MinWidth="440" MinHeight="360"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource SurfaceAltBrush}"
+        FontSize="{DynamicResource FontMedium}"
+        Foreground="{DynamicResource TextBrush}">
+
+  <DockPanel Margin="20">
+    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,14">
+      <TextBlock Name="Heading" Classes="title" />
+      <TextBlock Name="Lead" Classes="muted" Margin="0,6,0,0" TextWrapping="Wrap" />
+    </StackPanel>
+
+    <DockPanel DockPanel.Dock="Bottom" Margin="0,14,0,0">
+      <Button DockPanel.Dock="Right" Content="{loc:T Close}" MinWidth="110" Padding="14,6"
+              IsCancel="True" IsDefault="True" Click="OnClose" />
+      <Button Theme="{StaticResource LinkButton}" Content="{loc:T AllVersions}"
+              HorizontalAlignment="Left" VerticalAlignment="Center"
+              ToolTip.Tip="{loc:T AllVersionsTip}" Click="OnAllVersions" />
+    </DockPanel>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                  Padding="0,0,10,0">
+      <!-- The note comes from the repository and is not ours: shown
+           exactly as written. -->
+      <SelectableTextBlock Name="Notes" TextWrapping="Wrap" LineHeight="19" />
+    </ScrollViewer>
+  </DockPanel>
+</Window>

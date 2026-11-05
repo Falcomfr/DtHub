@@ -1,4 +1,6 @@
-﻿using System.IO.Compression;
+﻿using System.Formats.Tar;
+using System.IO.Compression;
+using System.Runtime.Versioning;
 using System.Security.Cryptography;
 
 using DtHub.Core.Dependencies;
@@ -63,7 +65,7 @@ public sealed partial class ArchiveDependencyProvisioner : IDependencyProvisione
 
         var archivePath = Path.Combine(
             Path.GetTempPath(),
-            $"dthub-{dependency.Key}-{Guid.NewGuid():N}.zip");
+            $"dthub-{dependency.Key}-{Guid.NewGuid():N}{(IsTarGz(dependency) ? ".tar.gz" : ".zip")}");
 
         try
         {
@@ -218,7 +220,20 @@ public sealed partial class ArchiveDependencyProvisioner : IDependencyProvisione
 
         try
         {
-            ZipFile.ExtractToDirectory(archivePath, staging, overwriteFiles: true);
+            if (IsTarGz(dependency))
+            {
+                ExtractTarGz(archivePath, staging);
+            }
+            else
+            {
+                ZipFile.ExtractToDirectory(archivePath, staging, overwriteFiles: true);
+            }
+
+            if (!OperatingSystem.IsWindows())
+            {
+                MarkExecutable(Path.Combine(
+                    staging, dependency.ArchiveRootDirectory ?? string.Empty, dependency.Executable));
+            }
 
             DeleteDirectoryQuietly(installRoot);
             Directory.Move(staging, installRoot);
@@ -228,8 +243,50 @@ public sealed partial class ArchiveDependencyProvisioner : IDependencyProvisione
             DeleteDirectoryQuietly(staging);
             throw;
         }
+    }
 
-        _ = dependency;
+    /// <summary>
+    /// The macOS scrcpy comes as a .tar.gz; every Windows archive is a
+    /// zip, and takes the zip path exactly as before.
+    /// </summary>
+    private static bool IsTarGz(ExternalDependency dependency) =>
+        dependency.Url.AbsolutePath.EndsWith(".tar.gz", StringComparison.OrdinalIgnoreCase)
+        || dependency.Url.AbsolutePath.EndsWith(".tgz", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// TarFile refuses an entry, or a link, that would land outside the
+    /// destination, and gives each file the mode the archive records.
+    /// </summary>
+    private static void ExtractTarGz(string archivePath, string destination)
+    {
+        using var file = File.OpenRead(archivePath);
+        using var gzip = new GZipStream(file, CompressionMode.Decompress);
+        TarFile.ExtractToDirectory(gzip, destination, overwriteFiles: true);
+    }
+
+    /// <summary>
+    /// Both extractors already restore the Unix modes the archive
+    /// records. The executable is made runnable anyway, for an archive
+    /// built without them, a zip made on Windows for one: a file that
+    /// cannot run would only fail at the first session, far from here.
+    /// </summary>
+    [UnsupportedOSPlatform("windows")]
+    private static void MarkExecutable(string path)
+    {
+        if (!File.Exists(path))
+        {
+            // Reported as missing by the caller, in words.
+            return;
+        }
+
+        const UnixFileMode Execute =
+            UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute;
+
+        var mode = File.GetUnixFileMode(path);
+        if ((mode & Execute) != Execute)
+        {
+            File.SetUnixFileMode(path, mode | Execute | UnixFileMode.UserRead);
+        }
     }
 
     private static void DeleteQuietly(string path)
