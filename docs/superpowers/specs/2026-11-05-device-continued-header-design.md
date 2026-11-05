@@ -22,8 +22,9 @@ so a split phone looks like a second phone.
   unchanged.
 - A later run of the same phone gets one slim muted line instead:
   `↳ <phone name> · continued`, with no dot, battery, link chips, screen
-  switch, buttons or problems line. Its tooltip: "This phone has other
-  accounts higher up. Drag them together to regroup them."
+  switch, buttons or problems line. Its tooltip: "Same phone as above: the
+  list order also sets the startup, tab and F1-F8 order. Drag its accounts
+  together to regroup them."
 - Same on Windows and Mac; strings in en, fr, es.
 - The order, the drag rules and the tab reordering do not change.
 
