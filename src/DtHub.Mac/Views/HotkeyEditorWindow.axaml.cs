@@ -96,8 +96,13 @@ public partial class HotkeyEditorWindow : Window
 
         // A key with no place here (a media key...) gives 0, which the view
         // model refuses as "no key", where the player just typed.
+        // On Linux libDtHubMac does not exist: Avalonia's own symbol gives the
+        // character this key types, layout included.
+        Func<int, char?> characterOf = OperatingSystem.IsMacOS()
+            ? MacKeyboard.CharacterOf
+            : _ => e.KeySymbol is [var typed] ? typed : null;
         var virtualKey = MacKeyCodes.TryGetValue(e.PhysicalKey, out var code)
-            ? MacKeyMap.ToVirtualKey(code, MacKeyboard.CharacterOf)
+            ? MacKeyMap.ToVirtualKey(code, characterOf)
             : 0;
 
         await _viewModel.ApplyCapturedAsync(virtualKey, modifiers).ConfigureAwait(true);

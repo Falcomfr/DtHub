@@ -216,14 +216,15 @@ internal sealed class MacApp : Application
             language, languageSettings.Language, CultureInfo.InstalledUICulture.Name);
 
         // Before the first window, as on the PC: adb and scrcpy are set up
-        // with their progress shown. Shows nothing once they are there.
-        // macOS only: Linux takes the player's tools, and moves no window.
+        // with their progress shown. Shows nothing once they are there, nor
+        // on Linux ARM, which has no archive to download.
+        await PreparationWindow
+            .RunAsync(services.GetRequiredService<MacToolPreparation>())
+            .ConfigureAwait(true);
+
+        // macOS only: Linux moves no window.
         if (OperatingSystem.IsMacOS())
         {
-            await PreparationWindow
-                .RunAsync(services.GetRequiredService<MacToolPreparation>())
-                .ConfigureAwait(true);
-
             // Before any game window: without the Accessibility permission
             // the layout cannot move them.
             AccessibilityCheck.Run(services.GetRequiredService<IDialogService>());

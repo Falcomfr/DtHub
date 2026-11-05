@@ -69,6 +69,11 @@ archive is left untouched. Should the download fail, a copy of scrcpy the
 player installed (with Homebrew, for instance) is used instead; DT Hub
 does not distribute that copy.
 
+On Linux x86_64 the same applies to the project's Linux archive,
+https://github.com/Genymobile/scrcpy/releases/download/v5.0.1/scrcpy-linux-x86_64-v5.0.1.tar.gz ,
+whose bundled `adb` is not used either. On Linux ARM, with no official
+archive, only a copy the player installed is used.
+
 DT Hub is not affiliated with Genymobile or the scrcpy authors, and does
 not use their name or logos as part of its own identity.
 
@@ -103,9 +108,9 @@ binaries. The platform tools are therefore **not** included in the
 repository or in the installer, nor in the macOS application. DT Hub
 downloads them from the official URL above for its system, on first
 launch, into the user's data folder, and verifies the archive before
-extracting it. On macOS, should that download fail, an `adb` the player
-installed (with Homebrew, for instance) is used instead; DT Hub does not
-distribute that copy either.
+extracting it. On macOS and Linux, should that download fail, an `adb`
+the player installed (with Homebrew or scrcpy's archive, for instance) is
+used instead; DT Hub does not distribute that copy either.
 
 The user is informed of this: on first launch, a window names each
 component, its version and the address it comes from, and shows the

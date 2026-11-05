@@ -12081,3 +12081,25 @@ Vérifié le 04/11/2026 dans WSL (Ubuntu 24.04, affichage WSLg), avec un SDK
 **Non vérifié** : un vrai téléphone, WSL ne voyant pas l'USB du PC. Il faut
 aussi étalonner le placement des fenêtres : la hauteur de barre de titre est
 celle du Mac, et sous Wayland scrcpy ne peut pas placer sa fenêtre du tout.
+
+Mise à jour du 05/11/2026, après la revue de la branche :
+- **Outils téléchargés aussi sous Linux.** Le téléchargeur lit maintenant
+  les .tar.gz (ajout de la session Mac). Linux x86_64 télécharge donc
+  lui-même les archives officielles de Google et de scrcpy
+  (`platform-tools-linux`, `scrcpy-linux`), comme le Mac, empreintes
+  recoupées avec celles que Google et GitHub publient. La copie du joueur
+  ne sert plus qu'en secours, et sur Linux ARM, faute d'archive.
+- **Défaut commun corrigé.** Sans `~/.local/share`, .NET rendait un chemin
+  vide, et DT Hub écrivait outils, journaux et réglages dans un dossier
+  « DtHub » sous son dossier de lancement. `AppPaths` demande maintenant à
+  .NET de créer le dossier ; rien ne change sous Windows, où il existe
+  toujours.
+- **Liens et dossiers** : ils s'ouvrent par `xdg-open`, au lieu du `open`
+  du Mac.
+- **Éditeur de raccourcis** : la touche tapée est lue par Avalonia, au lieu
+  de libDtHubMac, absente sous Linux.
+
+Revérifié dans WSL depuis un dossier personnel vide :
+- les deux archives sont téléchargées et vérifiées en deux secondes ;
+- les données vont dans `~/.local/share/DtHub` ;
+- le journal ne contient aucune erreur.

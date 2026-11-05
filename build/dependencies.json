@@ -60,6 +60,33 @@
       "licenseUrl": "https://github.com/Genymobile/scrcpy/blob/master/LICENSE",
       "redistributable": true,
       "redistributionNote": "Version macOS Apple Silicon, téléchargée par le même mécanisme vérifié. L'archive amont contient aussi un adb : DT Hub ne s'en sert pas et passe toujours à scrcpy celui de platform-tools-macos, pour qu'un seul serveur ADB tourne. Son LICENSE est conservé tel quel à l'extraction."
+    },
+    "platform-tools-linux": {
+      "displayName": "Android SDK Platform-Tools",
+      "version": "37.0.1",
+      "url": "https://dl.google.com/android/repository/platform-tools_r37.0.1-linux.zip",
+      "sizeBytes": 9054187,
+      "sha256": "d230f13842f60f782a8645f9c813f8f845bf36089ea7289f28c48f17979313f1",
+      "sha1": "477254aa5f903c15cf51001717bdf347fb6b53e0",
+      "archiveRootDirectory": "platform-tools",
+      "executable": "adb",
+      "license": "Android Software Development Kit License Agreement",
+      "licenseUrl": "https://developer.android.com/studio/terms",
+      "redistributable": false,
+      "redistributionNote": "Version Linux (x86_64) du même composant, sous la même licence : téléchargée chez l'utilisateur depuis l'URL officielle Google, jamais embarquée dans l'application. Empreinte SHA-1 recoupée avec le catalogue repository2-3.xml de Google."
+    },
+    "scrcpy-linux": {
+      "displayName": "scrcpy",
+      "version": "5.0.1",
+      "url": "https://github.com/Genymobile/scrcpy/releases/download/v5.0.1/scrcpy-linux-x86_64-v5.0.1.tar.gz",
+      "sizeBytes": 17883742,
+      "sha256": "9f969d30cc574816077edecda65719c1c70b0aee1df1ba5fa00779ac07b8fd6e",
+      "archiveRootDirectory": "scrcpy-linux-x86_64-v5.0.1",
+      "executable": "scrcpy",
+      "license": "Apache License 2.0",
+      "licenseUrl": "https://github.com/Genymobile/scrcpy/blob/master/LICENSE",
+      "redistributable": true,
+      "redistributionNote": "Version Linux x86_64, téléchargée par le même mécanisme vérifié ; empreinte recoupée avec celle que GitHub publie pour l'asset. Comme sur Mac, l'adb de l'archive n'est pas utilisé : DT Hub passe celui de platform-tools-linux, pour qu'un seul serveur ADB tourne. Son LICENSE est conservé tel quel à l'extraction."
     }
   }
 }

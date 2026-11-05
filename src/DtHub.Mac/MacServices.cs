@@ -90,11 +90,11 @@ internal static class MacServices
         services.AddSingleton<IProcessRunner, ProcessRunner>();
         services.AddSingleton<IProcessLauncher, ProcessLauncher>();
 
-        // Third-party components. On macOS the manifest's archives, downloaded
-        // on first need as on the PC, the copy the player installed only when
-        // that download fails; scrcpy is always handed this adb. On Linux the
-        // player's install (scrcpy's official archive, which carries adb): the
-        // manifest has no Linux archives.
+        // Third-party components. On macOS and Linux x86_64 the manifest's
+        // archives, downloaded on first need as on the PC, the copy the player
+        // installed only when that download fails; scrcpy is always handed
+        // this adb. On Linux ARM, with no official archive, the player's
+        // install only.
         services.AddSingleton(_ => new HttpClient { Timeout = TimeSpan.FromMinutes(10) });
         services.AddSingleton<IDependencyProvisioner, ArchiveDependencyProvisioner>();
 
@@ -108,6 +108,14 @@ internal static class MacServices
                 provider,
                 DependencyManifest.ScrcpyMacKey,
                 new InstalledTool("scrcpy", Strings.Format("InstallWithBrew", "scrcpy"))));
+        }
+        else if (MacToolPreparation.LinuxArchivesFit)
+        {
+            var linuxHint = Strings.Get("InstallLinuxTools");
+            services.AddSingleton<IAdbLocator>(provider => Provisioned(
+                provider, DependencyManifest.PlatformToolsLinuxKey, new InstalledTool("adb", linuxHint)));
+            services.AddSingleton<IScrcpyLocator>(provider => Provisioned(
+                provider, DependencyManifest.ScrcpyLinuxKey, new InstalledTool("scrcpy", linuxHint)));
         }
         else
         {

@@ -82,6 +82,26 @@ public class DependencyManifestTests
     }
 
     [Fact]
+    public void Les_versions_linux_sont_celles_du_pc_et_des_archives_officielles()
+    {
+        var adb = DependencyManifest.Get(DependencyManifest.PlatformToolsLinuxKey);
+        var scrcpy = DependencyManifest.Get(DependencyManifest.ScrcpyLinuxKey);
+
+        Assert.Equal(DependencyManifest.Get(DependencyManifest.PlatformToolsKey).Version, adb.Version);
+        Assert.Equal(DependencyManifest.Get(DependencyManifest.ScrcpyKey).Version, scrcpy.Version);
+
+        Assert.Equal("dl.google.com", adb.Url.Host);
+        Assert.EndsWith("-linux.zip", adb.Url.AbsolutePath, StringComparison.Ordinal);
+        Assert.Equal("adb", adb.Executable);
+        Assert.False(adb.Redistributable);
+
+        Assert.Equal("github.com", scrcpy.Url.Host);
+        Assert.EndsWith(".tar.gz", scrcpy.Url.AbsolutePath, StringComparison.Ordinal);
+        Assert.Equal("scrcpy", scrcpy.Executable);
+        Assert.Equal($"scrcpy-linux-x86_64-v{scrcpy.Version}", scrcpy.ArchiveRootDirectory);
+    }
+
+    [Fact]
     public void Le_sdk_android_pour_macos_n_est_pas_redistribuable_non_plus()
     {
         var dependency = DependencyManifest.Get(DependencyManifest.PlatformToolsMacKey);

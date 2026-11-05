@@ -38,6 +38,12 @@ public static class DependencyManifest
     /// <summary>Key of the macOS (Apple Silicon) build of scrcpy.</summary>
     public const string ScrcpyMacKey = "scrcpy-macos";
 
+    /// <summary>Key of the Linux (x86_64) build of ADB.</summary>
+    public const string PlatformToolsLinuxKey = "platform-tools-linux";
+
+    /// <summary>Key of the Linux (x86_64) build of scrcpy.</summary>
+    public const string ScrcpyLinuxKey = "scrcpy-linux";
+
     /// <summary>All declared dependencies, indexed by key.</summary>
     public static IReadOnlyDictionary<string, ExternalDependency> All => Cached.Value;
 

@@ -209,6 +209,12 @@ internal sealed class MacDialogService : IDialogService
         return types;
     }
 
+    // "open" is macOS's; on Linux it is openvt, or nothing. xdg-open asks the
+    // desktop for the browser or file manager.
     private static void Open(string target) =>
-        Process.Start(new ProcessStartInfo("open") { ArgumentList = { target }, UseShellExecute = false })?.Dispose();
+        Process.Start(new ProcessStartInfo(OperatingSystem.IsMacOS() ? "open" : "xdg-open")
+        {
+            ArgumentList = { target },
+            UseShellExecute = false,
+        })?.Dispose();
 }

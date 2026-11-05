@@ -169,21 +169,25 @@ through `PATH`: .NET SDK 10.0.403, adb 37.0.1, scrcpy 5.0.1, gh 2.103.3.
 The same project, `src/DtHub.Mac`, also targets `linux-x64` and
 `linux-arm64`. It keeps its name because the Mac session works on it.
 
-Setting up a Linux PC:
-
-```bash
-# .NET 10 SDK: from the distribution, or https://dot.net/v1/dotnet-install.sh
-# scrcpy's official archive holds scrcpy, scrcpy-server and adb, matched:
-curl -LO https://github.com/Genymobile/scrcpy/releases/download/v5.0.1/scrcpy-linux-x86_64-v5.0.1.tar.gz
-tar xzf scrcpy-linux-x86_64-v5.0.1.tar.gz
-mkdir -p ~/.local/bin
-cp scrcpy-linux-x86_64-v5.0.1/{scrcpy,scrcpy-server,adb} ~/.local/bin/
-dotnet run --project src/DtHub.Mac
-```
+Setting up a Linux PC: only the .NET 10 SDK (from the distribution, or
+https://dot.net/v1/dotnet-install.sh), then `dotnet run --project
+src/DtHub.Mac`. On x86_64, DT Hub downloads Google's Linux platform tools and
+scrcpy's Linux archive itself, hash-checked, as on the Mac
+(`platform-tools-linux`, `scrcpy-linux` in the manifest). On ARM, or when
+that download fails, it falls back to a copy in `~/.local/bin` or the PATH:
+scrcpy's archive holds scrcpy, scrcpy-server and adb, to copy there.
 
 Avoid the distribution's scrcpy: Ubuntu 24.04 ships 1.25, too old for
 `--new-display`. USB debugging also needs the phone's udev rule on some
 distributions (`android-sdk-platform-tools-common` on Debian and Ubuntu).
+
+Checked again on 2026-11-05 in WSL, from an empty home: both archives
+downloaded and checked in about two seconds, data in
+`~/.local/share/DtHub`, no error in the log. That run found a shared bug,
+fixed: without `~/.local/share`, .NET gave an empty data path and DT Hub wrote
+everything into "DtHub" under its working folder (`AppPaths` now asks .NET
+to create it; Windows unchanged). Links and folders open with `xdg-open`, and
+the shortcut editor reads the typed key from Avalonia, not libDtHubMac.
 
 Checked on 2026-11-04 in WSL (Ubuntu 24.04, WSLg):
 - build with `-warnaserror`, 0 warnings;
