@@ -230,11 +230,17 @@ goes through Privacy & Security, "Open Anyway". Checked with a local
 archive: refuses while DT Hub runs, installs and opens it, refuses a
 wrong checksum and leaves the installed app alone.
 
-Signing in the pipeline: ad hoc unless the `MAC_SIGNING_P12` and
-`MAC_SIGNING_PASSWORD` secrets hold a certificate (a self-signed one
-does, the local "DT Hub Local Signing" exported to .p12). Ad hoc, each
-version is a new identity to macOS, and the player ticks Accessibility
-again after each update.
+Signing in the pipeline: with the `MAC_SIGNING_P12` and
+`MAC_SIGNING_PASSWORD` secrets, set on 2026-11-05 from the local "DT Hub
+Local Signing" (self-signed, SHA-1 EDD9503D…27DD), so every release keeps
+the identity this Mac's builds had. Ad hoc without them: each version would
+be a new identity to macOS, and the player would tick Accessibility again
+after each update. The import and signing steps were rehearsed here in a
+fresh keychain, without any prompt.
+
+Without a Mac at hand, the Check workflow's `mac` job runs the tests on
+GitHub's Mac, builds the app and captures what a first start shows
+(artifact "mac-captures", with the log).
 
 ## Wi-Fi phones on the Mac (2026-11-05)
 

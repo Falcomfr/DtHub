@@ -102,3 +102,52 @@ jobs:
       # positives before it was put right.
       - name: Check the formatting
         run: dotnet format DtHub.slnx --verify-no-changes --no-restore
+
+  # The Mac's front-end on GitHub's own Mac, so a change made from a PC
+  # says whether it breaks the Mac without a Mac at hand: the tests only a
+  # Mac runs (ditto, codesign, Unix paths), the app built as the release
+  # builds it, and what it shows at first start, captured. The Windows job
+  # above already compiles DtHub.Mac; this one runs it.
+  mac:
+    runs-on: macos-15
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Test
+        run: dotnet test tests/DtHub.Tests --configuration Release --nologo
+
+      - name: Build the app
+        run: dotnet publish src/DtHub.Mac -c Release -r osx-arm64 -warnaserror --nologo
+
+      # A first start on a Mac that has never seen DT Hub: the preparation
+      # of the tools, the Accessibility request, the main window and the
+      # pairing window. Captured twice, the tools being downloaded in
+      # between, and joined to the run with the log ("Artifacts" on the
+      # run's page). No phone here: what needs one stays to be tried on a
+      # real Mac.
+      - name: Start it and capture the screen
+        continue-on-error: true
+        run: |
+          mkdir -p captures
+          open "src/DtHub.Mac/bin/Release/net10.0/osx-arm64/DT Hub.app"
+          sleep 20
+          screencapture -x captures/1-demarrage.png
+          sleep 40
+          screencapture -x captures/2-apres-preparation.png
+          pgrep -x DtHub.Mac > /dev/null && echo "DT Hub is running." || { echo "DT Hub is not running."; exit 1; }
+
+      - name: Join the captures and the log
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mac-captures
+          path: |
+            captures/
+            ~/Library/Application Support/DtHub/logs/
+          if-no-files-found: ignore
+          retention-days: 14
