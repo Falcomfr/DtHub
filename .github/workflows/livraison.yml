@@ -226,3 +226,78 @@ jobs:
           --title "DT Hub $env:VERSION"
           --notes-file corps.md
           --draft
+
+  # The Mac's DtHub-mac.zip, added to the draft the job above created.
+  # Built on GitHub's own Mac, as "dotnet publish" builds it on any Mac
+  # (src/DtHub.Mac/DtHub.Mac.csproj): the application installs it on its
+  # own (BundleUpdateService), and site/install-mac.sh installs it the
+  # first time.
+  mac:
+    needs: livrer
+    runs-on: macos-15
+
+    # Optional, as the PC's signing: a certificate kept from version to
+    # version keeps macOS's Accessibility permission across updates, where
+    # an ad hoc signature, a new identity at every build, has the player
+    # tick it again. Neither is a Developer ID: Gatekeeper's leniency comes
+    # from the download, not from the signature (docs/LIVRAISON.md).
+    env:
+      MAC_SIGNING_P12: ${{ secrets.MAC_SIGNING_P12 }}
+      MAC_SIGNING_PASSWORD: ${{ secrets.MAC_SIGNING_PASSWORD }}
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: '10.0.x'
+
+      # The front-end's own tests, on the system they are about: the PC's
+      # job runs them on Windows, where the Mac ones are skipped.
+      - name: Test
+        run: dotnet test tests/DtHub.Tests --configuration Release --nologo
+
+      - name: Signing certificate
+        if: env.MAC_SIGNING_P12 != ''
+        run: |
+          keychain="$RUNNER_TEMP/signing.keychain-db"
+          security create-keychain -p ci "$keychain"
+          security set-keychain-settings "$keychain"
+          security unlock-keychain -p ci "$keychain"
+          printf '%s' "$MAC_SIGNING_P12" | base64 --decode > "$RUNNER_TEMP/signing.p12"
+          security import "$RUNNER_TEMP/signing.p12" -k "$keychain" -P "$MAC_SIGNING_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k ci "$keychain" > /dev/null
+          rm "$RUNNER_TEMP/signing.p12"
+
+          # Self-signed, the certificate is not trusted, so "-v" would hide
+          # it: codesign signs with it all the same.
+          identity="$(security find-identity -p codesigning "$keychain" | grep -m1 -oE '[0-9A-F]{40}')"
+          [ -n "$identity" ] || { echo "No signing identity in the certificate."; exit 1; }
+
+          echo "MAC_SIGNING_ARGUMENTS=-p:MacSigningIdentity=$identity -p:MacSigningKeychain=$keychain" >> "$GITHUB_ENV"
+
+      # The tag was checked against Directory.Build.props by the job above,
+      # which this one waits for.
+      - name: Publish
+        env:
+          ETIQUETTE: ${{ github.ref_name }}
+        run: |
+          dotnet publish src/DtHub.Mac -c Release -r osx-arm64 -warnaserror \
+            "-p:Version=${ETIQUETTE#v}" $MAC_SIGNING_ARGUMENTS --nologo
+
+      - name: Archive and check
+        run: |
+          app="src/DtHub.Mac/bin/Release/net10.0/osx-arm64/DT Hub.app"
+          codesign --verify --deep --strict "$app"
+          codesign --display --verbose=2 "$app" 2>&1 | grep -E '^(Identifier|Authority|Signature)'
+
+          # ditto, as the application and the install script unpack it.
+          ditto -c -k --keepParent "$app" DtHub-mac.zip
+          shasum -a 256 DtHub-mac.zip > DtHub-mac.zip.sha256
+          cat DtHub-mac.zip.sha256
+
+      - name: Add to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ETIQUETTE: ${{ github.ref_name }}
+        run: gh release upload "$ETIQUETTE" DtHub-mac.zip DtHub-mac.zip.sha256
