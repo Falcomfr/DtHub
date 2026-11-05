@@ -213,13 +213,22 @@ draft. `BundleUpdateService` (Infrastructure, used by the Mac alone) asks
 for the latest release at startup, downloads the archive in the
 background when "Update itself automatically" is checked, checks its
 digest, unpacks it with `ditto` and checks its signature with `codesign`;
-at shutdown the running bundle steps aside into the updates folder and the
-new one takes its place; the next startup shows the note and sweeps. A
+a copy signed with a certificate also requires the new bundle to meet its
+designated requirement (same identifier, same certificate), so an ad hoc
+or foreign build is refused. At exit, whatever the way out (the Quit
+button, or the last game window closed with the panel hidden), the
+running bundle steps aside into the updates folder and the new one takes
+its place under the running copy's name; the next startup shows the note
+and sweeps, never the old bundle while the new one is missing. A
 development build (under the source tree) or Linux is offered nothing.
 Checked on this Mac on 2026-11-05: a 0.12.2 in `/Applications` found a
 0.12.3 served from a local folder, showed the banner and the note, put it
 in place at Quit, started as 0.12.3 with the note "just installed" and the
-Accessibility permission kept (same certificate).
+Accessibility permission kept (same certificate). Checked again after the
+PC's review: a copy renamed "DT Hub 2.app" updated in place when it closed
+by itself with no window left; an ad hoc 0.12.4 refused by the certificate
+check; a digest file that did not come kept the archive, reused at the
+next start without downloading it again.
 
 The first install is `curl -fsSL https://dthub.app/install-mac.sh | bash`
 (`site/install-mac.sh`, served by the site once on `main`). A file curl
@@ -228,7 +237,11 @@ Developer ID, and the archive DT Hub downloads itself is not marked either.
 A `.app` downloaded with a browser is refused instead, unless the player
 goes through Privacy & Security, "Open Anyway". Checked with a local
 archive: refuses while DT Hub runs, installs and opens it, refuses a
-wrong checksum and leaves the installed app alone.
+wrong checksum and leaves the installed app alone. Its body is one
+function called on its last line, so a download cut short runs nothing;
+the old copy steps aside until the new one is in place (a failing move,
+simulated, left the old version), and an existing copy is updated where it
+is, ~/Applications included, never a second one beside it.
 
 Signing in the pipeline: with the `MAC_SIGNING_P12` and
 `MAC_SIGNING_PASSWORD` secrets, set on 2026-11-05 from the local "DT Hub

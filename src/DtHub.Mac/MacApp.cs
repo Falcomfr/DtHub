@@ -143,6 +143,11 @@ internal sealed class MacApp : Application
                 // Off the UI thread and bounded: the sessions' window calls
                 // must not wait for a UI thread that is waiting for them.
                 _ = Task.Run(() => sessions.StopAllAsync()).Wait(QuitBudget);
+
+                // The update is placed here and nowhere else, as the PC's
+                // OnExit does: every way out comes through, the Quit button
+                // as the last game window closed with the panel hidden.
+                _ = Task.Run(ApplyUpdateAsync).Wait(QuitBudget);
                 _ = Task.Run(() => _services.DisposeAsync().AsTask()).Wait(QuitBudget);
                 Log.CloseAndFlush();
             };
@@ -605,13 +610,12 @@ internal sealed class MacApp : Application
 
         await SaveSessionStateAsync(_configurator?.IsVisible == true).ConfigureAwait(true);
         await CloseDownAsync().ConfigureAwait(true);
-        await ApplyUpdateAsync().ConfigureAwait(true);
     }
 
     /// <summary>
-    /// Places a prepared update, here and nowhere else: nothing is running
-    /// anymore. The box is read now: unchecked after the download, the
-    /// player keeps his version.
+    /// Places a prepared update, at exit: nothing is running anymore. The
+    /// box is read now: unchecked after the download, the player keeps his
+    /// version.
     /// </summary>
     private static async Task ApplyUpdateAsync()
     {
@@ -622,7 +626,7 @@ internal sealed class MacApp : Application
 
         try
         {
-            var settings = await _services.GetRequiredService<SettingsService>().GetAsync().ConfigureAwait(true);
+            var settings = await _services.GetRequiredService<SettingsService>().GetAsync().ConfigureAwait(false);
 
             if (_services.GetRequiredService<BundleUpdateService>().Apply(settings.UpdatesAutomatic))
             {
@@ -835,7 +839,13 @@ internal sealed class MacApp : Application
     {
         try
         {
-            if (services.GetRequiredService<IScrcpyLocator>().TryGetInstalledPath() is { } scrcpy)
+            // The player's own copy is what the locators hand when DT Hub's
+            // could not be downloaded: its windows and its adb server are
+            // the player's, and stay untouched.
+            var tools = services.GetRequiredService<IAppPaths>().ToolsDirectory;
+
+            if (services.GetRequiredService<IScrcpyLocator>().TryGetInstalledPath() is { } scrcpy
+                && IsUnder(scrcpy, tools))
             {
                 var windows = OrphanProcesses.KillFrom(scrcpy);
 
@@ -846,6 +856,12 @@ internal sealed class MacApp : Application
             }
 
             var adb = await services.GetRequiredService<IAdbLocator>().GetAdbPathAsync().ConfigureAwait(true);
+
+            if (!IsUnder(adb, tools))
+            {
+                return;
+            }
+
             var shells = MacOrphans.KillShellsFrom(adb);
 
             if (shells > 0)
@@ -868,6 +884,9 @@ internal sealed class MacApp : Application
             Log.Warning(exception, "Le ménage des fenêtres restantes a échoué.");
         }
     }
+
+    private static bool IsUnder(string path, string folder) =>
+        Path.GetFullPath(path).StartsWith(Path.GetFullPath(folder) + Path.DirectorySeparatorChar, StringComparison.Ordinal);
 
     /// <summary>
     /// The PC's: brought back with no game open, DT Hub reopens the session,

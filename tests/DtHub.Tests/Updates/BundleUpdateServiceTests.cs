@@ -225,6 +225,69 @@ public sealed class BundleUpdateServiceTests : IDisposable
         Assert.Equal("ancienne", Mark());
     }
 
+    [MacFact]
+    public async Task Met_a_jour_une_application_renommee_sans_tout_retelecharger()
+    {
+        // The archive always holds "DT Hub.app": a copy renamed by the
+        // player looked for its own name in it, never found it, and
+        // downloaded the sixty megabytes again at every launch.
+        var renamed = Path.Combine(_root, "Applications", "DT Hub 2.app");
+        MakeBundle(renamed, "ancienne");
+        var service = Service(Archive("nouvelle"), bundle: renamed);
+
+        await service.CheckAsync(automatic: true);
+
+        Assert.True(service.Ready);
+        Assert.True(service.Apply(automatic: true));
+        Assert.Equal("nouvelle", File.ReadAllText(Path.Combine(renamed, "Contents", "Resources", "version.txt")));
+        Assert.False(Directory.Exists(_bundle));
+    }
+
+    [MacFact]
+    public async Task Garde_l_archive_quand_seule_l_empreinte_n_a_pas_pu_etre_lue()
+    {
+        MakeBundle(_bundle, "ancienne");
+        var archive = Archive("nouvelle");
+        var source = new FakeReleaseSource
+        {
+            Latest = new AppRelease(new Version(0, 13, 0), "- Une chose.", "https://exemple/zip", 0, "https://exemple/sha"),
+        };
+        _ = source.WithFile("https://exemple/zip", archive);
+        _ = source.WithFailure("https://exemple/sha", new HttpRequestException("hors ligne"));
+
+        await new BundleUpdateService(
+            source, _paths, new ProcessRunner(), new Version(0, 12, 2), _bundle,
+            NullLogger<BundleUpdateService>.Instance).CheckAsync(automatic: true);
+
+        Assert.True(File.Exists(Path.Combine(_paths.UpdatesDirectory, "DtHub-mac-0.13.0.zip")));
+
+        // The next startup finds the digest, and downloads nothing again.
+        var again = new FakeReleaseSource { Latest = source.Latest };
+        _ = again.WithFile("https://exemple/zip", archive);
+        _ = again.WithText("https://exemple/sha", Convert.ToHexStringLower(SHA256.HashData(archive)) + "  DtHub-mac.zip\n");
+        var next = new BundleUpdateService(
+            again, _paths, new ProcessRunner(), new Version(0, 12, 2), _bundle,
+            NullLogger<BundleUpdateService>.Instance);
+
+        await next.CheckAsync(automatic: true);
+
+        Assert.True(next.Ready);
+        Assert.Equal(0, again.Downloads);
+    }
+
+    [MacFact]
+    public void Le_menage_garde_l_ancienne_application_quand_elle_est_la_seule_qui_reste()
+    {
+        // Both moves back refused: the old bundle sits in the updates
+        // folder and is all there is. Sweeping it would leave nothing.
+        var retired = Path.Combine(_paths.UpdatesDirectory, "DT Hub.app.ancien");
+        MakeBundle(retired, "ancienne");
+
+        Service([]).Sweep();
+
+        Assert.True(Directory.Exists(retired));
+    }
+
     [Fact]
     public async Task N_offre_rien_hors_d_une_application()
     {

@@ -803,4 +803,10 @@
   <data name="La signature de la livraison {version} ne tient pas : {detail}" xml:space="preserve">
     <value>La firma de la versión {version} no es válida: {detail}</value>
   </data>
+  <data name="La livraison {version} n'est pas signée par le même certificat que l'application en place : {detail}" xml:space="preserve">
+    <value>La versión {version} no está firmada con el mismo certificado que la aplicación instalada: {detail}</value>
+  </data>
+  <data name="L'ancienne application n'a pas pu reprendre sa place, une copie la remplace." xml:space="preserve">
+    <value>La aplicación anterior no ha podido volver a su sitio, una copia la sustituye.</value>
+  </data>
 </root>

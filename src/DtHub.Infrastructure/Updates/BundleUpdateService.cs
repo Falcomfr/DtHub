@@ -46,6 +46,9 @@ public sealed partial class BundleUpdateService(
     /// <summary>The executable inside the bundle, the Mac project's assembly name.</summary>
     public const string Executable = "DtHub.Mac";
 
+    /// <summary>The bundle the release archive holds, whatever the player renamed his copy to.</summary>
+    public const string ArchivedBundle = "DT Hub.app";
+
     private const string Unpacked = "nouvelle";
     private const string Retired = "DT Hub.app.ancien";
 
@@ -97,7 +100,7 @@ public sealed partial class BundleUpdateService(
 
     private string Incoming => Path.Combine(Folder, Unpacked);
 
-    private string IncomingBundle => Path.Combine(Incoming, Path.GetFileName(_bundle));
+    private string IncomingBundle => Path.Combine(Incoming, ArchivedBundle);
 
     /// <summary>
     /// Looks for a more recent release, and prepares it if asked to do so
@@ -217,8 +220,10 @@ public sealed partial class BundleUpdateService(
             or UnauthorizedAccessException or HttpRequestException or TaskCanceledException
             or ProcessLaunchException)
         {
+            // The archive stays when it is whole: a digest file that did not
+            // come, sixty-four bytes, must not cost the sixty megabytes again.
+            // One that does not match its digest was deleted above.
             LogPrepareFailed(exception);
-            DeleteFile(archive);
             DeleteFile(part);
             DeleteDirectory(Incoming);
 
@@ -263,7 +268,49 @@ public sealed partial class BundleUpdateService(
             return false;
         }
 
-        return true;
+        return await SameSignerAsync(version, archive, cancellationToken).ConfigureAwait(true);
+    }
+
+    /// <summary>
+    /// A running copy signed with a certificate only gives way to a bundle
+    /// signed by the same one: its designated requirement, "this identifier
+    /// and this certificate", must hold for the new bundle. An ad hoc copy
+    /// has nothing to compare, its requirement being its own digest, which
+    /// no other version can meet.
+    /// </summary>
+    private async Task<bool> SameSignerAsync(Version version, string archive, CancellationToken cancellationToken)
+    {
+        var own = await _runner
+            .RunAsync(new ProcessRequest("/usr/bin/codesign", "--display", "--requirements", "-", _bundle) { Timeout = TimeSpan.FromMinutes(1) }, cancellationToken)
+            .ConfigureAwait(true);
+
+        // "designated => identifier "…" and certificate leaf = H"…"",
+        // on standard output or error depending on the macOS version.
+        var designated = (own.StandardOutput + "\n" + own.StandardError)
+            .Split('\n')
+            .Select(line => line.Trim())
+            .FirstOrDefault(line => line.StartsWith("designated => ", StringComparison.Ordinal))?
+            ["designated => ".Length..];
+
+        if (own.ExitCode != 0 || designated is null || !designated.Contains("certificate", StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        var check = await _runner
+            .RunAsync(new ProcessRequest("/usr/bin/codesign", "--verify", "-R=" + designated, IncomingBundle) { Timeout = TimeSpan.FromMinutes(1) }, cancellationToken)
+            .ConfigureAwait(true);
+
+        if (check.ExitCode == 0)
+        {
+            return true;
+        }
+
+        LogOtherSigner(version.ToString(), check.StandardError.Trim());
+        DeleteDirectory(Incoming);
+        DeleteFile(archive);
+
+        return false;
     }
 
     /// <summary>
@@ -296,7 +343,7 @@ public sealed partial class BundleUpdateService(
             }
             catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
             {
-                Directory.Move(retired, _bundle);
+                PutBack(retired);
 
                 throw;
             }
@@ -310,6 +357,63 @@ public sealed partial class BundleUpdateService(
             LogApplyFailed(exception);
 
             return false;
+        }
+    }
+
+    /// <summary>
+    /// The old bundle back in its place. Refused twice, a copy still leaves
+    /// something to start; the retired one then stays where it is, and the
+    /// sweep leaves it alone while the bundle is missing.
+    /// </summary>
+    private void PutBack(string retired)
+    {
+        try
+        {
+            Directory.Move(retired, _bundle);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            LogPutBackFailed(exception);
+            DeleteDirectory(_bundle);
+
+            try
+            {
+                Copy(retired, _bundle);
+            }
+            catch (Exception again) when (again is IOException or UnauthorizedAccessException)
+            {
+                // A half copy would pass for the application, and the sweep
+                // would then throw the whole one away.
+                DeleteDirectory(_bundle);
+
+                throw;
+            }
+        }
+    }
+
+    /// <summary>A bundle copied whole, its links as links: a framework's are part of its signature.</summary>
+    private static void Copy(string from, string to)
+    {
+        _ = Directory.CreateDirectory(to);
+
+        foreach (var entry in new DirectoryInfo(from).EnumerateFileSystemInfos())
+        {
+            var target = Path.Combine(to, entry.Name);
+
+            if (entry.LinkTarget is { } link)
+            {
+                _ = File.CreateSymbolicLink(target, link);
+            }
+            else if (entry is DirectoryInfo directory)
+            {
+                Copy(directory.FullName, target);
+            }
+            else
+            {
+                var file = (FileInfo)entry;
+                file.CopyTo(target);
+                File.SetUnixFileMode(target, File.GetUnixFileMode(file.FullName));
+            }
         }
     }
 
@@ -354,7 +458,13 @@ public sealed partial class BundleUpdateService(
                 return;
             }
 
-            DeleteDirectory(Path.Combine(Folder, Retired));
+            // Never the last copy: a bundle missing means the old one is
+            // all there is.
+            if (_bundle.Length == 0 || Directory.Exists(_bundle))
+            {
+                DeleteDirectory(Path.Combine(Folder, Retired));
+            }
+
             DeleteDirectory(Incoming);
 
             foreach (var file in Directory.EnumerateFiles(Folder, "DtHub-mac-*.zip"))
@@ -449,6 +559,12 @@ public sealed partial class BundleUpdateService(
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "La signature de la livraison {version} ne tient pas : {detail}")]
     private partial void LogSignatureBroken(string version, string detail);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "La livraison {version} n'est pas signée par le même certificat que l'application en place : {detail}")]
+    private partial void LogOtherSigner(string version, string detail);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "L'ancienne application n'a pas pu reprendre sa place, une copie la remplace.")]
+    private partial void LogPutBackFailed(Exception exception);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "La livraison n'a pas pu être préparée.")]
     private partial void LogPrepareFailed(Exception exception);
