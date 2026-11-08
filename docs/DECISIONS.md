@@ -12203,8 +12203,8 @@ Décision :
   `assets/dofus-touch-ids.json` : la place de chaque quête dans son succès,
   dans l'ordre des objectifs du jeu (des nombres seulement, comme le reste de
   la table). Une quête qu'aucun objectif ne nomme reste derrière celle que
-  Papycha mettait avant elle. `--ranks-only` refait ce seul champ depuis un
-  fichier `AchievementObjectives`, sans requête pour les donjons.
+  Papycha mettait avant elle. `--series-only` refait ce champ et `needs` depuis les
+  fichiers `AchievementObjectives` et `Quests`, sans requête pour les donjons.
 - `TouchLocalization` prend ce rang comme `PlayOrder`. Les prérequis passent
   toujours avant : ils restent la seule règle que le joueur vérifie lui-même.
 - Comme les alternatives, le rang ne s'applique qu'avec les noms du jeu en
@@ -12213,3 +12213,14 @@ Décision :
 Résultat sur le cache de l'utilisateur : 3 séries sur 96 diffèrent encore du
 jeu, ce sont les quatre prérequis ci-dessus. Données lues le 06/11/2026, sans
 nouvelle requête.
+
+Prérequis manquants, même jour, à la demande de l'utilisateur. Les quêtes du
+jeu Touch n'ont aucune condition de départ, mais un drapeau `isMain` (quête
+principale). Sur 114 quêtes qu'un succès ne place pas en tête et que Papycha
+laisse sans prérequis dans leur série, une seule suit une autre quête
+principale : « Le Fil d'Adrian », après « Dédale au pluriel ». Les 113 autres
+sont des quêtes annexes que le succès range par niveau (« On recherche … »,
+« Objets trouvés ») : en faire une chaîne bloquerait des quêtes libres.
+`touch_ids.py` écrit donc `needs` (quête Papycha → quêtes requises) par cette
+seule règle, et `TouchLocalization` les ajoute aux prérequis. Effet au-delà de
+l'ordre : la quête n'est plus proposée comme faisable avant la précédente.

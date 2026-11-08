@@ -78,15 +78,21 @@ def alternatives(objectives, quests, achievements):
     return [list(g) for g in sorted(groups)]
 
 
-def ranks(objectives, cat, quests, series, links):
-    """Place of each quest in its achievement, 1 first: the game's objective order, which fills the links Papycha's
-    prerequisites miss ("Le Fil d'Adrian", after "Dédale au pluriel", has none there). A quest no objective names
-    keeps its place behind the one Papycha put before it. Achievements whose objectives name none are left out."""
-    order = collections.defaultdict(dict)  # achievement -> game quest id -> objective order
+def objective_order(objectives):
+    """Achievement -> game quest id -> the order of the first objective that names it."""
+    order = collections.defaultdict(dict)
     for o in objectives.values():
         for qid in re.findall(r"Q[fF][=>](\d+)", o["criterion"] or ""):
             at = order[o["achievementId"]]
             at[int(qid)] = min(at.get(int(qid), o["order"]), o["order"])
+    return order
+
+
+def ranks(objectives, cat, quests, series, links):
+    """Place of each quest in its achievement, 1 first: the game's objective order, which fills the links Papycha's
+    prerequisites miss ("Le Fil d'Adrian", after "Dédale au pluriel", has none there). A quest no objective names
+    keeps its place behind the one Papycha put before it. Achievements whose objectives name none are left out."""
+    order = objective_order(objectives)
     members = collections.defaultdict(list)
     for r in sorted(cat["quests"], key=lambda r: (r["playOrder"] or 1e9, r["chainStep"] or 1e9, r["title"])):
         ach = series.get(r["successName"]) or links.get(r["id"])
@@ -106,24 +112,46 @@ def ranks(objectives, cat, quests, series, links):
     return dict(sorted(out.items()))
 
 
+def needs(objectives, game_quests, cat, quests, series):
+    """Prerequisites Papycha misses: a main-story quest (isMain) that follows another in its achievement's objectives,
+    with no Papycha prerequisite in its series, needs that one. Side quests are left alone: an achievement lists them
+    by level ("On recherche ..."), not as a chain."""
+    order = objective_order(objectives)
+    main = lambda p: any(game_quests.get(str(q), {}).get("isMain") for q in quests.get(p, []))
+    out = {}
+    for name, ach in series.items():
+        rows = [r for r in cat["quests"] if r["successName"] == name]
+        titles = {norm(r["title"]) for r in rows}
+        rank = lambda r: min((order[ach][q] for q in quests.get(r["id"], []) if q in order[ach]), default=None)
+        chain = sorted((r for r in rows if rank(r) is not None), key=rank)
+        for before, r in zip(chain, chain[1:]):
+            if (rank(before) < rank(r) and main(before["id"]) and main(r["id"])
+                    and not any(norm(p) in titles for p in r["prerequisites"])):
+                out[r["id"]] = [before["id"]]
+    return dict(sorted(out.items()))
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dumps")
     ap.add_argument("--out", default=os.path.join(ROOT, "assets", "dofus-touch-ids.json"))
-    # Recomputes only "ranks" from touch-Achievement*-fr.json, the rest of the table kept: no Dungeons dump needed.
-    ap.add_argument("--ranks-only", action="store_true")
+    # Recomputes only "ranks" and "needs" from touch-AchievementObjectives-fr.json and touch-Quests-fr.json, the rest
+    # of the table kept: no Dungeons dump needed.
+    ap.add_argument("--series-only", action="store_true")
     args = ap.parse_args()
 
     cat = json.load(open(os.path.join(ROOT, "assets", "papycha-catalog.json"), encoding="utf-8"))
-    if args.ranks_only:
+    if args.series_only:
         table = json.load(open(args.out, encoding="utf-8"))
         objectives = json.load(open(f"{args.dumps}/touch-AchievementObjectives-fr.json", encoding="utf-8"))
-        table["ranks"] = ranks(objectives, cat, {int(k): v for k, v in table["quests"].items()}, table["series"],
-                               {int(k): v for k, v in table["links"].items()})
+        game_quests = json.load(open(f"{args.dumps}/touch-Quests-fr.json", encoding="utf-8"))
+        quests = {int(k): v for k, v in table["quests"].items()}
+        table["ranks"] = ranks(objectives, cat, quests, table["series"], {int(k): v for k, v in table["links"].items()})
+        table["needs"] = needs(objectives, game_quests, cat, quests, table["series"])
         with open(args.out, "w", encoding="utf-8", newline="\n") as f:
             json.dump(table, f, ensure_ascii=False, indent=1)
             f.write("\n")
-        print(f"{len(table['ranks'])} ranks")
+        print(f"{len(table['ranks'])} ranks, {len(table['needs'])} needs")
         return
     hand = json.load(open(os.path.join(ROOT, "build", "touch-ids", "manuel.json"), encoding="utf-8"))
     refused = {norm_dungeon(t) for t in hand["refus"]}
@@ -207,6 +235,7 @@ def main():
         "links": dict(sorted(links.items())),
         "alternatives": alternatives(g["AchievementObjectives"], quests, set(series.values()) | set(links.values())),
         "ranks": ranks(g["AchievementObjectives"], cat, quests, series, links),
+        "needs": needs(g["AchievementObjectives"], g["Quests"], cat, quests, series),
     }
     with open(args.out, "w", encoding="utf-8", newline="\n") as f:
         json.dump(table, f, ensure_ascii=False, indent=1)

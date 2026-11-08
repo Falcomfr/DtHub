@@ -32,6 +32,7 @@ public class EmbeddedTouchIdTableTests
         var ranks = Load().Ranks;
 
         Assert.Equal([1, 2, 3, 4, 5], new[] { 37852, 37899, 37929, 37963, 38001 }.Select(id => ranks[id]));
+        Assert.Equal([37899], Load().Needs[37929]);
     }
 
     [Fact]

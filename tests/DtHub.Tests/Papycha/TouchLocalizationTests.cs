@@ -261,4 +261,14 @@ public class TouchLocalizationTests
         Assert.Equal(1, Q(doc, 2).PlayOrder);
         Assert.Equal(4, Q(doc, 3).PlayOrder);
     }
+
+    [Theory]
+    [InlineData(true, "Invented EN")]
+    [InlineData(false, "Quête alpha")]
+    public void Un_prerequis_du_jeu_s_ajoute_sous_le_titre_affiche(bool translate, string shown)
+    {
+        var doc = TouchLocalization.Apply(Catalog(), Table with { Needs = new() { [3] = [1] } }, Names(), translate);
+
+        Assert.Equal([shown], Q(doc, 3).Prerequisites);
+    }
 }

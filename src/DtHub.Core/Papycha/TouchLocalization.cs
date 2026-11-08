@@ -23,7 +23,8 @@
 ///   none gets that achievement and a step after the highest of its series,
 ///   in Papycha-id order, and the name joins the order if missing;
 /// - each quest carries the other quests of its game alternative groups;
-/// - a quest the table ranks takes that rank as its place in its series;
+/// - a quest the table ranks takes that rank as its place in its series, and
+///   the quests the table says it needs join its prerequisites;
 /// - with <c>translateNames</c>, a paired dungeon takes the joined game
 ///   dungeon names (or its boss name), and a non-empty key the key item name;
 /// - what the game does not name stays as Papycha wrote it. Sections and
@@ -118,9 +119,13 @@ public static class TouchLocalization
             }
         }
 
+        var titles = source.Quests.DistinctBy(q => q.Id).ToDictionary(q => q.Id, q => q.Title);
+
         quests = [.. quests.Select(q => q with
         {
-            Prerequisites = [.. q.Prerequisites.Select(p => Prerequisite(p, shownByFrench, seriesByFrench))],
+            Prerequisites = [.. q.Prerequisites
+                .Concat(table.Needs.GetValueOrDefault(q.Id, []).Where(titles.ContainsKey).Select(id => titles[id]))
+                .Select(p => Prerequisite(p, shownByFrench, seriesByFrench))],
         })];
 
         List<string> order = [.. source.SuccessOrder.Select(s => Series(s, table, names))];

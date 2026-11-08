@@ -36,6 +36,12 @@ public sealed record TouchIdTable
     /// objectives: Papycha's prerequisites miss links ("Le Fil d'Adrian" has none), and the game's order fills them.
     /// </summary>
     public Dictionary<int, int> Ranks { get; init; } = [];
+
+    /// <summary>
+    /// Papycha quest id to the Papycha quests it requires and Papycha does not say: two main-story quests that follow
+    /// each other in an achievement's objectives ("Dédale au pluriel" before "Le Fil d'Adrian").
+    /// </summary>
+    public Dictionary<int, int[]> Needs { get; init; } = [];
 }
 
 /// <summary>
