@@ -248,4 +248,17 @@ public class TouchLocalizationTests
         Assert.Equal([1], Q(doc, 3).Alternatives);
         Assert.Empty(Q(doc, 2).Alternatives);
     }
+
+    [Fact]
+    public void Le_rang_du_jeu_donne_la_place_dans_la_serie()
+    {
+        var source = Catalog();
+        source.Quests[2] = source.Quests[2] with { PlayOrder = 4 };
+
+        var doc = TouchLocalization.Apply(source, Table with { Ranks = new() { [1] = 2, [2] = 1 } }, Names(), false);
+
+        Assert.Equal(2, Q(doc, 1).PlayOrder);
+        Assert.Equal(1, Q(doc, 2).PlayOrder);
+        Assert.Equal(4, Q(doc, 3).PlayOrder);
+    }
 }

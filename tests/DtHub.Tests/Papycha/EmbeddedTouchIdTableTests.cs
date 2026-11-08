@@ -25,6 +25,15 @@ public class EmbeddedTouchIdTableTests
         Assert.Equal(51, table.Links.Count);
     }
 
+    /// <summary>Papycha gives "Le Fil d'Adrian" no prerequisite: only the game's order puts it after "Dédale au pluriel".</summary>
+    [Fact]
+    public void A_l_ombre_depuis_trop_longtemps_suit_l_ordre_du_jeu()
+    {
+        var ranks = Load().Ranks;
+
+        Assert.Equal([1, 2, 3, 4, 5], new[] { 37852, 37899, 37929, 37963, 38001 }.Select(id => ranks[id]));
+    }
+
     [Fact]
     public void La_page_Kapla_Survivant_donne_deux_quetes()
     {

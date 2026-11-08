@@ -12180,3 +12180,36 @@ arrêté aussitôt sur le téléphone (« Aborted », puis « Server connection
 failed »), sans rien dans le journal Android. Lancée à la main avec les
 mêmes arguments, puis rouverte depuis DT Hub, l'ouverture a marché, et ce
 cas ne s'est pas reproduit. À surveiller chez un joueur Linux.
+
+## D229 - L'ordre d'une série suit les objectifs du succès dans le jeu
+
+Le 08/11/2026, l'utilisateur voit « Le Fil d'Adrian » en tête de « À l'ombre,
+depuis trop longtemps », alors qu'on la joue après « Premier pas dans les
+ténèbres » puis « Dédale au pluriel ». Cause : Papycha ne lui donne aucun
+prérequis, donc le tri par prérequis (`QuestPlayOrder`) la croit libre, et le
+départage (`PlayOrder`, calculé une fois à l'indexation) la met première.
+
+Le jeu publie l'ordre : chaque objectif de succès (`AchievementObjectives`)
+porte un champ `order`. Comparé sur les 96 séries appariées : 36 étaient dans
+un autre ordre que le jeu, et l'ordre du jeu respecte 204 des 208 prérequis
+Papycha internes aux séries. Les quatre restants (« Mais où qu'ils sont les
+Frigostiens ? », « Une impression blizzard », « Médiation expéditive ») sont
+des chaînes entières et cohérentes chez Papycha ; les données du jeu n'ont pas
+de prérequis de quête pour trancher, et pour « Le Kanojedo » après
+« Prochain arrêt : Astrub ! » c'est Papycha qui a raison.
+
+Décision :
+- `build/touch-ids/touch_ids.py` écrit `ranks` dans
+  `assets/dofus-touch-ids.json` : la place de chaque quête dans son succès,
+  dans l'ordre des objectifs du jeu (des nombres seulement, comme le reste de
+  la table). Une quête qu'aucun objectif ne nomme reste derrière celle que
+  Papycha mettait avant elle. `--ranks-only` refait ce seul champ depuis un
+  fichier `AchievementObjectives`, sans requête pour les donjons.
+- `TouchLocalization` prend ce rang comme `PlayOrder`. Les prérequis passent
+  toujours avant : ils restent la seule règle que le joueur vérifie lui-même.
+- Comme les alternatives, le rang ne s'applique qu'avec les noms du jeu en
+  cache, soit dès le premier lancement en ligne.
+
+Résultat sur le cache de l'utilisateur : 3 séries sur 96 diffèrent encore du
+jeu, ce sont les quatre prérequis ci-dessus. Données lues le 06/11/2026, sans
+nouvelle requête.

@@ -17,6 +17,10 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
 - L'outil adb d'Android passe en platform-tools 37.0.2, téléchargé chez Google au premier lancement.
 
+### Corrigé
+
+- Les quêtes d'un succès suivent l'ordre du jeu : certaines arrivaient trop tôt quand Papycha ne leur donnait pas de prérequis, comme « Le Fil d'Adrian » avant « Dédale au pluriel » (36 succès sur 96).
+
 ## [0.13.2] - 2026-11-05
 
 ### Corrigé

@@ -30,6 +30,12 @@ public sealed record TouchIdTable
     /// achievement objective ("Qf=556|Qf=566", "Agriculture ou alchimie").
     /// </summary>
     public int[][] Alternatives { get; init; } = [];
+
+    /// <summary>
+    /// Papycha quest id to its place in its achievement (1 first), in the order the game lists the achievement's
+    /// objectives: Papycha's prerequisites miss links ("Le Fil d'Adrian" has none), and the game's order fills them.
+    /// </summary>
+    public Dictionary<int, int> Ranks { get; init; } = [];
 }
 
 /// <summary>

@@ -16,6 +16,10 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 
 - La herramienta adb de Android pasa a platform-tools 37.0.2, descargada de Google en el primer arranque.
 
+### Corregido
+
+- Las misiones de un logro siguen el orden del juego: algunas aparecían demasiado pronto cuando Papycha no les daba requisito previo, como «Le Fil d'Adrian» antes de «Dédale au pluriel» (36 logros de 96).
+
 ## [0.13.2] - 2026-11-05
 
 ### Corregido

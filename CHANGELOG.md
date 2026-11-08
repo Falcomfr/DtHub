@@ -23,6 +23,10 @@ belongs in the commits and in `docs/DECISIONS.md`.
 
 - Android's adb tool is updated to platform-tools 37.0.2, downloaded from Google on first launch.
 
+### Fixed
+
+- The quests of an achievement are listed in the game's order: some came too early when Papycha gave them no prerequisite, such as "Le Fil d'Adrian" before "Dédale au pluriel" (36 achievements out of 96).
+
 ## [0.13.2] - 2026-11-05
 
 ### Fixed
