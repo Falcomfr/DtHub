@@ -152,35 +152,67 @@ def whole(objectives, achievements, cat, quests, series, links):
     return out
 
 
+def links_of(objectives, cat, quests):
+    """Game achievement of a quest Papycha files under no series."""
+    q2a = collections.defaultdict(set)
+    for o in objectives.values():
+        for qid in re.findall(r"Q[fF][=>](\d+)", o["criterion"] or ""):
+            q2a[int(qid)].add(o["achievementId"])
+    links = {}
+    for r in cat["quests"]:
+        if r["successName"] or r["id"] not in quests:
+            continue
+        found = {a for qid in quests[r["id"]] for a in q2a.get(qid, ())}
+        if found:
+            links[r["id"]] = min(found)
+    return dict(sorted(links.items()))
+
+
+def derived(g, cat, hand, quests, dungeons, series):
+    """The whole table once quests, dungeons and series are paired: everything else comes from the achievements."""
+    # A hand pairing wins, and also covers a page the embedded catalog lacks (one Papycha's API added since).
+    quests = {**quests, **{int(k): v for k, v in hand["quetes"].items()}}
+    links = links_of(g["AchievementObjectives"], cat, quests)
+    found = needs(g["AchievementObjectives"], g["Quests"], cat, quests, series)
+    # Prerequisites Papycha misspells ("Chaklaplop" for "Chaklaplok l'Eau-qui-mord"), by hand.
+    found.update({int(k): v for k, v in hand["besoins"].items()})
+    return {
+        "quests": dict(sorted(quests.items())),
+        "dungeons": dict(sorted(dungeons.items())),
+        "series": series,
+        "links": links,
+        "alternatives": alternatives(g["AchievementObjectives"], quests, set(series.values()) | set(links.values())),
+        "ranks": ranks(g["AchievementObjectives"], cat, quests, series, links),
+        "needs": dict(sorted(found.items())),
+        "whole": whole(g["AchievementObjectives"], g["Achievements"], cat, quests, series, links),
+    }
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dumps")
     ap.add_argument("--out", default=os.path.join(ROOT, "assets", "dofus-touch-ids.json"))
-    # Recomputes only "ranks", "needs" and "whole" from touch-AchievementObjectives-fr.json, touch-Achievements-fr.json
-    # and touch-Quests-fr.json, the rest of the table kept: no Dungeons dump needed.
+    # Keeps the table's quests, dungeons and series and recomputes the rest from touch-Quests-fr.json,
+    # touch-Achievements-fr.json and touch-AchievementObjectives-fr.json: no Dungeons dump, no server.
     ap.add_argument("--series-only", action="store_true")
     args = ap.parse_args()
 
     cat = json.load(open(os.path.join(ROOT, "assets", "papycha-catalog.json"), encoding="utf-8"))
+    hand = json.load(open(os.path.join(ROOT, "build", "touch-ids", "manuel.json"), encoding="utf-8"))
     if args.series_only:
-        table = json.load(open(args.out, encoding="utf-8"))
-        objectives = json.load(open(f"{args.dumps}/touch-AchievementObjectives-fr.json", encoding="utf-8"))
-        game_quests = json.load(open(f"{args.dumps}/touch-Quests-fr.json", encoding="utf-8"))
-        quests = {int(k): v for k, v in table["quests"].items()}
-        table["ranks"] = ranks(objectives, cat, quests, table["series"], {int(k): v for k, v in table["links"].items()})
-        table["needs"] = needs(objectives, game_quests, cat, quests, table["series"])
-        achievements = json.load(open(f"{args.dumps}/touch-Achievements-fr.json", encoding="utf-8"))
-        table["whole"] = whole(objectives, achievements, cat, quests, table["series"], {int(k): v for k, v in table["links"].items()})
+        old = json.load(open(args.out, encoding="utf-8"))
+        g = {c: json.load(open(f"{args.dumps}/touch-{c}-fr.json", encoding="utf-8")) for c in ["Quests", "Achievements", "AchievementObjectives"]}
+        table = derived(g, cat, hand, {int(k): v for k, v in old["quests"].items()}, old["dungeons"], old["series"])
         with open(args.out, "w", encoding="utf-8", newline="\n") as f:
             json.dump(table, f, ensure_ascii=False, indent=1)
             f.write("\n")
-        print(f"{len(table['ranks'])} ranks, {len(table['needs'])} needs, {len(table['whole'])} whole")
+        print(f"{len(table['quests'])} quests, {len(table['links'])} links, {len(table['ranks'])} ranks, "
+              f"{len(table['needs'])} needs, {len(table['whole'])} whole")
         return
-    hand = json.load(open(os.path.join(ROOT, "build", "touch-ids", "manuel.json"), encoding="utf-8"))
     refused = {norm_dungeon(t) for t in hand["refus"]}
     g = load_game(args.dumps)
 
-    # Quests: hand file, else exact normalized name.
+    # Quests: hand file (in derived), else exact normalized name.
     byname = collections.defaultdict(list)
     for i, q in g["Quests"].items():
         byname[norm(q["nameId"])].append(int(i))
@@ -238,34 +270,12 @@ def main():
         else:
             missing_s.append(name)
 
-    # Links: game achievement of a quest Papycha files under no series.
-    q2a = collections.defaultdict(set)
-    for o in g["AchievementObjectives"].values():
-        for qid in re.findall(r"Q[fF][=>](\d+)", o["criterion"] or ""):
-            q2a[int(qid)].add(o["achievementId"])
-    links = {}
-    for r in cat["quests"]:
-        if r["successName"] or r["id"] not in quests:
-            continue
-        found = {a for qid in quests[r["id"]] for a in q2a.get(qid, ())}
-        if found:
-            links[r["id"]] = min(found)
-
-    table = {
-        "quests": dict(sorted(quests.items())),
-        "dungeons": dict(sorted(dungeons.items())),
-        "series": series,
-        "links": dict(sorted(links.items())),
-        "alternatives": alternatives(g["AchievementObjectives"], quests, set(series.values()) | set(links.values())),
-        "ranks": ranks(g["AchievementObjectives"], cat, quests, series, links),
-        "needs": needs(g["AchievementObjectives"], g["Quests"], cat, quests, series),
-        "whole": whole(g["AchievementObjectives"], g["Achievements"], cat, quests, series, links),
-    }
+    table = derived(g, cat, hand, quests, dungeons, series)
     with open(args.out, "w", encoding="utf-8", newline="\n") as f:
         json.dump(table, f, ensure_ascii=False, indent=1)
         f.write("\n")
 
-    print(f"{len(quests)} quests, {len(dungeons)} dungeons, {len(series)} series, {len(links)} links, "
+    print(f"{len(table['quests'])} quests, {len(dungeons)} dungeons, {len(series)} series, {len(table['links'])} links, "
           f"{len(table['alternatives'])} alternative groups")
     print("Unpaired quests:", missing_q)
     print("Unpaired dungeons:", missing_d)

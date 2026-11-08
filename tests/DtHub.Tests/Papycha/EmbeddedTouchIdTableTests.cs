@@ -15,11 +15,11 @@ public class EmbeddedTouchIdTableTests
     /// page (7044) also carries a game achievement.
     /// </summary>
     [Fact]
-    public void La_table_embarquee_apparie_765_quetes_87_donjons_115_series_et_51_liens()
+    public void La_table_embarquee_apparie_773_quetes_87_donjons_115_series_et_51_liens()
     {
         var table = Load();
 
-        Assert.Equal(765, table.Quests.Count);
+        Assert.Equal(773, table.Quests.Count);
         Assert.Equal(87, table.Dungeons.Count);
         Assert.Equal(115, table.Series.Count);
         Assert.Equal(51, table.Links.Count);
@@ -35,6 +35,17 @@ public class EmbeddedTouchIdTableTests
 
         Assert.Equal([1, 2, 3, 4, 5], ShadowSeries.Select(id => ranks[id]));
         Assert.Equal([37899], Load().Needs[37929]);
+    }
+
+    /// <summary>"L'Ascension." (681) is the achievement's, "L'Ascension" (1501) the repeatable one that needs it.</summary>
+    [Fact]
+    public void Les_deux_pages_L_Ascension_ont_chacune_leur_quete()
+    {
+        var table = Load();
+
+        Assert.Equal([681], table.Quests[4272]);
+        Assert.Equal([1501], table.Quests[23741]);
+        Assert.DoesNotContain(23741, table.Links.Keys);
     }
 
     [Fact]
@@ -72,13 +83,13 @@ public class EmbeddedTouchIdTableTests
         Assert.Contains(groups, g => g.Length == 15);
     }
 
-    /// <summary>85 of the 115 series' achievements ask for paired quests only: finishing their quests finishes them.</summary>
+    /// <summary>86 of the 115 series' achievements ask for paired quests only: finishing their quests finishes them.</summary>
     [Fact]
-    public void La_table_embarquee_porte_les_85_succes_faits_de_quetes()
+    public void La_table_embarquee_porte_les_86_succes_faits_de_quetes()
     {
         var whole = Load().Whole;
 
-        Assert.Equal(85, whole.Length);
+        Assert.Equal(86, whole.Length);
         Assert.Contains(1595, whole);
     }
 }

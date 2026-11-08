@@ -23,6 +23,7 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 ### Corregido
 
 - Las misiones de un logro siguen el orden del juego: algunas aparecían demasiado pronto cuando Papycha no les daba requisito previo, como «Le Fil d'Adrian» antes de «Dédale au pluriel» (36 logros de 96).
+- Las dos páginas «L'Ascension» tienen cada una su misión, sus ganancias ya no se suman, y ocho misiones añadidas desde entonces por Papycha toman del juego sus nombres, niveles y recompensas. «Ixchelonia, la tortue-lune» ya no se propone antes de «Chaklaplok», y «La destinée» puede volver a proponerse.
 
 ## [0.13.2] - 2026-11-05
 

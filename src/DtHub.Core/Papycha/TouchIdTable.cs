@@ -39,7 +39,8 @@ public sealed record TouchIdTable
 
     /// <summary>
     /// Papycha quest id to the Papycha quests it requires and Papycha does not say: two main-story quests that follow
-    /// each other in an achievement's objectives ("Dédale au pluriel" before "Le Fil d'Adrian").
+    /// each other in an achievement's objectives ("Dédale au pluriel" before "Le Fil d'Adrian"), and the ones Papycha
+    /// misspells, set by hand ("Chaklaplop" for "Chaklaplok l'Eau-qui-mord").
     /// </summary>
     public Dictionary<int, int[]> Needs { get; init; } = [];
 

@@ -156,9 +156,12 @@ public static partial class QuestProfit
     internal static bool IsMet(string need, QuestSummary quest, QuestChainIndex chain, Func<QuestSummary, bool> done) =>
         chain.Required(need).Where(p => p.Id != quest.Id).All(done);
 
-    /// <summary>The prerequisites naming another quest, the quest itself left out ("L'Ascension" names itself).</summary>
+    /// <summary>
+    /// The prerequisites naming another quest, the quest itself left out ("L'Ascension" names itself), and one of its
+    /// alternatives too: "La destinée" names "La rivalité", which the game takes in its place.
+    /// </summary>
     internal static List<string> QuestNeeds(QuestSummary quest, QuestChainIndex chain) =>
-        [.. quest.Prerequisites.Where(need => chain.Resolve(need) is { } p && p.Id != quest.Id)];
+        [.. quest.Prerequisites.Where(need => chain.Resolve(need) is { } p && p.Id != quest.Id && !quest.Alternatives.Contains(p.Id))];
 
     /// <summary>
     /// Whether the quest has a prerequisite, which keeps it out of "Recommandées" and "Faisables": a time slot or a date
@@ -209,9 +212,9 @@ public static partial class QuestProfit
     [GeneratedRegex(@"\b(horaires?|periode|\d+h|etre le \d+)\b")]
     private static partial Regex TimeBound();
 
-    /// <summary>The quests the prerequisites name, the quest itself left out ("L'Ascension" names itself).</summary>
+    /// <summary>The quests the prerequisites name, the quest itself and its alternatives left out, as in <see cref="QuestNeeds"/>.</summary>
     public static IReadOnlyList<QuestSummary> Previous(QuestSummary quest, QuestChainIndex chain) =>
-        [.. quest.Prerequisites.Select(chain.Resolve).OfType<QuestSummary>().Where(p => p.Id != quest.Id)];
+        [.. quest.Prerequisites.Select(chain.Resolve).OfType<QuestSummary>().Where(p => p.Id != quest.Id && !quest.Alternatives.Contains(p.Id))];
 
     // Every doable rule except being startable now (Available, in progress, previous quests done), rule A included.
     private static bool Continuable(QuestSummary quest, TrackerProgress progress, TouchQuestFacts facts, int level)

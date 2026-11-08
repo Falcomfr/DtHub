@@ -30,6 +30,7 @@ belongs in the commits and in `docs/DECISIONS.md`.
 ### Fixed
 
 - The quests of an achievement are listed in the game's order: some came too early when Papycha gave them no prerequisite, such as "Le Fil d'Adrian" before "Dédale au pluriel" (36 achievements out of 96).
+- The two "L'Ascension" pages each get their own quest, so their gains are no longer summed, and eight quests Papycha added since get their names, levels and rewards from the game. "Ixchelonia, la tortue-lune" is no longer offered before "Chaklaplok", and "La destinée" can be offered again.
 
 ## [0.13.2] - 2026-11-05
 

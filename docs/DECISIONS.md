@@ -12251,3 +12251,52 @@ objets, titres, au même modèle de coefficients que les étapes de quête.
   niveau du succès, durée 1, bonus d'XP compris. Pour « À l'ombre, depuis
   trop longtemps » au niveau 200 sans bonus : 5 000 000 XP et 35 184 kamas.
   À confirmer sur 2 ou 3 succès lus en jeu.
+
+## D231 - Audit des données Papycha contre celles du jeu
+
+Le 08/11/2026, à la demande (« check aussi si y a rien d'autres à
+corriger »), le catalogue a été comparé aux données du jeu du 06/11/2026
+(Quests, Achievements, AchievementObjectives), sans requête.
+
+Corrigé :
+- **« L'Ascension »** : les deux pages étaient appariées aux deux quêtes du
+  jeu. La page 4272 est « L'Ascension. » (681, niveau 50, objectif de
+  « Destinations Aventure ») ; la 23741, qui l'exige, est « L'Ascension »
+  (1501, répétable 100-200). Les gains étaient sommés et la 23741 comptait
+  à tort dans le succès.
+- **Huit pages non appariées** alors que le jeu a la quête : les trois de
+  « Sorcière malgré vous », « L'île des naufragés » et « Les Bellaphones »
+  (ajoutées par l'API Papycha, absentes du catalogue embarqué),
+  « Cueillette Estivale », « Eklate Vulkaine » et « Gare aux Krokilles »
+  (une quête du jeu par tranche de niveau, comme Kapla). Appariées dans
+  `build/touch-ids/manuel.json` ; une entrée à la main couvre aussi une page
+  absente du catalogue embarqué. « Tampon saisonnier » devient un succès
+  fait de quêtes (`whole`).
+- **« Chaklaplop »** : Papycha écrit ainsi le prérequis d'« Ixchelonia, la
+  tortue-lune ». Ajouté à la main dans `besoins` du même fichier, versé
+  dans `needs`.
+- **Prérequis qui est une alternative** : « La destinée » exige « La
+  rivalité », que le jeu prend à sa place (un seul objectif
+  `Qf=710|Qf=711|Qf=1316`). Elle n'était jamais faisable. `QuestNeeds` et
+  `Previous` ignorent désormais une alternative de la quête ; c'est le seul
+  cas du catalogue.
+
+`touch_ids.py --series-only` recalcule maintenant tout sauf l'appariement
+des noms, des donjons et des séries (liens, alternatives, rangs, besoins,
+succès faits de quêtes) : 773 quêtes, 51 liens, 86 succès faits de quêtes.
+
+Laissé, faute de preuve dans les données du jeu ou par choix :
+- cycle « L'Etoile des Grincheux » et ses quatre répétables (Un drôle de
+  Nowel) : le jeu dit que l'Étoile demande leurs sacs, pas lequel des deux
+  sens Papycha a tort d'écrire ;
+- « La fatalité » exige les deux quêtes d'alignement 1 (bontarien et
+  brâkmarien) : sans doute un « ou » ;
+- « Développement durable. » est rangé par Papycha dans « Agriculture et
+  Alchimie », alors que le jeu en fait un objectif de « La maire dénie » ;
+  le déplacer toucherait les voies au choix de la série ;
+- 68 écarts de répétabilité, dont 29 quêtes d'événement que le jeu marque
+  uniques alors qu'elles reviennent chaque année ;
+- « Tampon saisonnier » rejoint les séries où un prérequis Papycha contredit
+  l'ordre du jeu (« Eklate Vulkaine » après « Cratère d'admission ») ;
+- les pages ajoutées par l'API n'ont pas de série chez Papycha, et le
+  générateur ne les lie pas à leur succès.

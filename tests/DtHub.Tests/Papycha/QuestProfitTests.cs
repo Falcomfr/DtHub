@@ -1293,4 +1293,19 @@ public class QuestProfitTests
         Assert.Equal([2, 3], run.Quests.Select(q => q.Id));
         Assert.NotNull(run.Achievement);
     }
+
+    [Fact]
+    public void Un_prerequis_qui_est_une_alternative_de_la_quete_est_ignore()
+    {
+        // "La destinée" names "La rivalité", which the game takes in its place: doing one rules the other out.
+        var catalog = new List<QuestSummary>
+        {
+            Quest(1) with { Alternatives = [2] }, Quest(2) with { Prerequisites = ["Q1"], Alternatives = [1] },
+        };
+        var chain = new QuestChainIndex(catalog);
+
+        Assert.True(QuestProfit.Startable(catalog[1], Progress([]), chain));
+        Assert.Empty(QuestProfit.Previous(catalog[1], chain));
+        Assert.False(QuestProfit.HasPrerequisite(catalog[1], chain, [Progress([])]));
+    }
 }
