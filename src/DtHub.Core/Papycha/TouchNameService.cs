@@ -254,7 +254,9 @@ public sealed class TouchNameService(
                     document => document.Languages[language] =
                         document.Languages.GetValueOrDefault(language, known) with
                         {
-                            Facts = facts, AchievementRewards = achievements, FactsReadUtc = DateTimeOffset.UtcNow,
+                            Facts = facts,
+                            AchievementRewards = achievements,
+                            FactsReadUtc = DateTimeOffset.UtcNow,
                         }, ct)
                     .ConfigureAwait(false);
                 _refusedUtc = null;
