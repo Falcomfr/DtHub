@@ -3093,7 +3093,7 @@ Team: quests at least 2 ticked characters can do.</value>
     <value>{0} · {1} XP · {2} kamas · {3}</value>
   </data>
   <data name="ProfitAchievement" xml:space="preserve">
-    <value>Achievement completed: ≈ {0}</value>
+    <value>Achievement completed: {0}</value>
   </data>
   <data name="ProfitAchievementKamas" xml:space="preserve">
     <value>{0} kamas for the account</value>

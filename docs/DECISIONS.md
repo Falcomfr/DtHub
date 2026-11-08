@@ -12353,3 +12353,11 @@ avec le vrai code et son suivi Papycha :
 Effet pour Falcom : mode Succès 13 → 22 suites, « Faisables » 179 quêtes dont
 81 répétables. Le reste du peu de lignes est voulu : 310 quêtes terminées, 8
 lignes par onglet (D221).
+
+**Formule vérifiée le 08/11/2026** (relevé de l'utilisateur, D230) : « Halte au
+péage » pour Falcom 193 avec le Pack affiche 11 260 715 XP, 39 880 kamas et six
+objets. Kamas et objets tombaient juste ; l'XP avait 2 de trop. Pour un succès,
+le coefficient d'XP s'applique après le mélange des deux niveaux, pas avant
+comme pour une étape de quête (`QuestRewards.AchievementExperience`, test sur
+ce relevé). Le « ≈ » de la bulle est retiré. Un seul relevé au-dessus du niveau
+du succès : un deuxième, à un autre niveau, confirmerait l'arrondi.

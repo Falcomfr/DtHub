@@ -3093,7 +3093,7 @@ Pas de donjon en équipe.
     <value>{0} · {1} XP · {2} kamas · {3}</value>
   </data>
   <data name="ProfitAchievement" xml:space="preserve">
-    <value>Succès terminé : ≈ {0}</value>
+    <value>Succès terminé : {0}</value>
   </data>
   <data name="ProfitAchievementKamas" xml:space="preserve">
     <value>{0} kamas pour le compte</value>

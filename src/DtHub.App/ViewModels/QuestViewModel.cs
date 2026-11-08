@@ -1950,8 +1950,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
                     + string.Join("\n", r.Quests.Select(RunLine)) + AchievementLine(r.Achievement)))];
 
     /// <summary>
-    /// "Succès terminé : ≈ 5 000 000 XP · 35 184 kamas pour le compte" under a run that finishes its achievement; "≈" as
-    /// the formula is not checked against the game yet (D230).
+    /// "Succès terminé : 5 000 000 XP · 35 184 kamas pour le compte" under a run that finishes its achievement.
     /// </summary>
     private static string AchievementLine(AchievementGain? achievement)
     {

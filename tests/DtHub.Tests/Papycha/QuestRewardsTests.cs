@@ -86,4 +86,23 @@ public class QuestRewardsTests
         // The row for level 201 and up is out at 200: its title with it.
         Assert.Equal(3, gain.Character.Titles);
     }
+
+    [Fact]
+    public void Halte_au_peage_pour_Falcom_193_donne_ce_que_le_jeu_affiche()
+    {
+        // Read in the game on 2026-11-08: 11 260 715 XP (Pack bonus) and 39 880 kamas, six items.
+        TouchItemReward[] items = [new(11939, 1), new(11929, 1), new(11885, 1), new(11337, 1), new(11332, 1), new(11313, 1)];
+        TouchAchievementReward[] rows =
+        [
+            new(new(190, 1f, 0f, 0f, false, [new(-1, -1, items, 0, 0, 0, 0, 0, 0)]), true),
+            new(new(190, 1f, 0f, 1f, false, [new(-1, -1, [], 0, 0, 0, 0, 0, 0)]), true),
+            new(new(190, 1f, 2f, 0f, false, [new(-1, -1, [], 0, 0, 0, 0, 0, 0)]), false),
+        ];
+
+        var gain = QuestRewards.AchievementFor(rows, 193, 150);
+
+        Assert.Equal(11_260_715, gain.Character.Experience);
+        Assert.Equal(39_880, gain.AccountKamas);
+        Assert.Equal(6, gain.Character.Items.Count);
+    }
 }

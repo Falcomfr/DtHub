@@ -44,7 +44,7 @@ public static class QuestRewards
 
     /// <summary>
     /// An achievement's rewards at <paramref name="level"/>: a row out of its level range gives nothing; the account's
-    /// kamas apart. shortcut: the quest formula with a duration of 1 is assumed, not yet checked against the game.
+    /// kamas apart; the XP by <see cref="AchievementExperience"/>, the rest as a quest step's.
     /// </summary>
     public static AchievementGain AchievementFor(IReadOnlyList<TouchAchievementReward> rows, int level, int bonusPercent)
     {
@@ -53,7 +53,25 @@ public static class QuestRewards
         var shown = rows.Where(r => r.Formula.Rows.All(x => (x.LevelMin < 0 || level >= x.LevelMin) && (x.LevelMax < 0 || level <= x.LevelMax))).ToList();
         var total = For([.. shown.Select(r => new TouchStep("", "", [], r.Formula with { KamasRatio = r.Account ? 0 : r.Formula.KamasRatio }))], level, bonusPercent)
             ?? new QuestRewardTotal(0, 0, [], 0, 0, 0, 0, 0, 0);
-        return new(total, shown.Where(r => r.Account).Sum(r => Kamas(r.Formula, level)));
+        return new(
+            total with { Experience = shown.Sum(r => AchievementExperience(r.Formula, level, bonusPercent)) },
+            shown.Where(r => r.Account).Sum(r => Kamas(r.Formula, level)));
+    }
+
+    /// <summary>
+    /// An achievement's XP: as a quest step's, but the ratio applies after the mix of the two levels, not before
+    /// ("Halte au péage", Falcom 193 with the Pack: 11 260 715 XP in the game, 2 more the quest way). Kamas match the
+    /// quest formula as they are.
+    /// </summary>
+    public static long AchievementExperience(TouchStepReward step, int level, int bonusPercent)
+    {
+        ArgumentNullException.ThrowIfNull(step);
+
+        double opt = step.OptimalLevel;
+        static double Poly(double x) => Math.Floor(x * Math.Pow(100 + 2 * x, 2) / 20);
+        var raw = level <= opt ? Poly(level)
+            : Math.Floor((1 - (double)0.7f) * Poly(opt) + (double)0.7f * Poly(Math.Min(level, Math.Floor(1.5 * opt))));
+        return (long)Math.Floor(Math.Floor(raw * step.XpRatio * step.Duration) * (1 + bonusPercent / 100.0));
     }
 
     public static long Experience(TouchStepReward step, int level, int bonusPercent)
