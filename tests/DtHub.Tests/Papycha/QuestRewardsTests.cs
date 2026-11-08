@@ -68,4 +68,22 @@ public class QuestRewardsTests
         Assert.Null(QuestRewards.For([], 100, 0));
         Assert.Null(QuestRewards.For([new TouchStep("", "", [], new(50, 1f, 1f, 1f, false, []))], 0, 0));
     }
+
+    [Fact]
+    public void Un_succes_donne_l_xp_au_personnage_et_ses_kamas_au_compte()
+    {
+        static TouchAchievementReward Row(float xp, float kamas, bool account, int min = -1, TouchItemReward[]? items = null) =>
+            new(new TouchStepReward(200, 1f, xp, kamas, false, [new TouchRewardRow(min, -1, items ?? [], 0, 0, 1, 0, 0, 0)]), account);
+
+        var gain = QuestRewards.AchievementFor(
+            [Row(0f, 0.8f, true), Row(2f, 0f, false), Row(0f, 0f, true, items: [new(20849, 1)]), Row(5f, 0f, false, min: 201)],
+            200, 0);
+
+        Assert.Equal(QuestRewards.Experience(new(200, 1f, 2f, 0f, false, []), 200, 0), gain.Character.Experience);
+        Assert.Equal(0, gain.Character.Kamas);
+        Assert.Equal(QuestRewards.Kamas(new(200, 1f, 0f, 0.8f, false, []), 200), gain.AccountKamas);
+        Assert.Equal([new TouchItemReward(20849, 1)], gain.Character.Items);
+        // The row for level 201 and up is out at 200: its title with it.
+        Assert.Equal(3, gain.Character.Titles);
+    }
 }

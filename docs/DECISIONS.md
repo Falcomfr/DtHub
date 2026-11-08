@@ -12224,3 +12224,30 @@ sont des quêtes annexes que le succès range par niveau (« On recherche … »
 `touch_ids.py` écrit donc `needs` (quête Papycha → quêtes requises) par cette
 seule règle, et `TouchLocalization` les ajoute aux prérequis. Effet au-delà de
 l'ordre : la quête n'est plus proposée comme faisable avant la précédente.
+
+## D230 - Le mode Succès compte la récompense du succès qu'une suite termine
+
+Demandé le 08/11/2026 (« si c'est pertinent fait tout ça », puis « go » sans
+autre précision : les choix ci-dessous sont les miens). Le jeu donne pour
+chaque succès des lignes de récompense (`AchievementRewards`) : XP, kamas,
+objets, titres, au même modèle de coefficients que les étapes de quête.
+
+- Seuls comptent les 85 succès sur 115 dont chaque objectif est une quête
+  appariée de leur série (`whole` dans `assets/dofus-touch-ids.json`) : les
+  autres demandent des donjons, des niveaux ou des quêtes que Papycha n'a
+  pas, et finir la suite ne les termine pas.
+- La lecture hebdomadaire des faits ajoute deux requêtes espacées :
+  `Achievements` (ces 85 ids, pour leur niveau et leurs `rewardIds`), puis
+  `AchievementRewards`. Un cache d'avant est relu une fois.
+- Une suite termine le succès quand toute sa voie (`QuestPlayOrder.Way`) est
+  dans la suite ou déjà terminée. Son XP s'ajoute alors au gain, donc au
+  classement.
+- Le jeu marque toutes les lignes de kamas et d'objets « liées au compte »,
+  jamais celles d'XP. Les kamas du compte restent hors du classement (sinon
+  l'équipe les compterait une fois par personnage) et s'affichent à part
+  dans la bulle (« +35 184 kamas pour le compte »). Les objets et titres
+  rejoignent le cadeau de la ligne.
+- Formule supposée, non vérifiée : celle des étapes de quête (D218) au
+  niveau du succès, durée 1, bonus d'XP compris. Pour « À l'ombre, depuis
+  trop longtemps » au niveau 200 sans bonus : 5 000 000 XP et 35 184 kamas.
+  À confirmer sur 2 ou 3 succès lus en jeu.

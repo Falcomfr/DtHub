@@ -13,6 +13,10 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
 ## [Unreleased]
 
+### Ajouté
+
+- Dans le mode Succès des quêtes recommandées, une suite qui termine son succès compte aussi l'XP que le succès rapporte ; les kamas que le jeu verse au compte s'affichent à part, au survol.
+
 ### Modifié
 
 - L'outil adb d'Android passe en platform-tools 37.0.2, téléchargé chez Google au premier lancement.

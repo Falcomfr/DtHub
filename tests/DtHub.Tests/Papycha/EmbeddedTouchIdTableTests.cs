@@ -25,13 +25,15 @@ public class EmbeddedTouchIdTableTests
         Assert.Equal(51, table.Links.Count);
     }
 
+    private static readonly int[] ShadowSeries = [37852, 37899, 37929, 37963, 38001];
+
     /// <summary>Papycha gives "Le Fil d'Adrian" no prerequisite: only the game's order puts it after "Dédale au pluriel".</summary>
     [Fact]
     public void A_l_ombre_depuis_trop_longtemps_suit_l_ordre_du_jeu()
     {
         var ranks = Load().Ranks;
 
-        Assert.Equal([1, 2, 3, 4, 5], new[] { 37852, 37899, 37929, 37963, 38001 }.Select(id => ranks[id]));
+        Assert.Equal([1, 2, 3, 4, 5], ShadowSeries.Select(id => ranks[id]));
         Assert.Equal([37899], Load().Needs[37929]);
     }
 
@@ -68,5 +70,15 @@ public class EmbeddedTouchIdTableTests
         Assert.Contains(groups, g => g.SequenceEqual([11038, 11056]));
         Assert.Contains(groups, g => g.SequenceEqual([1551, 36740, 36750]));
         Assert.Contains(groups, g => g.Length == 15);
+    }
+
+    /// <summary>85 of the 115 series' achievements ask for paired quests only: finishing their quests finishes them.</summary>
+    [Fact]
+    public void La_table_embarquee_porte_les_85_succes_faits_de_quetes()
+    {
+        var whole = Load().Whole;
+
+        Assert.Equal(85, whole.Length);
+        Assert.Contains(1595, whole);
     }
 }

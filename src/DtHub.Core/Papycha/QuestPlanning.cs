@@ -55,7 +55,8 @@ public static class QuestPlanning
     public static IReadOnlyList<TeamEntry> TeamRuns(
         IEnumerable<QuestSummary> catalog, IReadOnlyDictionary<int, TouchQuestFacts> facts,
         IReadOnlyList<(TrackerCharacter Character, TrackerProgress Progress)> characters, int bonusPercent,
-        bool dungeons, IReadOnlyDictionary<int, string> dungeonNames)
+        bool dungeons, IReadOnlyDictionary<int, string> dungeonNames,
+        IReadOnlyDictionary<string, IReadOnlyList<TouchAchievementReward>>? achievements = null)
     {
         ArgumentNullException.ThrowIfNull(characters);
 
@@ -63,7 +64,7 @@ public static class QuestPlanning
         var shared = new Dictionary<(string, int?), (ProfitEntry Entry, List<TrackerCharacter> Characters, long Xp, long Kamas)>();
         foreach (var (character, progress) in characters)
         {
-            foreach (var run in QuestProfit.Runs(all, facts, progress, character.Level, bonusPercent, dungeons, dungeonNames))
+            foreach (var run in QuestProfit.Runs(all, facts, progress, character.Level, bonusPercent, dungeons, dungeonNames, achievements))
             {
                 // A series and its way: two characters on two ways of "Agriculture ou alchimie" do not run together.
                 var key = (run.Title, run.Path?.Id);

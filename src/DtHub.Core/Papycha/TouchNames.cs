@@ -35,6 +35,12 @@ public sealed record TouchLanguageNames
     public Dictionary<int, TouchQuestFacts> Facts { get; init; } = [];
 
     public DateTimeOffset FactsReadUtc { get; init; }
+
+    /// <summary>
+    /// By game achievement id, the rewards of the achievements made of paired quests only (<see cref="TouchIdTable.Whole"/>),
+    /// read with the facts; null in a cache read before them.
+    /// </summary>
+    public Dictionary<int, TouchAchievementReward[]>? AchievementRewards { get; init; }
 }
 
 /// <summary>Steps in game order; a null step lacks a formula field, and all are null when the server left one out.</summary>
@@ -66,6 +72,12 @@ public sealed record TouchRewardRow(
     int Emotes, int Spells, int Titles, int Ornaments, int Companions, int Jobs);
 
 public sealed record TouchItemReward(int ItemId, int Quantity);
+
+/// <summary>
+/// One reward row of a game achievement: the quest formula at the achievement's level over a duration of 1, its items
+/// and the rest in <c>Formula.Rows</c>; <c>Account</c> when the game gives it to the account, not the character.
+/// </summary>
+public sealed record TouchAchievementReward(TouchStepReward Formula, bool Account);
 
 /// <summary>Position is "[-3,-44]", or empty when the objective has none.</summary>
 public sealed record TouchObjectiveLine(string Text, string Position);

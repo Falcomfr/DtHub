@@ -226,6 +226,10 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
     /// <summary>The item names the names cache holds, by game item id: the gift's hover names those.</summary>
     private IReadOnlyDictionary<int, string> _itemNames = new Dictionary<int, string>();
 
+    /// <summary>By series name as the catalog shows it: the rewards of the achievements made of quests.</summary>
+    private IReadOnlyDictionary<string, IReadOnlyList<TouchAchievementReward>> _seriesRewards =
+        new Dictionary<string, IReadOnlyList<TouchAchievementReward>>();
+
     private IReadOnlyDictionary<int, DungeonValue>? _dungeonValues;
 
     /// <summary>By Papycha dungeon, the recommendable quests it completes; none with a prerequisite, as in the lists.</summary>
@@ -319,6 +323,10 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         _dungeonNames = names?.Dungeons.ToDictionary(d => d.Key, d => d.Value.Name) ?? [];
         _dungeonRooms = names?.Dungeons.ToDictionary(d => d.Key, d => d.Value.Rooms) ?? [];
         _itemNames = names?.Items ?? [];
+        _seriesRewards = (names?.AchievementRewards ?? [])
+            .Where(r => names!.Achievements.ContainsKey(r.Key))
+            .GroupBy(r => names!.Achievements[r.Key])
+            .ToDictionary(g => g.Key, g => (IReadOnlyList<TouchAchievementReward>)g.First().Value);
 
         if (UnloggedTouchFailure() is { } failure)
         {
@@ -1938,9 +1946,17 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         Tracker.Progress is not { } progress || _facts is null
             ? []
             : [.. QuestProfit.Runs(_catalog.Catalog.Quests, _facts, progress, Tracker.RewardLevel, Tracker.RewardXpBonus,
-                    ProfitDungeons, _dungeonNames)
+                    ProfitDungeons, _dungeonNames, _seriesRewards)
                 .Select(r => RunRow(r, r.Gain, QuestGainText.Tip(r.Gain, effort: r.Effort) + "\n"
-                    + string.Join("\n", r.Quests.Select(RunLine))))];
+                    + string.Join("\n", r.Quests.Select(RunLine)) + AchievementLine(r.Achievement)))];
+
+    /// <summary>"Succès terminé : +2 M XP · +35 184 kamas pour le compte" under a run that finishes its achievement.</summary>
+    private static string AchievementLine(AchievementGain? achievement) =>
+        achievement is null ? string.Empty
+            : "\n" + Strings.Format("ProfitAchievement", QuestGainText.Number(achievement.Character.Experience))
+                + (achievement.AccountKamas > 0
+                    ? " · " + Strings.Format("ProfitAchievementKamas", QuestGainText.Number(achievement.AccountKamas))
+                    : string.Empty);
 
     /// <summary>
     /// The account's series runs, gains summed, the longest run's time and quests.
@@ -1950,7 +1966,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         _facts is null
             ? []
             : [.. QuestPlanning.TeamRuns(_catalog.Catalog.Quests, _facts, Tracker.TeamProgress(), Tracker.RewardXpBonus,
-                    ProfitDungeons, _dungeonNames)
+                    ProfitDungeons, _dungeonNames, _seriesRewards)
                 .Select(t =>
                 {
                     var tip = QuestGainText.Tip(t.Gain, effort: t.Entry.Effort) + "\n"
@@ -1991,6 +2007,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         var others = run.Quests
             .Select(q => _facts?.GetValueOrDefault(q.Id) is { } f && QuestProfit.RewardOf(f, Tracker.RewardLevel, Tracker.RewardXpBonus) is { } r
                 ? QuestRewardText.Others(r, _itemNames) : null)
+            .Append(run.Achievement is { } done ? QuestRewardText.Others(done.Character, _itemNames) : null)
             .OfType<string>().ToList();
         var (xp, kamas) = QuestGainText.Columns(gain);
         node = node with

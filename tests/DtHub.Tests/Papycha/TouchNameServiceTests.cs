@@ -556,7 +556,13 @@ public class TouchNameServiceTests
         var facts = new Dictionary<int, TouchQuestFacts> { [1] = new([], []) };
         await _store.SaveAsync(new TouchNamesDocument
         {
-            Languages = { ["en"] = new TouchLanguageNames { ReadUtc = DateTimeOffset.UtcNow.AddDays(-8), Facts = facts, FactsReadUtc = DateTimeOffset.UtcNow } },
+            Languages =
+            {
+                ["en"] = new TouchLanguageNames
+                {
+                    ReadUtc = DateTimeOffset.UtcNow.AddDays(-8), Facts = facts, FactsReadUtc = DateTimeOffset.UtcNow, AchievementRewards = [],
+                },
+            },
         });
         using var service = new TouchNameService(_client, _store, new FakeTable()) { FactsPause = TimeSpan.Zero };
         _ = await service.RefreshAsync("en");
@@ -637,5 +643,64 @@ public class TouchNameServiceTests
         _ = await service.FactsAsync("en");
 
         Assert.Empty(_client.Requested);
+    }
+
+    private sealed class WholeTable : ITouchIdTableSource
+    {
+        public TouchIdTable Load() => new()
+        {
+            Quests = new() { [1] = [10, 11], [2] = [11] },
+            Series = new() { ["Serie"] = 90 },
+            Whole = [90],
+        };
+    }
+
+    [Fact]
+    public async Task Une_lecture_en_masse_lit_aussi_les_recompenses_des_succes_faits_de_quetes()
+    {
+        SeedFacts();
+        _client.Rows["Achievements"] = new() { [90] = """{"nameId":"Serie","level":200,"rewardIds":[7,8]}""" };
+        _client.Rows["AchievementRewards"] = new()
+        {
+            [7] = """{"levelMin":-1,"levelMax":-1,"itemsReward":[20849],"itemsQuantityReward":[1],"titlesReward":[3],"kamasRatio":0.8,"experienceRatio":0,"kamasScaleWithPlayerLevel":false,"isLinkedToAccount":true}""",
+            [8] = """{"levelMin":-1,"levelMax":-1,"itemsReward":[],"itemsQuantityReward":[],"kamasRatio":0,"experienceRatio":2,"kamasScaleWithPlayerLevel":false,"isLinkedToAccount":false}""",
+        };
+        using var service = new TouchNameService(_client, _store, new WholeTable()) { FactsPause = TimeSpan.Zero };
+
+        _ = await service.FactsAsync("en");
+        var rewards = (await service.CachedAsync("en"))!.AchievementRewards!;
+
+        Assert.Equal([90], _client.Requested["Achievements"][^1]);
+        Assert.Equal([7, 8], _client.Requested["AchievementRewards"].Single());
+        var account = rewards[90][0];
+        Assert.True(account.Account);
+        Assert.Equal(new TouchStepReward(200, 1f, 0f, 0.8f, false, account.Formula.Rows), account.Formula);
+        Assert.Equal([new TouchItemReward(20849, 1)], account.Formula.Rows.Single().Items);
+        Assert.Equal(1, account.Formula.Rows.Single().Titles);
+        Assert.Equal(2f, rewards[90][1].Formula.XpRatio);
+        Assert.False(rewards[90][1].Account);
+    }
+
+    [Fact]
+    public async Task Un_cache_d_avant_les_recompenses_de_succes_est_relu_une_fois()
+    {
+        SeedFacts();
+        await _store.SaveAsync(new TouchNamesDocument
+        {
+            Languages =
+            {
+                ["en"] = new TouchLanguageNames
+                {
+                    ReadUtc = DateTimeOffset.UtcNow, FactsReadUtc = DateTimeOffset.UtcNow,
+                    Quests = new() { [10] = new("Ten", 40, 40, [10, 11]) },
+                },
+            },
+        });
+        using var service = new TouchNameService(_client, _store, new FakeTable()) { FactsPause = TimeSpan.Zero };
+
+        _ = await service.FactsAsync("en");
+        _ = await service.FactsAsync("en");
+
+        Assert.Single(_client.Requested["QuestSteps"]);
     }
 }

@@ -3092,6 +3092,12 @@ Equipo: misiones realizables por al menos 2 personajes marcados.</value>
   <data name="ProfitRunLine" xml:space="preserve">
     <value>{0} · {1} XP · {2} kamas · {3}</value>
   </data>
+  <data name="ProfitAchievement" xml:space="preserve">
+    <value>Logro completado: +{0} XP</value>
+  </data>
+  <data name="ProfitAchievementKamas" xml:space="preserve">
+    <value>+{0} kamas para la cuenta</value>
+  </data>
   <data name="ProfitRate" xml:space="preserve">
     <value>✦ {0} XP/min · ◎ {1} kamas/min</value>
   </data>

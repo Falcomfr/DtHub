@@ -19,6 +19,10 @@ belongs in the commits and in `docs/DECISIONS.md`.
 
 ## [Unreleased]
 
+### Added
+
+- In the Achievements mode of the recommended quests, a run that finishes its achievement also counts the achievement's XP reward; the kamas the game gives the account show apart, in the hover.
+
 ### Changed
 
 - Android's adb tool is updated to platform-tools 37.0.2, downloaded from Google on first launch.

@@ -17,11 +17,12 @@ public sealed record QuestScore(int QuestId, QuestGain Gain, QuestEffort Effort,
 /// <summary>
 /// A quest or a series run in the "profitable quests" ranking; <c>Quests.Count &gt; 1</c> is a run. <c>Score</c> is its
 /// combined score against the quest maxima, comparable with <see cref="DungeonValue.Score"/>. <c>Path</c>, on a run
-/// along one of a series' alternative ways, is that way's first quest: it names the way.
+/// along one of a series' alternative ways, is that way's first quest: it names the way. <c>Achievement</c>, on a run
+/// that finishes its series' achievement, is that achievement's reward, its character's part counted in <c>Gain</c>.
 /// </summary>
 public sealed record ProfitEntry(
     string Title, IReadOnlyList<QuestSummary> Quests, QuestGain Gain, QuestEffort Effort, int Tier, bool Started, bool ByKamas,
-    double Score, QuestSummary? Path = null);
+    double Score, QuestSummary? Path = null, AchievementGain? Achievement = null);
 
 /// <summary>
 /// A dungeon is worth the listable quests it advances, one entry per quest, for the time of its run (<c>Minutes</c>);
@@ -316,11 +317,14 @@ public static partial class QuestProfit
     /// out is skipped, not an end, so what follows it falls with it and the other chains go on. Rule D: a quest
     /// left out because one of its alternatives is in the run opens a run of its own, kept when it holds that quest:
     /// one per way until the player takes one, the fork reached before or inside the run. Runs of two quests or more,
-    /// titled by the series, gains and minutes summed.
+    /// titled by the series, gains and minutes summed. A run that leaves nothing of its way undone finishes the
+    /// series' achievement: the character's part of its reward (<paramref name="achievements"/>, by series) joins
+    /// the gain, the account's kamas stay apart, as one account would count them once for all its characters.
     /// </summary>
     public static IReadOnlyList<ProfitEntry> Runs(
         IEnumerable<QuestSummary> catalog, IReadOnlyDictionary<int, TouchQuestFacts> facts, TrackerProgress progress,
-        int level, int bonusPercent, bool dungeons, IReadOnlyDictionary<int, string> dungeonNames)
+        int level, int bonusPercent, bool dungeons, IReadOnlyDictionary<int, string> dungeonNames,
+        IReadOnlyDictionary<string, IReadOnlyList<TouchAchievementReward>>? achievements = null)
     {
         ArgumentNullException.ThrowIfNull(catalog);
         ArgumentNullException.ThrowIfNull(facts);
@@ -379,9 +383,15 @@ public static partial class QuestProfit
                     ? order.First(q => q.Alternatives.Count > 0
                         && (run.Contains(q) || QuestTracking.StatusOf(progress, q.Id) is QuestStatus.Completed or QuestStatus.InProgress))
                     : null;
+                var finishes = achievements?.GetValueOrDefault(group.Key) is { } rows
+                    && QuestPlayOrder.Way(all, run).All(q => run.Contains(q) || QuestTracking.StatusOf(progress, q.Id) == QuestStatus.Completed)
+                    ? QuestRewards.AchievementFor(rows, level, bonusPercent)
+                    : null;
                 runs.Add(new ProfitEntry(
-                    group.Key, run, new QuestGain(gains.Sum(g => g.Xp), gains.Sum(g => g.Kamas)),
-                    EffortOf([.. run.Select(q => (q, facts[q.Id]))]), 0, started, false, 0, path));
+                    group.Key, run,
+                    new QuestGain(
+                        gains.Sum(g => g.Xp) + (finishes?.Character.Experience ?? 0), gains.Sum(g => g.Kamas) + (finishes?.Character.Kamas ?? 0)),
+                    EffortOf([.. run.Select(q => (q, facts[q.Id]))]), 0, started, false, 0, path, finishes));
             }
         }
 

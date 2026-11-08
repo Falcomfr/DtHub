@@ -131,12 +131,33 @@ def needs(objectives, game_quests, cat, quests, series):
     return dict(sorted(out.items()))
 
 
+def whole(objectives, achievements, cat, quests, series, links):
+    """Achievements of the series whose every objective is a quest (one of "Qf=A|Qf=B") paired with a page of that
+    series: doing those quests earns them, so DT Hub may count their reward. Sorted ids."""
+    pages = collections.defaultdict(set)
+    for page, ids in quests.items():
+        for qid in ids:
+            pages[qid].add(page)
+    members = collections.defaultdict(set)
+    for r in cat["quests"]:
+        ach = series.get(r["successName"]) or links.get(r["id"])
+        if ach:
+            members[ach].add(r["id"])
+    out = []
+    for ach in sorted(set(series.values())):
+        objs = [objectives[str(i)] for i in achievements[str(ach)]["objectiveIds"] if str(i) in objectives]
+        found = [[re.fullmatch(r"Q[fF]=(\d+)", t.strip()) for t in (o["criterion"] or "").split("|")] for o in objs]
+        if objs and all(all(terms) and any(pages[int(m.group(1))] & members[ach] for m in terms) for terms in found):
+            out.append(ach)
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dumps")
     ap.add_argument("--out", default=os.path.join(ROOT, "assets", "dofus-touch-ids.json"))
-    # Recomputes only "ranks" and "needs" from touch-AchievementObjectives-fr.json and touch-Quests-fr.json, the rest
-    # of the table kept: no Dungeons dump needed.
+    # Recomputes only "ranks", "needs" and "whole" from touch-AchievementObjectives-fr.json, touch-Achievements-fr.json
+    # and touch-Quests-fr.json, the rest of the table kept: no Dungeons dump needed.
     ap.add_argument("--series-only", action="store_true")
     args = ap.parse_args()
 
@@ -148,10 +169,12 @@ def main():
         quests = {int(k): v for k, v in table["quests"].items()}
         table["ranks"] = ranks(objectives, cat, quests, table["series"], {int(k): v for k, v in table["links"].items()})
         table["needs"] = needs(objectives, game_quests, cat, quests, table["series"])
+        achievements = json.load(open(f"{args.dumps}/touch-Achievements-fr.json", encoding="utf-8"))
+        table["whole"] = whole(objectives, achievements, cat, quests, table["series"], {int(k): v for k, v in table["links"].items()})
         with open(args.out, "w", encoding="utf-8", newline="\n") as f:
             json.dump(table, f, ensure_ascii=False, indent=1)
             f.write("\n")
-        print(f"{len(table['ranks'])} ranks, {len(table['needs'])} needs")
+        print(f"{len(table['ranks'])} ranks, {len(table['needs'])} needs, {len(table['whole'])} whole")
         return
     hand = json.load(open(os.path.join(ROOT, "build", "touch-ids", "manuel.json"), encoding="utf-8"))
     refused = {norm_dungeon(t) for t in hand["refus"]}
@@ -236,6 +259,7 @@ def main():
         "alternatives": alternatives(g["AchievementObjectives"], quests, set(series.values()) | set(links.values())),
         "ranks": ranks(g["AchievementObjectives"], cat, quests, series, links),
         "needs": needs(g["AchievementObjectives"], g["Quests"], cat, quests, series),
+        "whole": whole(g["AchievementObjectives"], g["Achievements"], cat, quests, series, links),
     }
     with open(args.out, "w", encoding="utf-8", newline="\n") as f:
         json.dump(table, f, ensure_ascii=False, indent=1)

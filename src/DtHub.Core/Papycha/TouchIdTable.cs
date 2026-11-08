@@ -42,6 +42,9 @@ public sealed record TouchIdTable
     /// each other in an achievement's objectives ("Dédale au pluriel" before "Le Fil d'Adrian").
     /// </summary>
     public Dictionary<int, int[]> Needs { get; init; } = [];
+
+    /// <summary>Game achievements whose every objective is a paired quest of their series: doing those quests earns them.</summary>
+    public int[] Whole { get; init; } = [];
 }
 
 /// <summary>

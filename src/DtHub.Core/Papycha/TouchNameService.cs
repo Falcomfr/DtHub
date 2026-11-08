@@ -247,12 +247,15 @@ public sealed class TouchNameService(
 
             try
             {
-                var facts = await ReadFactsAsync(known, language, ct).ConfigureAwait(false);
+                var (facts, achievements) = await ReadFactsAsync(known, language, ct).ConfigureAwait(false);
 
                 // The live record: a names refresh may have landed during a pause.
                 await SaveAsync(
                     document => document.Languages[language] =
-                        document.Languages.GetValueOrDefault(language, known) with { Facts = facts, FactsReadUtc = DateTimeOffset.UtcNow }, ct)
+                        document.Languages.GetValueOrDefault(language, known) with
+                        {
+                            Facts = facts, AchievementRewards = achievements, FactsReadUtc = DateTimeOffset.UtcNow,
+                        }, ct)
                     .ConfigureAwait(false);
                 _refusedUtc = null;
                 LastFailure = null;
@@ -278,15 +281,16 @@ public sealed class TouchNameService(
         }
     }
 
-    // A cache from before the objective texts, or before their coordinates, has null ones: read again, once.
+    // A cache from before the objective texts, their coordinates or the achievement rewards has nulls: read again, once.
     private bool FactsAreSettled(TouchLanguageNames known) =>
         (DateTimeOffset.UtcNow - known.FactsReadUtc < Freshness
+            && known.AchievementRewards is not null
             && !known.Facts.Values.Any(f => f.Objectives.Any(o => o.Text is null || o.Step is null)))
         || IsRefusing();
 
     private bool IsRefusing() => _refusedUtc is { } refused && DateTimeOffset.UtcNow - refused < FactsRetry;
 
-    private async Task<Dictionary<int, TouchQuestFacts>> ReadFactsAsync(
+    private async Task<(Dictionary<int, TouchQuestFacts> Facts, Dictionary<int, TouchAchievementReward[]> Achievements)> ReadFactsAsync(
         TouchLanguageNames known, string language, CancellationToken ct)
     {
         // The first game quest only: "L'Ascension." and "L'Ascension" on one page summed two quests' rewards and time.
@@ -346,7 +350,23 @@ public sealed class TouchNameService(
             texts = await Locked(() => client.GetTextsAsync(textIds, language, ct)).ConfigureAwait(false);
         }
 
-        return stepIdsOf
+        // The achievements made of quests, then their rewards: two more spaced requests, none without such achievements.
+        var achievements = new Dictionary<int, TouchAchievementReward[]>();
+        if (Table.Whole.Length > 0)
+        {
+            await Task.Delay(FactsPause, ct).ConfigureAwait(false);
+            var rows = await Locked(() => GetAsync("Achievements", Table.Whole, language, ct)).ConfigureAwait(false);
+            await Task.Delay(FactsPause, ct).ConfigureAwait(false);
+            var rewards = await Locked(() => GetAsync(
+                "AchievementRewards", [.. rows.Values.SelectMany(a => Ints(a, "rewardIds"))], language, ct)).ConfigureAwait(false);
+            foreach (var (id, achievement) in rows)
+            {
+                var level = Int(achievement, "level");
+                achievements[id] = [.. Ints(achievement, "rewardIds").Where(rewards.ContainsKey).Select(r => AchievementReward(rewards[r], level))];
+            }
+        }
+
+        return (stepIdsOf
             .Where(q => q.Value.Any(steps.ContainsKey))
             .ToDictionary(
                 q => q.Key,
@@ -369,7 +389,23 @@ public sealed class TouchNameService(
                                     Int(o, "typeId"), Ints(o, "parameters"), (int)(Single(step, "optimalLevel") ?? 0),
                                     TextId(o) is { } text ? texts.GetValueOrDefault(text, "") : "", at?.X, at?.Y, index);
                             }))]);
-                });
+                }), achievements);
+    }
+
+    // Items as two parallel lists here, not the steps' [id, quantity] pairs.
+    private static TouchAchievementReward AchievementReward(JsonElement row, int level)
+    {
+        var ids = Ints(row, "itemsReward");
+        var quantities = Ints(row, "itemsQuantityReward");
+        TouchRewardRow rest = new(
+            Int(row, "levelMin"), Int(row, "levelMax"),
+            [.. ids.Select((id, i) => new TouchItemReward(id, i < quantities.Length ? quantities[i] : 1)).Where(item => item.ItemId != 0)],
+            Ints(row, "emotesReward").Length, Ints(row, "spellsReward").Length, Ints(row, "titlesReward").Length,
+            Ints(row, "ornamentsReward").Length, 0, 0);
+        return new(
+            new(level, 1f, Single(row, "experienceRatio") ?? 0, Single(row, "kamasRatio") ?? 0,
+                row.TryGetProperty("kamasScaleWithPlayerLevel", out var scale) && scale.ValueKind == JsonValueKind.True, [rest]),
+            row.TryGetProperty("isLinkedToAccount", out var account) && account.ValueKind == JsonValueKind.True);
     }
 
     private bool IsFresh(TouchLanguageNames? names) =>

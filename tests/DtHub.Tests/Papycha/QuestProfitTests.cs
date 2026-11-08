@@ -1248,4 +1248,49 @@ public class QuestProfitTests
         Assert.Equal([4, 5], run.Quests.Select(q => q.Id));
         Assert.Null(run.Path);
     }
+
+    private static readonly TouchStepReward AchievementXp = new(10, 1f, 3f, 1f, false, []);
+
+    private static readonly Dictionary<string, IReadOnlyList<TouchAchievementReward>> SeriesReward = new()
+    {
+        ["S"] = [new(AchievementXp, false)],
+    };
+
+    [Fact]
+    public void Une_suite_qui_finit_le_succes_ajoute_sa_recompense()
+    {
+        var catalog = new[] { Quest(1, "S", 1), Quest(2, "S", 2) };
+        var facts = catalog.ToDictionary(q => q.Id, _ => Xp(1f));
+
+        var run = Assert.Single(QuestProfit.Runs(catalog, facts, Progress([1, 2]), 10, 0, true, new Dictionary<int, string>(), SeriesReward));
+
+        Assert.Equal(XpOf(facts[1]) + XpOf(facts[2]) + QuestRewards.Experience(AchievementXp, 10, 0), run.Gain.Xp);
+        Assert.Equal(QuestRewards.Kamas(AchievementXp, 10), run.Gain.Kamas);
+        Assert.NotNull(run.Achievement);
+    }
+
+    [Fact]
+    public void Une_suite_qui_laisse_une_quete_du_succes_n_a_pas_sa_recompense()
+    {
+        var catalog = new[] { Quest(1, "S", 1), Quest(2, "S", 2), Quest(3, "S", 3) };
+        var facts = new Dictionary<int, TouchQuestFacts> { [1] = Xp(1f), [2] = Xp(1f) };
+
+        var run = Assert.Single(QuestProfit.Runs(catalog, facts, Progress([1, 2, 3]), 10, 0, true, new Dictionary<int, string>(), SeriesReward));
+
+        Assert.Equal(XpOf(facts[1]) + XpOf(facts[2]), run.Gain.Xp);
+        Assert.Null(run.Achievement);
+    }
+
+    [Fact]
+    public void Une_quete_deja_terminee_compte_pour_finir_le_succes()
+    {
+        var catalog = new[] { Quest(1, "S", 1), Quest(2, "S", 2), Quest(3, "S", 3) };
+        var facts = catalog.ToDictionary(q => q.Id, _ => Xp(1f));
+
+        var run = Assert.Single(QuestProfit.Runs(
+            catalog, facts, Progress([2, 3], new() { [1] = QuestStatus.Completed }), 10, 0, true, new Dictionary<int, string>(), SeriesReward));
+
+        Assert.Equal([2, 3], run.Quests.Select(q => q.Id));
+        Assert.NotNull(run.Achievement);
+    }
 }

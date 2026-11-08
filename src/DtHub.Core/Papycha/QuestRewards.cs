@@ -4,6 +4,9 @@ public sealed record QuestRewardTotal(
     long Experience, long Kamas, IReadOnlyList<TouchItemReward> Items,
     int Emotes, int Spells, int Titles, int Ornaments, int Companions, int Jobs);
 
+/// <summary>An achievement's reward: the character's part, and the kamas the game gives the account.</summary>
+public sealed record AchievementGain(QuestRewardTotal Character, long AccountKamas);
+
 /// <summary>The game's own reward formulas, checked against what DOFUS Touch displays.</summary>
 public static class QuestRewards
 {
@@ -34,6 +37,20 @@ public static class QuestRewards
 
         return new(xp, kamas, [.. items.Select(i => new TouchItemReward(i.Key, i.Value))],
             emotes, spells, titles, ornaments, companions, jobs);
+    }
+
+    /// <summary>
+    /// An achievement's rewards at <paramref name="level"/>: a row out of its level range gives nothing; the account's
+    /// kamas apart. shortcut: the quest formula with a duration of 1 is assumed, not yet checked against the game.
+    /// </summary>
+    public static AchievementGain AchievementFor(IReadOnlyList<TouchAchievementReward> rows, int level, int bonusPercent)
+    {
+        ArgumentNullException.ThrowIfNull(rows);
+
+        var shown = rows.Where(r => r.Formula.Rows.All(x => (x.LevelMin < 0 || level >= x.LevelMin) && (x.LevelMax < 0 || level <= x.LevelMax))).ToList();
+        var total = For([.. shown.Select(r => new TouchStep("", "", [], r.Formula with { KamasRatio = r.Account ? 0 : r.Formula.KamasRatio }))], level, bonusPercent)
+            ?? new QuestRewardTotal(0, 0, [], 0, 0, 0, 0, 0, 0);
+        return new(total, shown.Where(r => r.Account).Sum(r => Kamas(r.Formula, level)));
     }
 
     public static long Experience(TouchStepReward step, int level, int bonusPercent)

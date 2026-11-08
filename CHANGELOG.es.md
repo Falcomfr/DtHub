@@ -12,6 +12,10 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 
 ## [Unreleased]
 
+### Añadido
+
+- En el modo Logros de las misiones recomendadas, una serie que completa su logro cuenta también la XP que da el logro; los kamas que el juego da a la cuenta se muestran aparte, al pasar el ratón.
+
 ### Cambiado
 
 - La herramienta adb de Android pasa a platform-tools 37.0.2, descargada de Google en el primer arranque.
