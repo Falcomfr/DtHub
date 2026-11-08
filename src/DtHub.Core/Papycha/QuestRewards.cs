@@ -7,6 +7,9 @@ public sealed record QuestRewardTotal(
 /// <summary>An achievement's reward: the character's part, and the kamas the game gives the account.</summary>
 public sealed record AchievementGain(QuestRewardTotal Character, long AccountKamas);
 
+/// <summary>A series' achievement: its objectives (<see cref="TouchIdTable.Whole"/>) and its rewards.</summary>
+public sealed record AchievementGoal(IReadOnlyList<int[]> Objectives, IReadOnlyList<TouchAchievementReward> Rewards);
+
 /// <summary>The game's own reward formulas, checked against what DOFUS Touch displays.</summary>
 public static class QuestRewards
 {

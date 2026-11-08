@@ -44,8 +44,11 @@ public sealed record TouchIdTable
     /// </summary>
     public Dictionary<int, int[]> Needs { get; init; } = [];
 
-    /// <summary>Game achievements whose every objective is a paired quest of their series: doing those quests earns them.</summary>
-    public int[] Whole { get; init; } = [];
+    /// <summary>
+    /// Game achievements whose every objective is a paired quest of their series, to their objectives: each the Papycha
+    /// quests that meet it, any one being enough ("Qf=710|Qf=711|Qf=1316"). Doing them earns the achievement.
+    /// </summary>
+    public Dictionary<int, int[][]> Whole { get; init; } = [];
 }
 
 /// <summary>

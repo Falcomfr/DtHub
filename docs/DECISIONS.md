@@ -12300,3 +12300,26 @@ Laissé, faute de preuve dans les données du jeu ou par choix :
   l'ordre du jeu (« Eklate Vulkaine » après « Cratère d'admission ») ;
 - les pages ajoutées par l'API n'ont pas de série chez Papycha, et le
   générateur ne les lie pas à leur succès.
+
+Relecture du 08/11/2026 (relecteur neuf), corrigé :
+- **Fin du succès** : la condition passait par `QuestPlayOrder.Way`, qui
+  rend toute la série quand ses quêtes au choix n'ont pas de quête
+  précédente (« Un nouveau départ » et ses quinze dévotions, « L'âme de
+  glace ») ; il fallait alors les faire toutes, et le succès n'était jamais
+  crédité. Même effet avec une page de la série qu'aucun objectif ne nomme
+  (les Étoiles d'« Un drôle de Nowel »). `whole` donne maintenant, par
+  succès, ses objectifs en listes de pages Papycha dont une suffit : la
+  règle même du jeu (`Qf=A|Qf=B`).
+- Un succès sans XP ni kamas à ce niveau n'est plus annoncé (« +0 XP »).
+- La bulle écrit « ≈ » devant la récompense tant que la formule n'est pas
+  vérifiée en jeu.
+- Un prérequis ajouté par `needs` que Papycha donnait déjà n'est plus
+  doublé, et le verrou ne marque plus « manquante » une alternative de la
+  quête (« La rivalité » sous « La destinée »).
+- `--series-only` sans `--dumps` s'arrête avec un message.
+
+Laissé : la bulle du mode Équipe ne détaille pas la récompense (le gain est
+la somme des personnages, chacun à son niveau) ; une page appariée à
+plusieurs quêtes du jeu par tranche de niveau (« Joyeux Nowel », « Sauter le
+pas du trépas », et maintenant « Eklate Vulkaine ») prend toujours les faits
+de la première tranche, défaut antérieur à cette branche.

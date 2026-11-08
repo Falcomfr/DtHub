@@ -226,9 +226,8 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
     /// <summary>The item names the names cache holds, by game item id: the gift's hover names those.</summary>
     private IReadOnlyDictionary<int, string> _itemNames = new Dictionary<int, string>();
 
-    /// <summary>By series name as the catalog shows it: the rewards of the achievements made of quests.</summary>
-    private IReadOnlyDictionary<string, IReadOnlyList<TouchAchievementReward>> _seriesRewards =
-        new Dictionary<string, IReadOnlyList<TouchAchievementReward>>();
+    /// <summary>By series name as the catalog shows it: the achievements made of quests, objectives and rewards.</summary>
+    private IReadOnlyDictionary<string, AchievementGoal> _seriesRewards = new Dictionary<string, AchievementGoal>();
 
     private IReadOnlyDictionary<int, DungeonValue>? _dungeonValues;
 
@@ -324,9 +323,9 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         _dungeonRooms = names?.Dungeons.ToDictionary(d => d.Key, d => d.Value.Rooms) ?? [];
         _itemNames = names?.Items ?? [];
         _seriesRewards = (names?.AchievementRewards ?? [])
-            .Where(r => names!.Achievements.ContainsKey(r.Key))
+            .Where(r => names!.Achievements.ContainsKey(r.Key) && _touchNames.Table.Whole.ContainsKey(r.Key))
             .GroupBy(r => names!.Achievements[r.Key])
-            .ToDictionary(g => g.Key, g => (IReadOnlyList<TouchAchievementReward>)g.First().Value);
+            .ToDictionary(g => g.Key, g => new AchievementGoal(_touchNames.Table.Whole[g.First().Key], g.First().Value));
 
         if (UnloggedTouchFailure() is { } failure)
         {
@@ -1950,13 +1949,18 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
                 .Select(r => RunRow(r, r.Gain, QuestGainText.Tip(r.Gain, effort: r.Effort) + "\n"
                     + string.Join("\n", r.Quests.Select(RunLine)) + AchievementLine(r.Achievement)))];
 
-    /// <summary>"Succès terminé : +2 M XP · +35 184 kamas pour le compte" under a run that finishes its achievement.</summary>
-    private static string AchievementLine(AchievementGain? achievement) =>
-        achievement is null ? string.Empty
-            : "\n" + Strings.Format("ProfitAchievement", QuestGainText.Number(achievement.Character.Experience))
-                + (achievement.AccountKamas > 0
-                    ? " · " + Strings.Format("ProfitAchievementKamas", QuestGainText.Number(achievement.AccountKamas))
-                    : string.Empty);
+    /// <summary>
+    /// "Succès terminé : ≈ 5 000 000 XP · 35 184 kamas pour le compte" under a run that finishes its achievement; "≈" as
+    /// the formula is not checked against the game yet (D230).
+    /// </summary>
+    private static string AchievementLine(AchievementGain? achievement)
+    {
+        if (achievement is null) return string.Empty;
+        var parts = new List<string>();
+        if (achievement.Character.Experience > 0) parts.Add(Strings.Format("RewardXp", QuestGainText.Number(achievement.Character.Experience)));
+        if (achievement.AccountKamas > 0) parts.Add(Strings.Format("ProfitAchievementKamas", QuestGainText.Number(achievement.AccountKamas)));
+        return parts.Count == 0 ? string.Empty : "\n" + Strings.Format("ProfitAchievement", string.Join(" · ", parts));
+    }
 
     /// <summary>
     /// The account's series runs, gains summed, the longest run's time and quests.

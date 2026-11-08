@@ -125,7 +125,8 @@ public static class TouchLocalization
         {
             Prerequisites = [.. q.Prerequisites
                 .Concat(table.Needs.GetValueOrDefault(q.Id, []).Where(titles.ContainsKey).Select(id => titles[id]))
-                .Select(p => Prerequisite(p, shownByFrench, seriesByFrench))],
+                .Select(p => Prerequisite(p, shownByFrench, seriesByFrench))
+                .Distinct()],
         })];
 
         List<string> order = [.. source.SuccessOrder.Select(s => Series(s, table, names))];

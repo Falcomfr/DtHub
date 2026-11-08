@@ -33,7 +33,7 @@ public static class QuestTracking
     /// A quest row's lock for the chosen character: met when the quest is in progress, done, or startable
     /// (<see cref="QuestProfit.Startable"/>, as <see cref="QuestProfit.IsDoable"/> reads it). Each prerequisite naming
     /// another quest gets a check when done and, on an unmet lock only, a missing mark; the others (items, free text,
-    /// the quest itself) get none. A quest ruled out by an alternative done or started (rule A) gets a first line naming
+    /// the quest itself, one of its alternatives as "La rivalité" for "La destinée") get none. A quest ruled out by an alternative done or started (rule A) gets a first line naming
     /// it. Without a tracker, or with no prerequisite naming another quest on a quest neither started nor done nor ruled
     /// out, the row is left neutral.
     /// </summary>
@@ -69,7 +69,7 @@ public static class QuestTracking
         return node with
         {
             NeedsMet = met,
-            Needs = [.. otherWay, .. needs.Select(n => chain.Resolve(n.Text) is { } p && p.Id != quest.Id
+            Needs = [.. otherWay, .. needs.Select(n => chain.Resolve(n.Text) is { } p && p.Id != quest.Id && !quest.Alternatives.Contains(p.Id)
                 ? n with { Met = QuestProfit.IsMet(n.Text, quest, chain, p => QuestProfit.IsDone(p, quest, progress)) ? true : met ? null : false }
                 : n)],
         };

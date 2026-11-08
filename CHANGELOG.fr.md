@@ -24,7 +24,7 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 ### Corrigé
 
 - Les quêtes d'un succès suivent l'ordre du jeu : certaines arrivaient trop tôt quand Papycha ne leur donnait pas de prérequis, comme « Le Fil d'Adrian » avant « Dédale au pluriel » (36 succès sur 96).
-- Les deux pages « L'Ascension » ont chacune leur quête, leurs gains ne s'additionnent plus, et huit quêtes ajoutées depuis par Papycha prennent leurs noms, niveaux et récompenses dans le jeu. « Ixchelonia, la tortue-lune » n'est plus proposée avant « Chaklaplok », et « La destinée » peut de nouveau être proposée.
+- Les deux pages « L'Ascension » ont chacune leur quête, leurs gains ne s'additionnent plus, et huit quêtes que les données du jeu n'atteignaient pas, dont cinq ajoutées depuis par Papycha, prennent leurs noms, niveaux et récompenses dans le jeu. « Ixchelonia, la tortue-lune » n'est plus proposée avant « Chaklaplok », et « La destinée » peut de nouveau être proposée.
 
 ## [0.13.2] - 2026-11-05
 

@@ -149,6 +149,20 @@ public class QuestTrackingTests
     }
 
     [Fact]
+    public void Le_verrou_ne_marque_pas_manquante_une_alternative_de_la_quete()
+    {
+        // "La destinée" names "La rivalité", which the game takes in its place: never a missing mark on it.
+        var catalog = new[] { Named(40, 0, "Q41", "Q42") with { Alternatives = [41] }, Named(41) with { Alternatives = [40] }, Named(42) };
+        var chain = new QuestChainIndex(catalog);
+        var node = new QuestNode(QuestNodeKind.Quest, "Q40", Quest: catalog[0], Needs: [.. catalog[0].Prerequisites.Select(n => new QuestNeed(n, chain.Find(n)))]);
+
+        var locked = QuestTracking.Locked(node, Progress with { Available = new HashSet<int>() }, chain);
+
+        Assert.False(locked.NeedsMet);
+        Assert.Equal([("Q41", (bool?)null), ("Q42", false)], locked.Needs!.Select(n => (n.Text, n.Met)));
+    }
+
+    [Fact]
     public void NextQuests_come_in_play_order()
     {
         var catalog = new[] { Named(4), Named(20, 3, "Q4"), Named(21, 1, "Q4"), Named(22, 2, "Q4") };

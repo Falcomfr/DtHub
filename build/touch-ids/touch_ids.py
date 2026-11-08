@@ -7,6 +7,10 @@ script. Run before a release, never from the app.
   python3 -I build/touch-ids/touch_ids.py --dumps <dir>   # files touch-<Class>-fr.json
   python3 -I build/touch-ids/touch_ids.py                 # reads the server
 
+  python3 -I build/touch-ids/touch_ids.py --dumps <dir> --series-only
+      # no server, no Dungeons dump: keeps quests, dungeons and series, recomputes
+      # the rest from touch-{Quests,Achievements,AchievementObjectives}-fr.json
+
 Server mode: one request at a time, 60 s apart, stopping at the first non-200
 (Ankama blocks the IP otherwise). Papycha's public API is not read: the
 embedded catalog is the base, a page it lacks stays French until it is added.
@@ -133,7 +137,8 @@ def needs(objectives, game_quests, cat, quests, series):
 
 def whole(objectives, achievements, cat, quests, series, links):
     """Achievements of the series whose every objective is a quest (one of "Qf=A|Qf=B") paired with a page of that
-    series: doing those quests earns them, so DT Hub may count their reward. Sorted ids."""
+    series, to their objectives as lists of those pages, any one meeting it: doing them earns the achievement, so
+    DT Hub may count its reward. A page of the series no objective names does not stand in the way."""
     pages = collections.defaultdict(set)
     for page, ids in quests.items():
         for qid in ids:
@@ -143,12 +148,13 @@ def whole(objectives, achievements, cat, quests, series, links):
         ach = series.get(r["successName"]) or links.get(r["id"])
         if ach:
             members[ach].add(r["id"])
-    out = []
+    out = {}
     for ach in sorted(set(series.values())):
-        objs = [objectives[str(i)] for i in achievements[str(ach)]["objectiveIds"] if str(i) in objectives]
+        objs = sorted((objectives[str(i)] for i in achievements[str(ach)]["objectiveIds"] if str(i) in objectives), key=lambda o: o["order"])
         found = [[re.fullmatch(r"Q[fF]=(\d+)", t.strip()) for t in (o["criterion"] or "").split("|")] for o in objs]
-        if objs and all(all(terms) and any(pages[int(m.group(1))] & members[ach] for m in terms) for terms in found):
-            out.append(ach)
+        groups = [sorted({p for m in terms if m for p in pages[int(m.group(1))] & members[ach]}) for terms in found]
+        if objs and all(all(terms) for terms in found) and all(groups):
+            out[ach] = groups
     return out
 
 
@@ -196,6 +202,8 @@ def main():
     # touch-Achievements-fr.json and touch-AchievementObjectives-fr.json: no Dungeons dump, no server.
     ap.add_argument("--series-only", action="store_true")
     args = ap.parse_args()
+    if args.series_only and not args.dumps:
+        ap.error("--series-only reads the game's data from --dumps")
 
     cat = json.load(open(os.path.join(ROOT, "assets", "papycha-catalog.json"), encoding="utf-8"))
     hand = json.load(open(os.path.join(ROOT, "build", "touch-ids", "manuel.json"), encoding="utf-8"))

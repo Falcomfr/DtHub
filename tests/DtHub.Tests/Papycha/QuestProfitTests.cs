@@ -1251,9 +1251,9 @@ public class QuestProfitTests
 
     private static readonly TouchStepReward AchievementXp = new(10, 1f, 3f, 1f, false, []);
 
-    private static readonly Dictionary<string, IReadOnlyList<TouchAchievementReward>> SeriesReward = new()
+    private static Dictionary<string, AchievementGoal> Goal(params int[][] objectives) => new()
     {
-        ["S"] = [new(AchievementXp, false)],
+        ["S"] = new(objectives, [new(AchievementXp, false)]),
     };
 
     [Fact]
@@ -1262,7 +1262,7 @@ public class QuestProfitTests
         var catalog = new[] { Quest(1, "S", 1), Quest(2, "S", 2) };
         var facts = catalog.ToDictionary(q => q.Id, _ => Xp(1f));
 
-        var run = Assert.Single(QuestProfit.Runs(catalog, facts, Progress([1, 2]), 10, 0, true, new Dictionary<int, string>(), SeriesReward));
+        var run = Assert.Single(QuestProfit.Runs(catalog, facts, Progress([1, 2]), 10, 0, true, new Dictionary<int, string>(), Goal([1], [2])));
 
         Assert.Equal(XpOf(facts[1]) + XpOf(facts[2]) + QuestRewards.Experience(AchievementXp, 10, 0), run.Gain.Xp);
         Assert.Equal(QuestRewards.Kamas(AchievementXp, 10), run.Gain.Kamas);
@@ -1275,7 +1275,7 @@ public class QuestProfitTests
         var catalog = new[] { Quest(1, "S", 1), Quest(2, "S", 2), Quest(3, "S", 3) };
         var facts = new Dictionary<int, TouchQuestFacts> { [1] = Xp(1f), [2] = Xp(1f) };
 
-        var run = Assert.Single(QuestProfit.Runs(catalog, facts, Progress([1, 2, 3]), 10, 0, true, new Dictionary<int, string>(), SeriesReward));
+        var run = Assert.Single(QuestProfit.Runs(catalog, facts, Progress([1, 2, 3]), 10, 0, true, new Dictionary<int, string>(), Goal([1], [2], [3])));
 
         Assert.Equal(XpOf(facts[1]) + XpOf(facts[2]), run.Gain.Xp);
         Assert.Null(run.Achievement);
@@ -1288,10 +1288,42 @@ public class QuestProfitTests
         var facts = catalog.ToDictionary(q => q.Id, _ => Xp(1f));
 
         var run = Assert.Single(QuestProfit.Runs(
-            catalog, facts, Progress([2, 3], new() { [1] = QuestStatus.Completed }), 10, 0, true, new Dictionary<int, string>(), SeriesReward));
+            catalog, facts, Progress([2, 3], new() { [1] = QuestStatus.Completed }), 10, 0, true, new Dictionary<int, string>(), Goal([1], [2], [3])));
 
         Assert.Equal([2, 3], run.Quests.Select(q => q.Id));
         Assert.NotNull(run.Achievement);
+    }
+
+    [Fact]
+    public void Une_alternative_faite_remplit_son_objectif_et_une_page_hors_objectifs_ne_compte_pas()
+    {
+        // "Un nouveau départ": one devotion of fifteen, no previous quest among them, so no way to tell; and a page
+        // the achievement does not name ("L'Etoile des Donjons" in "Un drôle de Nowel") left undone.
+        var catalog = new[]
+        {
+            Quest(1, "S", 1) with { Alternatives = [2] }, Quest(2, "S", 1) with { Alternatives = [1] }, Quest(3, "S", 2),
+            Quest(4, "S", 3), Quest(5, "S", 4),
+        };
+        var facts = new Dictionary<int, TouchQuestFacts> { [3] = Xp(1f), [4] = Xp(1f) };
+
+        var run = Assert.Single(QuestProfit.Runs(
+            catalog, facts, Progress([3, 4], new() { [1] = QuestStatus.Completed }), 10, 0, true, new Dictionary<int, string>(),
+            Goal([1, 2], [3], [4])));
+
+        Assert.Equal([3, 4], run.Quests.Select(q => q.Id));
+        Assert.NotNull(run.Achievement);
+    }
+
+    [Fact]
+    public void Un_succes_sans_xp_ni_kamas_n_ajoute_rien()
+    {
+        var catalog = new[] { Quest(1, "S", 1), Quest(2, "S", 2) };
+        var facts = catalog.ToDictionary(q => q.Id, _ => Xp(1f));
+        var goal = new Dictionary<string, AchievementGoal> { ["S"] = new([[1], [2]], [new(new(10, 1f, 0f, 0f, false, []), false)]) };
+
+        var run = Assert.Single(QuestProfit.Runs(catalog, facts, Progress([1, 2]), 10, 0, true, new Dictionary<int, string>(), goal));
+
+        Assert.Null(run.Achievement);
     }
 
     [Fact]

@@ -320,14 +320,15 @@ public static partial class QuestProfit
     /// out is skipped, not an end, so what follows it falls with it and the other chains go on. Rule D: a quest
     /// left out because one of its alternatives is in the run opens a run of its own, kept when it holds that quest:
     /// one per way until the player takes one, the fork reached before or inside the run. Runs of two quests or more,
-    /// titled by the series, gains and minutes summed. A run that leaves nothing of its way undone finishes the
-    /// series' achievement: the character's part of its reward (<paramref name="achievements"/>, by series) joins
-    /// the gain, the account's kamas stay apart, as one account would count them once for all its characters.
+    /// titled by the series, gains and minutes summed. A run that meets, with the quests already done, every objective
+    /// of the series' achievement (<paramref name="achievements"/>, by series; one quest of an objective is enough)
+    /// finishes it: the character's part of its reward joins the gain, the account's kamas stay apart, as one account
+    /// would count them once for all its characters.
     /// </summary>
     public static IReadOnlyList<ProfitEntry> Runs(
         IEnumerable<QuestSummary> catalog, IReadOnlyDictionary<int, TouchQuestFacts> facts, TrackerProgress progress,
         int level, int bonusPercent, bool dungeons, IReadOnlyDictionary<int, string> dungeonNames,
-        IReadOnlyDictionary<string, IReadOnlyList<TouchAchievementReward>>? achievements = null)
+        IReadOnlyDictionary<string, AchievementGoal>? achievements = null)
     {
         ArgumentNullException.ThrowIfNull(catalog);
         ArgumentNullException.ThrowIfNull(facts);
@@ -386,9 +387,11 @@ public static partial class QuestProfit
                     ? order.First(q => q.Alternatives.Count > 0
                         && (run.Contains(q) || QuestTracking.StatusOf(progress, q.Id) is QuestStatus.Completed or QuestStatus.InProgress))
                     : null;
-                var finishes = achievements?.GetValueOrDefault(group.Key) is { } rows
-                    && QuestPlayOrder.Way(all, run).All(q => run.Contains(q) || QuestTracking.StatusOf(progress, q.Id) == QuestStatus.Completed)
-                    ? QuestRewards.AchievementFor(rows, level, bonusPercent)
+                var finishes = achievements?.GetValueOrDefault(group.Key) is { } goal
+                    && goal.Objectives.All(any => any.Any(id => run.Exists(q => q.Id == id) || QuestTracking.StatusOf(progress, id) == QuestStatus.Completed))
+                    && QuestRewards.AchievementFor(goal.Rewards, level, bonusPercent) is { } reward
+                    && (reward.Character.Experience > 0 || reward.Character.Kamas > 0 || reward.AccountKamas > 0)
+                    ? reward
                     : null;
                 runs.Add(new ProfitEntry(
                     group.Key, run,

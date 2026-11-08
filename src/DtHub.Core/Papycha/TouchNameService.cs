@@ -352,10 +352,10 @@ public sealed class TouchNameService(
 
         // The achievements made of quests, then their rewards: two more spaced requests, none without such achievements.
         var achievements = new Dictionary<int, TouchAchievementReward[]>();
-        if (Table.Whole.Length > 0)
+        if (Table.Whole.Count > 0)
         {
             await Task.Delay(FactsPause, ct).ConfigureAwait(false);
-            var rows = await Locked(() => GetAsync("Achievements", Table.Whole, language, ct)).ConfigureAwait(false);
+            var rows = await Locked(() => GetAsync("Achievements", [.. Table.Whole.Keys], language, ct)).ConfigureAwait(false);
             await Task.Delay(FactsPause, ct).ConfigureAwait(false);
             var rewards = await Locked(() => GetAsync(
                 "AchievementRewards", [.. rows.Values.SelectMany(a => Ints(a, "rewardIds"))], language, ct)).ConfigureAwait(false);

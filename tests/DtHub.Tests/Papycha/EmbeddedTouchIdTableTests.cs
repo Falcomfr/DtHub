@@ -89,7 +89,7 @@ public class EmbeddedTouchIdTableTests
     {
         var whole = Load().Whole;
 
-        Assert.Equal(86, whole.Length);
-        Assert.Contains(1595, whole);
+        Assert.Equal(86, whole.Count);
+        Assert.Equal([[37852], [37899], [37929], [37963], [38001]], whole[1595]);
     }
 }

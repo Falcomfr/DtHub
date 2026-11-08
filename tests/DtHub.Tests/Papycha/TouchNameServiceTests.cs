@@ -651,7 +651,7 @@ public class TouchNameServiceTests
         {
             Quests = new() { [1] = [10, 11], [2] = [11] },
             Series = new() { ["Serie"] = 90 },
-            Whole = [90],
+            Whole = new() { [90] = [[1]] },
         };
     }
 

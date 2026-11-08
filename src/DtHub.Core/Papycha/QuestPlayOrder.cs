@@ -10,7 +10,8 @@
 ///
 /// Failing a prerequisite, the previous order, which also breaks ties
 /// between quests that no prerequisite separates: the place within
-/// the achievement, computed at indexing time; then the chain rank,
+/// the achievement, the game's objective order when the ids table
+/// gives it (D229), else computed at indexing time; then the chain rank,
 /// for quests the map does not know; the title last, so the order is
 /// total and always the same.
 ///

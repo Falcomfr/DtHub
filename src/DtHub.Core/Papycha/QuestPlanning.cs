@@ -56,7 +56,7 @@ public static class QuestPlanning
         IEnumerable<QuestSummary> catalog, IReadOnlyDictionary<int, TouchQuestFacts> facts,
         IReadOnlyList<(TrackerCharacter Character, TrackerProgress Progress)> characters, int bonusPercent,
         bool dungeons, IReadOnlyDictionary<int, string> dungeonNames,
-        IReadOnlyDictionary<string, IReadOnlyList<TouchAchievementReward>>? achievements = null)
+        IReadOnlyDictionary<string, AchievementGoal>? achievements = null)
     {
         ArgumentNullException.ThrowIfNull(characters);
 

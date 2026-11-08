@@ -271,4 +271,12 @@ public class TouchLocalizationTests
 
         Assert.Equal([shown], Q(doc, 3).Prerequisites);
     }
+
+    [Fact]
+    public void Un_prerequis_du_jeu_deja_donne_par_Papycha_n_est_pas_double()
+    {
+        var doc = TouchLocalization.Apply(Catalog(), Table with { Needs = new() { [2] = [1] } }, Names(), true);
+
+        Assert.Equal(["Invented EN"], Q(doc, 2).Prerequisites);
+    }
 }
