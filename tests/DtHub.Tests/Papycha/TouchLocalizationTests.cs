@@ -279,4 +279,14 @@ public class TouchLocalizationTests
 
         Assert.Equal(["Invented EN"], Q(doc, 2).Prerequisites);
     }
+
+    [Fact]
+    public void Le_niveau_minimum_vient_de_la_premiere_quete_du_jeu()
+    {
+        var doc = TouchLocalization.Apply(Catalog(), Table, Names(min: 120, max: 200), false);
+
+        Assert.Equal(120, Q(doc, 1).MinLevel);
+        Assert.Equal(15, Q(doc, 2).MinLevel);
+        Assert.Equal(0, Q(doc, 3).MinLevel);
+    }
 }

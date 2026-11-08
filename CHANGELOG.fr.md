@@ -16,6 +16,7 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 ### Ajouté
 
 - Dans le mode Succès des quêtes recommandées, une suite qui termine son succès compte aussi l'XP que le succès rapporte ; les kamas que le jeu verse au compte s'affichent à part, au survol.
+- Le mode Succès montre aussi une quête seule quand elle termine son succès, avec la récompense.
 
 ### Modifié
 
@@ -25,6 +26,8 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
 - Les quêtes d'un succès suivent l'ordre du jeu : certaines arrivaient trop tôt quand Papycha ne leur donnait pas de prérequis, comme « Le Fil d'Adrian » avant « Dédale au pluriel » (36 succès sur 96).
 - Les deux pages « L'Ascension » ont chacune leur quête, leurs gains ne s'additionnent plus, et huit quêtes que les données du jeu n'atteignaient pas, dont cinq ajoutées depuis par Papycha, prennent leurs noms, niveaux et récompenses dans le jeu. « Ixchelonia, la tortue-lune » n'est plus proposée avant « Chaklaplok », et « La destinée » peut de nouveau être proposée.
+- Une quête n'est plus cachée sous le niveau optimal de sa première étape mais sous le niveau minimum du jeu : 68 quêtes réapparaissent au niveau 193, comme « Distribution de marrons », faisable dès le niveau 20.
+- « Faisables » garde les quêtes répétables (quotidiennes, hebdomadaires, saisonnières) : elles se font. Elles restent hors des quêtes recommandées.
 
 ## [0.13.2] - 2026-11-05
 

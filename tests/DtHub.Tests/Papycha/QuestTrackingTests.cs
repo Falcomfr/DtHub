@@ -474,4 +474,32 @@ public class QuestTrackingTests
         Assert.Null(row.NeedsMet);
         Assert.All(row.Needs!, n => Assert.Null(n.Met));
     }
+
+    [Fact]
+    public void Faisables_garde_une_quete_repetable()
+    {
+        // A weekly quest is done again and again: under "Faisables" it shows, it only stays out of "Recommandées".
+        var catalog = new[] { Named(1) with { Recurrence = QuestRecurrence.Weekly } };
+        var chain = new QuestChainIndex(catalog);
+        var facts = new TouchQuestFacts([new TouchStepReward(10, 1f, 1f, 0f, false, [])], []);
+        var none = new TrackerProgress(new Dictionary<int, QuestStatus>(), new HashSet<int>(), new HashSet<int>(), []);
+
+        Assert.True(QuestTracking.Doable(catalog[0], none, facts, 10, chain));
+        Assert.False(QuestProfit.IsDoable(catalog[0], none, facts, 10, chain));
+    }
+
+    [Fact]
+    public void Le_niveau_minimum_du_jeu_decide_et_pas_le_niveau_optimal()
+    {
+        // "Distribution de marrons": optimal level 200, done from level 20 in the game.
+        var facts = new TouchQuestFacts([new TouchStepReward(200, 1f, 1f, 0f, false, [])], []);
+        var none = new TrackerProgress(new Dictionary<int, QuestStatus>(), new HashSet<int>(), new HashSet<int>(), []);
+        QuestSummary Q(int min) => Named(1) with { MinLevel = min };
+
+        Assert.True(QuestProfit.IsDoable(Q(20), none, facts, 193, new QuestChainIndex([Q(20)])));
+        Assert.False(QuestProfit.IsDoable(Q(195), none, facts, 193, new QuestChainIndex([Q(195)])));
+        // Unknown in the game: the optimal level, as before.
+        Assert.False(QuestProfit.IsDoable(Q(0), none, facts, 193, new QuestChainIndex([Q(0)])));
+        Assert.True(QuestProfit.IsDoable(Q(0), none, facts, 200, new QuestChainIndex([Q(0)])));
+    }
 }

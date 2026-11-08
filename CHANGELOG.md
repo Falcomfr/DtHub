@@ -22,6 +22,7 @@ belongs in the commits and in `docs/DECISIONS.md`.
 ### Added
 
 - In the Achievements mode of the recommended quests, a run that finishes its achievement also counts the achievement's XP reward; the kamas the game gives the account show apart, in the hover.
+- The Achievements mode also shows a single quest when it finishes its achievement, with the reward.
 
 ### Changed
 
@@ -31,6 +32,8 @@ belongs in the commits and in `docs/DECISIONS.md`.
 
 - The quests of an achievement are listed in the game's order: some came too early when Papycha gave them no prerequisite, such as "Le Fil d'Adrian" before "Dédale au pluriel" (36 achievements out of 96).
 - The two "L'Ascension" pages each get their own quest, so their gains are no longer summed, and eight quests the game data had not reached, five of them added by Papycha since, get their names, levels and rewards from the game. "Ixchelonia, la tortue-lune" is no longer offered before "Chaklaplok", and "La destinée" can be offered again.
+- A quest is hidden for a character below the game's minimum level, no longer below its optimal level: 68 quests reappear at level 193, such as "Distribution de marrons", done from level 20.
+- "Doable" keeps repeatable quests (daily, weekly, seasonal): they are done again. They stay out of the recommended quests.
 
 ## [0.13.2] - 2026-11-05
 

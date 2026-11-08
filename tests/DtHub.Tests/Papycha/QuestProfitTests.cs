@@ -1340,4 +1340,29 @@ public class QuestProfitTests
         Assert.Empty(QuestProfit.Previous(catalog[1], chain));
         Assert.False(QuestProfit.HasPrerequisite(catalog[1], chain, [Progress([])]));
     }
+
+    [Fact]
+    public void Une_seule_quete_qui_finit_le_succes_fait_une_ligne()
+    {
+        var catalog = new[] { Quest(1, "S", 1), Quest(2, "S", 2) };
+        var facts = catalog.ToDictionary(q => q.Id, _ => Xp(1f));
+        var progress = Progress([2], new() { [1] = QuestStatus.Completed });
+
+        var run = Assert.Single(QuestProfit.Runs(catalog, facts, progress, 10, 0, true, new Dictionary<int, string>(), Goal([1], [2])));
+
+        Assert.Equal([2], run.Quests.Select(q => q.Id));
+        Assert.NotNull(run.Achievement);
+        // Without the achievement it finishes, one quest is no run.
+        Assert.Empty(QuestProfit.Runs(catalog, facts, progress, 10, 0, true, new Dictionary<int, string>()));
+    }
+
+    [Fact]
+    public void Une_seule_quete_au_choix_ne_fait_pas_de_ligne()
+    {
+        // "Un nouveau départ": fifteen devotions, one to do, none of which Papycha can record as done.
+        var catalog = new[] { Quest(1, "S", 1) with { Alternatives = [2] }, Quest(2, "S", 1) with { Alternatives = [1] } };
+        var facts = catalog.ToDictionary(q => q.Id, _ => Xp(1f));
+
+        Assert.Empty(QuestProfit.Runs(catalog, facts, Progress([1, 2]), 10, 0, true, new Dictionary<int, string>(), Goal([1, 2])));
+    }
 }

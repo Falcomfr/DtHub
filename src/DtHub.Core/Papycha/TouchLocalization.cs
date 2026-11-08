@@ -16,7 +16,8 @@
 ///   titles;
 /// - with <c>translateNames</c>, each prerequisite that names a French quest
 ///   title takes that quest's shown title, so the chain still resolves;
-/// - the level is the first game quest's, when it is precise (min = max > 0);
+/// - the level is the first game quest's, when it is precise (min = max > 0),
+///   and its minimum level always;
 /// - the series name of a quest and the series order take the game
 ///   achievement name, in every language;
 /// - a quest the game links to an achievement while Papycha files it under
@@ -45,12 +46,13 @@ public static class TouchLocalization
         ArgumentNullException.ThrowIfNull(names);
 
         Dictionary<string, string> shownByFrench = [];
-        List<(QuestSummary Quest, string Shown, int Level)> rows = [];
+        List<(QuestSummary Quest, string Shown, int Level, int MinLevel)> rows = [];
 
         foreach (var quest in source.Quests)
         {
             var shown = quest.Title;
             var level = quest.Level;
+            var minLevel = 0;
 
             if (table.Quests.TryGetValue(quest.Id, out var ids))
             {
@@ -59,6 +61,7 @@ public static class TouchLocalization
                 if (found.Length > 0)
                 {
                     var first = names.Quests[found[0]];
+                    minLevel = Math.Max(0, first.LevelMin);
 
                     if (first.LevelMin == first.LevelMax && first.LevelMin > 0)
                     {
@@ -72,7 +75,7 @@ public static class TouchLocalization
                 }
             }
 
-            rows.Add((quest, shown, level));
+            rows.Add((quest, shown, level, minLevel));
         }
 
         // One game name over pages Papycha titles apart would merge them in
@@ -86,7 +89,7 @@ public static class TouchLocalization
 
         List<QuestSummary> quests = [];
 
-        foreach (var (quest, found, level) in rows)
+        foreach (var (quest, found, level, minLevel) in rows)
         {
             var shown = shared.Contains(quest.Id) ? quest.Title : found;
 
@@ -100,6 +103,7 @@ public static class TouchLocalization
             {
                 Title = shown,
                 Level = level,
+                MinLevel = minLevel,
                 SearchKey = shown == quest.Title
                     ? quest.SearchKey
                     : QuestSearch.Normalize(shown + " " + quest.Title),

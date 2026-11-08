@@ -101,8 +101,18 @@ public static partial class QuestProfit
         return steps.Contains(null) ? null : QuestRewards.For(steps!, level, bonusPercent);
     }
 
-    public static bool IsDoable(QuestSummary quest, TrackerProgress? progress, TouchQuestFacts facts, int level, QuestChainIndex chain) =>
-        progress is not null && Continuable(quest, progress, facts, level) && Startable(quest, progress, chain);
+    /// <param name="repeatables">True under "Faisables": a repeatable quest is done again, it only stays out of the rankings.</param>
+    public static bool IsDoable(
+        QuestSummary quest, TrackerProgress? progress, TouchQuestFacts facts, int level, QuestChainIndex chain, bool repeatables = false) =>
+        progress is not null && Continuable(quest, progress, facts, level, repeatables) && Startable(quest, progress, chain);
+
+    /// <summary>
+    /// Whether the quest is above <paramref name="level"/>: the game's minimum level (<see cref="QuestSummary.MinLevel"/>),
+    /// or failing it the first step's optimal level.
+    /// </summary>
+    internal static bool AboveLevel(QuestSummary quest, TouchQuestFacts? facts, int level) =>
+        quest.MinLevel > 0 ? quest.MinLevel > level
+            : facts?.Steps.FirstOrDefault() is { } first && first.OptimalLevel > level;
 
     /// <summary>
     /// Whether the character can start the quest now: in progress, or not ruled out (<see cref="IsRuledOut"/>) and by
@@ -217,14 +227,14 @@ public static partial class QuestProfit
         [.. quest.Prerequisites.Select(chain.Resolve).OfType<QuestSummary>().Where(p => p.Id != quest.Id && !quest.Alternatives.Contains(p.Id))];
 
     // Every doable rule except being startable now (Available, in progress, previous quests done), rule A included.
-    private static bool Continuable(QuestSummary quest, TrackerProgress progress, TouchQuestFacts facts, int level)
+    private static bool Continuable(QuestSummary quest, TrackerProgress progress, TouchQuestFacts facts, int level, bool repeatables = false)
     {
         ArgumentNullException.ThrowIfNull(quest);
         ArgumentNullException.ThrowIfNull(facts);
 
-        return facts.Steps.Length > 0 && facts.Steps[0] is { } first && first.OptimalLevel <= level
+        return facts.Steps.Length > 0 && facts.Steps[0] is not null && !AboveLevel(quest, facts, level)
             && QuestTracking.StatusOf(progress, quest.Id) is not (QuestStatus.Completed or QuestStatus.Blocked or QuestStatus.Ignored)
-            && !QuestRecurrenceLabel.IsRepeatable(quest) && !IsRuledOut(quest, progress);
+            && (repeatables || !QuestRecurrenceLabel.IsRepeatable(quest)) && !IsRuledOut(quest, progress);
     }
 
     public static IReadOnlyDictionary<int, QuestScore> Score(
@@ -319,7 +329,8 @@ public static partial class QuestProfit
     /// with a prerequisite (<see cref="HasPrerequisite"/>, the run's own quests counting as done). Rule C: a quest left
     /// out is skipped, not an end, so what follows it falls with it and the other chains go on. Rule D: a quest
     /// left out because one of its alternatives is in the run opens a run of its own, kept when it holds that quest:
-    /// one per way until the player takes one, the fork reached before or inside the run. Runs of two quests or more,
+    /// one per way until the player takes one, the fork reached before or inside the run. Runs of two quests or more
+    /// (one when it finishes the achievement and is no alternative),
     /// titled by the series, gains and minutes summed. A run that meets, with the quests already done, every objective
     /// of the series' achievement (<paramref name="achievements"/>, by series; one quest of an objective is enough)
     /// finishes it: the character's part of its reward joins the gain, the account's kamas stay apart, as one account
@@ -378,7 +389,16 @@ public static partial class QuestProfit
                 if (opener is not null && tried.Exists(r => r.Contains(opener))) continue;
                 var run = RunOf(opener?.Alternatives ?? []);
                 tried.Add(run);
-                if (run.Count < 2 || (opener is not null && !run.Contains(opener))) continue;
+                var finishes = run.Count > 0 && achievements?.GetValueOrDefault(group.Key) is { } goal
+                    && goal.Objectives.All(any => any.Any(id => run.Exists(q => q.Id == id) || QuestTracking.StatusOf(progress, id) == QuestStatus.Completed))
+                    && QuestRewards.AchievementFor(goal.Rewards, level, bonusPercent) is { } reward
+                    && (reward.Character.Experience > 0 || reward.Character.Kamas > 0 || reward.AccountKamas > 0)
+                    ? reward
+                    : null;
+                // One quest is a run only when it finishes the achievement, its reward being the point, and is no way to
+                // choose: the fifteen devotions of "Un nouveau départ" would each make a row Papycha never clears.
+                var least = finishes is not null && run is [{ Alternatives.Count: 0 }] ? 1 : 2;
+                if (run.Count < least || (opener is not null && !run.Contains(opener))) continue;
 
                 var gains = run.Select(q => GainOf(facts[q.Id], level, bonusPercent)!).ToList();
                 var started = group.Any(q => QuestTracking.StatusOf(progress, q.Id) is QuestStatus.Completed or QuestStatus.InProgress);
@@ -386,12 +406,6 @@ public static partial class QuestProfit
                 var path = run.Exists(q => q.Alternatives.Count > 0)
                     ? order.First(q => q.Alternatives.Count > 0
                         && (run.Contains(q) || QuestTracking.StatusOf(progress, q.Id) is QuestStatus.Completed or QuestStatus.InProgress))
-                    : null;
-                var finishes = achievements?.GetValueOrDefault(group.Key) is { } goal
-                    && goal.Objectives.All(any => any.Any(id => run.Exists(q => q.Id == id) || QuestTracking.StatusOf(progress, id) == QuestStatus.Completed))
-                    && QuestRewards.AchievementFor(goal.Rewards, level, bonusPercent) is { } reward
-                    && (reward.Character.Experience > 0 || reward.Character.Kamas > 0 || reward.AccountKamas > 0)
-                    ? reward
                     : null;
                 runs.Add(new ProfitEntry(
                     group.Key, run,

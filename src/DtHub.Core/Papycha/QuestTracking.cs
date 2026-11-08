@@ -161,7 +161,7 @@ public static class QuestTracking
     /// Whether "Faisables" reads the quest as startable now. The site's list leaves the level to the site
     /// (<see cref="QuestProfit.Startable"/>); without one, every doable rule but the gain applies
     /// (<see cref="QuestProfit.IsDoable"/>), unknown without the quest's facts, except that a blocked quest is read as
-    /// not started: the player still wants to see it. Either way, a quest bound to a time slot or a date
+    /// not started: the player still wants to see it, and a repeatable one is kept (asked 2026-11-08). Either way, a quest bound to a time slot or a date
     /// (<see cref="QuestProfit.HasPrerequisite"/>) is left out, as in "Recommandées" (asked 2026-10-24: only what can be
     /// done right now; a zone, a job, an alignment stay, the lock tells them).
     /// </summary>
@@ -183,7 +183,7 @@ public static class QuestTracking
         var unblocked = StatusOf(progress, quest.Id) == QuestStatus.Blocked
             ? progress with { Statuses = progress.Statuses.Where(s => s.Key != quest.Id).ToDictionary() }
             : progress;
-        return facts is not null && QuestProfit.IsDoable(quest, unblocked, facts, level, chain);
+        return facts is not null && QuestProfit.IsDoable(quest, unblocked, facts, level, chain, repeatables: true);
     }
 
     /// <summary>
@@ -220,7 +220,7 @@ public static class QuestTracking
         return QuestPlayOrder.Sorted(catalog.Where(q =>
             !QuestRecurrenceLabel.IsRepeatable(q)
             && StatusOf(progress, q.Id) is not (QuestStatus.Completed or QuestStatus.Ignored or QuestStatus.Blocked)
-            && !(level > 0 && facts?.GetValueOrDefault(q.Id)?.Steps.FirstOrDefault() is { } first && first.OptimalLevel > level)
+            && !(level > 0 && QuestProfit.AboveLevel(q, facts?.GetValueOrDefault(q.Id), level))
             && !QuestProfit.IsRuledOut(q, progress)
             && QuestProfit.QuestNeeds(q, chain) is { Count: > 0 } needs
             && needs.All(n => QuestProfit.IsMet(n, q, chain, p => QuestProfit.IsDone(p, q, progress)))));

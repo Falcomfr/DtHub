@@ -12323,3 +12323,33 @@ la somme des personnages, chacun à son niveau) ; une page appariée à
 plusieurs quêtes du jeu par tranche de niveau (« Joyeux Nowel », « Sauter le
 pas du trépas », et maintenant « Eklate Vulkaine ») prend toujours les faits
 de la première tranche, défaut antérieur à cette branche.
+
+## D232 - Niveau minimum du jeu, répétables sous « Faisables », succès d'une quête
+
+Le 08/11/2026, l'utilisateur trouve peu de lignes dans les Recommandées et voit
+« Faisables » cacher les quêtes hebdomadaires. Diagnostic sur Falcom (193),
+avec le vrai code et son suivi Papycha :
+
+- **Niveau.** Une quête était cachée quand le niveau optimal de sa première
+  étape dépassait celui du personnage. Ce n'est pas un minimum : « Distribution
+  de marrons » a 200 et se fait dès 20 dans le jeu. 68 quêtes étaient cachées
+  à tort au niveau 193. `QuestSummary.MinLevel` prend le niveau minimum de la
+  première quête du jeu appariée (`TouchLocalization`), et
+  `QuestProfit.AboveLevel` décide sur lui, le niveau optimal en repli sans les
+  noms du jeu. Sert aux deux listes, aux suites de succès et aux « Suivantes ».
+- **Répétables.** Pour un personnage que Papycha ne rend pas actif (aucune
+  liste « disponibles »), « Faisables » passait par `IsDoable`, qui écarte les
+  répétables : un effet de bord, contraire à D219 (« seuls l'horaire et la date
+  cachent une quête »). Choix de l'utilisateur : visibles sous « Faisables »,
+  toujours hors des Recommandées (`IsDoable(..., repeatables: true)` depuis
+  `QuestTracking.Doable` seulement).
+- **Succès d'une quête.** Une suite devait compter deux quêtes ; une quinzaine
+  de séries n'en avaient plus qu'une, qui termine pourtant le succès et sa
+  récompense. Choix de l'utilisateur : une quête seule fait une ligne quand
+  elle termine le succès, et n'est pas une alternative (sinon les quinze
+  dévotions d'« Un nouveau départ », que Papycha refuse d'enregistrer,
+  feraient chacune une ligne pour toujours).
+
+Effet pour Falcom : mode Succès 13 → 22 suites, « Faisables » 179 quêtes dont
+81 répétables. Le reste du peu de lignes est voulu : 310 quêtes terminées, 8
+lignes par onglet (D221).

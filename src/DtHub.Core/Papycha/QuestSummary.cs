@@ -26,6 +26,12 @@ public sealed record QuestSummary
     /// </summary>
     public int Level { get; init; }
 
+    /// <summary>
+    /// The game's minimum level for the quest (its first paired quest's), zero when the game's names are not read.
+    /// Not the first step's optimal level: "Distribution de marrons" has 200 there and is done from level 20.
+    /// </summary>
+    public int MinLevel { get; init; }
+
     /// <summary>Categories from the site, including the zone.</summary>
     public IReadOnlyList<int> Categories { get; init; } = [];
 

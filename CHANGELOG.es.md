@@ -15,6 +15,7 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 ### Añadido
 
 - En el modo Logros de las misiones recomendadas, una serie que completa su logro cuenta también la XP que da el logro; los kamas que el juego da a la cuenta se muestran aparte, al pasar el ratón.
+- El modo Logros muestra también una sola misión cuando completa su logro, con la recompensa.
 
 ### Cambiado
 
@@ -24,6 +25,8 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 
 - Las misiones de un logro siguen el orden del juego: algunas aparecían demasiado pronto cuando Papycha no les daba requisito previo, como «Le Fil d'Adrian» antes de «Dédale au pluriel» (36 logros de 96).
 - Las dos páginas «L'Ascension» tienen cada una su misión, sus ganancias ya no se suman, y ocho misiones que los datos del juego no alcanzaban, cinco de ellas añadidas desde entonces por Papycha, toman del juego sus nombres, niveles y recompensas. «Ixchelonia, la tortue-lune» ya no se propone antes de «Chaklaplok», y «La destinée» puede volver a proponerse.
+- Una misión ya no se oculta por debajo del nivel óptimo de su primera etapa sino por debajo del nivel mínimo del juego: 68 misiones reaparecen en el nivel 193, como «Distribution de marrons», posible desde el nivel 20.
+- «Realizables» conserva las misiones repetibles (diarias, semanales, de temporada): se pueden hacer. Siguen fuera de las misiones recomendadas.
 
 ## [0.13.2] - 2026-11-05
 
