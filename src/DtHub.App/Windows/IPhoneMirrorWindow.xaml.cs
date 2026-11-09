@@ -21,13 +21,34 @@ namespace DtHub.App.Windows;
 public partial class IPhoneMirrorWindow : Window
 {
     /// <summary>
-    /// Runs before the viewer's own script: frame off, no zoom, then its
+    /// Runs before the viewer's own script: frame off, no zoom, whole
+    /// decoded frames instead of Edge's 1280x720 crop, then its
     /// bars, side panels and buttons hidden. Its canvas sizing stays its
     /// own, so a click still lands where the page expects. Also says when
     /// the engine cannot decode the stream (HEVC, in hardware on most PCs).
     /// </summary>
     private const string ScreenOnly = """
         try { localStorage.setItem('frameOn', 'false'); localStorage.setItem('zoom', '1'); } catch (e) {}
+        // Without a size in its config, as the viewer sets it, Edge hands each
+        // frame cropped to 1280x720: the top of the screen only (measured
+        // 2026-11-09). The whole picture is decoded, so show all of it.
+        // shortcut: the coded size may hold a few alignment pixels past the picture, unseen at 1264x2752.
+        if (typeof VideoDecoder !== 'undefined') {
+          window.VideoDecoder = class extends VideoDecoder {
+            constructor(init) {
+              super({ ...init, output: f => {
+                const w = f.codedWidth, h = f.codedHeight;
+                if (f.visibleRect.width === w && f.visibleRect.height === h && f.displayWidth === w && f.displayHeight === h) {
+                  init.output(f);
+                  return;
+                }
+                const whole = new VideoFrame(f, { visibleRect: { x: 0, y: 0, width: w, height: h }, displayWidth: w, displayHeight: h });
+                f.close();
+                init.output(whole);
+              } });
+            }
+          };
+        }
         document.addEventListener('DOMContentLoaded', () => {
           const style = document.createElement('style');
           style.textContent = '#topbar,#left-tray,#right-tray,#bottom-row,#hw-tooltip,#help-overlay,.hw,#stage::before'

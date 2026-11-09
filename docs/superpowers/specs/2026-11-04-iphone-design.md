@@ -92,6 +92,21 @@ Edge 156 on this PC (NVIDIA) reports HEVC decoding as supported in hardware.
 Not run: the WPF windows themselves. They were built and analysed, but
 never opened.
 
+## First real iPhone, 2026-11-09
+
+A player on iOS 27.2 (HP laptop, Ryzen 5 7520U, DT Hub 0.14.1) got the
+screen, and a click opened DOFUS Touch. On the way:
+- Avira (most likely) removed `python.exe` from `tools\iphone\python` and
+  `msedgewebview2.exe` from WebView2: setup then failed with "Python
+  interpreter not found" on every try, and the viewer window with
+  0x80070002. Deleting `tools\iphone` and repairing WebView2 fixed both.
+- Edge needed the paid HEVC Video Extensions; the free OEM one is refused.
+- Only the top of the screen showed. Edge's WebCodecs, given no size in
+  the decoder config (the viewer gives none), crops every frame to
+  1280x720. Reproduced on this PC with a 1264x2752 x265 frame; the window
+  script now re-wraps each frame at its coded size (same pixels as a
+  sized config, portrait and landscape).
+
 ## What to check with an iOS 27 iPhone, in this order
 
 1. Add-device window > "J'ai un iPhone ou un iPad": the iPhone is listed
