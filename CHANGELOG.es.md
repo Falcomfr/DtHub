@@ -10,6 +10,12 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Corregido
+
+- En modo pestañas, el juego ya no se congela a ratos cuando el panel está abierto: los clics pasan tan rápido como en ventanas flotantes.
+
 ## [0.14.1] - 2026-11-09
 
 ### Corregido

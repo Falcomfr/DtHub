@@ -11,6 +11,12 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Corrigé
+
+- En mode onglets, le jeu ne se fige plus par moments quand le panneau est ouvert : les clics passent aussi vite qu'en fenêtres flottantes.
+
 ## [0.14.1] - 2026-11-09
 
 ### Corrigé

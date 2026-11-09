@@ -17,6 +17,12 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Fixed
+
+- In tabbed mode, the game no longer freezes for a moment now and then while the panel is open: clicks get through as fast as in floating windows.
+
 ## [0.14.1] - 2026-11-09
 
 ### Fixed
