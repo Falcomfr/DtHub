@@ -15,6 +15,9 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 ### Corregido
 
 - En modo pestañas, el juego ya no se congela a ratos cuando el panel está abierto: los clics pasan tan rápido como en ventanas flotantes.
+- La ventana del iPhone muestra toda la pantalla, y no solo su parte superior.
+- Cuando la instalación de las herramientas del iPhone falla, el siguiente intento las vuelve a descargar en lugar de fallar igual.
+- La ventana del iPhone indica cuándo el componente WebView2 de Microsoft falta o está dañado, y cómo repararlo.
 
 ## [0.14.1] - 2026-11-09
 

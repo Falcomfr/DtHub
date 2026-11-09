@@ -16,6 +16,9 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 ### Corrigé
 
 - En mode onglets, le jeu ne se fige plus par moments quand le panneau est ouvert : les clics passent aussi vite qu'en fenêtres flottantes.
+- La fenêtre iPhone montre tout l'écran, et plus seulement son haut.
+- Quand l'installation des outils iPhone échoue, l'essai suivant les retélécharge au lieu d'échouer de la même façon.
+- La fenêtre iPhone dit quand le composant WebView2 de Microsoft est absent ou abîmé, et comment le réparer.
 
 ## [0.14.1] - 2026-11-09
 

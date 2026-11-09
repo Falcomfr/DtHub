@@ -22,6 +22,9 @@ belongs in the commits and in `docs/DECISIONS.md`.
 ### Fixed
 
 - In tabbed mode, the game no longer freezes for a moment now and then while the panel is open: clicks get through as fast as in floating windows.
+- The iPhone window shows the whole screen, not just its top.
+- When the iPhone tools fail to install, the next try downloads them again instead of failing the same way.
+- The iPhone window says when Microsoft's WebView2 component is missing or damaged, and how to repair it.
 
 ## [0.14.1] - 2026-11-09
 
