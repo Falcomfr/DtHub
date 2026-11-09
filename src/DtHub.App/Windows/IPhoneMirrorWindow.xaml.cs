@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Windows;
@@ -8,6 +9,8 @@ using DtHub.Core.IPhone;
 using DtHub.Core.Localization;
 using DtHub.Core.Processes;
 using DtHub.Infrastructure.IPhone;
+
+using Microsoft.Web.WebView2.Core;
 
 using Serilog;
 
@@ -141,7 +144,15 @@ public partial class IPhoneMirrorWindow : Window
         {
             // Also a window closed while the engine was starting.
             Log.Warning(exception, "L'écran de l'iPhone n'a pas pu s'afficher.");
-            ShowStatus(Strings.Get("IPhoneFailed"));
+            ShowStatus(exception switch
+            {
+                // Its message says how to install it.
+                WebView2RuntimeNotFoundException => exception.Message,
+
+                // msedgewebview2.exe gone, the runtime still registered (2026-11-09).
+                FileNotFoundException => Strings.Get("IPhoneWebViewBroken"),
+                _ => Strings.Get("IPhoneFailed"),
+            });
         }
     }
 
