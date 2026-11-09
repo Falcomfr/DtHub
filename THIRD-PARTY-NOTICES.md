@@ -116,9 +116,9 @@ licence are in `third_party/sdl/`.
 - Publisher: Google LLC
 - Licence: Android Software Development Kit License Agreement
 - Official, versioned source, and therefore of immutable content:
-  https://dl.google.com/android/repository/platform-tools_r37.0.2-win.zip
+  https://dl.google.com/android/repository/platform-tools_r37.0.1-win.zip
   on Windows, and
-  https://dl.google.com/android/repository/platform-tools_r37.0.2-darwin.zip
+  https://dl.google.com/android/repository/platform-tools_r37.0.1-darwin.zip
   on macOS
 
   The "latest" address is not used: its content changes without notice,

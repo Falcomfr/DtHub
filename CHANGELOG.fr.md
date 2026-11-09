@@ -11,6 +11,12 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.14.1] - 2026-11-09
+
+### Corrigé
+
+- L'application télécharge de nouveau l'outil adb d'Android : Google a retiré platform-tools 37.0.2, DT Hub revient en 37.0.1 et le téléchargement n'échoue plus.
+
 ## [0.14.0] - 2026-11-08
 
 ### Ajouté

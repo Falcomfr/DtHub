@@ -17,6 +17,12 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.14.1] - 2026-11-09
+
+### Fixed
+
+- The app downloads Android's adb tool again: Google withdrew platform-tools 37.0.2, so DT Hub goes back to 37.0.1 and the download no longer fails.
+
 ## [0.14.0] - 2026-11-08
 
 ### Added
