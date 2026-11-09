@@ -1,5 +1,10 @@
-﻿using DtHub.Core.Localization;
+﻿using DtHub.Core.Dependencies;
+using DtHub.Core.IPhone;
+using DtHub.Core.Localization;
 using DtHub.Infrastructure.IPhone;
+using DtHub.Tests.Fakes;
+
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DtHub.Tests.IPhone;
 
@@ -115,5 +120,35 @@ public class PyMobileDeviceTests
     public void Sans_ligne_d_erreur_de_l_outil_le_message_est_general(string error)
     {
         Assert.Equal(Strings.Get("IPhoneFailed"), PyMobileDevice.Explain(error));
+    }
+
+    [Fact]
+    public async Task Un_Python_abime_est_efface_pour_que_l_essai_suivant_le_retelecharge()
+    {
+        // Seen on 2026-11-09: an antivirus removed python.exe, and every try
+        // failed the same way until the player deleted the folder by hand.
+        var root = Directory.CreateTempSubdirectory("dthub-iphone-").FullName;
+        var paths = new FakeAppPaths(root);
+        var python = Path.Combine(paths.ToolsDirectory, "iphone", "python");
+        Directory.CreateDirectory(Path.Combine(python, "cpython-3.13.18-windows-x86_64-none"));
+        var runner = new FakeProcessRunner().Respond(
+            "venv", standardError: "error: Python interpreter not found at `python.exe`", exitCode: 2);
+        using var tools = new PyMobileDevice(
+            new UvAlreadyThere(), runner, new FakeProcessLauncher(), paths, NullLogger<PyMobileDevice>.Instance);
+
+        await Assert.ThrowsAsync<IPhoneException>(() => tools.ListAsync(CancellationToken.None));
+
+        Assert.False(Directory.Exists(python));
+        Directory.Delete(root, recursive: true);
+    }
+
+    private sealed class UvAlreadyThere : IDependencyProvisioner
+    {
+        public Task<string> EnsureAvailableAsync(
+            ExternalDependency dependency,
+            IProgress<ProvisioningProgress>? progress = null,
+            CancellationToken cancellationToken = default) => Task.FromResult("uv.exe");
+
+        public string? TryGetExistingPath(ExternalDependency dependency) => "uv.exe";
     }
 }

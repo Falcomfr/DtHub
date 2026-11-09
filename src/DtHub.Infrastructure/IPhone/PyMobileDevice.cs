@@ -257,9 +257,27 @@ public sealed partial class PyMobileDevice : IDisposable
             var listPath = Path.Combine(Root, "requirements.txt");
             await File.WriteAllTextAsync(listPath, requirements, cancellationToken).ConfigureAwait(false);
 
-            await RunAsync(
-                UvRequest(uv, Root, "venv", "--clear", "--python", PythonVersion, venv) with { Timeout = InstallTimeout },
-                cancellationToken).ConfigureAwait(false);
+            try
+            {
+                await RunAsync(
+                    UvRequest(uv, Root, "venv", "--clear", "--python", PythonVersion, venv) with { Timeout = InstallTimeout },
+                    cancellationToken).ConfigureAwait(false);
+            }
+            catch (IPhoneException)
+            {
+                // A Python missing its files (an antivirus took python.exe on
+                // 2026-11-09) fails every try alike: the next one downloads it again.
+                try
+                {
+                    Directory.Delete(Path.Combine(Root, "python"), recursive: true);
+                }
+                catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+                {
+                    // Still held by a process: the next try deletes it.
+                }
+
+                throw;
+            }
             await RunAsync(
                 UvRequest(uv, Root, "pip", "sync", "--require-hashes", "--python", python, listPath) with { Timeout = InstallTimeout },
                 cancellationToken).ConfigureAwait(false);
