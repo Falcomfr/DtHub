@@ -144,6 +144,61 @@ public class ProcessRunnerTests
         Assert.Contains("deux mots", result.StandardOutput, StringComparison.Ordinal);
     }
 
+    // Called from the WPF thread, Process.Start held it 5 to 27 ms per adb
+    // command, and the tabbed frame, which shares that thread, froze with it.
+    [Fact]
+    public void Le_lancement_ne_se_fait_pas_sur_le_fil_de_l_appelant()
+    {
+        var (caller, launch) = Threads((runner, request) => runner.RunAsync(request));
+
+        Assert.NotEqual(caller, launch);
+    }
+
+    [Fact]
+    public void Le_lancement_en_octets_ne_se_fait_pas_sur_le_fil_de_l_appelant()
+    {
+        var (caller, launch) = Threads((runner, request) => runner.RunForBytesAsync(request));
+
+        Assert.NotEqual(caller, launch);
+    }
+
+    // A dedicated thread is never a pool thread: if the launch is prepared
+    // anywhere but there, it was handed off.
+    private static (int Caller, int? Launch) Threads(Func<ProcessRunner, ProcessRequest, Task> run)
+    {
+        var arguments = new ThreadRecordingArguments(OnWindows ? ["/c", "echo bonjour"] : ["-c", "echo bonjour"]);
+        var request = Shell("") with { Arguments = arguments };
+        var caller = 0;
+        var thread = new Thread(() =>
+        {
+            caller = Environment.CurrentManagedThreadId;
+            run(new ProcessRunner(), request).GetAwaiter().GetResult();
+        });
+
+        thread.Start();
+        thread.Join();
+
+        Assert.NotNull(arguments.ThreadId);
+        return (caller, arguments.ThreadId);
+    }
+
+    private sealed class ThreadRecordingArguments(string[] items) : IReadOnlyList<string>
+    {
+        public int? ThreadId { get; private set; }
+
+        public int Count => items.Length;
+
+        public string this[int index] => items[index];
+
+        public IEnumerator<string> GetEnumerator()
+        {
+            ThreadId = Environment.CurrentManagedThreadId;
+            return ((IEnumerable<string>)items).GetEnumerator();
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+
     [Fact]
     public void La_ligne_de_commande_lisible_protege_les_chemins_a_espaces()
     {

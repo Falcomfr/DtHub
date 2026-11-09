@@ -21,6 +21,11 @@ public sealed class ProcessRunner : IProcessRunner
         ArgumentNullException.ThrowIfNull(request);
         cancellationToken.ThrowIfCancellationRequested();
 
+        // Off the caller's thread before Process.Start: called from the WPF
+        // thread, it held it 5 to 27 ms per adb command, and the tabbed
+        // frame, which shares that thread, froze the game's clicks with it.
+        await Task.CompletedTask.ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
+
         var startInfo = new ProcessStartInfo
         {
             FileName = request.FileName,
@@ -155,6 +160,11 @@ public sealed class ProcessRunner : IProcessRunner
     {
         ArgumentNullException.ThrowIfNull(request);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // Off the caller's thread before Process.Start: called from the WPF
+        // thread, it held it 5 to 27 ms per adb command, and the tabbed
+        // frame, which shares that thread, froze the game's clicks with it.
+        await Task.CompletedTask.ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
 
         var startInfo = new ProcessStartInfo
         {
