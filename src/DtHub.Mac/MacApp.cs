@@ -22,6 +22,7 @@ using DtHub.Core.Storage;
 using DtHub.Core.Updates;
 using DtHub.Infrastructure.Adb;
 using DtHub.Infrastructure.Processes;
+using DtHub.Infrastructure.Storage;
 using DtHub.Infrastructure.Updates;
 using DtHub.Mac.Platform;
 using DtHub.Mac.Views;
@@ -36,10 +37,10 @@ namespace DtHub.Mac;
 /// The application, the Mac's share of the PC's App
 /// (src/DtHub.App/App.xaml.cs): the same startup, the configurator shown
 /// the same way, the same quit. Left out, being Windows' alone: the single
-/// instance guard, the tray icon, updates, desktop shortcuts, the sweep
-/// of old extraction folders and of scrcpy processes left over (the Mac's
-/// scrcpy can be the player's own copy, when the download failed, which
-/// that sweep must never touch).
+/// instance guard (LaunchServices reopens the running copy instead), the
+/// tray icon, desktop shortcuts, the sweep of old extraction folders.
+/// Updates are the Mac's own (BundleUpdateService), and what a previous
+/// run left only from DT Hub's own tools (SweepLeftoversAsync).
 /// </summary>
 internal sealed class MacApp : Application
 {
@@ -103,7 +104,7 @@ internal sealed class MacApp : Application
             // the application.
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
-            _services = MacServices.Build();
+            _services = MacServices.Build(new AppPaths());
             var sessions = _services.GetRequiredService<ScrcpySessionManager>();
 
             // Quitting from the menu bar or the Dock goes through the same

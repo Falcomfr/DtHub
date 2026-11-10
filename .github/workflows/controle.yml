@@ -129,16 +129,17 @@ jobs:
       # pairing window. Captured twice, the tools being downloaded in
       # between, and joined to the run with the log ("Artifacts" on the
       # run's page). No phone here: what needs one stays to be tried on a
-      # real Mac.
+      # real Mac. A capture that fails is not a fault; an app that is no
+      # longer running is, and fails the job: left optional, the 0.14.3
+      # crash at startup showed here as a green check.
       - name: Start it and capture the screen
-        continue-on-error: true
         run: |
           mkdir -p captures
           open "src/DtHub.Mac/bin/Release/net10.0/osx-arm64/DT Hub.app"
           sleep 20
-          screencapture -x captures/1-demarrage.png
+          screencapture -x captures/1-demarrage.png || true
           sleep 40
-          screencapture -x captures/2-apres-preparation.png
+          screencapture -x captures/2-apres-preparation.png || true
           pgrep -x DtHub.Mac > /dev/null && echo "DT Hub is running." || { echo "DT Hub is not running."; exit 1; }
 
       - name: Join the captures and the log

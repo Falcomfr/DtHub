@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -18,12 +18,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\DtHub.Core\DtHub.Core.csproj" />
     <ProjectReference Include="..\..\src\DtHub.Infrastructure\DtHub.Infrastructure.csproj" />
-  </ItemGroup>
-
-  <!-- The Mac's key translation, pure: linked, since the Mac project is an
-       Avalonia executable the tests do not reference. -->
-  <ItemGroup>
-    <Compile Include="..\..\src\DtHub.Mac\Platform\MacKeyMap.cs" Link="Mac\MacKeyMap.cs" />
+    <!-- The Mac and Linux app, for its composition (MacServicesTests) and its key translation. -->
+    <ProjectReference Include="..\..\src\DtHub.Mac\DtHub.Mac.csproj" />
   </ItemGroup>
 
   <ItemGroup>
