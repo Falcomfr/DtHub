@@ -48,8 +48,10 @@ bounded exception for this window (see AGENTS.md and D227).
     with the developer disk image), then starts `serve-web`;
   - `Explain` turns the tool's last error line into a message for the
     player;
-  - one call at a time across every window (a semaphore), with a timeout
-    per step: 10 minutes for the setup, 5 for the mount, 1 for the list.
+  - one setup at a time across every window, and one mount at a time (they
+    share the downloaded disk image), with a timeout per step: 10 minutes
+    for the setup, 5 for the mount, 1 for the list. The list waits for the
+    setup only: a mount without Internet used to hold it for 5 minutes.
 - `ProcessRequest.KillEntireTree`: killing uv leaves its Python running
   (measured), and the venv's `python.exe` is a launcher too. So every
   iPhone call kills the whole tree, on close and on timeout. The flag is
@@ -118,6 +120,42 @@ Known, not fixed: no sound on Windows (AAC-ELD decoding is macOS only in
 pymobiledevice3), an unplugged iPhone leaves a frozen picture (reconnection
 waits for tunneld), AltGr characters do not reach the iPhone.
 
+## Audit, 2026-11-10
+
+Checked against pymobiledevice3 11.49.5's own source, the viewer run in
+Edge 156 with DT Hub's window script (a mock server logging what the page
+posts), and unit tests. Nothing here was seen on an iPhone.
+
+- A device below version 27 (an iPad on iPadOS 26, say) had a greyed Open
+  button and "iOS 27 needed" at the end of its line. Its row, in the
+  device list and in the iPhone window, now says the version found, the
+  one needed (iOS for an iPhone, iPadOS for an iPad, from usbmux's
+  `DeviceClass`), where to update, and that without the update offered
+  the device cannot be shown.
+- The page's watch on refused touches never fired: serve-web queues
+  `/touch`, `/key` and `/button` and answers 200 at once. A refusal shows
+  only in the tool's log ("queued /touch -> ..." or "queued HID dispatch
+  failed"), which DT Hub's log keeps ("Outil iPhone", first 300 lines).
+  The watch is gone.
+- Unplugged: the tool's reconnection polls tunneld, which DT Hub does not
+  run, so the picture froze. The window now stops the tool when the iPhone
+  leaves a successful USB list (or the tool says it waits for tunneld),
+  says so, and opens again in the same place once the iPhone is listed.
+- AltGr is Ctrl+Alt on Windows: the viewer sent Ctrl+Option and the
+  physical key. An AltGr character now goes to the iPhone's clipboard,
+  then Cmd+V, whatever the iPhone's keyboard layout. It replaces what the
+  iPhone had copied.
+- The viewer's Ctrl+H, L, S, [, ], \ (Home, Lock, Siri, volume) and
+  Ctrl+P, =, -, 0 (screenshot, zoom) are swallowed; WebView2's own keys
+  (F5, Ctrl+R, Ctrl+F, Ctrl+wheel) are off.
+- Messages in the player's language for a camera or microphone in use,
+  a mount without Internet (the tool ends on a requests traceback naming
+  `HTTPSConnectionPool(`), and any step that timed out.
+- The viewer releases fingers and keys on the page's blur; the window
+  also sends one when it is deactivated.
+- The viewer's English "Stream offline" banner says, translated, to
+  unlock the iPhone and how to turn Auto-Lock off.
+
 ## What to check with an iOS 27 iPhone, in this order
 
 1. Add-device window > "J'ai un iPhone ou un iPad": the iPhone is listed
@@ -141,3 +179,20 @@ waits for tunneld), AltGr characters do not reach the iPhone.
 - No orientation handling: the viewer rotates with the iPhone.
 - The Mac (`feat/macos`) could reuse `PyMobileDevice` with uv from
   Homebrew; nothing is wired there.
+- iPad: whether it takes touches at all is unknown. serve-web sends every
+  touch to the main touchscreen surface, as for an iPhone. If an iPad on
+  iPadOS 27 shows its screen but ignores clicks, the tool's log lines
+  ("Outil iPhone : ... queued /touch") are the first thing to read.
+- Auto-Lock: the tool holds `PreventUserIdleSystemSleep`, which keeps the
+  system awake but probably not the screen. A locked iPhone stops the
+  picture; the viewer restarts the stream every 30 seconds, so unlocking
+  brings it back. Setting Auto-Lock to Never avoids it; the banner says so.
+- The unplug check relies on `usbmux list --usb`, run at most every 10
+  seconds by the device list: up to that long before the window reacts.
+  A device missing from one successful list for another reason would
+  restart its stream once.
+- AltGr through the clipboard: unchecked whether DOFUS Touch's chat field
+  pastes on Cmd+V; the character is lost if it does not.
+- A setup, list or mount still running when DT Hub quits is not in its
+  job object (one-shot calls never are, as adb may be among them): it runs
+  on until it ends by itself, its timeout being DT Hub's.
