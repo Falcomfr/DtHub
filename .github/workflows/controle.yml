@@ -154,8 +154,7 @@ jobs:
 
   # Linux, as the Mac above: the tests where only the Windows ones are
   # skipped, the self-contained build players install, and a first start on
-  # a virtual screen that must still be running forty seconds later. No
-  # phone here either: that was tried by hand (D228).
+  # a virtual screen. No phone here either: that was tried by hand (D228).
   linux:
     runs-on: ubuntu-latest
 
@@ -175,12 +174,10 @@ jobs:
       - name: Check the install scripts
         run: bash -n site/install-linux.sh && bash -n site/install-mac.sh
 
+      # What a player's first start shows, checked by
+      # .github/linux-first-start.sh: the panel and the pairing window on
+      # screen and no error in the log, not only a process still alive.
       - name: Start it on a virtual screen
         run: |
-          sudo apt-get install -y -q xvfb > /dev/null
-          set +e
-          timeout 40 xvfb-run -a "$RUNNER_TEMP/DtHub/DtHub.Mac"
-          code=$?
-          set -e
-          # 124: still running when the timeout stopped it, as it should.
-          [ "$code" -eq 124 ] || { echo "DT Hub ended on its own with code $code."; cat ~/.local/share/DtHub/logs/*.log || true; exit 1; }
+          sudo apt-get install -y -q xvfb xdotool > /dev/null
+          xvfb-run -a bash .github/linux-first-start.sh "$RUNNER_TEMP/DtHub/DtHub.Mac"
