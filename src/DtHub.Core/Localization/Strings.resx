@@ -3400,6 +3400,9 @@ A phone already paired over Wi-Fi comes back on its own.</value>
   <data name="IPhoneFailed" xml:space="preserve">
     <value>The iPhone could not be shown. DT Hub's log says more.</value>
   </data>
+  <data name="IPhoneRotate" xml:space="preserve">
+    <value>Rotate</value>
+  </data>
   <data name="IPhoneWebViewBroken" xml:space="preserve">
     <value>Microsoft's WebView2 component is damaged on this PC: one of its files is missing, often removed by an antivirus. Download the x64 “Evergreen Standalone Installer” from https://developer.microsoft.com/microsoft-edge/webview2/, run it as administrator, then restart the PC.</value>
   </data>

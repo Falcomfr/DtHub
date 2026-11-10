@@ -3400,6 +3400,9 @@ Un téléphone déjà associé en Wi-Fi revient tout seul.</value>
   <data name="IPhoneFailed" xml:space="preserve">
     <value>L'iPhone n'a pas pu être affiché. Le journal de DT Hub en dit plus.</value>
   </data>
+  <data name="IPhoneRotate" xml:space="preserve">
+    <value>Pivoter</value>
+  </data>
   <data name="IPhoneWebViewBroken" xml:space="preserve">
     <value>Le composant WebView2 de Microsoft est abîmé sur ce PC : un de ses fichiers manque, souvent retiré par un antivirus. Téléchargez l'« Evergreen Standalone Installer » x64 sur https://developer.microsoft.com/microsoft-edge/webview2/, lancez-le en administrateur, puis redémarrez le PC.</value>
   </data>

@@ -55,7 +55,11 @@ public partial class IPhoneMirrorWindow : Window
         document.addEventListener('DOMContentLoaded', () => {
           const style = document.createElement('style');
           style.textContent = '#topbar,#left-tray,#right-tray,#bottom-row,#hw-tooltip,#help-overlay,.hw,#stage::before'
-            + '{display:none!important}html,body{background:#000!important;overflow:hidden}';
+            + '{display:none!important}html,body{background:#000!important;overflow:hidden}'
+            // The viewer keeps room for its bars, hidden here: the screen fills the window instead.
+            // Clicks stay right, the viewer maps them from the canvas's on-screen box.
+            + 'body,#stage-wrap{padding:0!important;gap:0!important}#stage-wrap{justify-content:center}'
+            + '#c{width:auto!important;height:auto!important;max-width:100vw;max-height:100vh}';
           document.head.appendChild(style);
           (typeof VideoDecoder === 'undefined'
             ? Promise.resolve(false)
@@ -139,6 +143,7 @@ public partial class IPhoneMirrorWindow : Window
 
             View.Visibility = Visibility.Visible;
             Status.Visibility = Visibility.Collapsed;
+            RotateButton.Visibility = Visibility.Visible;
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
@@ -153,6 +158,26 @@ public partial class IPhoneMirrorWindow : Window
                 FileNotFoundException => Strings.Get("IPhoneWebViewBroken"),
                 _ => Strings.Get("IPhoneFailed"),
             });
+        }
+    }
+
+    /// <summary>
+    /// Turns the iPhone a quarter turn through the viewer's own control, whose
+    /// bar is hidden: DOFUS Touch is landscape inside a portrait picture until
+    /// then. The window turns with it, so the game fills it.
+    /// </summary>
+    private async void OnRotate(object sender, RoutedEventArgs e)
+    {
+        if (View.CoreWebView2 is null)
+        {
+            return;
+        }
+
+        await View.CoreWebView2.ExecuteScriptAsync("document.getElementById('rotate-right').click()").ConfigureAwait(true);
+
+        if (WindowState == WindowState.Normal)
+        {
+            (Width, Height) = (Height, Width);
         }
     }
 
@@ -226,6 +251,7 @@ public partial class IPhoneMirrorWindow : Window
 
         _failed = true;
         View.Visibility = Visibility.Hidden;
+        RotateButton.Visibility = Visibility.Collapsed;
         Status.Visibility = Visibility.Visible;
         Status.Text = text;
     }
