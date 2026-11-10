@@ -17,6 +17,17 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.14.3] - 2026-11-10
+
+### Added
+
+- iPhones and iPads appear in the device list, with an Open/Close button, and the grid places their windows after the phones'.
+
+### Fixed
+
+- The iPhone window takes the shape of the screen, without black bands, and a button over the screen turns DOFUS Touch upright in landscape.
+- A right click on the iPhone screen no longer sends it to the Home screen, and typing "?" no longer blocks the keyboard.
+
 ## [0.14.2] - 2026-11-09
 
 ### Fixed

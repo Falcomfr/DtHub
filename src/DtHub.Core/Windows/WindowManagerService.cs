@@ -486,7 +486,7 @@ public sealed class WindowManagerService
     /// client area. Zero if the measurement fails, in which case the
     /// calculation falls back to the previous behavior.
     /// </summary>
-    private (int Width, int Height) MeasureChrome(nint handle)
+    public (int Width, int Height) MeasureChrome(nint handle)
     {
         if (_controller.GetWindowRect(handle) is not { } outer
             || _controller.GetClientRect(handle) is not { } client

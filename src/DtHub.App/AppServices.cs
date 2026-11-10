@@ -111,6 +111,7 @@ public static class AppServices
             Environment.ProcessPath ?? string.Empty));
         services.AddSingleton<UpdateService>();
         services.AddSingleton<WebViewEnvironment>();
+        services.AddSingleton<IPhoneScreens>();
         services.AddSingleton<IShortcutWriter, Win32ShortcutWriter>();
 
         services.AddSingleton<IQuestCatalogSnapshot, EmbeddedQuestCatalogSnapshot>();

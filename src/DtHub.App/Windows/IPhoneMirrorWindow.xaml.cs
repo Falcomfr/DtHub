@@ -2,7 +2,9 @@
 using System.IO;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Windows;
+using System.Windows.Interop;
 
 using DtHub.App.Services;
 using DtHub.Core.IPhone;
@@ -45,13 +47,20 @@ public partial class IPhoneMirrorWindow : Window
                   init.output(f);
                   return;
                 }
-                const whole = new VideoFrame(f, { visibleRect: { x: 0, y: 0, width: w, height: h }, displayWidth: w, displayHeight: h });
-                f.close();
+                let whole;
+                try { whole = new VideoFrame(f, { visibleRect: { x: 0, y: 0, width: w, height: h }, displayWidth: w, displayHeight: h }); }
+                finally { f.close(); }
                 init.output(whole);
               } });
             }
           };
         }
+        // The viewer makes a right click the Home button: the game went to the
+        // background where a DT Hub player expects scrcpy's Back.
+        window.addEventListener('contextmenu', e => { e.preventDefault(); e.stopImmediatePropagation(); }, true);
+        // '?' opens the viewer's help, hidden here, which then swallows every key
+        // until Esc: "ça va ?" in the chat froze the keyboard. Sent as a key instead.
+        window.addEventListener('keydown', e => { if (e.key === '?') Object.defineProperty(e, 'key', { value: '' }); }, true);
         document.addEventListener('DOMContentLoaded', () => {
           const style = document.createElement('style');
           style.textContent = '#topbar,#left-tray,#right-tray,#bottom-row,#hw-tooltip,#help-overlay,.hw,#stage::before'
@@ -61,6 +70,24 @@ public partial class IPhoneMirrorWindow : Window
             + 'body,#stage-wrap{padding:0!important;gap:0!important}#stage-wrap{justify-content:center}'
             + '#c{width:auto!important;height:auto!important;max-width:100vw;max-height:100vh}';
           document.head.appendChild(style);
+          // The viewer's Rotate is in a hidden bar: DOFUS Touch is landscape inside a portrait
+          // picture until the iPhone turns. A small button over the screen does it.
+          const turn = document.createElement('button');
+          turn.textContent = '\u21bb';
+          turn.title = __ROTATE__;
+          turn.style.cssText = 'position:fixed;top:6px;right:6px;z-index:9;width:28px;height:28px;padding:0;border:0;'
+            + 'border-radius:14px;background:rgba(0,0,0,.55);color:#fff;font-size:16px;cursor:pointer;opacity:.4';
+          turn.onmouseenter = () => turn.style.opacity = '1';
+          turn.onmouseleave = () => turn.style.opacity = '.4';
+          turn.onclick = () => document.getElementById('rotate-right').click();
+          document.body.appendChild(turn);
+          // The window takes the picture's shape, so no band is left around it.
+          let shape = '';
+          setInterval(() => {
+            const c = document.getElementById('c');
+            const now = c && c.width ? c.width + 'x' + c.height : '';
+            if (now && now !== shape) { shape = now; chrome.webview.postMessage('shape:' + now); }
+          }, 300);
           (typeof VideoDecoder === 'undefined'
             ? Promise.resolve(false)
             : VideoDecoder.isConfigSupported({ codec: 'hvc1.1.6.L93.B0' }).then(s => s.supported, () => false))
@@ -81,6 +108,11 @@ public partial class IPhoneMirrorWindow : Window
     // Set once a message replaced the screen: the page finishing to load
     // must not cover it with a black canvas.
     private bool _failed;
+
+    /// <summary>The picture's width over its height, 0 until the first frame.</summary>
+    public double Aspect { get; private set; }
+
+    public nint Handle => new WindowInteropHelper(this).Handle;
 
     public IPhoneMirrorWindow(IPhoneDevice device, int port, IProcessSession session, WebViewEnvironment engine)
     {
@@ -111,13 +143,21 @@ public partial class IPhoneMirrorWindow : Window
         try
         {
             await View.EnsureCoreWebView2Async(await _engine.GetAsync().ConfigureAwait(true)).ConfigureAwait(true);
-            await View.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(ScreenOnly).ConfigureAwait(true);
+            await View.CoreWebView2
+                .AddScriptToExecuteOnDocumentCreatedAsync(ScreenOnly.Replace("__ROTATE__", JsonSerializer.Serialize(Strings.Get("IPhoneRotate")), StringComparison.Ordinal))
+                .ConfigureAwait(true);
             View.CoreWebView2.NewWindowRequested += (_, e) => e.Handled = true;
             View.CoreWebView2.WebMessageReceived += (_, e) =>
             {
-                if (e.TryGetWebMessageAsString() == "no-hevc")
+                var message = e.TryGetWebMessageAsString();
+
+                if (message == "no-hevc")
                 {
                     ShowStatus(Strings.Get("IPhoneNoHevc"));
+                }
+                else if (message.StartsWith("shape:", StringComparison.Ordinal))
+                {
+                    FitTo(message["shape:".Length..]);
                 }
             };
 
@@ -143,7 +183,6 @@ public partial class IPhoneMirrorWindow : Window
 
             View.Visibility = Visibility.Visible;
             Status.Visibility = Visibility.Collapsed;
-            RotateButton.Visibility = Visibility.Visible;
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
@@ -162,23 +201,34 @@ public partial class IPhoneMirrorWindow : Window
     }
 
     /// <summary>
-    /// Turns the iPhone a quarter turn through the viewer's own control, whose
-    /// bar is hidden: DOFUS Touch is landscape inside a portrait picture until
-    /// then. The window turns with it, so the game fills it.
+    /// Gives the window the picture's shape, its long side kept: no black
+    /// band around the screen, and a landscape game gets a landscape window.
     /// </summary>
-    private async void OnRotate(object sender, RoutedEventArgs e)
+    private void FitTo(string shape)
     {
-        if (View.CoreWebView2 is null)
+        var parts = shape.Split('x');
+
+        if (parts.Length != 2
+            || !double.TryParse(parts[0], CultureInfo.InvariantCulture, out var width)
+            || !double.TryParse(parts[1], CultureInfo.InvariantCulture, out var height)
+            || width <= 0 || height <= 0)
         {
             return;
         }
 
-        await View.CoreWebView2.ExecuteScriptAsync("document.getElementById('rotate-right').click()").ConfigureAwait(true);
+        Aspect = width / height;
 
-        if (WindowState == WindowState.Normal)
+        if (WindowState != WindowState.Normal || View.ActualWidth <= 0 || View.ActualHeight <= 0)
         {
-            (Width, Height) = (Height, Width);
+            return;
         }
+
+        var chromeWidth = ActualWidth - View.ActualWidth;
+        var chromeHeight = ActualHeight - View.ActualHeight;
+        var side = Math.Max(View.ActualWidth, View.ActualHeight);
+
+        Width = (Aspect >= 1 ? side : side * Aspect) + chromeWidth;
+        Height = (Aspect >= 1 ? side / Aspect : side) + chromeHeight;
     }
 
     /// <summary>Polls the viewer page until it answers, or the tool stops.</summary>
@@ -251,7 +301,6 @@ public partial class IPhoneMirrorWindow : Window
 
         _failed = true;
         View.Visibility = Visibility.Hidden;
-        RotateButton.Visibility = Visibility.Collapsed;
         Status.Visibility = Visibility.Visible;
         Status.Text = text;
     }

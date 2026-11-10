@@ -42,7 +42,7 @@
   <ItemGroup Label="Shared with the PC">
     <Compile Include="..\DtHub.App\ViewModels\*.cs" Link="Pc\Shared\ViewModels\%(Filename)%(Extension)" />
     <Compile Include="..\DtHub.App\Services\*.cs"
-             Exclude="..\DtHub.App\Services\IDialogService.cs;..\DtHub.App\Services\DarkTitleBar.cs;..\DtHub.App\Services\WebViewEnvironment.cs;..\DtHub.App\Services\WindowIcons.cs;..\DtHub.App\Services\WindowPlacements.cs;..\DtHub.App\Services\FaultReporting.cs;..\DtHub.App\Services\PcProcessor.cs"
+             Exclude="..\DtHub.App\Services\IDialogService.cs;..\DtHub.App\Services\DarkTitleBar.cs;..\DtHub.App\Services\WebViewEnvironment.cs;..\DtHub.App\Services\WindowIcons.cs;..\DtHub.App\Services\WindowPlacements.cs;..\DtHub.App\Services\FaultReporting.cs;..\DtHub.App\Services\PcProcessor.cs;..\DtHub.App\Services\IPhoneScreens.cs"
              Link="Pc\Shared\Services\%(Filename)%(Extension)" />
     <!-- The scripts the guides, the tracker and the Almanax inject, under
          the PC's resource names, and the PC's two classes that read them. -->

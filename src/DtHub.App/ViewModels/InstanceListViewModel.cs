@@ -32,9 +32,12 @@ public sealed partial class InstanceListViewModel : ObservableObject
         SettingsService settings,
         IDialogService dialogs,
         IAppIconProvider icons,
-        IAppPaths paths)
+        IAppPaths paths,
+        IPhoneScreens iphones)
     {
         _launcher = launcher;
+        IPhones = iphones;
+        IPhones.Devices.CollectionChanged += (_, _) => OnPropertyChanged(nameof(ShowsNoDeviceCard));
         _settings = settings;
         _dialogs = dialogs;
         _icons = icons;
@@ -322,7 +325,10 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// the word "none": the row that names it already says what is
     /// missing.
     /// </summary>
-    public bool ShowsNoDeviceCard => _scanned && HasNoConnectedDevice && !HasInactiveDevices;
+    public bool ShowsNoDeviceCard => _scanned && HasNoConnectedDevice && !HasInactiveDevices && IPhones.Devices.Count == 0;
+
+    /// <summary>The iPhones and iPads, under the phones (D227).</summary>
+    public IPhoneScreens IPhones { get; }
 
     /// <summary>
     /// What the empty list advises: the general steps, or those of the
@@ -756,6 +762,9 @@ public sealed partial class InstanceListViewModel : ObservableObject
             await SyncActiveProfileAsync(cancellationToken).ConfigureAwait(true);
 
             var discovery = await _launcher.RefreshDevicesAsync(cancellationToken).ConfigureAwait(true);
+
+            // Not awaited: Python takes a second or two, the phones' list must not wait for it.
+            _ = IPhones.RefreshAsync();
 
             foreach (var device in discovery.Devices)
             {

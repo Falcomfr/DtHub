@@ -10,6 +10,17 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.14.3] - 2026-11-10
+
+### Añadido
+
+- Los iPhone y iPad aparecen en la lista de dispositivos, con un botón Abrir/Cerrar, y la cuadrícula coloca sus ventanas después de las de los teléfonos.
+
+### Corregido
+
+- La ventana del iPhone toma la forma de la pantalla, sin bandas negras, y un botón sobre la pantalla pone DOFUS Touch derecho, en horizontal.
+- Un clic derecho en la pantalla del iPhone ya no lo manda a la pantalla de inicio, y escribir «?» ya no bloquea el teclado.
+
 ## [0.14.2] - 2026-11-09
 
 ### Corregido

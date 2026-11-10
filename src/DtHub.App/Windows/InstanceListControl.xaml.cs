@@ -4,11 +4,10 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
-
 using DtHub.App.ViewModels;
 using DtHub.Core.Devices;
 using DtHub.Core.Guidance;
-
+using DtHub.Core.IPhone;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DtHub.App.Windows;
@@ -353,6 +352,38 @@ public partial class InstanceListControl : UserControl
     /// help otherwise asks discovery, which on an unreachable phone
     /// would answer with somebody else's brand or with nothing.
     /// </summary>
+    private async void OnIPhoneToggle(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement { DataContext: IPhoneRowViewModel row }
+            || DataContext is not InstanceListViewModel list)
+        {
+            return;
+        }
+
+        if (row.IsOpen)
+        {
+            list.IPhones.Close(row.Device.Udid);
+            return;
+        }
+
+        row.IsBusy = true;
+        row.Problem = null;
+
+        try
+        {
+            await list.IPhones.OpenAsync(row.Device, CancellationToken.None).ConfigureAwait(true);
+        }
+        catch (IPhoneException exception)
+        {
+            // Shown under the row: it says what to do.
+            row.Problem = exception.Message;
+        }
+        finally
+        {
+            row.IsBusy = false;
+        }
+    }
+
     private void OnDeviceHelp(object sender, RoutedEventArgs e)
     {
         if (sender is not FrameworkElement { DataContext: DeviceGroupViewModel device })

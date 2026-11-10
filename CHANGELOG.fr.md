@@ -11,6 +11,17 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.14.3] - 2026-11-10
+
+### Ajouté
+
+- Les iPhone et iPad apparaissent dans la liste des appareils, avec un bouton Ouvrir/Fermer, et la grille range leurs fenêtres après celles des téléphones.
+
+### Corrigé
+
+- La fenêtre iPhone prend la forme de l'écran, sans bandes noires, et un bouton sur l'écran remet DOFUS Touch droit, en paysage.
+- Un clic droit sur l'écran de l'iPhone ne le renvoie plus à l'accueil, et taper « ? » ne bloque plus le clavier.
+
 ## [0.14.2] - 2026-11-09
 
 ### Corrigé

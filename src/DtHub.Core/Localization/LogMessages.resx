@@ -818,6 +818,9 @@
   <data name="Affichage de l'iPhone {name} sur le port {port}." xml:space="preserve">
     <value>Showing iPhone {name} on port {port}.</value>
   </data>
+  <data name="Recherche des iPhone impossible : {message}" xml:space="preserve">
+    <value>iPhone search failed: {message}</value>
+  </data>
   <data name="{command} a échoué : {error}" xml:space="preserve">
     <value>{command} failed: {error}</value>
   </data>

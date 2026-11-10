@@ -70,6 +70,18 @@ public sealed partial class PyMobileDevice : IDisposable
 
     private string Root => Path.Combine(_paths.ToolsDirectory, "iphone");
 
+    private string Venv => Path.Combine(Root, "venv");
+
+    private string Python => OperatingSystem.IsWindows()
+        ? Path.Combine(Venv, "Scripts", "python.exe")
+        : Path.Combine(Venv, "bin", "python");
+
+    /// <summary>
+    /// Set up once already: the device list looks for iPhones only then, so
+    /// a player who never opened the iPhone window starts no Python.
+    /// </summary>
+    public bool IsInstalled => File.Exists(Python);
+
     /// <summary>The iPhones plugged in over USB; Wi-Fi ones would show twice.</summary>
     /// <exception cref="IPhoneException">The message says what to do.</exception>
     public async Task<IReadOnlyList<IPhoneDevice>> ListAsync(CancellationToken cancellationToken)
@@ -232,10 +244,8 @@ public sealed partial class PyMobileDevice : IDisposable
     /// </summary>
     private async Task<string> EnsureInstalledAsync(CancellationToken cancellationToken)
     {
-        var venv = Path.Combine(Root, "venv");
-        var python = OperatingSystem.IsWindows()
-            ? Path.Combine(venv, "Scripts", "python.exe")
-            : Path.Combine(venv, "bin", "python");
+        var venv = Venv;
+        var python = Python;
         var stamp = Path.Combine(venv, "dthub-requirements.sha256");
 
         var requirements = ReadRequirements();

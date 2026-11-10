@@ -92,8 +92,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         WindowPlacements placements,
         IAppLauncher appLauncher,
         IAdbClient adb,
+        IPhoneScreens iphones,
         ILogger<GameLauncher> logger)
     {
+        _iphones = iphones;
+        _iphones.Changed += (_, _) => ArrangeableChanged?.Invoke(this, EventArgs.Empty);
         _appLauncher = appLauncher;
         _adb = adb;
         _sessions = sessions;
@@ -1038,7 +1041,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// on the window's footer withdraw.
     /// </summary>
     public int ArrangeableCount =>
-        ManagedSessions.Count + (HousedCount > 0 && FrameMoves ? 1 : 0);
+        ManagedSessions.Count + (HousedCount > 0 && FrameMoves ? 1 : 0) + _iphones.OpenCount;
 
     /// <summary>
     /// The frame, when it exists, is visible, and no lock freezes
@@ -1251,6 +1254,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private readonly IAppLauncher _appLauncher;
 
     private readonly IAdbClient _adb;
+    private readonly IPhoneScreens _iphones;
 
     /// <summary>
     /// Opens a MakeInTouch app's Play Store page in a window on the PC, on a
@@ -5026,6 +5030,19 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
                 placed++;
             }
+
+            // The iPhones take the cells after the phones', at their picture's shape (D227).
+            await OnUiAsync(() =>
+            {
+                foreach (var (handle, aspect) in _iphones.TakeScreensForArranging())
+                {
+                    if (_windows.WorkAreaFor(handle) is { } work)
+                    {
+                        _windows.Controller.MoveWindow(
+                            handle, TileLayout.Quarter(work, placed++, aspect, _windows.MeasureChrome(handle)));
+                    }
+                }
+            }).ConfigureAwait(false);
 
             if (placed > 0)
             {

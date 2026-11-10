@@ -3403,6 +3403,12 @@ Un téléphone déjà associé en Wi-Fi revient tout seul.</value>
   <data name="IPhoneRotate" xml:space="preserve">
     <value>Pivoter</value>
   </data>
+  <data name="IPhoneRow" xml:space="preserve">
+    <value>{0} · iOS {1}</value>
+  </data>
+  <data name="IPhoneRowTooOld" xml:space="preserve">
+    <value>{0} · iOS {1}, il faut iOS 27</value>
+  </data>
   <data name="IPhoneWebViewBroken" xml:space="preserve">
     <value>Le composant WebView2 de Microsoft est abîmé sur ce PC : un de ses fichiers manque, souvent retiré par un antivirus. Téléchargez l'« Evergreen Standalone Installer » x64 sur https://developer.microsoft.com/microsoft-edge/webview2/, lancez-le en administrateur, puis redémarrez le PC.</value>
   </data>

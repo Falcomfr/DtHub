@@ -142,6 +142,26 @@ public class PyMobileDeviceTests
         Directory.Delete(root, recursive: true);
     }
 
+    [Fact]
+    public void La_liste_ne_cherche_d_iPhone_qu_une_fois_les_outils_installes()
+    {
+        // A player who never opened the iPhone window must not start Python
+        // at each sweep of the device list.
+        var root = Directory.CreateTempSubdirectory("dthub-iphone-").FullName;
+        var paths = new FakeAppPaths(root);
+        using var tools = new PyMobileDevice(
+            new UvAlreadyThere(), new FakeProcessRunner(), new FakeProcessLauncher(), paths, NullLogger<PyMobileDevice>.Instance);
+
+        Assert.False(tools.IsInstalled);
+
+        var scripts = Path.Combine(paths.ToolsDirectory, "iphone", "venv", OperatingSystem.IsWindows() ? "Scripts" : "bin");
+        Directory.CreateDirectory(scripts);
+        File.WriteAllText(Path.Combine(scripts, OperatingSystem.IsWindows() ? "python.exe" : "python"), string.Empty);
+
+        Assert.True(tools.IsInstalled);
+        Directory.Delete(root, recursive: true);
+    }
+
     private sealed class UvAlreadyThere : IDependencyProvisioner
     {
         public Task<string> EnsureAvailableAsync(

@@ -107,6 +107,17 @@ screen, and a click opened DOFUS Touch. On the way:
   script now re-wraps each frame at its coded size (same pixels as a
   sized config, portrait and landscape).
 
+Then (0.14.3, 2026-11-10, checked in Edge with the viewer's own CSS, not on
+an iPhone): the canvas fills the window and the window takes the picture's
+shape; a small button over the screen clicks the viewer's hidden Rotate;
+right click (the viewer's Home) and "?" (its hidden help, which swallowed
+every key) are caught first. iPhones are listed under the phones once the
+tools are installed (`IPhoneScreens`, at most every 10 s), and the grid puts
+their windows in the cells after the phones'. No tabs, no F1-F8 yet.
+Known, not fixed: no sound on Windows (AAC-ELD decoding is macOS only in
+pymobiledevice3), an unplugged iPhone leaves a frozen picture (reconnection
+waits for tunneld), AltGr characters do not reach the iPhone.
+
 ## What to check with an iOS 27 iPhone, in this order
 
 1. Add-device window > "J'ai un iPhone ou un iPad": the iPhone is listed

@@ -3403,6 +3403,12 @@ A phone already paired over Wi-Fi comes back on its own.</value>
   <data name="IPhoneRotate" xml:space="preserve">
     <value>Rotate</value>
   </data>
+  <data name="IPhoneRow" xml:space="preserve">
+    <value>{0} · iOS {1}</value>
+  </data>
+  <data name="IPhoneRowTooOld" xml:space="preserve">
+    <value>{0} · iOS {1}, iOS 27 needed</value>
+  </data>
   <data name="IPhoneWebViewBroken" xml:space="preserve">
     <value>Microsoft's WebView2 component is damaged on this PC: one of its files is missing, often removed by an antivirus. Download the x64 “Evergreen Standalone Installer” from https://developer.microsoft.com/microsoft-edge/webview2/, run it as administrator, then restart the PC.</value>
   </data>

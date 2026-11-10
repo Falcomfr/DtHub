@@ -1148,6 +1148,29 @@
 
     </StackPanel>
 
+    <!-- iPhones and iPads (D227): one screen window each, opened from here
+         as from the iPhone window. Listed once the iPhone tools were set up. -->
+    <ItemsControl ItemsSource="{Binding IPhones.Devices}">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate>
+          <Border Style="{StaticResource Card}" Padding="10,8" Margin="0,8,0,0">
+            <StackPanel>
+              <DockPanel>
+                <Button DockPanel.Dock="Right" Content="{Binding Action}" MinWidth="90"
+                        IsEnabled="{Binding CanAct}" Click="OnIPhoneToggle" />
+                <TextBlock Text="{Binding Label}" VerticalAlignment="Center"
+                           TextTrimming="CharacterEllipsis" ToolTip="{Binding Label}" />
+              </DockPanel>
+              <TextBlock Text="{Binding Problem}" Style="{StaticResource Muted}"
+                         FontSize="{StaticResource FontTiny}" TextWrapping="Wrap" Margin="0,4,0,0"
+                         Foreground="{DynamicResource WarningBrush}"
+                         Visibility="{Binding HasProblem, Converter={StaticResource BoolToVisibility}}" />
+            </StackPanel>
+          </Border>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+
     <!-- The first scan looks for remembered phones, and a phone that's
          turned off makes it wait. A word is better than emptiness.
          Spaced from the pairing row above, as the phones' header is. -->

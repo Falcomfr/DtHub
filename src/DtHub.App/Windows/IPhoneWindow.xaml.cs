@@ -1,6 +1,4 @@
-﻿using System.Net;
-using System.Net.Sockets;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 
 using DtHub.App.Services;
@@ -18,7 +16,7 @@ namespace DtHub.App.Windows;
 public partial class IPhoneWindow : Window
 {
     private readonly PyMobileDevice _tools;
-    private readonly WebViewEnvironment _engine;
+    private readonly IPhoneScreens _screens;
 
     // Closing the list stops its search or its opening.
     private readonly CancellationToken _closing;
@@ -27,10 +25,10 @@ public partial class IPhoneWindow : Window
     // tool itself across windows.
     private bool _busy;
 
-    public IPhoneWindow(PyMobileDevice tools, WebViewEnvironment engine)
+    public IPhoneWindow(PyMobileDevice tools, IPhoneScreens screens)
     {
         _tools = tools;
-        _engine = engine;
+        _screens = screens;
 
         InitializeComponent();
 
@@ -59,6 +57,7 @@ public partial class IPhoneWindow : Window
         {
             var devices = await _tools.ListAsync(_closing).ConfigureAwait(true);
             ShowRows(devices);
+            _screens.Show(devices);
             Status.Text = devices.Count == 0 ? Strings.Get("IPhoneNone") : string.Empty;
         }
         catch (IPhoneException exception)
@@ -85,21 +84,8 @@ public partial class IPhoneWindow : Window
 
         try
         {
-            var port = FreePort();
-            var session = await _tools.StartMirrorAsync(device, port, _closing).ConfigureAwait(true);
-
-            try
-            {
-                // Not owned: it stays open when this list is closed.
-                new IPhoneMirrorWindow(device, port, session, _engine).Show();
-            }
-            catch
-            {
-                // Without its window, nothing would ever stop the stream.
-                await session.DisposeAsync().ConfigureAwait(true);
-                throw;
-            }
-
+            // Not owned: it stays open when this list is closed.
+            await _screens.OpenAsync(device, _closing).ConfigureAwait(true);
             Status.Text = string.Empty;
         }
         catch (IPhoneException exception)
@@ -163,16 +149,5 @@ public partial class IPhoneWindow : Window
         _busy = false;
         RefreshButton.IsEnabled = true;
         Rows.IsEnabled = true;
-    }
-
-    /// <summary>A port nothing listens on, for this iPhone's viewer page.</summary>
-    private static int FreePort()
-    {
-        // shortcut: the port is free when picked, not guaranteed when
-        // serve-web binds it a few seconds later; let the tool pick and
-        // print it if a player ever hits "address in use".
-        using var listener = new TcpListener(IPAddress.Loopback, 0);
-        listener.Start();
-        return ((IPEndPoint)listener.LocalEndpoint).Port;
     }
 }
