@@ -76,6 +76,7 @@ main() {
     mkdir -p "$HOME/.local/bin" "$data/applications"
     ln -sfn "$target/DtHub.Mac" "$HOME/.local/bin/dthub"
 
+    # StartupWMClass: the windows' X11 class is the executable's name, which ties them to this entry's icon.
     cat > "$data/applications/dthub.desktop" <<EOF
 [Desktop Entry]
 Type=Application
@@ -83,6 +84,7 @@ Name=DT Hub
 Comment=DOFUS Touch multi-account, from your own Android phones
 Exec="$target/DtHub.Mac"
 Icon=$target/app.png
+StartupWMClass=DtHub.Mac
 Terminal=false
 Categories=Game;
 EOF

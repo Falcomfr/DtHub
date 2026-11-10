@@ -32,13 +32,18 @@ namespace DtHub.Infrastructure.Updates;
 /// not run from a bundle (a development build, Linux): nothing is then
 /// offered.
 /// </param>
+/// <param name="announceOnly">
+/// Linux: no bundle to replace, the player updates by running the install
+/// command again, so a more recent release is announced and never fetched.
+/// </param>
 public sealed partial class BundleUpdateService(
     IReleaseSource source,
     IAppPaths paths,
     IProcessRunner runner,
     Version running,
     string bundlePath,
-    ILogger<BundleUpdateService> logger)
+    ILogger<BundleUpdateService> logger,
+    bool announceOnly = false)
 {
     /// <summary>The release asset the Mac downloads.</summary>
     public const string Asset = "DtHub-mac.zip";
@@ -108,7 +113,7 @@ public sealed partial class BundleUpdateService(
     /// </summary>
     public async Task CheckAsync(bool automatic, CancellationToken cancellationToken = default)
     {
-        if (_bundle.Length == 0)
+        if (_bundle.Length == 0 && !announceOnly)
         {
             return;
         }

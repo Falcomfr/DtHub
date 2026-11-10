@@ -332,6 +332,14 @@ jobs:
             "-p:Version=${ETIQUETTE#v}" -o "$RUNNER_TEMP/DtHub" --nologo
           cp assets/app.png "$RUNNER_TEMP/DtHub/"
 
+      # The build that ships, started before it is added: 0.14.3 shipped a
+      # Linux archive that stopped at startup, the Check workflow being no
+      # gate on a tag.
+      - name: Start it on a virtual screen
+        run: |
+          sudo apt-get install -y -q xvfb xdotool > /dev/null
+          xvfb-run -a bash .github/linux-first-start.sh "$RUNNER_TEMP/DtHub/DtHub.Mac"
+
       # One top folder, which install-linux.sh strips when it unpacks.
       - name: Archive
         run: |

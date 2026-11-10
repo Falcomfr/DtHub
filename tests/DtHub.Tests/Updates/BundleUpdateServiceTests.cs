@@ -74,7 +74,7 @@ public sealed class BundleUpdateServiceTests : IDisposable
         return File.ReadAllBytes(zip);
     }
 
-    private BundleUpdateService Service(byte[] archive, string? digest = null, string? bundle = null)
+    private BundleUpdateService Service(byte[] archive, string? digest = null, string? bundle = null, bool announceOnly = false)
     {
         var source = new FakeReleaseSource
         {
@@ -88,7 +88,7 @@ public sealed class BundleUpdateServiceTests : IDisposable
 
         return new BundleUpdateService(
             source, _paths, new ProcessRunner(), new Version(0, 12, 2), bundle ?? _bundle,
-            NullLogger<BundleUpdateService>.Instance);
+            NullLogger<BundleUpdateService>.Instance, announceOnly);
     }
 
     private string Mark() => File.ReadAllText(Path.Combine(_bundle, "Contents", "Resources", "version.txt"));
@@ -296,6 +296,20 @@ public sealed class BundleUpdateServiceTests : IDisposable
         await service.CheckAsync(automatic: true);
 
         Assert.Null(service.Available);
+    }
+
+    [Fact]
+    public async Task Sur_Linux_annonce_la_version_sans_rien_telecharger()
+    {
+        // Linux updates by its install command: the version is announced, nothing is fetched or placed.
+        var service = Service([1, 2, 3], bundle: string.Empty, announceOnly: true);
+
+        await service.CheckAsync(automatic: true);
+
+        Assert.Equal(new Version(0, 13, 0), service.Available?.Version);
+        Assert.False(service.Ready);
+        Assert.False(service.Apply(automatic: true));
+        Assert.Empty(Directory.GetFiles(_paths.UpdatesDirectory));
     }
 
     [MacFact]
