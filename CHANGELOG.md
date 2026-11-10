@@ -17,6 +17,25 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.14.5] - 2026-11-10
+
+### Added
+
+- The iPhone's sound plays on the PC.
+- "Turn the phone's screen off", Ctrl+E on the iPhone window and a ☾ button dim the iPhone to its lowest brightness: iOS cannot switch its screen off while it is shown.
+- An iPhone or iPad that is too old shows its version, that it needs iOS or iPadOS 27, and how to update it.
+- On Linux, a new version is announced, with the line that installs it.
+
+### Fixed
+
+- An unplugged iPhone no longer leaves a frozen picture: the window says to plug it back in and reopens by itself in its place.
+- Ctrl+L, Ctrl+S and Ctrl+H on the iPhone window no longer lock the iPhone or start Siri or the Home screen.
+- Characters typed with AltGr (@, #, {, }) reach the iPhone.
+- iPhone messages about a busy microphone or camera, a mount without Internet or a timeout are translated.
+- The device list no longer stalls while an iPhone is being prepared.
+- On Linux, starting DT Hub again wakes the one already open instead of opening every account a second time.
+- On Linux, game windows are placed under Wayland too, the tabs button that opened an empty frame is hidden, and the menu entry keeps its icon in the dock.
+
 ## [0.14.4] - 2026-11-10
 
 ### Added

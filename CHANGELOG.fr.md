@@ -11,6 +11,25 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.14.5] - 2026-11-10
+
+### Ajouté
+
+- Le son de l'iPhone sort sur le PC.
+- « Éteindre l'écran du téléphone », Ctrl+E sur la fenêtre iPhone et un bouton ☾ baissent la luminosité de l'iPhone au minimum : iOS ne permet pas de l'éteindre pendant qu'il est affiché.
+- Un iPhone ou un iPad trop ancien dit sa version, qu'il lui faut iOS ou iPadOS 27 et comment le mettre à jour.
+- Sous Linux, une nouvelle version est annoncée, avec la ligne qui l'installe.
+
+### Corrigé
+
+- Un iPhone débranché ne laisse plus une image figée : la fenêtre dit de le rebrancher et se rouvre seule à sa place.
+- Ctrl+L, Ctrl+S et Ctrl+H sur la fenêtre iPhone ne verrouillent plus l'iPhone et ne lancent plus Siri ni l'accueil.
+- Les caractères tapés avec AltGr (@, #, {, }) arrivent sur l'iPhone.
+- Les messages iPhone sur un micro ou une caméra occupés, un montage sans Internet ou un délai dépassé sont traduits.
+- La liste des appareils ne reste plus bloquée pendant la préparation d'un iPhone.
+- Sous Linux, relancer DT Hub réveille celui qui est déjà ouvert au lieu de rouvrir chaque compte une seconde fois.
+- Sous Linux, les fenêtres de jeu se placent aussi sous Wayland, le bouton onglets qui ouvrait un cadre vide est caché, et l'entrée de menu garde son icône dans le dock.
+
 ## [0.14.4] - 2026-11-10
 
 ### Ajouté

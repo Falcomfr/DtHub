@@ -10,6 +10,25 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.14.5] - 2026-11-10
+
+### Añadido
+
+- El sonido del iPhone sale por el PC.
+- «Apagar la pantalla del teléfono», Ctrl+E en la ventana del iPhone y un botón ☾ bajan el brillo del iPhone al mínimo: iOS no permite apagar la pantalla mientras se muestra.
+- Un iPhone o iPad demasiado antiguo muestra su versión, que necesita iOS o iPadOS 27 y cómo actualizarlo.
+- En Linux, se anuncia una nueva versión, con la línea que la instala.
+
+### Corregido
+
+- Un iPhone desconectado ya no deja una imagen congelada: la ventana pide volver a conectarlo y se vuelve a abrir sola en su sitio.
+- Ctrl+L, Ctrl+S y Ctrl+H en la ventana del iPhone ya no bloquean el iPhone ni abren Siri o la pantalla de inicio.
+- Los caracteres escritos con AltGr (@, #, {, }) llegan al iPhone.
+- Los mensajes del iPhone sobre un micrófono o una cámara ocupados, un montaje sin Internet o un tiempo agotado están traducidos.
+- La lista de dispositivos ya no se bloquea mientras se prepara un iPhone.
+- En Linux, volver a abrir DT Hub despierta el que ya está abierto en lugar de abrir cada cuenta por segunda vez.
+- En Linux, las ventanas de juego también se colocan en Wayland, se oculta el botón de pestañas que abría un marco vacío y la entrada del menú conserva su icono en el dock.
+
 ## [0.14.4] - 2026-11-10
 
 ### Añadido
