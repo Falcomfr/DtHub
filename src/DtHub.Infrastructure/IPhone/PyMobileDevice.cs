@@ -87,9 +87,13 @@ public sealed partial class PyMobileDevice : IDisposable
     private readonly IAppPaths _paths;
     private readonly ILogger<PyMobileDevice> _logger;
 
-    // One call at a time, across every window: two first setups would
+    // One setup at a time, across every window: two first setups would
     // download into the same folders.
-    private readonly SemaphoreSlim _gate = new(1, 1);
+    private readonly SemaphoreSlim _installGate = new(1, 1);
+
+    // One mount at a time: they share the downloaded disk image. Apart from the
+    // setup, so a mount waiting on the network (up to five minutes) holds no list.
+    private readonly SemaphoreSlim _mountGate = new(1, 1);
 
     public PyMobileDevice(
         IDependencyProvisioner provisioner,
@@ -123,26 +127,18 @@ public sealed partial class PyMobileDevice : IDisposable
     /// <exception cref="IPhoneException">The message says what to do.</exception>
     public async Task<IReadOnlyList<IPhoneDevice>> ListAsync(CancellationToken cancellationToken)
     {
-        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        var python = await InstalledAsync(cancellationToken).ConfigureAwait(false);
+        var result = await RunAsync(
+            ToolRequest(python, udid: null, "usbmux", "list", "--usb") with { Timeout = ListTimeout },
+            cancellationToken).ConfigureAwait(false);
+
         try
         {
-            var python = await EnsureInstalledAsync(cancellationToken).ConfigureAwait(false);
-            var result = await RunAsync(
-                ToolRequest(python, udid: null, "usbmux", "list", "--usb") with { Timeout = ListTimeout },
-                cancellationToken).ConfigureAwait(false);
-
-            try
-            {
-                return IPhoneDevice.ParseList(result.StandardOutput);
-            }
-            catch (JsonException exception)
-            {
-                throw new IPhoneException(Explain(result.StandardError), exception);
-            }
+            return IPhoneDevice.ParseList(result.StandardOutput);
         }
-        finally
+        catch (JsonException exception)
         {
-            _gate.Release();
+            throw new IPhoneException(Explain(result.StandardError), exception);
         }
     }
 
@@ -156,11 +152,11 @@ public sealed partial class PyMobileDevice : IDisposable
     {
         ArgumentNullException.ThrowIfNull(device);
 
-        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        var python = await InstalledAsync(cancellationToken).ConfigureAwait(false);
+
+        await _mountGate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            var python = await EnsureInstalledAsync(cancellationToken).ConfigureAwait(false);
-
             // Xcode does this on its own: the display service comes with the
             // developer disk image. Does nothing when it is already there.
             await RunAsync(
@@ -180,7 +176,7 @@ public sealed partial class PyMobileDevice : IDisposable
         }
         finally
         {
-            _gate.Release();
+            _mountGate.Release();
         }
     }
 
@@ -250,7 +246,11 @@ public sealed partial class PyMobileDevice : IDisposable
         var line = error.Split('\n').Select(l => l.Trim()).LastOrDefault(l => l.Contains("ERROR ", StringComparison.Ordinal));
         if (line is null)
         {
-            return Strings.Get("IPhoneFailed");
+            // The disk image comes from GitHub and Apple signs it: offline, the tool
+            // ends on a traceback (wrapped by rich) naming the connection pool.
+            return error.Contains("HTTPSConnectionPool(", StringComparison.Ordinal)
+                ? Strings.Get("IPhoneNoInternet")
+                : Strings.Get("IPhoneFailed");
         }
 
         var message = line[(line.IndexOf("ERROR ", StringComparison.Ordinal) + "ERROR ".Length)..];
@@ -282,7 +282,25 @@ public sealed partial class PyMobileDevice : IDisposable
             return Strings.Get("IPhoneNeedsIos27");
         }
 
+        if (message.Contains("camera or microphone is in use", StringComparison.Ordinal))
+        {
+            return Strings.Get("IPhoneMediaInUse");
+        }
+
         return message;
+    }
+
+    private async Task<string> InstalledAsync(CancellationToken cancellationToken)
+    {
+        await _installGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            return await EnsureInstalledAsync(cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            _installGate.Release();
+        }
     }
 
     /// <summary>
@@ -373,7 +391,7 @@ public sealed partial class PyMobileDevice : IDisposable
         if (!result.Succeeded)
         {
             LogFailed(request.ToDisplayString(), result.StandardError);
-            throw new IPhoneException(Explain(result.StandardError));
+            throw new IPhoneException(result.TimedOut ? Strings.Get("IPhoneTimedOut") : Explain(result.StandardError));
         }
 
         return result;
@@ -393,7 +411,11 @@ public sealed partial class PyMobileDevice : IDisposable
         }
     }
 
-    public void Dispose() => _gate.Dispose();
+    public void Dispose()
+    {
+        _installGate.Dispose();
+        _mountGate.Dispose();
+    }
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Affichage de l'iPhone {name} sur le port {port}.")]
     private partial void LogStarting(string name, int port);

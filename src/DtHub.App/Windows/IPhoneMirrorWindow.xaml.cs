@@ -54,18 +54,29 @@ public partial class IPhoneMirrorWindow : Window
             }
           };
         }
-        // A touch, key or button the iPhone refused goes to DT Hub's log: an iPad
-        // that took no click on 2026-11-10 left nothing to read.
-        const send = window.fetch.bind(window);
-        let told = '';
-        window.fetch = (url, options) => send(url, options).then(r => {
-          const why = String(url) + ' ' + r.status;
-          if (!r.ok && /^\/(touch|button|key)/.test(String(url)) && why !== told) {
-            told = why;
-            r.clone().text().then(t => chrome.webview.postMessage('refused:' + why + ' ' + t.slice(0, 300)));
+        // The viewer's Ctrl+H, L, S, [, ], \ press Home, Lock (which ends the stream), Siri and the
+        // volume, Ctrl+P saves a screenshot, Ctrl+=, - and 0 zoom: DT Hub players use Ctrl shortcuts.
+        window.addEventListener('keydown', e => {
+          if (e.ctrlKey && !e.altKey && !e.metaKey && e.key.length === 1 && 'hls[]\\p=+-0'.includes(e.key.toLowerCase())) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
           }
-          return r;
-        });
+        }, true);
+        // AltGr is Ctrl+Alt on Windows: the viewer sent Ctrl+Option and the key, so @ # { } never came out.
+        // The character goes through the iPhone's clipboard and Cmd+V instead, whatever its keyboard layout.
+        window.addEventListener('keydown', e => {
+          if (!e.getModifierState('AltGraph') || e.key.length !== 1 || document.activeElement !== document.getElementById('c')) return;
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          if (e.repeat) return;
+          const post = (path, body) => () => fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+          // iOS ignores a modifier that arrives with its key: Cmd goes down first, as the tool's own typing does.
+          const wait = () => new Promise(r => setTimeout(r, 40));
+          lastKeyPost = lastKeyPost.then(post('/clipboard', { text: e.key }))
+            .then(post('/key', { usages: [0xE3] })).then(wait)
+            .then(post('/key', { usages: [0xE3, 0x19] })).then(wait)
+            .then(post('/key', { usages: [] })).catch(() => {});
+        }, true);
         // The viewer makes a right click the Home button: the game went to the
         // background where a DT Hub player expects scrcpy's Back.
         window.addEventListener('contextmenu', e => { e.preventDefault(); e.stopImmediatePropagation(); }, true);
@@ -79,8 +90,11 @@ public partial class IPhoneMirrorWindow : Window
             // The viewer keeps room for its bars, hidden here: the screen fills the window instead.
             // Clicks stay right, the viewer maps them from the canvas's on-screen box.
             + 'body,#stage-wrap{padding:0!important;gap:0!important}#stage-wrap{justify-content:center}'
-            + '#c{width:auto!important;height:auto!important;max-width:100vw;max-height:100vh}';
+            + '#c{width:auto!important;height:auto!important;max-width:100vw;max-height:100vh}'
+            + '#offline-overlay span{white-space:normal!important;max-width:80%;text-align:center}';
           document.head.appendChild(style);
+          // Shown when the frames stop, most often an iPhone that locked itself.
+          document.querySelector('#offline-overlay span').textContent = __OFFLINE__;
           // The viewer's Rotate is in a hidden bar: DOFUS Touch is landscape inside a portrait
           // picture until the iPhone turns. A small button over the screen does it.
           const turn = document.createElement('button');
@@ -147,6 +161,9 @@ public partial class IPhoneMirrorWindow : Window
     // must not cover it with a black canvas.
     private bool _failed;
 
+    /// <summary>The iPhone left the USB list or its tunnel: the tool is stopped, the window waits for it.</summary>
+    public bool IsUnplugged { get; private set; }
+
     /// <summary>The picture's width over its height, 0 until the first frame.</summary>
     public double Aspect { get; private set; }
 
@@ -167,6 +184,15 @@ public partial class IPhoneMirrorWindow : Window
         Status.Text = Strings.Format("IPhoneStarting", device.Name);
 
         Loaded += async (_, _) => await ShowScreenAsync().ConfigureAwait(true);
+        // A finger or key held while the window loses the keyboard stays down on the
+        // iPhone unless the page sees it go: the viewer releases everything on blur.
+        Deactivated += (_, _) =>
+        {
+            if (!_closed)
+            {
+                _ = View.CoreWebView2?.ExecuteScriptAsync("dispatchEvent(new Event('blur'))");
+            }
+        };
         Closed += async (_, _) =>
         {
             _closed = true;
@@ -185,9 +211,14 @@ public partial class IPhoneMirrorWindow : Window
             await View.CoreWebView2
                 .AddScriptToExecuteOnDocumentCreatedAsync(ScreenOnly
                     .Replace("__ROTATE__", JsonSerializer.Serialize(Strings.Get("IPhoneRotate")), StringComparison.Ordinal)
-                    .Replace("__DIM__", JsonSerializer.Serialize(Strings.Get("IPhoneDim")), StringComparison.Ordinal))
+                    .Replace("__DIM__", JsonSerializer.Serialize(Strings.Get("IPhoneDim")), StringComparison.Ordinal)
+                    .Replace("__OFFLINE__", JsonSerializer.Serialize(Strings.Get("IPhoneOffline")), StringComparison.Ordinal))
                 .ConfigureAwait(true);
             View.CoreWebView2.NewWindowRequested += (_, e) => e.Handled = true;
+
+            // F5 or Ctrl+R reloaded the page and lost its sound, Ctrl+wheel zoomed it.
+            View.CoreWebView2.Settings.AreBrowserAcceleratorKeysEnabled = false;
+            View.CoreWebView2.Settings.IsZoomControlEnabled = false;
             View.CoreWebView2.WebMessageReceived += (_, e) =>
             {
                 var message = e.TryGetWebMessageAsString();
@@ -199,10 +230,6 @@ public partial class IPhoneMirrorWindow : Window
                 else if (message.StartsWith("shape:", StringComparison.Ordinal))
                 {
                     FitTo(message["shape:".Length..]);
-                }
-                else if (message.StartsWith("refused:", StringComparison.Ordinal))
-                {
-                    Log.Warning("L'iPhone a refusé une commande : {Refused}", message["refused:".Length..]);
                 }
             };
 
@@ -248,6 +275,22 @@ public partial class IPhoneMirrorWindow : Window
                 _ => Strings.Get("IPhoneFailed"),
             });
         }
+    }
+
+    /// <summary>
+    /// Stops the tool of an unplugged iPhone: it only waits for a tunnel
+    /// service DT Hub does not run, the picture frozen. Opened again once
+    /// the iPhone is back (<see cref="IPhoneScreens"/>).
+    /// </summary>
+    public void Unplugged()
+    {
+        if (IsUnplugged || _closed)
+        {
+            return;
+        }
+
+        IsUnplugged = true;
+        _session.Kill();
     }
 
     /// <summary>Dims the iPhone, lights it, or with null turns it the other way.</summary>
@@ -340,6 +383,12 @@ public partial class IPhoneMirrorWindow : Window
                 Log.Information("Outil iPhone : {Line}", line.Text);
             }
 
+            // The tool's own reconnection waits for tunneld, which never comes here.
+            if (line.Text.Contains("waiting for tunneld", StringComparison.Ordinal))
+            {
+                Unplugged();
+            }
+
             if (line.IsError)
             {
                 _errors.Enqueue(line.Text);
@@ -357,7 +406,7 @@ public partial class IPhoneMirrorWindow : Window
 
         var errors = string.Join('\n', _errors);
         Log.Warning("L'affichage de l'iPhone s'est arrêté : {Errors}", errors);
-        ShowStatus(Strings.Format("IPhoneStopped", PyMobileDevice.Explain(errors)));
+        ShowStatus(IsUnplugged ? Strings.Get("IPhoneUnpluggedWait") : Strings.Format("IPhoneStopped", PyMobileDevice.Explain(errors)));
     }
 
     private void ShowStatus(string text)

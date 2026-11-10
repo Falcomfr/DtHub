@@ -58,6 +58,26 @@ public class IPhoneDeviceTests
         Assert.Equal(expected, device.CanMirror);
     }
 
+    [Theory]
+    // An iPad player looks for iPadOS in the Settings, not iOS.
+    [InlineData("iPhone", "iOS")]
+    [InlineData("iPad", "iPadOS")]
+    [InlineData("", "iOS/iPadOS")]
+    public void Le_systeme_nomme_suit_le_type_d_appareil(string deviceClass, string system)
+    {
+        var device = new IPhoneDevice("udid", "x", "26.4", "USB", deviceClass);
+
+        Assert.Equal(system, device.SystemName);
+    }
+
+    [Fact]
+    public void La_liste_donne_le_type_d_appareil()
+    {
+        var device = Assert.Single(IPhoneDevice.ParseList(XrSample));
+
+        Assert.Equal("iOS", device.SystemName);
+    }
+
     [Fact]
     public void Un_champ_absent_ne_fait_pas_echouer_la_lecture()
     {
@@ -65,6 +85,7 @@ public class IPhoneDeviceTests
 
         Assert.Equal("abc", device.Udid);
         Assert.Equal(string.Empty, device.IosVersion);
+        Assert.Equal("iOS/iPadOS", device.SystemName);
         Assert.False(device.CanMirror);
     }
 

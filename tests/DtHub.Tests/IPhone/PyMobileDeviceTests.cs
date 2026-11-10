@@ -1,6 +1,7 @@
 ﻿using DtHub.Core.Dependencies;
 using DtHub.Core.IPhone;
 using DtHub.Core.Localization;
+using DtHub.Core.Processes;
 using DtHub.Infrastructure.IPhone;
 using DtHub.Tests.Fakes;
 
@@ -106,6 +107,7 @@ public class PyMobileDeviceTests
     [InlineData("ERROR Device is not paired.", "IPhoneTrust")]
     [InlineData("ERROR The device no longer accepts this computer's pairing record. Pair it again.", "IPhoneTrust")]
     [InlineData("ERROR Device is not connected.", "IPhoneUnplugged")]
+    [InlineData("ERROR The device's camera or microphone is in use by another app (e.g. Camera or Voice Memos). Quit that app on the device, then retry", "IPhoneMediaInUse")]
     public void Les_refus_de_l_iPhone_disent_quoi_faire(string error, string key)
     {
         Assert.Equal(Strings.Get(key), PyMobileDevice.Explain(error));
@@ -136,6 +138,58 @@ public class PyMobileDeviceTests
     public void Sans_ligne_d_erreur_de_l_outil_le_message_est_general(string error)
     {
         Assert.Equal(Strings.Get("IPhoneFailed"), PyMobileDevice.Explain(error));
+    }
+
+    [Fact]
+    public void Sans_Internet_le_montage_le_dit()
+    {
+        // The end of the tool's output, the requests error printed by rich as on 2026-11-10.
+        const string error = """
+            ConnectionError: HTTPSConnectionPool(host='raw.githubusercontent.com', port=443):
+            Max retries exceeded with url: /x (Caused by
+            NameResolutionError("HTTPSConnection(host='raw.githubusercontent.com', port=443):
+            Failed to resolve 'raw.githubusercontent.com' ([Errno 11001] getaddrinfo failed)"))
+            """;
+
+        Assert.Equal(Strings.Get("IPhoneNoInternet"), PyMobileDevice.Explain(error));
+    }
+
+    [Fact]
+    public async Task Un_outil_qui_ne_repond_pas_a_temps_le_dit()
+    {
+        var root = Directory.CreateTempSubdirectory("dthub-iphone-").FullName;
+        // Where uv would have made the venv, for the setup's stamp.
+        Directory.CreateDirectory(Path.Combine(root, "tools", "iphone", "venv"));
+        var runner = new FakeProcessRunner()
+            .Respond("usbmux", standardError: "INFO Waiting for the device", exitCode: -1, timedOut: true)
+            .Respond(string.Empty);
+        using var tools = new PyMobileDevice(
+            new UvAlreadyThere(), runner, new FakeProcessLauncher(), new FakeAppPaths(root), NullLogger<PyMobileDevice>.Instance);
+
+        var exception = await Assert.ThrowsAsync<IPhoneException>(() => tools.ListAsync(CancellationToken.None));
+
+        Assert.Equal(Strings.Get("IPhoneTimedOut"), exception.Message);
+        Directory.Delete(root, recursive: true);
+    }
+
+    [Fact]
+    public async Task La_liste_n_attend_pas_un_montage_en_cours()
+    {
+        // A mount without Internet held the list of every iPhone for five minutes.
+        var root = Directory.CreateTempSubdirectory("dthub-iphone-").FullName;
+        Directory.CreateDirectory(Path.Combine(root, "tools", "iphone", "venv"));
+        var runner = new MountWaits();
+        using var tools = new PyMobileDevice(
+            new UvAlreadyThere(), runner, new FakeProcessLauncher(), new FakeAppPaths(root), NullLogger<PyMobileDevice>.Instance);
+
+        var opening = tools.StartMirrorAsync(new IPhoneDevice("a", "iPad", "27.0", "USB"), 8123, audio: false, CancellationToken.None);
+        await runner.Mounting.Task.WaitAsync(TimeSpan.FromSeconds(10));
+
+        Assert.Empty(await tools.ListAsync(CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(10)));
+
+        runner.Mounted.SetResult();
+        await (await opening).DisposeAsync();
+        Directory.Delete(root, recursive: true);
     }
 
     [Fact]
@@ -176,6 +230,33 @@ public class PyMobileDeviceTests
 
         Assert.True(tools.IsInstalled);
         Directory.Delete(root, recursive: true);
+    }
+
+    private sealed class MountWaits : IProcessRunner
+    {
+        public TaskCompletionSource Mounting { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public TaskCompletionSource Mounted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public async Task<ProcessResult> RunAsync(ProcessRequest request, CancellationToken cancellationToken = default)
+        {
+            if (request.Arguments.Contains("auto-mount"))
+            {
+                Mounting.SetResult();
+                await Mounted.Task.ConfigureAwait(false);
+            }
+
+            return new ProcessResult
+            {
+                ExitCode = 0,
+                StandardOutput = request.Arguments.Contains("usbmux") ? "[]" : string.Empty,
+                StandardError = string.Empty,
+                Duration = TimeSpan.Zero,
+            };
+        }
+
+        public Task<ProcessBytes> RunForBytesAsync(ProcessRequest request, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
     }
 
     private sealed class UvAlreadyThere : IDependencyProvisioner

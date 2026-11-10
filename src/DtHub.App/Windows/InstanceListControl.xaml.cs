@@ -344,14 +344,7 @@ public partial class InstanceListControl : UserControl
         }
     }
 
-    /// <summary>
-    /// Opens the steps to follow on the phone that is not answering.
-    ///
-    /// Here rather than in the view model, as everywhere else a window
-    /// is opened in this application. The brand travels with it: the
-    /// help otherwise asks discovery, which on an unreachable phone
-    /// would answer with somebody else's brand or with nothing.
-    /// </summary>
+    /// <summary>Opens or closes an iPhone's screen from its row (D227).</summary>
     private async void OnIPhoneToggle(object sender, RoutedEventArgs e)
     {
         if (sender is not FrameworkElement { DataContext: IPhoneRowViewModel row }
@@ -384,6 +377,14 @@ public partial class InstanceListControl : UserControl
         }
     }
 
+    /// <summary>
+    /// Opens the steps to follow on the phone that is not answering.
+    ///
+    /// Here rather than in the view model, as everywhere else a window
+    /// is opened in this application. The brand travels with it: the
+    /// help otherwise asks discovery, which on an unreachable phone
+    /// would answer with somebody else's brand or with nothing.
+    /// </summary>
     private void OnDeviceHelp(object sender, RoutedEventArgs e)
     {
         if (sender is not FrameworkElement { DataContext: DeviceGroupViewModel device })

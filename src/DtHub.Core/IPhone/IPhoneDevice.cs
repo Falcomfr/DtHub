@@ -6,7 +6,7 @@ namespace DtHub.Core.IPhone;
 /// An iPhone or iPad plugged into the PC, as Apple's USB service
 /// (usbmuxd, from the Apple Devices app) reports it.
 /// </summary>
-public sealed record IPhoneDevice(string Udid, string Name, string IosVersion, string ConnectionType)
+public sealed record IPhoneDevice(string Udid, string Name, string IosVersion, string ConnectionType, string DeviceClass = "")
 {
     /// <summary>
     /// iOS 27 is the first to give a computer the screen and the touches
@@ -16,6 +16,14 @@ public sealed record IPhoneDevice(string Udid, string Name, string IosVersion, s
 
     public bool CanMirror =>
         int.TryParse(IosVersion.Split('.')[0], out var major) && major >= MinimumIosMajor;
+
+    /// <summary>What Apple calls its system: an iPad player looks for iPadOS, not iOS.</summary>
+    public string SystemName => DeviceClass switch
+    {
+        "iPhone" => "iOS",
+        "iPad" => "iPadOS",
+        _ => "iOS/iPadOS",
+    };
 
     /// <summary>Reads the JSON printed by <c>pymobiledevice3 usbmux list</c>.</summary>
     /// <exception cref="JsonException">The output is not that list.</exception>
@@ -34,7 +42,8 @@ public sealed record IPhoneDevice(string Udid, string Name, string IosVersion, s
                 Text(device, "Identifier"),
                 Text(device, "DeviceName").Trim(),
                 Text(device, "ProductVersion"),
-                Text(device, "ConnectionType")))
+                Text(device, "ConnectionType"),
+                Text(device, "DeviceClass")))
                 .Where(device => device.Udid.Length > 0),
         ];
     }

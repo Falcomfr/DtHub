@@ -818,14 +818,14 @@
   <data name="Affichage de l'iPhone {name} sur le port {port}." xml:space="preserve">
     <value>Affichage de l'iPhone {name} sur le port {port}.</value>
   </data>
-  <data name="L'iPhone a refusé une commande : {Refused}" xml:space="preserve">
-    <value>L'iPhone a refusé une commande : {Refused}</value>
-  </data>
   <data name="Outil iPhone : {Line}" xml:space="preserve">
     <value>Outil iPhone : {Line}</value>
   </data>
   <data name="Recherche des iPhone impossible : {message}" xml:space="preserve">
     <value>Recherche des iPhone impossible : {message}</value>
+  </data>
+  <data name="L'iPhone {name} rebranché n'a pas pu être rouvert : {message}" xml:space="preserve">
+    <value>L'iPhone {name} rebranché n'a pas pu être rouvert : {message}</value>
   </data>
   <data name="{command} a échoué : {error}" xml:space="preserve">
     <value>{command} a échoué : {error}</value>

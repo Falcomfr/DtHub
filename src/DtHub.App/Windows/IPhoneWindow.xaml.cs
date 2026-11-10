@@ -2,6 +2,7 @@
 using System.Windows.Controls;
 
 using DtHub.App.Services;
+using DtHub.App.ViewModels;
 using DtHub.Core.IPhone;
 using DtHub.Core.Localization;
 using DtHub.Infrastructure.IPhone;
@@ -114,9 +115,7 @@ public partial class IPhoneWindow : Window
 
             var label = new TextBlock
             {
-                Text = device.CanMirror
-                    ? $"{device.Name} · iOS {device.IosVersion}"
-                    : $"{device.Name} · {Strings.Format("IPhoneTooOld", device.IosVersion)}",
+                Text = IPhoneRowViewModel.LabelOf(device),
                 VerticalAlignment = VerticalAlignment.Center,
                 TextWrapping = TextWrapping.Wrap,
                 Foreground = (System.Windows.Media.Brush)FindResource("TextBrush"),
@@ -127,6 +126,17 @@ public partial class IPhoneWindow : Window
             row.Children.Add(open);
             row.Children.Add(label);
             Rows.Children.Add(row);
+
+            if (IPhoneRowViewModel.TooOldHelp(device) is { } help)
+            {
+                Rows.Children.Add(new TextBlock
+                {
+                    Text = help,
+                    TextWrapping = TextWrapping.Wrap,
+                    Margin = new Thickness(0, -4, 0, 8),
+                    Foreground = (System.Windows.Media.Brush)FindResource("WarningBrush"),
+                });
+            }
         }
     }
 

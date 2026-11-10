@@ -65,9 +65,10 @@ public sealed partial class IPhoneScreens(
         }
         catch (IPhoneException exception)
         {
-            // Apple Devices closed, say: the list just shows no iPhone.
+            // Apple Devices closed, say: the list just shows no iPhone. Not a sign
+            // that one was unplugged, so the open screens are left alone.
             LogListFailed(exception.Message);
-            Show([]);
+            ShowRows([]);
         }
         finally
         {
@@ -76,8 +77,33 @@ public sealed partial class IPhoneScreens(
         }
     }
 
-    /// <summary>Shows the iPhones found, and asks the next sweep to look again.</summary>
+    /// <summary>
+    /// Shows the iPhones Apple's USB service listed. An open screen whose
+    /// iPhone is gone stops its tool; back in the list, it opens again
+    /// where it was.
+    /// </summary>
     public void Show(IReadOnlyList<IPhoneDevice> devices)
+    {
+        ArgumentNullException.ThrowIfNull(devices);
+
+        foreach (var (udid, window) in _open.ToList())
+        {
+            var device = devices.FirstOrDefault(d => d.Udid == udid);
+
+            if (device is null)
+            {
+                window.Unplugged();
+            }
+            else if (window.IsUnplugged)
+            {
+                _ = ReopenAsync(device, window);
+            }
+        }
+
+        ShowRows(devices);
+    }
+
+    private void ShowRows(IReadOnlyList<IPhoneDevice> devices)
     {
         // An open screen keeps its row while the iPhone is briefly not listed.
         var rows = devices
@@ -97,8 +123,9 @@ public sealed partial class IPhoneScreens(
     }
 
     /// <summary>Opens the iPhone's screen, or brings it forward.</summary>
+    /// <param name="place">Where the window goes, for a screen opened again.</param>
     /// <exception cref="IPhoneException">The message says what to do.</exception>
-    public async Task OpenAsync(IPhoneDevice device, CancellationToken cancellationToken)
+    public async Task OpenAsync(IPhoneDevice device, CancellationToken cancellationToken, System.Windows.Rect? place = null)
     {
         ArgumentNullException.ThrowIfNull(device);
 
@@ -123,6 +150,12 @@ public sealed partial class IPhoneScreens(
             try
             {
                 window = new IPhoneMirrorWindow(device, port, session, engine, dark: preferences.TurnScreenOff);
+
+                if (place is { IsEmpty: false } rect)
+                {
+                    window.WindowStartupLocation = System.Windows.WindowStartupLocation.Manual;
+                    (window.Left, window.Top, window.Width, window.Height) = (rect.Left, rect.Top, rect.Width, rect.Height);
+                }
             }
             catch
             {
@@ -143,6 +176,27 @@ public sealed partial class IPhoneScreens(
         finally
         {
             _opening.Remove(device.Udid);
+        }
+    }
+
+    /// <summary>The unplugged iPhone is back: a fresh tool and window, in the old one's place.</summary>
+    private async Task ReopenAsync(IPhoneDevice device, IPhoneMirrorWindow unplugged)
+    {
+        var place = unplugged.RestoreBounds;
+        unplugged.Close();
+
+        try
+        {
+            await OpenAsync(device, CancellationToken.None, place).ConfigureAwait(true);
+        }
+        catch (IPhoneException exception)
+        {
+            LogReopenFailed(device.Name, exception.Message);
+
+            foreach (var row in Devices.Where(r => r.Device.Udid == device.Udid))
+            {
+                row.Problem = exception.Message;
+            }
         }
     }
 
@@ -200,4 +254,7 @@ public sealed partial class IPhoneScreens(
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Recherche des iPhone impossible : {message}")]
     private partial void LogListFailed(string message);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "L'iPhone {name} rebranché n'a pas pu être rouvert : {message}")]
+    private partial void LogReopenFailed(string name, string message);
 }

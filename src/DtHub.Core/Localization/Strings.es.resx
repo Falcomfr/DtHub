@@ -3373,9 +3373,6 @@ Un teléfono ya vinculado por Wi-Fi vuelve solo.</value>
   <data name="IPhoneStarting" xml:space="preserve">
     <value>Abriendo {0}…</value>
   </data>
-  <data name="IPhoneTooOld" xml:space="preserve">
-    <value>iOS {0}, se necesita iOS 27</value>
-  </data>
   <data name="IPhoneStopped" xml:space="preserve">
     <value>La pantalla del iPhone se detuvo. {0}</value>
   </data>
@@ -3395,7 +3392,7 @@ Un teléfono ya vinculado por Wi-Fi vuelve solo.</value>
     <value>El iPhone ya no está conectado. Vuelve a conectarlo y vuelve a intentarlo.</value>
   </data>
   <data name="IPhoneNeedsIos27" xml:space="preserve">
-    <value>Este iPhone no tiene iOS 27: Apple solo deja que un ordenador muestre y controle la pantalla a partir de iOS 27.</value>
+    <value>Este dispositivo no tiene iOS 27 (iPadOS 27 en un iPad): Apple solo deja que un ordenador muestre y controle la pantalla a partir de la versión 27. Actualízalo en Ajustes &gt; General &gt; Actualización de software.</value>
   </data>
   <data name="IPhoneFailed" xml:space="preserve">
     <value>No se pudo mostrar el iPhone. El registro de DT Hub da más detalles.</value>
@@ -3407,13 +3404,31 @@ Un teléfono ya vinculado por Wi-Fi vuelve solo.</value>
     <value>Girar</value>
   </data>
   <data name="IPhoneRow" xml:space="preserve">
-    <value>{0} · iOS {1}</value>
+    <value>{0} · {2} {1}</value>
   </data>
   <data name="IPhoneRowTooOld" xml:space="preserve">
-    <value>{0} · iOS {1}, se necesita iOS 27</value>
+    <value>{0} · {2} {1}, se necesita {2} 27</value>
   </data>
   <data name="IPhoneWebViewBroken" xml:space="preserve">
     <value>El componente WebView2 de Microsoft está dañado en este PC: falta uno de sus archivos, a menudo eliminado por un antivirus. Descarga el «Evergreen Standalone Installer» x64 en https://developer.microsoft.com/microsoft-edge/webview2/, ejecútalo como administrador y reinicia el PC.</value>
+  </data>
+  <data name="IPhoneTooOldHelp" xml:space="preserve">
+    <value>Versión encontrada: {0} {1}. DT Hub necesita {0} 27 o posterior, la primera versión en la que Apple deja que un ordenador muestre y controle la pantalla. Actualízalo en Ajustes &gt; General &gt; Actualización de software. Si no se ofrece {0} 27, este dispositivo no se puede mostrar.</value>
+  </data>
+  <data name="IPhoneMediaInUse" xml:space="preserve">
+    <value>La cámara o el micrófono del iPhone está en uso por otra app (Cámara, una llamada, Notas de voz…). Ciérrala en el iPhone y vuelve a intentarlo.</value>
+  </data>
+  <data name="IPhoneNoInternet" xml:space="preserve">
+    <value>DT Hub no pudo conectarse a Internet. La primera vez, descarga la imagen de desarrollador de Apple para el iPhone y hace que Apple la firme: comprueba la conexión y vuelve a intentarlo.</value>
+  </data>
+  <data name="IPhoneTimedOut" xml:space="preserve">
+    <value>El iPhone no respondió a tiempo. Desbloquéalo y toca «Confiar» si lo pide, comprueba la conexión a Internet (la primera apertura la necesita) y vuelve a intentarlo.</value>
+  </data>
+  <data name="IPhoneUnpluggedWait" xml:space="preserve">
+    <value>El iPhone se desconectó. Vuelve a conectarlo y desbloquéalo: su pantalla volverá aquí sola.</value>
+  </data>
+  <data name="IPhoneOffline" xml:space="preserve">
+    <value>No llega imagen del iPhone. Si se bloqueó, desbloquéalo. Para evitarlo: Ajustes &gt; Pantalla y brillo &gt; Bloqueo automático &gt; Nunca.</value>
   </data>
   <data name="LinuxText_ReportContents" xml:space="preserve">
     <value>El informe lleva la versión, tus pantallas, el error y las líneas útiles del registro de hoy. Los números de serie, las direcciones y el nombre de tu cuenta de Linux se quitan de él.</value>
