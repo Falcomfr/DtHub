@@ -44,6 +44,43 @@ public sealed partial class PyMobileDevice : IDisposable
 
     private static readonly TimeSpan ListTimeout = TimeSpan.FromMinutes(1);
 
+    /// <summary>
+    /// Runs <c>serve-web</c> with two additions. Sound: the tool decodes the
+    /// iPhone's AAC-ELD with macOS's AudioToolbox only, so elsewhere PyAV's
+    /// FFmpeg, already installed with it, does (checked bit-exact against
+    /// FFmpeg's ELD 480 reference on 2026-11-10). Brightness: two more
+    /// named buttons, the HID consumer brightness keys, as the screen can
+    /// only be dimmed, not switched off, while it is streamed.
+    /// </summary>
+    public const string MirrorBootstrap = """
+        import runpy, sys
+        from pymobiledevice3.remote.core_device import screen_stream
+        if sys.platform != "darwin":
+            import av
+
+            class Decoder:
+                def __init__(self, _cookie=None):
+                    self.codec = av.CodecContext.create("aac", "r")
+                    # The device sends 480-sample units (10 ms); its own cookie says 512.
+                    self.codec.extradata = bytes.fromhex("f8e65000")
+                    self.codec.sample_rate = 48000
+                    self.codec.layout = "stereo"
+                    self.resampler = av.AudioResampler(format="s16", layout="stereo", rate=48000)
+
+                def decode(self, au):
+                    pcm = b""
+                    for frame in self.codec.decode(av.Packet(au)):
+                        for out in self.resampler.resample(frame):
+                            pcm += bytes(out.planes[0])[: out.samples * 4]
+                    return pcm
+
+            screen_stream.AACELDDecoder = Decoder
+            screen_stream.ScreenStreamServer._missing_audio_deps = staticmethod(lambda: [])
+        screen_stream._NAMED_BUTTONS["brightness-down"] = (0x0C, 0x70, 0.05)
+        screen_stream._NAMED_BUTTONS["brightness-up"] = (0x0C, 0x6F, 0.05)
+        runpy.run_module("pymobiledevice3", run_name="__main__", alter_sys=True)
+        """;
+
     private readonly IDependencyProvisioner _provisioner;
     private readonly IProcessRunner _runner;
     private readonly IProcessLauncher _launcher;
@@ -115,7 +152,7 @@ public sealed partial class PyMobileDevice : IDisposable
     /// </summary>
     /// <exception cref="IPhoneException">The message says what to do.</exception>
     public async Task<IProcessSession> StartMirrorAsync(
-        IPhoneDevice device, int port, CancellationToken cancellationToken)
+        IPhoneDevice device, int port, bool audio, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(device);
 
@@ -134,10 +171,7 @@ public sealed partial class PyMobileDevice : IDisposable
 
             try
             {
-                return _launcher.Start(ToolRequest(
-                    python, device.Udid,
-                    "developer", "core-device", "display", "serve-web",
-                    "--http-port", port.ToString(CultureInfo.InvariantCulture)));
+                return _launcher.Start(MirrorRequest(python, device.Udid, port, audio));
             }
             catch (ProcessLaunchException exception)
             {
@@ -189,6 +223,19 @@ public sealed partial class PyMobileDevice : IDisposable
             // The venv's python.exe is a launcher that starts the real one.
             KillEntireTree = true,
         };
+    }
+
+    /// <summary><c>serve-web</c> through <see cref="MirrorBootstrap"/>, silent when the player turned sound off.</summary>
+    public static ProcessRequest MirrorRequest(string python, string udid, int port, bool audio)
+    {
+        string[] arguments =
+        [
+            "developer", "core-device", "display", "serve-web",
+            "--http-port", port.ToString(CultureInfo.InvariantCulture),
+            .. audio ? Array.Empty<string>() : ["--no-audio"],
+        ];
+
+        return ToolRequest(python, udid, arguments) with { Arguments = ["-c", MirrorBootstrap, .. arguments] };
     }
 
     /// <summary>

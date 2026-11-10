@@ -1,7 +1,6 @@
 ﻿using System.Globalization;
 using System.IO;
 using System.Net.Http;
-using System.Text;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Interop;
@@ -55,6 +54,18 @@ public partial class IPhoneMirrorWindow : Window
             }
           };
         }
+        // A touch, key or button the iPhone refused goes to DT Hub's log: an iPad
+        // that took no click on 2026-11-10 left nothing to read.
+        const send = window.fetch.bind(window);
+        let told = '';
+        window.fetch = (url, options) => send(url, options).then(r => {
+          const why = String(url) + ' ' + r.status;
+          if (!r.ok && /^\/(touch|button|key)/.test(String(url)) && why !== told) {
+            told = why;
+            r.clone().text().then(t => chrome.webview.postMessage('refused:' + why + ' ' + t.slice(0, 300)));
+          }
+          return r;
+        });
         // The viewer makes a right click the Home button: the game went to the
         // background where a DT Hub player expects scrcpy's Back.
         window.addEventListener('contextmenu', e => { e.preventDefault(); e.stopImmediatePropagation(); }, true);
@@ -81,6 +92,29 @@ public partial class IPhoneMirrorWindow : Window
           turn.onmouseleave = () => turn.style.opacity = '.4';
           turn.onclick = () => document.getElementById('rotate-right').click();
           document.body.appendChild(turn);
+          // iOS cannot switch its screen off while streaming it: "turn the screen
+          // off" sets the brightness to its least instead, as the brightness keys
+          // of a keyboard do. Sixteen presses go from any level to either end.
+          const moon = turn.cloneNode();
+          moon.style.right = '40px';
+          moon.textContent = '\u263e';
+          moon.title = __DIM__;
+          moon.onmouseenter = () => moon.style.opacity = '1';
+          moon.onmouseleave = () => moon.style.opacity = '.4';
+          let dark = false, pressing = Promise.resolve();
+          window.dthubDark = on => {
+            on = on === undefined ? !dark : on;
+            if (on === dark) return;
+            dark = on;
+            moon.textContent = on ? '\u2600' : '\u263e';
+            const name = on ? 'brightness-down' : 'brightness-up';
+            for (let i = 0; i < 16; i++) {
+              pressing = pressing.then(() => fetch('/button', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, state: 'press' }) }), () => {});
+            }
+          };
+          moon.onclick = () => window.dthubDark();
+          document.body.appendChild(moon);
           // The window takes the picture's shape, so no band is left around it.
           let shape = '';
           setInterval(() => {
@@ -101,7 +135,11 @@ public partial class IPhoneMirrorWindow : Window
     private readonly IProcessSession _session;
     private readonly WebViewEnvironment _engine;
     private readonly Uri _address;
-    private readonly StringBuilder _errors = new();
+    // The tool's last error lines: Explain reads only the last one.
+    private readonly Queue<string> _errors = new();
+
+    private readonly bool _dark;
+    private int _logged;
 
     private bool _closed;
 
@@ -114,10 +152,11 @@ public partial class IPhoneMirrorWindow : Window
 
     public nint Handle => new WindowInteropHelper(this).Handle;
 
-    public IPhoneMirrorWindow(IPhoneDevice device, int port, IProcessSession session, WebViewEnvironment engine)
+    public IPhoneMirrorWindow(IPhoneDevice device, int port, IProcessSession session, WebViewEnvironment engine, bool dark)
     {
         ArgumentNullException.ThrowIfNull(device);
 
+        _dark = dark;
         _session = session;
         _engine = engine;
         _address = new Uri($"http://127.0.0.1:{port.ToString(CultureInfo.InvariantCulture)}/");
@@ -144,7 +183,9 @@ public partial class IPhoneMirrorWindow : Window
         {
             await View.EnsureCoreWebView2Async(await _engine.GetAsync().ConfigureAwait(true)).ConfigureAwait(true);
             await View.CoreWebView2
-                .AddScriptToExecuteOnDocumentCreatedAsync(ScreenOnly.Replace("__ROTATE__", JsonSerializer.Serialize(Strings.Get("IPhoneRotate")), StringComparison.Ordinal))
+                .AddScriptToExecuteOnDocumentCreatedAsync(ScreenOnly
+                    .Replace("__ROTATE__", JsonSerializer.Serialize(Strings.Get("IPhoneRotate")), StringComparison.Ordinal)
+                    .Replace("__DIM__", JsonSerializer.Serialize(Strings.Get("IPhoneDim")), StringComparison.Ordinal))
                 .ConfigureAwait(true);
             View.CoreWebView2.NewWindowRequested += (_, e) => e.Handled = true;
             View.CoreWebView2.WebMessageReceived += (_, e) =>
@@ -158,6 +199,10 @@ public partial class IPhoneMirrorWindow : Window
                 else if (message.StartsWith("shape:", StringComparison.Ordinal))
                 {
                     FitTo(message["shape:".Length..]);
+                }
+                else if (message.StartsWith("refused:", StringComparison.Ordinal))
+                {
+                    Log.Warning("L'iPhone a refusé une commande : {Refused}", message["refused:".Length..]);
                 }
             };
 
@@ -183,6 +228,11 @@ public partial class IPhoneMirrorWindow : Window
 
             View.Visibility = Visibility.Visible;
             Status.Visibility = Visibility.Collapsed;
+
+            if (_dark)
+            {
+                SetDark(true);
+            }
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
@@ -198,6 +248,13 @@ public partial class IPhoneMirrorWindow : Window
                 _ => Strings.Get("IPhoneFailed"),
             });
         }
+    }
+
+    /// <summary>Dims the iPhone, lights it, or with null turns it the other way.</summary>
+    public void SetDark(bool? dark)
+    {
+        var argument = dark switch { true => "true", false => "false", null => string.Empty };
+        _ = View.CoreWebView2?.ExecuteScriptAsync($"window.dthubDark && window.dthubDark({argument})");
     }
 
     /// <summary>
@@ -277,9 +334,19 @@ public partial class IPhoneMirrorWindow : Window
     {
         await foreach (var line in _session.Output.ReadAllAsync().ConfigureAwait(true))
         {
+            // Read when a player sends the log: what the iPhone said, not only why it stopped.
+            if (_logged++ < 300)
+            {
+                Log.Information("Outil iPhone : {Line}", line.Text);
+            }
+
             if (line.IsError)
             {
-                _errors.AppendLine(line.Text);
+                _errors.Enqueue(line.Text);
+                if (_errors.Count > 50)
+                {
+                    _errors.Dequeue();
+                }
             }
         }
 
@@ -288,8 +355,9 @@ public partial class IPhoneMirrorWindow : Window
             return;
         }
 
-        Log.Warning("L'affichage de l'iPhone s'est arrêté : {Errors}", _errors.ToString());
-        ShowStatus(Strings.Format("IPhoneStopped", PyMobileDevice.Explain(_errors.ToString())));
+        var errors = string.Join('\n', _errors);
+        Log.Warning("L'affichage de l'iPhone s'est arrêté : {Errors}", errors);
+        ShowStatus(Strings.Format("IPhoneStopped", PyMobileDevice.Explain(errors)));
     }
 
     private void ShowStatus(string text)

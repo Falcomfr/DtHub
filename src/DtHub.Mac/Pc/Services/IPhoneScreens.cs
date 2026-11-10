@@ -32,4 +32,10 @@ public sealed class IPhoneScreens
     public void Show(IReadOnlyList<IPhoneDevice> devices)
     {
     }
+
+    public void SetDark(bool dark)
+    {
+    }
+
+    public bool ToggleDark(nint foreground) => false;
 }

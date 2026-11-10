@@ -2452,6 +2452,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     public async Task ApplyScreenOffAsync(bool enabled)
     {
+        await OnUiAsync(() => _iphones.SetDark(enabled)).ConfigureAwait(false);
+
         foreach (var (deviceId, _) in PlayingPhones())
         {
             if (enabled && !_sessions.HoldsScreenOff(deviceId))
@@ -2492,6 +2494,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         var foreground = _windows.Controller.GetForegroundWindow();
         string? shown = null;
+        var iphone = false;
+
+        // An iPhone's window in front: only that iPhone, dimmed (iOS has no screen off).
+        await OnUiAsync(() => iphone = _iphones.ToggleDark(foreground)).ConfigureAwait(false);
+        if (iphone)
+        {
+            return;
+        }
+
 
         // A housed window is a child of the frame, never in front itself.
         if (_tabs is { Handle: not 0 } frame && foreground == frame.Handle)

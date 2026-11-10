@@ -40,6 +40,22 @@ public class PyMobileDeviceTests
         Assert.True(request.KillEntireTree);
     }
 
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public void L_ecran_passe_par_le_lanceur_qui_decode_le_son_hors_Mac(bool audio, bool silent)
+    {
+        var request = PyMobileDevice.MirrorRequest("python.exe", "00008020-000A", 8123, audio);
+
+        Assert.Equal(["-c", PyMobileDevice.MirrorBootstrap], request.Arguments.Take(2));
+        Assert.Contains("screen_stream.AACELDDecoder = Decoder", PyMobileDevice.MirrorBootstrap, StringComparison.Ordinal);
+        Assert.Equal(
+            ["developer", "core-device", "display", "serve-web", "--http-port", "8123", .. silent ? ["--no-audio"] : Array.Empty<string>()],
+            request.Arguments.Skip(2));
+        Assert.Equal("00008020-000A", request.Environment["PYMOBILEDEVICE3_UDID"]);
+        Assert.True(request.KillEntireTree);
+    }
+
     [Fact]
     public void L_iPhone_vise_passe_par_l_environnement()
     {

@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using DtHub.App.ViewModels;
 using DtHub.App.Windows;
 using DtHub.Core.IPhone;
+using DtHub.Core.Settings;
 using DtHub.Infrastructure.IPhone;
 
 using Microsoft.Extensions.Logging;
@@ -15,7 +16,8 @@ namespace DtHub.App.Services;
 /// The iPhones of the device list and their open screens, one window per
 /// iPhone (D227). Used on the UI thread only.
 /// </summary>
-public sealed partial class IPhoneScreens(PyMobileDevice tools, WebViewEnvironment engine, ILogger<IPhoneScreens> logger)
+public sealed partial class IPhoneScreens(
+    PyMobileDevice tools, WebViewEnvironment engine, SettingsService settings, ILogger<IPhoneScreens> logger)
 {
     // usbmux list starts Python: not at every sweep of the list.
     private static readonly TimeSpan ListEvery = TimeSpan.FromSeconds(10);
@@ -113,13 +115,14 @@ public sealed partial class IPhoneScreens(PyMobileDevice tools, WebViewEnvironme
 
         try
         {
+            var preferences = await settings.GetAsync(cancellationToken).ConfigureAwait(true);
             var port = FreePort();
-            var session = await tools.StartMirrorAsync(device, port, cancellationToken).ConfigureAwait(true);
+            var session = await tools.StartMirrorAsync(device, port, preferences.AudioEnabled, cancellationToken).ConfigureAwait(true);
             IPhoneMirrorWindow window;
 
             try
             {
-                window = new IPhoneMirrorWindow(device, port, session, engine);
+                window = new IPhoneMirrorWindow(device, port, session, engine, dark: preferences.TurnScreenOff);
             }
             catch
             {
@@ -149,6 +152,23 @@ public sealed partial class IPhoneScreens(PyMobileDevice tools, WebViewEnvironme
         {
             window.Close();
         }
+    }
+
+    /// <summary>"Turn the phone's screen off" switched: dims or lights every iPhone shown.</summary>
+    public void SetDark(bool dark)
+    {
+        foreach (var window in _open.Values)
+        {
+            window.SetDark(dark);
+        }
+    }
+
+    /// <summary>Ctrl+E on an iPhone's window: dims or lights that iPhone.</summary>
+    public bool ToggleDark(nint foreground)
+    {
+        var window = _open.Values.FirstOrDefault(w => foreground != 0 && w.Handle == foreground);
+        window?.SetDark(null);
+        return window is not null;
     }
 
     private void SetOpen(string udid, bool open)

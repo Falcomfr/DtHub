@@ -3400,6 +3400,9 @@ Un teléfono ya vinculado por Wi-Fi vuelve solo.</value>
   <data name="IPhoneFailed" xml:space="preserve">
     <value>No se pudo mostrar el iPhone. El registro de DT Hub da más detalles.</value>
   </data>
+  <data name="IPhoneDim" xml:space="preserve">
+    <value>Oscurecer la pantalla (iOS no puede apagarla mientras se muestra)</value>
+  </data>
   <data name="IPhoneRotate" xml:space="preserve">
     <value>Girar</value>
   </data>

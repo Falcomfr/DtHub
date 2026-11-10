@@ -818,6 +818,12 @@
   <data name="Affichage de l'iPhone {name} sur le port {port}." xml:space="preserve">
     <value>Mostrando el iPhone {name} en el puerto {port}.</value>
   </data>
+  <data name="L'iPhone a refusé une commande : {Refused}" xml:space="preserve">
+    <value>El iPhone rechazó una orden: {Refused}</value>
+  </data>
+  <data name="Outil iPhone : {Line}" xml:space="preserve">
+    <value>Herramienta del iPhone: {Line}</value>
+  </data>
   <data name="Recherche des iPhone impossible : {message}" xml:space="preserve">
     <value>No se pudieron buscar los iPhone: {message}</value>
   </data>

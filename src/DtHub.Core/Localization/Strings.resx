@@ -3400,6 +3400,9 @@ A phone already paired over Wi-Fi comes back on its own.</value>
   <data name="IPhoneFailed" xml:space="preserve">
     <value>The iPhone could not be shown. DT Hub's log says more.</value>
   </data>
+  <data name="IPhoneDim" xml:space="preserve">
+    <value>Dim the screen (iOS cannot switch it off while it is shown)</value>
+  </data>
   <data name="IPhoneRotate" xml:space="preserve">
     <value>Rotate</value>
   </data>

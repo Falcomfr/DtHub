@@ -3400,6 +3400,9 @@ Un téléphone déjà associé en Wi-Fi revient tout seul.</value>
   <data name="IPhoneFailed" xml:space="preserve">
     <value>L'iPhone n'a pas pu être affiché. Le journal de DT Hub en dit plus.</value>
   </data>
+  <data name="IPhoneDim" xml:space="preserve">
+    <value>Assombrir l'écran (iOS ne peut pas l'éteindre pendant qu'il est affiché)</value>
+  </data>
   <data name="IPhoneRotate" xml:space="preserve">
     <value>Pivoter</value>
   </data>
