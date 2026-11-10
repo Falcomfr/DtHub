@@ -24,6 +24,7 @@
        Avalonia executable the tests do not reference. -->
   <ItemGroup>
     <Compile Include="..\..\src\DtHub.Mac\Platform\MacKeyMap.cs" Link="Mac\MacKeyMap.cs" />
+    <Compile Include="..\..\src\DtHub.Mac\Platform\SingleInstance.cs" Link="Mac\SingleInstance.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -168,6 +168,19 @@ internal sealed class MacApp : Application
                 };
             }
 
+            // Linux's stand-in for the Dock click: DT Hub started again (Program.Instance).
+            if (Program.Instance is { } instance)
+            {
+                instance.Woken += (_, _) => Dispatcher.UIThread.Post(() =>
+                {
+                    if (!IsShuttingDown && _configurator is not null)
+                    {
+                        _configurator.Reveal();
+                        _ = ReopenIfNothingIsRunningAsync();
+                    }
+                });
+            }
+
             _ = StartAsync();
         }
 
