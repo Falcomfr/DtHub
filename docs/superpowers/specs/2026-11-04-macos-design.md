@@ -280,6 +280,35 @@ Two things the PC never meets:
   was switched off and on, its new port was found and the phone came back
   by itself ("ReconnectedByDiscovery").
 
+## Audit of 2026-11-10, and known limits
+
+Read from the PC after 0.14.3, whose shared launcher took a service
+`MacServices` did not register: the Mac and Linux builds stopped at
+startup, and the Check workflow's Mac job still showed green (its start
+step was `continue-on-error`).
+
+- **Guarded since:** `MacServicesTests` builds `MacServices` with
+  `ValidateOnBuild`, so a missing registration fails `dotnet test` on
+  Windows and Linux (the shared graph) and in the Mac jobs of both
+  workflows (the Mac's own branch), before anything is published. The
+  Check workflow's Mac start is no longer optional.
+- **Still only seen by the CI:** the app starts, downloads adb and scrcpy
+  and asks for Accessibility; that dialog is modal, so the CI never sees
+  the main window on the Mac (Linux's start does build it).
+- **Known limits, unverified without a Mac:** everything listed under
+  "Not seen" above; Intel Macs are not supported (the app, the native
+  library and the scrcpy archive are arm64 only, `install-mac.sh` says
+  so); F1 to F8 reach DT Hub only with Fn, or with "Use F1, F2, etc. keys
+  as standard function keys", on a Mac keyboard; macOS 15 and later refuse
+  a global shortcut whose only modifier is Option (or Option and Shift),
+  and the editor then shows it as refused; no Cmd+W or Cmd+M on DT Hub's
+  own windows; a copy run from a browser's download, translocated by
+  Gatekeeper, cannot replace itself and keeps announcing the update.
+- **Release risk:** without the `MAC_SIGNING_P12` secret the release is
+  signed ad hoc, and every installed copy, signed with the certificate,
+  refuses it (`SameSignerAsync`): Mac players would stay on their
+  version with only a banner and a log line. The job does not fail then.
+
 ## Rules for the next session
 
 - Never touch `src/DtHub.App`. Anything in `Core` or `Infrastructure` must

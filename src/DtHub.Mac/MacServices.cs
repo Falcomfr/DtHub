@@ -41,8 +41,9 @@ namespace DtHub.Mac;
 /// The PC's composition (src/DtHub.App/AppServices.cs), service for
 /// service, with the Mac's own where Windows has its: window control
 /// through the Accessibility API, the dialogs, the web view, adb and scrcpy
-/// from the manifest's macOS archives. Left out until the Mac has them:
-/// updates (the PC's install a Windows executable), desktop shortcuts.
+/// from the manifest's macOS archives, updates through the release's
+/// DtHub-mac.zip. Left out: desktop shortcuts. Every service a shared type
+/// takes must be registered here: MacServicesTests checks it.
 /// </summary>
 internal static class MacServices
 {
