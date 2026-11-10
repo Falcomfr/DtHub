@@ -46,9 +46,9 @@ namespace DtHub.Mac;
 /// </summary>
 internal static class MacServices
 {
-    public static ServiceProvider Build()
+    public static ServiceProvider Build(AppPaths paths)
     {
-        var paths = new AppPaths();
+        ArgumentNullException.ThrowIfNull(paths);
         paths.EnsureCreated();
 
         // The PC's logger (App.xaml.cs BuildHost), minus its debugger sink:

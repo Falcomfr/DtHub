@@ -22,6 +22,7 @@ using DtHub.Core.Storage;
 using DtHub.Core.Updates;
 using DtHub.Infrastructure.Adb;
 using DtHub.Infrastructure.Processes;
+using DtHub.Infrastructure.Storage;
 using DtHub.Infrastructure.Updates;
 using DtHub.Mac.Platform;
 using DtHub.Mac.Views;
@@ -103,7 +104,7 @@ internal sealed class MacApp : Application
             // the application.
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
-            _services = MacServices.Build();
+            _services = MacServices.Build(new AppPaths());
             var sessions = _services.GetRequiredService<ScrcpySessionManager>();
 
             // Quitting from the menu bar or the Dock goes through the same

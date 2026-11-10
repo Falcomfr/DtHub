@@ -26,6 +26,9 @@
     <PackageReference Include="Serilog.Sinks.File" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="DtHub.Tests" />
+  </ItemGroup>
 
   <!-- The PC's pictures, from the same folder: the logos and the tool
        icons, under the "/assets/..." paths the shared code names. -->
