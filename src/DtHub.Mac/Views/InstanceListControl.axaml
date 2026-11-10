@@ -305,12 +305,15 @@
                               ToolTip.Tip="{loc:T LockWindowTip}"
                               IsVisible="{Binding $parent[views:InstanceListControl].ShowActions}" />
 
-                <!-- Puts the account in the tabbed frame, or takes it out. -->
-                <ToggleButton Grid.Column="3" Theme="{StaticResource TabbedToggle}"
-                              Margin="0,0,5,0" VerticalAlignment="Center"
-                              IsChecked="{Binding IsTabbed}"
-                              ToolTip.Tip="{loc:T TabbedTip}"
-                              IsVisible="{Binding $parent[views:InstanceListControl].ShowActions}" />
+                <!-- Puts the account in the tabbed frame, or takes it out.
+                     Not on Linux, where nothing moves the game windows under the frame. -->
+                <Panel Grid.Column="3" IsVisible="{OnPlatform True, Linux=False}">
+                  <ToggleButton Theme="{StaticResource TabbedToggle}"
+                                Margin="0,0,5,0" VerticalAlignment="Center"
+                                IsChecked="{Binding IsTabbed}"
+                                ToolTip.Tip="{loc:T TabbedTip}"
+                                IsVisible="{Binding $parent[views:InstanceListControl].ShowActions}" />
+                </Panel>
 
                 <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center">
                   <!-- The key that brings this account forward, F1 for the

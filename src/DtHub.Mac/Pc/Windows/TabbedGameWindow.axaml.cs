@@ -160,7 +160,9 @@ public sealed partial class TabbedGameWindow : Window
     {
         get
         {
+            // libDtHubMac is macOS's: on Linux the frame stays inert rather than throw on every tick.
             if (_handle == 0
+                && OperatingSystem.IsMacOS()
                 && TryGetPlatformHandle() is { Handle: not 0 } native
                 && MacNative.dthub_window_number(native.Handle) is > 0 and var number)
             {
