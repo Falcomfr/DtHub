@@ -3421,6 +3421,9 @@ Un téléphone déjà associé en Wi-Fi revient tout seul.</value>
   <data name="LinuxText_CheckDriverRefused" xml:space="preserve">
     <value>Linux refuse l'accès USB à ce téléphone : il manque les règles USB d'Android. Installez-les (android-sdk-platform-tools-common sur Debian et Ubuntu, android-udev sur Arch), débranchez puis rebranchez le téléphone, et acceptez la demande dessus.</value>
   </data>
+  <data name="LinuxText_UsbDriverRefused" xml:space="preserve">
+    <value>Accès USB refusé (règles udev)</value>
+  </data>
   <data name="LinuxText_UpdateAvailableNotes" xml:space="preserve">
     <value>Cette version est disponible. Pour l'installer, quittez DT Hub, puis relancez cette ligne dans un terminal : curl -fsSL https://dthub.app/install-linux.sh | bash</value>
   </data>
