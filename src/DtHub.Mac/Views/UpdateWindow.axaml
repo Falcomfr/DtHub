@@ -14,7 +14,9 @@
   <DockPanel Margin="20">
     <StackPanel DockPanel.Dock="Top" Margin="0,0,0,14">
       <TextBlock Name="Heading" Classes="title" />
-      <TextBlock Name="Lead" Classes="muted" Margin="0,6,0,0" TextWrapping="Wrap" />
+      <!-- Selectable: on Linux it carries the install command to copy. -->
+      <SelectableTextBlock Name="Lead" Margin="0,6,0,0" TextWrapping="Wrap"
+                           FontSize="{DynamicResource FontBody}" Foreground="{DynamicResource TextMutedBrush}" />
     </StackPanel>
 
     <DockPanel DockPanel.Dock="Bottom" Margin="0,14,0,0">

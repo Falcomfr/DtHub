@@ -3421,6 +3421,9 @@ Un teléfono ya vinculado por Wi-Fi vuelve solo.</value>
   <data name="LinuxText_CheckDriverRefused" xml:space="preserve">
     <value>Linux rechaza el acceso USB a este teléfono: faltan las reglas USB de Android. Instálalas (android-sdk-platform-tools-common en Debian y Ubuntu, android-udev en Arch), desconecta y vuelve a conectar el teléfono, y acepta la solicitud en él.</value>
   </data>
+  <data name="LinuxText_UpdateAvailableNotes" xml:space="preserve">
+    <value>Esta versión está disponible. Para instalarla, cierra DT Hub y vuelve a ejecutar esta línea en una terminal: curl -fsSL https://dthub.app/install-linux.sh | bash</value>
+  </data>
   <data name="LinuxText_CheckNoDevice" xml:space="preserve">
     <value>No se detecta ningún teléfono. Que cargue no basta:
 1. Conecta un cable de datos.

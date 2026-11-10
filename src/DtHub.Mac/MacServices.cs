@@ -186,13 +186,14 @@ internal static class MacServices
         // Updates, as the PC's: the same releases, the Mac's archive in
         // them. Its own client: a sixty-megabyte archive does not download
         // in the time allotted to a web page. Off a bundle (a development
-        // build, Linux), nothing is offered.
+        // build), nothing is offered; Linux is told of the version, which
+        // its install command puts in place.
         services.AddSingleton<IReleaseSource>(provider => new GitHubReleaseSource(
             new HttpClient { Timeout = TimeSpan.FromMinutes(10) },
             ReleaseChannel.Owner,
             ReleaseChannel.Repository,
             provider.GetRequiredService<ILogger<GitHubReleaseSource>>(),
-            BundleUpdateService.Asset));
+            OperatingSystem.IsMacOS() ? BundleUpdateService.Asset : "DtHub-linux-x64.tar.gz"));
         services.AddSingleton(provider => new BundleUpdateService(
             provider.GetRequiredService<IReleaseSource>(),
             provider.GetRequiredService<IAppPaths>(),
@@ -207,7 +208,8 @@ internal static class MacServices
             OperatingSystem.IsMacOS()
                 ? BundleUpdateService.BundleOf(Environment.ProcessPath, File.Exists)
                 : string.Empty,
-            provider.GetRequiredService<ILogger<BundleUpdateService>>()));
+            provider.GetRequiredService<ILogger<BundleUpdateService>>(),
+            announceOnly: OperatingSystem.IsLinux()));
 
         // Interface.
         services.AddSingleton<IDialogService, MacDialogService>();
