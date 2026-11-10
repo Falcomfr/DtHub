@@ -212,6 +212,8 @@ internal static class MacServices
         // Interface.
         services.AddSingleton<IDialogService, MacDialogService>();
         services.AddSingleton<DiagnosticReporter>();
+        // Lists no iPhone on the Mac (D227), but the shared launcher and list take it.
+        services.AddSingleton<IPhoneScreens>();
         services.AddSingleton<GameLauncher>();
         services.AddSingleton<WindowPlacements>();
         services.AddSingleton<InstanceListViewModel>();

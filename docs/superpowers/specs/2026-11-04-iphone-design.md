@@ -107,7 +107,7 @@ screen, and a click opened DOFUS Touch. On the way:
   script now re-wraps each frame at its coded size (same pixels as a
   sized config, portrait and landscape).
 
-Then (0.14.3, 2026-11-10, checked in Edge with the viewer's own CSS, not on
+Then (0.14.4, 2026-11-10, checked in Edge with the viewer's own CSS, not on
 an iPhone): the canvas fills the window and the window takes the picture's
 shape; a small button over the screen clicks the viewer's hidden Rotate;
 right click (the viewer's Home) and "?" (its hidden help, which swallowed

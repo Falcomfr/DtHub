@@ -10,7 +10,7 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
-## [0.14.3] - 2026-11-10
+## [0.14.4] - 2026-11-10
 
 ### Añadido
 
