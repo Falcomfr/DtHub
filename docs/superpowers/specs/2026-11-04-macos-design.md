@@ -214,6 +214,39 @@ places its windows from its arguments; no grid, tabs or full screen
 afterwards), no global shortcuts, the guides and web tools open in the
 browser, adb and scrcpy from the player's install. Not run on Linux since.
 
+### Linux audit (2026-11-10)
+
+Fixed on `audit/linux`, checked with the linux-x64 build under Xvfb in WSL:
+- the Check and Release smoke test (`.github/linux-first-start.sh`) wants
+  the panel and the pairing window on screen and no `[ERR]`/`[FTL]` in the
+  log; alive alone passed a startup that throws (tried);
+- a second start wakes the running copy (`SingleInstance`, a lock and a
+  wake file in the data folder) instead of opening every account twice;
+- the tab toggle is hidden, the frame inert: nothing docks a game here;
+- a new version is announced with the install line, never fetched;
+- scrcpy gets `SDL_VIDEO_DRIVER=x11` unless the player set one, so its
+  windows take the place DT Hub gives them under Wayland too;
+- the desktop entry carries `StartupWMClass=DtHub.Mac`; a phone refused
+  for want of udev rules says so in the list.
+
+Known limits, still to see on a real Linux desktop:
+- no window control after launch: grid, side by side, stack, sizes, full
+  screen and the lock do nothing, their buttons still show. An X11
+  controller (XMoveResizeWindow, `_NET_ACTIVE_WINDOW`) would bring them;
+- no global shortcuts, though the game windows' titles and the shortcut
+  editor still name them; Wayland allows none outside its portal;
+- launch placement is computed in points (Avalonia's bounds over its
+  scaling) with the Mac's title bar height: uncalibrated, and likely off
+  on a scaled screen;
+- XWayland may blur the game on a fractionally scaled screen;
+  `SDL_VIDEO_DRIVER=wayland` gives it back sharp, unplaced;
+- accounts brought tabbed from another machine open in an empty frame,
+  and the hidden toggle cannot take them out;
+- not tried: GNOME or KDE, X11 or Wayland, a USB phone on a real Linux,
+  sound, Wi-Fi pairing behind firewalld or ufw, a Steam Deck (read-only
+  system: no udev rules, Wi-Fi only). The package needs glibc 2.27,
+  libicu and libfontconfig, present on desktop distributions.
+
 ## Updates and installing (2026-11-05)
 
 As on the PC, and from the same releases: the release pipeline's `mac`
@@ -229,7 +262,8 @@ button, or the last game window closed with the panel hidden), the
 running bundle steps aside into the updates folder and the new one takes
 its place under the running copy's name; the next startup shows the note
 and sweeps, never the old bundle while the new one is missing. A
-development build (under the source tree) or Linux is offered nothing.
+development build (under the source tree) is offered nothing; Linux is
+told of the version and of its install line (2026-11-10).
 Checked on this Mac on 2026-11-05: a 0.12.2 in `/Applications` found a
 0.12.3 served from a local folder, showed the banner and the note, put it
 in place at Quit, started as 0.12.3 with the note "just installed" and the
