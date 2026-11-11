@@ -118,6 +118,16 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     _ = ForgetClosedByHandAsync([ended.Key]);
                 }
 
+                // Said in the panel, shown first: with nothing else left, DT Hub stays to say it
+                // instead of quitting with the window that explained the failure.
+                if (ended.End == IosEnd.GaveUp)
+                {
+                    var name = _launched.TryGetValue(ended.Key, out var account) ? account.DisplayName : ended.Key;
+                    SayWindowGone(_iphones.ProblemOf(ended.Key) is { } why
+                        ? Strings.Format("WindowEnded", name, why)
+                        : Strings.Format("ReopenFailed", name));
+                }
+
                 NotifyIfNothingLeft();
             }
         };
@@ -4219,6 +4229,19 @@ public sealed partial class GameLauncher : IAsyncDisposable
         IReadOnlyDictionary<string, StoredWindowRect>? remembered,
         CancellationToken cancellationToken)
     {
+        if (IosLaunchSplit.NeedsListing(accounts, _iphones.Listed.Select(d => d.Udid).ToHashSet(StringComparer.Ordinal), _iphones.ListFailed))
+        {
+            try
+            {
+                await RunOnUiAsync(_iphones.ListNowAsync).ConfigureAwait(false);
+            }
+            catch (Exception exception) when (exception is not OutOfMemoryException)
+            {
+                // The last list stands: an account it lacks is said not plugged.
+                LogIosListFailed(exception);
+            }
+        }
+
         var listed = _iphones.Listed;
         var missing = IosLaunchSplit.Missing(accounts, listed.Select(d => d.Udid).ToHashSet(StringComparer.Ordinal));
         List<string> problems = [];
@@ -4251,6 +4274,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
             catch (IPhoneException exception)
             {
                 // Said in the launch's report, as an Android window's refusal.
+                problems.Add($"{account.DisplayName} : {exception.Message}");
+            }
+            catch (Exception exception) when (exception is not (OutOfMemoryException or OperationCanceledException))
+            {
+                // The Android accounts may already be open: the launch never throws for one iPhone.
+                LogIosOpenFailed(exception, account.DisplayName);
                 problems.Add($"{account.DisplayName} : {exception.Message}");
             }
         }
@@ -5018,6 +5047,13 @@ public sealed partial class GameLauncher : IAsyncDisposable
             _tabs?.Explain(
                 key,
                 Strings.Get(_iphones.StateOf(key) == IosWindowState.Unplugged ? "IPhoneUnpluggedWait" : "IPhoneReconnecting"));
+        }
+
+        // The panel's sweep alone lists the iPhones: hidden, a replugged one would never reopen.
+        // RefreshAsync waits ten seconds between searches itself.
+        if (_iosWindows.Count > 0)
+        {
+            _ = _iphones.RefreshAsync();
         }
 
         UpdateWaitingWindows(waiting);
@@ -7244,6 +7280,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Information,
         Message = "Lancement terminé : {opened} fenêtre(s) ouverte(s), {problems} problème(s).")]
     private partial void LogLaunch(int opened, int problems);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Recherche des iPhone avant ouverture impossible.")]
+    private partial void LogIosListFailed(Exception exception);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Le compte iOS {name} n'a pas pu être ouvert.")]
+    private partial void LogIosOpenFailed(Exception exception, string name);
 
     [LoggerMessage(
         Level = LogLevel.Information,

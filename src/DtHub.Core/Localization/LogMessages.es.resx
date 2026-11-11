@@ -848,4 +848,13 @@
   <data name="La fenêtre de l'iPhone {name} n'a pas pu être fermée." xml:space="preserve">
     <value>No se pudo cerrar la ventana del iPhone {name}.</value>
   </data>
+  <data name="Les jeux des iPhone n'ont pas pu être arrêtés à la fermeture." xml:space="preserve">
+    <value>No se pudieron detener los juegos de los iPhone al salir.</value>
+  </data>
+  <data name="Recherche des iPhone avant ouverture impossible." xml:space="preserve">
+    <value>No se pudieron buscar los iPhone antes de abrir.</value>
+  </data>
+  <data name="Le compte iOS {name} n'a pas pu être ouvert." xml:space="preserve">
+    <value>No se pudo abrir la cuenta iOS {name}.</value>
+  </data>
 </root>

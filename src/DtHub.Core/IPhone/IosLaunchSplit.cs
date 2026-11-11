@@ -27,4 +27,12 @@ public static class IosLaunchSplit
 
         return [.. ios.Where(a => !listedUdids.Contains(a.DeviceId)).Select(a => a.Key)];
     }
+
+    /// <summary>
+    /// The list is searched again before opening: only the panel's sweep
+    /// fills it, so hidden at startup or for a team's shortcut it may be
+    /// empty or old.
+    /// </summary>
+    public static bool NeedsListing(IEnumerable<DofusInstance> ios, IReadOnlySet<string> listedUdids, bool listFailed) =>
+        listFailed || Missing(ios, listedUdids).Count > 0;
 }

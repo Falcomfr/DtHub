@@ -61,4 +61,16 @@ public class IosLaunchSplitTests
 
         Assert.Equal([absent.Key], missing);
     }
+
+    [Fact]
+    public void Un_iPhone_absent_ou_une_recherche_ratee_demande_une_nouvelle_recherche()
+    {
+        var u1 = Ios("U1");
+        var u2 = Ios("U2");
+        var listed = new HashSet<string>(["U1"]);
+
+        Assert.False(IosLaunchSplit.NeedsListing([u1], listed, listFailed: false));
+        Assert.True(IosLaunchSplit.NeedsListing([u1, u2], listed, listFailed: false));
+        Assert.True(IosLaunchSplit.NeedsListing([u1], listed, listFailed: true));
+    }
 }

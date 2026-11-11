@@ -20,11 +20,11 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 - Un iPhone o un iPad puede entrar en el marco con pestañas, junto a las cuentas Android.
 - DT Hub abre DOFUS Touch en el iPhone o el iPad al abrir su ventana, y el botón de reinicio de la fila reinicia allí el juego.
 - «Cerrar también el juego en el teléfono» también cierra DOFUS Touch en el iPhone o el iPad.
-- Una ventana de iPhone o iPad detenida por un error se vuelve a abrir sola, como una ventana Android.
+- Una ventana de iPhone o iPad detenida por un error se vuelve a abrir sola, como una ventana Android; si no lo consigue, el panel dice por qué.
 
 ### Corregido
 
-- La pantalla de un iPad se abre ahora sin su sonido, la única diferencia con el iPhone que aceptaba los clics.
+- En iPad, la pantalla se abre sin sonido para que los clics vuelvan a funcionar.
 
 ## [0.14.6] - 2026-11-11
 

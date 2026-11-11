@@ -21,11 +21,11 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 - Un iPhone ou un iPad peut entrer dans le cadre à onglets, à côté des comptes Android.
 - DT Hub lance DOFUS Touch sur l'iPhone ou l'iPad à l'ouverture de sa fenêtre, et le bouton de relance de la ligne y relance le jeu.
 - « Fermer aussi le jeu sur le téléphone » ferme aussi DOFUS Touch sur l'iPhone ou l'iPad.
-- Une fenêtre iPhone ou iPad arrêtée par une erreur se rouvre seule, comme une fenêtre Android.
+- Une fenêtre iPhone ou iPad arrêtée par une erreur se rouvre seule, comme une fenêtre Android ; si elle n'y arrive pas, le panneau dit pourquoi.
 
 ### Corrigé
 
-- L'écran d'un iPad s'ouvre désormais sans son son, seule différence avec l'iPhone qui prenait les clics.
+- Sur iPad, l'écran s'ouvre sans le son pour que les clics passent de nouveau.
 
 ## [0.14.6] - 2026-11-11
 

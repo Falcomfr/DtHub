@@ -134,6 +134,18 @@ public sealed partial class IPhoneScreens(
         }
     }
 
+    /// <summary>Looks for iPhones now, past the wait between searches: one in flight may predate a plug or an unplug.</summary>
+    public async Task ListNowAsync()
+    {
+        while (_listing)
+        {
+            await Task.Delay(200).ConfigureAwait(true);
+        }
+
+        _listed = DateTime.MinValue;
+        await RefreshAsync().ConfigureAwait(true);
+    }
+
     /// <summary>
     /// Shows the iPhones Apple's USB service listed. An open screen whose
     /// iPhone is gone stops its tool; back in the list, it opens again
@@ -288,9 +300,17 @@ public sealed partial class IPhoneScreens(
     /// </summary>
     public async Task StopAllGamesAsync()
     {
-        if ((await settings.GetAsync(CancellationToken.None).ConfigureAwait(true)).StopAppOnClose)
+        try
         {
-            await Task.WhenAll(_windows.Keys.ToList().Select(StopGameAsync)).ConfigureAwait(true);
+            if ((await settings.GetAsync(CancellationToken.None).ConfigureAwait(true)).StopAppOnClose)
+            {
+                await Task.WhenAll(_windows.Keys.ToList().Select(StopGameAsync)).ConfigureAwait(true);
+            }
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            // Run on every quit, Android players' too: the quit goes on.
+            LogStopAllFailed(exception);
         }
     }
 
@@ -459,15 +479,8 @@ public sealed partial class IPhoneScreens(
     /// </summary>
     private async Task OnStoppedAsync(IosGameWindow entry, IPhoneMirrorWindow window)
     {
-        // A tool ended by an unplug is no failure: a fresh list tells. One in
-        // flight may predate the unplug, so it is waited for, then made again.
-        while (_listing)
-        {
-            await Task.Delay(200).ConfigureAwait(true);
-        }
-
-        _listed = DateTime.MinValue;
-        await RefreshAsync().ConfigureAwait(true);
+        // A tool ended by an unplug is no failure: a fresh list tells.
+        await ListNowAsync().ConfigureAwait(true);
 
         if (window.IsUnplugged
             || _opening.Contains(entry.Key)
@@ -685,6 +698,9 @@ public sealed partial class IPhoneScreens(
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Le jeu n'a pas pu être arrêté sur l'iPhone {name}.")]
     private partial void LogGameStopFailed(Exception exception, string name);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Les jeux des iPhone n'ont pas pu être arrêtés à la fermeture.")]
+    private partial void LogStopAllFailed(Exception exception);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "L'affichage de l'iPhone {name} a échoué, nouvel essai {attempt}.")]
     private partial void LogReopening(string name, int attempt);

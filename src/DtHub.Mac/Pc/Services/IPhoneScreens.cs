@@ -68,6 +68,8 @@ public sealed class IPhoneScreens
 
     public Task RefreshAsync() => Task.CompletedTask;
 
+    public Task ListNowAsync() => Task.CompletedTask;
+
     public Task OpenAsync(DofusInstance account, IPhoneDevice device, CancellationToken cancellationToken) => Task.CompletedTask;
 
     public Task CloseAsync(string key, bool byHand) => Task.CompletedTask;

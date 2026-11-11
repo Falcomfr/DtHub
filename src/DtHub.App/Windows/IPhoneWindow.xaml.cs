@@ -20,6 +20,7 @@ public partial class IPhoneWindow : Window
     private readonly PyMobileDevice _tools;
     private readonly IPhoneScreens _screens;
     private readonly SettingsService _settings;
+    private readonly GameLauncher _launcher;
 
     // Closing the list stops its search or its opening.
     private readonly CancellationToken _closing;
@@ -28,11 +29,12 @@ public partial class IPhoneWindow : Window
     // tool itself across windows.
     private bool _busy;
 
-    public IPhoneWindow(PyMobileDevice tools, IPhoneScreens screens, SettingsService settings)
+    public IPhoneWindow(PyMobileDevice tools, IPhoneScreens screens, SettingsService settings, GameLauncher launcher)
     {
         _tools = tools;
         _screens = screens;
         _settings = settings;
+        _launcher = launcher;
 
         InitializeComponent();
 
@@ -88,10 +90,20 @@ public partial class IPhoneWindow : Window
 
         try
         {
-            // Not owned: it stays open when this list is closed.
+            // Not owned: it stays open when this list is closed. Opened as the list's
+            // Play does: its colour, its place, and back at the next startup.
             var account = await _settings.EnsureIosAccountAsync(device, _closing).ConfigureAwait(true);
-            await _screens.OpenAsync(account, device, _closing).ConfigureAwait(true);
-            Status.Text = string.Empty;
+            if (_launcher.IsOpen(account))
+            {
+                // Already shown: brought forward, as before.
+                await _screens.OpenAsync(account, device, _closing).ConfigureAwait(true);
+                Status.Text = string.Empty;
+            }
+            else
+            {
+                var report = await _launcher.LaunchAsync([account], _closing).ConfigureAwait(true);
+                Status.Text = string.Join(" ", report.Problems);
+            }
         }
         catch (IPhoneException exception)
         {

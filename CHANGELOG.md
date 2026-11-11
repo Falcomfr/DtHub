@@ -27,11 +27,11 @@ belongs in the commits and in `docs/DECISIONS.md`.
 - An iPhone or iPad can go into the tabbed frame, next to the Android accounts.
 - DT Hub starts DOFUS Touch on the iPhone or iPad when its window opens, and the row's restart button restarts the game there.
 - "Close the game on the phone too" also closes DOFUS Touch on the iPhone or iPad.
-- An iPhone or iPad window that stops on an error reopens by itself, like an Android one.
+- An iPhone or iPad window that stops on an error reopens by itself, like an Android one; when it cannot, the panel says why.
 
 ### Fixed
 
-- An iPad's screen now opens without its sound, the one difference from the iPhone that took clicks.
+- On iPad, the screen opens without sound so that clicks go through again.
 
 ## [0.14.6] - 2026-11-11
 
