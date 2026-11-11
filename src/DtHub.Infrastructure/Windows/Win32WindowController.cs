@@ -73,6 +73,8 @@ public sealed partial class Win32WindowController : IWindowController
 
     public bool IsWindow(nint handle) => handle != 0 && IsWindowCore(handle);
 
+    public bool IsZoomed(nint handle) => handle != 0 && IsZoomedCore(handle);
+
     public int GetWindowProcessId(nint handle)
     {
         if (handle == 0)
@@ -565,6 +567,10 @@ public sealed partial class Win32WindowController : IWindowController
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool IsIconic(nint handle);
+
+    [DllImport("user32.dll", EntryPoint = "IsZoomed")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool IsZoomedCore(nint handle);
 
     [DllImport("user32.dll", CharSet = CharSet.Unicode, EntryPoint = "GetWindowTextLengthW")]
     private static extern int GetWindowTextLength(nint handle);

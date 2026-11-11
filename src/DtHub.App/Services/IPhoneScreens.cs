@@ -52,6 +52,15 @@ public sealed partial class IPhoneScreens(
     /// <summary>Where the account's window is in its life, <c>null</c> without one.</summary>
     public IosWindowState? StateOf(string key) => _windows.TryGetValue(key, out var window) ? window.Life.State : null;
 
+    /// <summary>Out of maximized, before an arrangement moves them: Windows would keep them flagged so.</summary>
+    public void Unmaximize()
+    {
+        foreach (var entry in Shown.Where(w => w.Window.WindowState == System.Windows.WindowState.Maximized))
+        {
+            entry.Window.WindowState = System.Windows.WindowState.Normal;
+        }
+    }
+
     /// <summary>The account's window shows the game now: its playtime runs.</summary>
     public bool CountsPlaytime(string key) => _windows.TryGetValue(key, out var window) && window.Life.CountsPlaytime;
 

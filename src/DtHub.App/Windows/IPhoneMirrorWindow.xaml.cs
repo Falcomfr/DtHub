@@ -206,6 +206,7 @@ public partial class IPhoneMirrorWindow : Window
 
         InitializeComponent();
 
+        // Set once: the launcher then retitles the window natively (WM_SETTEXT) with its key; a later `Title =` would erase it.
         Title = device.Name;
         Status.Text = Strings.Format("IPhoneStarting", device.Name);
 

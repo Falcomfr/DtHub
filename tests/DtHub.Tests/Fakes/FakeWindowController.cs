@@ -79,6 +79,11 @@ public sealed class FakeWindowController : IWindowController
 
     public bool IsWindow(nint handle) => _windows.Exists(w => w.Handle == handle);
 
+    /// <summary>Windows the user maximized.</summary>
+    public HashSet<nint> Zoomed { get; } = [];
+
+    public bool IsZoomed(nint handle) => Zoomed.Contains(handle);
+
     /// <summary>Simulated frame: title bar and borders.</summary>
     public WindowFrame Chrome { get; set; }
 

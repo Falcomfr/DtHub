@@ -74,6 +74,22 @@ public class GameWindowTests
     }
 
     [Fact]
+    public void Une_fenetre_agrandie_qui_n_est_pas_une_session_garde_sa_forme()
+    {
+        var (manager, desktop, a, b) = Setup();
+        var zoomed = a with { SourceAspectRatio = 0.5 };
+        var normal = b with { SourceAspectRatio = 0.5 };
+        desktop.Zoomed.Add(zoomed.WindowHandle);
+
+        // Twice: a window is corrected once its rectangle has settled.
+        manager.EnforceAspect([zoomed, normal]);
+        manager.EnforceAspect([zoomed, normal]);
+
+        Assert.DoesNotContain(desktop.Moves, m => m.Handle == zoomed.WindowHandle);
+        Assert.Contains(desktop.Moves, m => m.Handle == normal.WindowHandle);
+    }
+
+    [Fact]
     public async Task Une_fenetre_morte_qui_n_est_pas_une_session_n_est_pas_cherchee_par_son_processus()
     {
         // An iPhone window being reopened keeps its closed handle a moment, and

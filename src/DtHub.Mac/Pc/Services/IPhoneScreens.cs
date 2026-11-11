@@ -40,6 +40,10 @@ public sealed class IPhoneScreens
 
     public bool CountsPlaytime(string key) => false;
 
+    public void Unmaximize()
+    {
+    }
+
     public Task RefreshAsync() => Task.CompletedTask;
 
     public void Show(IReadOnlyList<IPhoneDevice> devices)

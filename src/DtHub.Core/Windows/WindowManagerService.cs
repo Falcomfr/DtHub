@@ -373,7 +373,9 @@ public sealed class WindowManagerService
 
         foreach (var session in sessions.Where(s => s.IsAlive && s.WindowHandle != 0))
         {
+            // An iPhone's window maximized by the player stays so: scrcpy's are left as they were.
             if (session.SourceAspectRatio <= 0
+                || (session is not ScrcpySession && _controller.IsZoomed(session.WindowHandle))
                 || _controller.GetWindowRect(session.WindowHandle) is not { } outer
                 || outer.IsEmpty)
             {

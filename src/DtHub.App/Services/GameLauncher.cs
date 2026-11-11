@@ -1063,7 +1063,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </remarks>
     public IReadOnlyList<IGameWindow> ManagedWindows =>
         GameWindowList.Managed(
-            [.. _sessions.ActiveSessions.Where(s => !s.Target.IsTransient), .. _iosWindows], _unmanaged, _tabbed, Order);
+            [.. _sessions.ActiveSessions.Where(s => !s.Target.IsTransient), .. LiveIosWindows], _unmanaged, _tabbed, Order);
 
     /// <summary>
     /// A game in full screen shows bands: opened windowed, it took its
@@ -1336,6 +1336,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
             AddPlaytime(key, seconds);
         }
     }
+
+    /// <summary>The iOS windows on screen: one being reopened keeps its closed handle a moment, and takes no place.</summary>
+    private IEnumerable<IGameWindow> LiveIosWindows => _iosWindows.Where(w => _windows.Controller.IsWindow(w.WindowHandle));
+
+    /// <summary>
+    /// Before windows are moved: a maximized iPhone window moved stays flagged
+    /// maximized, wrong caption button and a Restore that jumps.
+    /// </summary>
+    private Task UnmaximizeIPhonesAsync() => _iosWindows.Count == 0 ? Task.CompletedTask : OnUiAsync(_iphones.Unmaximize);
 
     /// <summary>Every game window, the phones' sessions then the iOS accounts', not yet in the list's order.</summary>
     private IEnumerable<IGameWindow> AllWindows => [.. _sessions.ActiveSessions, .. _iosWindows];
@@ -5075,6 +5084,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         try
         {
+            await UnmaximizeIPhonesAsync().ConfigureAwait(false);
+
             // The frame counts as one window. In the foreground, it
             // takes the right side and every free window moves to
             // the left: without this, one of them would land on the
@@ -5132,6 +5143,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         try
         {
+            await UnmaximizeIPhonesAsync().ConfigureAwait(false);
+
             var sessions = ManagedWindows;
             var frame = ArrangeableCount > 1 ? MovableFrame : null;
             int? frameCell = null;
@@ -5204,6 +5217,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         try
         {
+            await UnmaximizeIPhonesAsync().ConfigureAwait(false);
+
             var frame = MovableFrame;
             var sessions = ManagedWindows;
 
@@ -5273,6 +5288,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private async Task<int> ArrangeCoreAsync(CancellationToken cancellationToken)
     {
         await ApplyWindowSettingsAsync(cancellationToken).ConfigureAwait(false);
+        await UnmaximizeIPhonesAsync().ConfigureAwait(false);
 
         // Before placing: the placement reads the size, and in full
         // screen it stacked every window back over the whole screen.
@@ -5321,6 +5337,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
         bool persist = true,
         CancellationToken cancellationToken = default)
     {
+        await UnmaximizeIPhonesAsync().ConfigureAwait(false);
+
         var moved = await _windows
             .ApplyPercentAsync(ManagedWindows, percent, cancellationToken)
             .ConfigureAwait(false);
@@ -5401,6 +5419,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
             },
             cancellationToken).ConfigureAwait(false);
 
+
+        await UnmaximizeIPhonesAsync().ConfigureAwait(false);
 
         var moved = await _windows
             .ApplySizeAsync(ManagedWindows, sizeIndex, cancellationToken)
@@ -6685,7 +6705,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// passing are not accounts.
     /// </summary>
     private List<IGameWindow> AccountWindows() =>
-        [.. GameWindowList.Accounts([.. ActiveSessions.Where(s => !s.Target.IsTransient), .. _iosWindows], Order)];
+        [.. GameWindowList.Accounts([.. ActiveSessions.Where(s => !s.Target.IsTransient), .. LiveIosWindows], Order)];
 
     /// <summary>
     /// Brings forward the open account on this line of the list, counted

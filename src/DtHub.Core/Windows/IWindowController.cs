@@ -22,6 +22,9 @@ public interface IWindowController
     /// </summary>
     bool IsWindow(nint handle);
 
+    /// <summary>True if the window is maximized; only Windows knows.</summary>
+    bool IsZoomed(nint handle) => false;
+
     /// <summary>
     /// Where a window is, as Windows remembers it. Returns
     /// <c>null</c> if the window no longer exists.
