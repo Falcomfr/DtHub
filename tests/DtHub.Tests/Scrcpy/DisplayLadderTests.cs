@@ -99,6 +99,19 @@ public sealed class DisplayLadderTests
         Assert.NotEqual(16d / 9, width / (double)height, precision: 2);
     }
 
+    [Theory]
+    [InlineData(2654, 1494)]
+    [InlineData(2590, 1457)]
+    public void Deux_fenetres_presque_en_16_9_recoivent_la_meme_largeur(int clientWidth, int clientHeight)
+    {
+        // Seen on 2026-11-11 in tabs: 1918.6 floored to 1912 next to a
+        // 1920, so one tab was born narrower and the frame jumped.
+        var (width, height) = DisplayLadder.For(
+            clientHeight, 3840, 2160, maximumHeight: 1080, windowAspect: clientWidth / (double)clientHeight);
+
+        Assert.Equal((1920, 1080), (width, height));
+    }
+
     [Fact]
     public void Le_format_du_telephone_reste_prioritaire_sur_la_fenetre()
     {
@@ -329,8 +342,8 @@ public sealed class DisplayLadderTests
         // The video carries colour at half resolution. Measured on the 13T
         // Pro on 2026-10-12: red text on grey, window 1915x800, smeared at
         // 2144x896 and as sharp as white text at 3440x1440.
-        // 2136 since the width follows the aligned height.
-        Assert.Equal((2136, 896), DisplayLadder.For(835, 3440, 1440, 1440));
+        // 2144 since the width follows the aligned height, to the nearest 8.
+        Assert.Equal((2144, 896), DisplayLadder.For(835, 3440, 1440, 1440));
         Assert.Equal((3440, 1440), DisplayLadder.For(835, 3440, 1440, 1440, sharpImage: true));
     }
 

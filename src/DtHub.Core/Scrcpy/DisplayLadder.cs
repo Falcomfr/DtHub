@@ -166,7 +166,9 @@ public static class DisplayLadder
         // drifts the ratio.
         var height = Even(Math.Min(Choose(clientHeight, fits), Ceiling(maximumHeight, requestedAspect)));
 
-        return (Even((int)Math.Round(height * aspect)), height);
+        // To the nearest alignment, not below: 1918.6 floored to 1912 made a
+        // tab narrower than its 1920 neighbour in the same frame.
+        return (Even((int)Math.Round(height * aspect) + (SideAlignment / 2)), height);
     }
 
     /// <summary>

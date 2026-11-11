@@ -3720,6 +3720,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         List<ScrcpySession> started = [];
 
+        // Tabs share one frame, so one format: an open tab's, else the first
+        // tab of this launch's. Each used to take its own free window's, and
+        // 1912 next to 1920 made the frame jump on every switch (2026-11-11).
+        var tabAspect = _sessions.ActiveSessions
+            .FirstOrDefault(s => _tabbed.Contains(s.Target.Key)
+                                 && !phoneFormats.Contains(s.Target.Key)
+                                 && s.SourceAspectRatio > 0)?.SourceAspectRatio ?? 0;
+
         foreach (var instance in instances)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -3821,7 +3829,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 ForgetReducedRender(instance.Key);
             }
 
-            var display = WithDisplayFor(gameOptions, placement, stored, quality, zoom, layoutHeight, phoneAspect ?? 0) with
+            var inTabs = fitWindow && _tabbed.Contains(instance.Key);
+
+            var display = WithDisplayFor(
+                gameOptions, placement, stored, quality, zoom, layoutHeight, phoneAspect ?? 0, inTabs ? tabAspect : 0) with
             {
                 StartOffscreen = !instance.IsTransient && _tabbed.Contains(instance.Key),
                 // The account's own tier, not the shared one the options
@@ -3835,6 +3846,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     ? buffer
                     : VideoBuffer.None,
             };
+
+            if (inTabs && tabAspect <= 0 && display.VirtualDisplayHeight > 0)
+            {
+                tabAspect = display.VirtualDisplayWidth / (double)display.VirtualDisplayHeight;
+            }
 
             // The encoder is only forced if the device would put
             // software ahead of hardware, and only if this is
@@ -5748,7 +5764,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
         QualityProfile quality,
         GameZoom zoom,
         int layoutHeight,
-        double phoneAspect)
+        double phoneAspect,
+        double tabAspect)
     {
         if (placement is not { Height: > 0 } window
             || _windows.MonitorBoundsFor(remembered) is not { } screen)
@@ -5758,8 +5775,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         // The display is fixed for the session, but its initial format is
         // the actual client area's, not the monitor including the taskbar.
-        // A phone-format override still wins; fullscreen uses the monitor.
-        var windowAspect = !_windows.IsFullscreen ? window.Width / (double)window.Height : 0;
+        // A phone-format override still wins; fullscreen uses the monitor;
+        // a tab takes its frame's shared format.
+        var windowAspect = _windows.IsFullscreen ? 0
+            : tabAspect > 0 ? tabAspect
+            : window.Width / (double)window.Height;
 
         var (width, height) = DisplayLadder.For(
             window.Height, screen.Width, screen.Height, quality.MaximumDisplayHeight, _sharpImage, phoneAspect,
