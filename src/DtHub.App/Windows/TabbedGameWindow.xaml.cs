@@ -80,17 +80,30 @@ public partial class TabbedGameWindow : Window
             return false;
         }
 
-        // The account's tab waited for it: the game comes back into it.
+        // The account's tab waited for it: the game comes back into it. Also
+        // an iPhone opened again, whose old window closed under its tab.
         if (Find(key) is { } existing)
         {
-            if (existing.Window != 0 || !_windows.Dock(window, Handle))
+            if ((existing.Window != 0 && _windows.IsWindow(existing.Window)) || !_windows.Dock(window, Handle))
             {
                 return false;
             }
 
+            // Forgets the closed one, whose handle Windows may hand out again.
+            _ = _windows.Undock(existing.Window);
             _windows.SetVisible(window, false);
             existing.Window = window;
-            SetWaiting(existing, false);
+
+            if (existing.IsWaiting)
+            {
+                SetWaiting(existing, false);
+            }
+            else if (existing.IsSelected)
+            {
+                // Swapped before the watch saw the tab wait: shown here.
+                Select(existing);
+            }
+
             return true;
         }
 
@@ -281,6 +294,32 @@ public partial class TabbedGameWindow : Window
         CloseRequested?.Invoke(this, [key]);
     }
 
+    /// <summary>
+    /// Raised with the account whose tab stops having the keyboard: another
+    /// tab shown, or the frame deactivated. A docked window does not see it
+    /// otherwise, and an iPhone's would keep a finger down.
+    /// </summary>
+    public event EventHandler<string>? TabLeft;
+
+    /// <summary>
+    /// The account's picture changed shape, an iPhone turned: the frame
+    /// takes it when the tab shows.
+    /// </summary>
+    public void UpdateAspect(string key, double aspect)
+    {
+        if (aspect <= 0 || Find(key) is not { } tab || tab.Aspect == aspect)
+        {
+            return;
+        }
+
+        tab.Aspect = aspect;
+
+        if (tab.IsSelected)
+        {
+            Settle();
+        }
+    }
+
     /// <summary>True if this account is housed here.</summary>
     public bool Holds(string key) => Find(key) is not null;
 
@@ -435,14 +474,26 @@ public partial class TabbedGameWindow : Window
             _windows.SetVisible(tab.Window, true);
         }
 
+        List<string> left = [];
+
         foreach (var other in Items)
         {
+            if (other.IsSelected && !ReferenceEquals(other, tab))
+            {
+                left.Add(other.Key);
+            }
+
             other.IsSelected = ReferenceEquals(other, tab);
 
             if (other.Window != 0 && (!other.IsSelected || !other.ShowsGame))
             {
                 _windows.SetVisible(other.Window, false);
             }
+        }
+
+        foreach (var key in left)
+        {
+            TabLeft?.Invoke(this, key);
         }
 
         Fit(tab);
@@ -1137,6 +1188,16 @@ public partial class TabbedGameWindow : Window
                     _ = _windows.GiveKeyboardFocus(encore.Window);
                 }
             });
+    }
+
+    protected override void OnDeactivated(EventArgs e)
+    {
+        base.OnDeactivated(e);
+
+        if (Items.FirstOrDefault(t => t.IsSelected) is { } tab)
+        {
+            TabLeft?.Invoke(this, tab.Key);
+        }
     }
 
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)

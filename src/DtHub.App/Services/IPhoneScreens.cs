@@ -74,6 +74,35 @@ public sealed partial class IPhoneScreens(
         }
     }
 
+    /// <summary>
+    /// The account's window goes into the tabbed frame, or leaves it: held,
+    /// the frame alone sizes it. Out of maximized first, or Windows would
+    /// restore it out of its tab.
+    /// </summary>
+    public void SetDocked(string key, bool docked)
+    {
+        if (!_windows.TryGetValue(key, out var entry))
+        {
+            return;
+        }
+
+        if (docked)
+        {
+            entry.Window.WindowState = System.Windows.WindowState.Normal;
+        }
+
+        entry.Window.Docked = docked;
+    }
+
+    /// <summary>The account's docked window lost the keyboard: what the page holds down is let go.</summary>
+    public void Blur(string key)
+    {
+        if (_windows.TryGetValue(key, out var entry))
+        {
+            entry.Window.SendBlur();
+        }
+    }
+
     /// <summary>A window shows, or waits for its device or its next attempt: DT Hub stays.</summary>
     public bool AnyKeepsAppAlive => _windows.Values.Any(w => w.Life.KeepsAppAlive);
 

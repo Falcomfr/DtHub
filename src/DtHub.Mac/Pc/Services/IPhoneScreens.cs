@@ -38,6 +38,20 @@ public sealed class IPhoneScreens
         remove { }
     }
 
+    public event EventHandler<string>? AspectChanged
+    {
+        add { }
+        remove { }
+    }
+
+    public void SetDocked(string key, bool docked)
+    {
+    }
+
+    public void Blur(string key)
+    {
+    }
+
     public bool CountsPlaytime(string key) => false;
 
     public bool AnyKeepsAppAlive => false;

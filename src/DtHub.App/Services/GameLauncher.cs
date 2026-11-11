@@ -121,12 +121,26 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 NotifyIfNothingLeft();
             }
         };
-        _iphones.Opened += (_, _) =>
+        _iphones.Opened += (_, key) =>
         {
             // Its new handle gets the account's colour and title.
             OnIPhonesChanged();
             _ = RefreshWindowColours();
             QueueRetitle();
+
+            // Tabbed, it goes into its tab, kept through an unplug or a retry.
+            if (_tabbed.Contains(key))
+            {
+                _ = AttachToTabsAsync(key, CancellationToken.None);
+            }
+        };
+        // Docked, the window only tells its new shape (an iPhone turned): the frame takes it.
+        _iphones.AspectChanged += (_, key) =>
+        {
+            if (_tabs is { } frame && _iphones.Windows.FirstOrDefault(w => w.Key == key) is { } window)
+            {
+                frame.UpdateAspect(key, window.SourceAspectRatio);
+            }
         };
         _appLauncher = appLauncher;
         _adb = adb;
@@ -1091,7 +1105,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// attached.
     /// </summary>
     public int HousedCount =>
-        _sessions.ActiveSessions.Count(s => _tabbed.Contains(s.Target.Key));
+        _sessions.ActiveSessions.Count(s => _tabbed.Contains(s.Target.Key))
+        + LiveIosWindows.Count(w => _tabbed.Contains(w.Key));
 
     /// <summary>
     /// True if the tabbed frame follows geometry commands.
@@ -4989,7 +5004,13 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // without waiting for this pass.
         var waiting = WaitingKeys();
 
-        _tabs?.KeepOnly([.. _sessions.ActiveSessions.Select(s => s.Target.Key)], waiting);
+        // An iOS tab whose device left, or whose window is being opened again, waits as well.
+        var (iosShown, iosWaiting) = IosTabs.Split(
+            _iosWindows.Select(w => (w.Key, _iphones.StateOf(w.Key), _windows.Controller.IsWindow(w.WindowHandle))));
+
+        _tabs?.KeepOnly(
+            [.. _sessions.ActiveSessions.Select(s => s.Target.Key), .. iosShown],
+            iosWaiting.Count == 0 ? waiting : new HashSet<string>(waiting.Concat(iosWaiting), StringComparer.Ordinal));
 
         UpdateWaitingWindows(waiting);
 
@@ -6279,6 +6300,62 @@ public sealed partial class GameLauncher : IAsyncDisposable
             return;
         }
 
+        await OnUiAsync(() => HouseInFrame(settings, session.Target.Key, name, handle, session.SourceAspectRatio))
+            .ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Houses an iOS account's window in the tabbed frame, creating it if
+    /// needed: when it opens tabbed, opens again after an unplug or a
+    /// failure (its tab kept, the new window swapped in), or is tabbed by
+    /// its row. The window already exists, shown by IPhoneScreens.
+    /// </summary>
+    private async Task AttachToTabsAsync(string iosKey, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var settings = await _settings.GetAsync(cancellationToken).ConfigureAwait(false);
+
+            await OnUiAsync(() =>
+            {
+                if (_iphones.Windows.FirstOrDefault(w => w.Key == iosKey) is not { } window
+                    || !_windows.Controller.IsWindow(window.WindowHandle)
+                    || _windows.Controller.IsDocked(window.WindowHandle))
+                {
+                    return;
+                }
+
+                var name = InstanceRenames.NameNow(
+                    iosKey,
+                    _launched.TryGetValue(iosKey, out var launched) ? launched.UserName : window.WindowTitle,
+                    ChosenNameIn(settings));
+
+                _iphones.SetDocked(iosKey, true);
+
+                if (!HouseInFrame(settings, iosKey, name, window.WindowHandle, window.SourceAspectRatio))
+                {
+                    _iphones.SetDocked(iosKey, false);
+                    return;
+                }
+
+                // Shown activated as a free window a moment ago, it stayed the foreground once
+                // docked: the frame looked inactive and its shortcuts did not see it in front.
+                if (_windows.Controller.GetForegroundWindow() == window.WindowHandle)
+                {
+                    _ = _tabs?.Activate();
+                }
+            }).ConfigureAwait(false);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            // Started from an event, not awaited there: the window stays free, said in the log.
+            LogTabsFailure(exception);
+        }
+    }
+
+    /// <summary>Docks a window in the frame, on the UI thread. False when it stayed free.</summary>
+    private bool HouseInFrame(AppSettingsDocument settings, string key, string name, nint handle, double aspect)
+    {
         // The intended order is reapplied after every arrival, and
         // not left to the order of arrivals. Displays do not get
         // ready at the same speed: from one launch to the next, tabs
@@ -6289,43 +6366,42 @@ public sealed partial class GameLauncher : IAsyncDisposable
             .Select(i => i.Key)
             .ToList();
 
-        await OnUiAsync(() =>
+        var frame = EnsureTabs(settings);
+
+        var attached = frame.Attach(
+            key,
+            name,
+            IconFor(),
+            handle,
+            aspect,
+            // From the launched copy and not from the target: a
+            // launch target carries what scrcpy needs, and a colour
+            // is not one of those things.
+            AccountTints.KeyFor(_launched.GetValueOrDefault(key)?.Colour));
+
+        if (!attached && frame.Items.Count == 0)
         {
-            var frame = EnsureTabs(settings);
+            frame.Close();
+            return false;
+        }
 
-            var attached = frame.Attach(
-                session.Target.Key,
-                name,
-                IconFor(session),
-                handle,
-                session.SourceAspectRatio,
-                // From the launched copy and not from the target: a
-                // launch target carries what scrcpy needs, and a colour
-                // is not one of those things.
-                AccountTints.KeyFor(_launched.GetValueOrDefault(session.Target.Key)?.Colour));
+        frame.Reorder(order);
+        frame.ShowAccountKeys(AccountKeyOf);
 
-            if (!attached && frame.Items.Count == 0)
+        // A frame born during full screen, at startup or on "Reopen now",
+        // came up windowed while the panel stayed in full screen (2026-10-24).
+        // After the placement's second pass, queued at Loaded, which undid it.
+        _ = frame.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ContextIdle, () =>
+        {
+            if (_windows.IsFullscreen
+                && MovableFrame is { IsFullscreen: false } movable
+                && _windows.ScreenBoundsFor(movable.Handle) is { } bounds)
             {
-                frame.Close();
-                return;
+                movable.SetFullscreen(true, bounds);
             }
+        });
 
-            frame.Reorder(order);
-            frame.ShowAccountKeys(AccountKeyOf);
-
-            // A frame born during full screen, at startup or on "Reopen now",
-            // came up windowed while the panel stayed in full screen (2026-10-24).
-            // After the placement's second pass, queued at Loaded, which undid it.
-            _ = frame.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ContextIdle, () =>
-            {
-                if (_windows.IsFullscreen
-                    && MovableFrame is { IsFullscreen: false } movable
-                    && _windows.ScreenBoundsFor(movable.Handle) is { } bounds)
-                {
-                    movable.SetFullscreen(true, bounds);
-                }
-            });
-        }).ConfigureAwait(false);
+        return attached;
     }
 
     /// <summary>
@@ -6522,6 +6598,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
             }
         };
 
+        // A docked iPhone window never loses the keyboard itself: a finger held stayed down.
+        frame.TabLeft += (_, key) => _iphones.Blur(key);
+
         _tabs = frame;
         frame.Show();
         ArrangeableChanged?.Invoke(this, EventArgs.Empty);
@@ -6555,6 +6634,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         await RefreshRanksAsync(cancellationToken).ConfigureAwait(false);
 
+        if (instance.IsIos)
+        {
+            await SetIosTabbedAsync(instance.Key, tabbed, cancellationToken).ConfigureAwait(false);
+            return;
+        }
+
         if (FindSession(instance) is not { } session)
         {
             return;
@@ -6583,8 +6668,37 @@ public sealed partial class GameLauncher : IAsyncDisposable
         ArrangeableChanged?.Invoke(this, EventArgs.Empty);
     }
 
+    /// <summary>
+    /// <see cref="SetTabbedAsync"/> for an iOS account: its window goes into
+    /// the frame, or comes out of it and takes back its own size.
+    /// </summary>
+    private async Task SetIosTabbedAsync(string key, bool tabbed, CancellationToken cancellationToken)
+    {
+        // A given-up window still shows, docked or not: it moves too.
+        if (!_iosWindows.Any(w => w.Key == key))
+        {
+            return;
+        }
+
+        if (tabbed)
+        {
+            await AttachToTabsAsync(key, cancellationToken).ConfigureAwait(false);
+        }
+        else
+        {
+            await OnUiAsync(() =>
+            {
+                _tabs?.Detach(key);
+                _iphones.SetDocked(key, false);
+                _ = RefreshWindowColours();
+            }).ConfigureAwait(false);
+        }
+
+        ArrangeableChanged?.Invoke(this, EventArgs.Empty);
+    }
+
     /// <summary>The account's icon, as the list shows it.</summary>
-    private string? IconFor(ScrcpySession session) =>
+    private string? IconFor() =>
         _iconDirectory is null ? null : System.IO.Path.Combine(_iconDirectory, "scrcpy.png");
 
     /// <summary>

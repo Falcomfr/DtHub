@@ -374,6 +374,18 @@ public sealed partial class TabbedGameWindow : Window
 
     public bool Holds(string key) => Find(key) is not null;
 
+    /// <summary>The PC's iPhone tabs only: no iPhone is wired on the Mac (D227).</summary>
+    public event EventHandler<string>? TabLeft
+    {
+        add { }
+        remove { }
+    }
+
+    /// <summary>The PC's iPhone tabs only: no iPhone is wired on the Mac (D227).</summary>
+    public void UpdateAspect(string key, double aspect)
+    {
+    }
+
     public void Show(string key)
     {
         if (Find(key) is { } tab)

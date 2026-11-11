@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Interop;
+using System.Windows.Threading;
 
 using DtHub.App.Services;
 using DtHub.Core.IPhone;
@@ -129,11 +130,12 @@ public partial class IPhoneMirrorWindow : Window
           };
           moon.onclick = () => window.dthubDark();
           document.body.appendChild(moon);
-          // The window takes the picture's shape, so no band is left around it.
+          // The window takes the picture's shape, so no band is left around it. Not the
+          // canvas's default 300x150 before the first frame: a tabbed frame jumped to it.
           let shape = '';
           setInterval(() => {
             const c = document.getElementById('c');
-            const now = c && c.width ? c.width + 'x' + c.height : '';
+            const now = c && c.width && !(c.width === 300 && c.height === 150) ? c.width + 'x' + c.height : '';
             if (now && now !== shape) { shape = now; chrome.webview.postMessage('shape:' + now); }
           }, 300);
           (typeof VideoDecoder === 'undefined'
@@ -169,8 +171,36 @@ public partial class IPhoneMirrorWindow : Window
 
     public nint Handle => new WindowInteropHelper(this).Handle;
 
-    /// <summary>Held in DT Hub's tabbed frame: the frame sizes it, so the picture's shape is only told.</summary>
-    public bool Docked { get; set; }
+    /// <summary>
+    /// Held in DT Hub's tabbed frame: the frame sizes it, so the picture's
+    /// shape is only told. Let go, it takes the picture's shape again, the
+    /// iPhone may have turned meanwhile.
+    /// </summary>
+    public bool Docked
+    {
+        get => _docked;
+        set
+        {
+            _docked = value;
+
+            if (!value && _shape.Length > 0 && !_closed)
+            {
+                // Once the window is back to its own size: the frame's last one is still laid out.
+                _ = Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () =>
+                {
+                    if (!_closed && !_docked)
+                    {
+                        FitTo(_shape);
+                    }
+                });
+            }
+        }
+    }
+
+    private bool _docked;
+
+    // The picture's last size, "1264x2752".
+    private string _shape = string.Empty;
 
     /// <summary>The picture changed shape: a first frame, or the device turned.</summary>
     public event EventHandler? AspectChanged;
@@ -369,6 +399,8 @@ public partial class IPhoneMirrorWindow : Window
         {
             return;
         }
+
+        _shape = shape;
 
         if (Aspect != width / height)
         {

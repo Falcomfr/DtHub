@@ -57,9 +57,10 @@ public sealed partial class GameTabViewModel : ObservableObject
     /// Width-to-height ratio of the display, the one scrcpy locks.
     ///
     /// It is what gives the frame its shape: a hosting area of a
-    /// different shape would leave a black band on the sides.
+    /// different shape would leave a black band on the sides. An iPhone's
+    /// changes when it turns.
     /// </summary>
-    public double Aspect { get; }
+    public double Aspect { get; set; }
 
     [ObservableProperty]
     private string _title;
