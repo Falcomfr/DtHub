@@ -11,6 +11,22 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.14.6] - 2026-11-11
+
+### Corrigé
+
+- Les comptes du cadre à onglets ont tous la même taille d'image : un onglet était plus étroit de quelques pixels et le cadre sautait à chaque changement.
+- Ctrl+E et les autres raccourcis marchent quand la fenêtre iPhone est au premier plan.
+- Masquer le panneau pendant « Rouvrir maintenant » ne ferme plus DT Hub.
+- Une fenêtre de jeu fermée par sa croix pendant qu'une team s'ouvre encore ne revient plus au démarrage suivant.
+- Une fenêtre de jeu réduite rejoint bien le cadre à onglets quand on clique sur son bouton onglets.
+- Fermer une fenêtre sur un téléphone n'attend plus une ouverture lente sur un autre téléphone.
+- Lancer DT Hub pendant qu'il se ferme encore l'ouvre au lieu de ne rien faire.
+- La place des fenêtres et les réglages sont enregistrés même quand un antivirus tient le fichier de réglages un instant.
+- Les raccourcis ne restent plus éteints, panneau au premier plan, après l'ouverture d'une team.
+- Changer le mode de jeu et vérifier l'image du jeu marchent sur un téléphone connecté en Wi-Fi sous son nom réseau.
+- DT Hub n'accumule plus les connexions fermées pendant une longue soirée de coupures Wi-Fi, et ses raccourcis tiennent sur les très longues sessions.
+
 ## [0.14.5] - 2026-11-10
 
 ### Ajouté

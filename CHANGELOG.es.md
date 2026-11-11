@@ -10,6 +10,22 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.14.6] - 2026-11-11
+
+### Corregido
+
+- Las cuentas del marco con pestañas tienen todas el mismo tamaño de imagen: una pestaña era unos píxeles más estrecha y el marco saltaba en cada cambio.
+- Ctrl+E y los demás atajos funcionan cuando la ventana del iPhone está en primer plano.
+- Ocultar el panel durante «Reabrir ahora» ya no cierra DT Hub.
+- Una ventana de juego cerrada con su cruz mientras un equipo aún se abre ya no vuelve en el siguiente inicio.
+- Una ventana de juego minimizada se une al marco con pestañas al pulsar su botón de pestañas.
+- Cerrar una ventana en un teléfono ya no espera a una apertura lenta en otro teléfono.
+- Lanzar DT Hub mientras aún se cierra lo abre en lugar de no hacer nada.
+- La posición de las ventanas y los ajustes se guardan aunque un antivirus retenga el archivo de ajustes un instante.
+- Los atajos ya no se quedan apagados, con el panel en primer plano, tras abrir un equipo.
+- Cambiar el modo de juego y comprobar la imagen del juego funcionan en un teléfono conectado por Wi-Fi con su nombre de red.
+- DT Hub ya no acumula conexiones cerradas durante una larga noche de cortes de Wi-Fi, y sus atajos aguantan las sesiones muy largas.
+
 ## [0.14.5] - 2026-11-10
 
 ### Añadido

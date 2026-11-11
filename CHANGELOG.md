@@ -17,6 +17,22 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.14.6] - 2026-11-11
+
+### Fixed
+
+- The accounts of the tabbed frame all get the same picture size: one tab was a few pixels narrower and the frame jumped at each switch.
+- Ctrl+E and the other shortcuts work while the iPhone window is in front.
+- Hiding the panel during "Reopen now" no longer closes DT Hub.
+- A game window closed by its cross while a team is still opening no longer comes back at the next startup.
+- A minimized game window now joins the tabbed frame when its tab button is clicked.
+- Closing a window on one phone no longer waits for a slow opening on another phone.
+- Launching DT Hub while it is still closing opens it instead of doing nothing.
+- Window places and settings are saved even when an antivirus holds the settings file for a moment.
+- Shortcuts no longer stay off with the panel in front after opening a team.
+- Changing the game mode and checking the game's picture work on a phone connected by Wi-Fi under its network name.
+- DT Hub no longer piles up closed connections over a long evening of Wi-Fi drops, and its shortcuts keep working through very long sessions.
+
 ## [0.14.5] - 2026-11-10
 
 ### Added
