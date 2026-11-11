@@ -26,6 +26,17 @@ public sealed record DofusInstance
 
     public required string PackageName { get; init; }
 
+    /// <summary>Fixed package name of every iOS account.</summary>
+    public const string IosPackage = "ios";
+
+    /// <summary>Android by default, so an account stored before iOS existed stays Android.</summary>
+    public DevicePlatform Platform { get; init; } = DevicePlatform.Android;
+
+    /// <summary>Bundle id of the game on an iOS device, once known.</summary>
+    public string? IosBundleId { get; init; }
+
+    public bool IsIos => Platform == DevicePlatform.Ios;
+
     /// <summary>Component to launch, resolved upon discovery.</summary>
     public string? LaunchComponent { get; init; }
 

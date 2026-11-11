@@ -1,5 +1,6 @@
 ﻿using DtHub.Core.Dofus;
 using DtHub.Core.Hotkeys;
+using DtHub.Core.IPhone;
 using DtHub.Core.Localization;
 using DtHub.Core.Papycha;
 using DtHub.Core.Scrcpy;
@@ -1211,7 +1212,8 @@ public sealed class SettingsService : IDisposable
         // keep would otherwise leave a ghost account in the list,
         // indefinitely and even across restarts.
         var gone = settings.Instances
-            .Where(i => profiles.TryGetValue(i.DeviceId, out var live) && !live.Contains(i.UserId))
+            .Where(i => i.Platform == DevicePlatform.Android
+                && profiles.TryGetValue(i.DeviceId, out var live) && !live.Contains(i.UserId))
             .Select(i => i.Key)
             .ToHashSet(StringComparer.Ordinal);
 
@@ -1222,7 +1224,8 @@ public sealed class SettingsService : IDisposable
             // and leaves only when it is unticked.
             var shown = settings.ShownApps.Select(a => a.Key).ToHashSet(StringComparer.Ordinal);
 
-            foreach (var instance in settings.Instances.Where(i => !shown.Contains(i.Key)))
+            foreach (var instance in settings.Instances.Where(
+                i => i.Platform == DevicePlatform.Android && !shown.Contains(i.Key)))
             {
                 if (withoutGame.TryGetValue(instance.DeviceId, out var empty)
                     && empty.Contains(instance.UserId))
@@ -1342,6 +1345,8 @@ public sealed class SettingsService : IDisposable
                 .OrderBy(i => i.Order)
                 .Select(i => new DofusInstance
                 {
+                    Platform = i.Platform,
+                    IosBundleId = i.IosBundleId,
                     DeviceId = i.DeviceId,
                     DeviceName = i.DeviceName,
                     UserId = i.UserId,
@@ -1365,6 +1370,80 @@ public sealed class SettingsService : IDisposable
 
         return merged;
     }
+
+    /// <summary>
+    /// Remembers an iPhone or iPad as an account, at the end of the list the
+    /// first time. Later calls keep its name and rank and only refresh the
+    /// device name.
+    /// </summary>
+    public async Task<DofusInstance> EnsureIosAccountAsync(
+        IPhoneDevice device, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(device);
+
+        DofusInstance? account = null;
+
+        await UpdateAsync(settings =>
+        {
+            var key = $"{device.Udid}|0|{DofusInstance.IosPackage}";
+            var entry = settings.Instances.Find(i => string.Equals(i.Key, key, StringComparison.Ordinal));
+
+            if (entry is null)
+            {
+                entry = new StoredInstance
+                {
+                    DeviceId = device.Udid,
+                    UserId = 0,
+                    PackageName = DofusInstance.IosPackage,
+                    UserName = device.Name,
+                    DeviceName = device.Name,
+                    Platform = DevicePlatform.Ios,
+                    Colour = AccountColours.NextFree(settings.Instances.Select(i => i.Colour)),
+                };
+
+                InstanceOrdering.Add(settings, entry);
+                InstanceOrdering.Normalize(settings);
+            }
+            else
+            {
+                entry.DeviceName = device.Name;
+            }
+
+            account = new DofusInstance
+            {
+                Platform = DevicePlatform.Ios,
+                IosBundleId = entry.IosBundleId,
+                DeviceId = entry.DeviceId,
+                DeviceName = entry.DeviceName,
+                UserId = entry.UserId,
+                UserName = entry.UserName,
+                PackageName = entry.PackageName,
+                CustomName = entry.CustomName,
+                IsEnabled = entry.IsEnabled,
+                IsManaged = entry.IsManaged,
+                IsTabbed = entry.IsTabbed,
+                Quality = entry.Quality,
+                Zoom = entry.GameZoom,
+                PhoneFormat = entry.PhoneFormat,
+                QuietReducedRender = entry.QuietReducedRender,
+                Colour = entry.Colour,
+                IsDeviceConnected = true,
+            };
+        }, cancellationToken).ConfigureAwait(false);
+
+        return account!;
+    }
+
+    /// <summary>Remembers the game's bundle id on an iOS account.</summary>
+    public Task SetIosBundleIdAsync(string key, string bundleId, CancellationToken cancellationToken = default) =>
+        UpdateAsync(settings =>
+        {
+            var instance = settings.Instances.Find(i => string.Equals(i.Key, key, StringComparison.Ordinal));
+            if (instance is not null)
+            {
+                instance.IosBundleId = bundleId;
+            }
+        }, cancellationToken);
 
     /// <summary>
     /// Checks or unchecks an instance for automatic launch.

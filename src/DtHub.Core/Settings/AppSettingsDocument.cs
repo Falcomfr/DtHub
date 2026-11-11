@@ -1,5 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
+using DtHub.Core.Dofus;
 using DtHub.Core.Hotkeys;
 using DtHub.Core.Windows;
 
@@ -426,6 +427,12 @@ public sealed class StoredInstance
     public string UserName { get; set; } = string.Empty;
 
     public string DeviceName { get; set; } = string.Empty;
+
+    /// <summary>Android unless the account is an iPhone or iPad; a file without it reads Android.</summary>
+    public DevicePlatform Platform { get; set; } = DevicePlatform.Android;
+
+    /// <summary>Bundle id of the game on an iOS device, once known.</summary>
+    public string? IosBundleId { get; set; }
 
     /// <summary>Name chosen by the user.</summary>
     public string? CustomName { get; set; }
