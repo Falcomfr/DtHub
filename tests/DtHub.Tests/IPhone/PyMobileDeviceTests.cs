@@ -66,6 +66,15 @@ public class PyMobileDeviceTests
     }
 
     [Fact]
+    public void L_ecran_et_les_commandes_ont_chacun_leur_port()
+    {
+        var (viewer, control) = PyMobileDevice.FreePorts();
+
+        Assert.NotEqual(viewer, control);
+        Assert.True(viewer > 0 && control > 0);
+    }
+
+    [Fact]
     public void Le_script_de_demarrage_sert_les_quatre_commandes()
     {
         foreach (var command in new[] { "/apps", "/running", "/launch", "/stop" })

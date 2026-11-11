@@ -1,6 +1,4 @@
 ﻿using System.Collections.ObjectModel;
-using System.Net;
-using System.Net.Sockets;
 
 using DtHub.App.ViewModels;
 using DtHub.App.Windows;
@@ -143,8 +141,8 @@ public sealed partial class IPhoneScreens(
         try
         {
             var preferences = await settings.GetAsync(cancellationToken).ConfigureAwait(true);
-            var port = FreePort();
-            var session = await tools.StartMirrorAsync(device, port, preferences.AudioEnabled && device.StreamsSound, FreePort(), cancellationToken).ConfigureAwait(true);
+            var (port, controlPort) = PyMobileDevice.FreePorts();
+            var session = await tools.StartMirrorAsync(device, port, preferences.AudioEnabled && device.StreamsSound, controlPort, cancellationToken).ConfigureAwait(true);
             IPhoneMirrorWindow window;
 
             try
@@ -239,17 +237,6 @@ public sealed partial class IPhoneScreens(
             // An unplugged iPhone's row goes once its screen is closed.
             _listed = DateTime.MinValue;
         }
-    }
-
-    /// <summary>A port nothing listens on, for this iPhone's viewer page.</summary>
-    private static int FreePort()
-    {
-        // shortcut: the port is free when picked, not guaranteed when
-        // serve-web binds it a few seconds later; let the tool pick and
-        // print it if a player ever hits "address in use".
-        using var listener = new TcpListener(IPAddress.Loopback, 0);
-        listener.Start();
-        return ((IPEndPoint)listener.LocalEndpoint).Port;
     }
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Recherche des iPhone impossible : {message}")]

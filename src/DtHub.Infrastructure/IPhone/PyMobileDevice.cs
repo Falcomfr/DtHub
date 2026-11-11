@@ -1,4 +1,6 @@
 ﻿using System.Globalization;
+using System.Net;
+using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -92,11 +94,12 @@ public sealed partial class PyMobileDevice : IDisposable
 
         async def game_pid(apps, bundle):
             # A process names its executable, not its app: it is the one inside the app's folder.
-            folder = next((file_path(a.get("url")) + "/" for a in await apps.list_apps() if a.get("bundleIdentifier") == bundle), None)
-            if folder is None:
+            folder = next((file_path(a.get("url")) for a in await apps.list_apps() if a.get("bundleIdentifier") == bundle), "")
+            if not folder:
+                # No folder would match every process, and /stop would kill the first one.
                 return None
             processes = await apps.list_processes()
-            return next((int(p["processIdentifier"]) for p in processes if file_path(p.get("executableURL")).startswith(folder)), None)
+            return next((int(p["processIdentifier"]) for p in processes if file_path(p.get("executableURL")).startswith(folder + "/")), None)
 
 
         async def command(apps, method, path, query, body):
@@ -149,7 +152,7 @@ public sealed partial class PyMobileDevice : IDisposable
         async def serve_with_control(self):
             try:
                 await asyncio.start_server(lambda r, w: control(self, r, w), "127.0.0.1", int(os.environ["DTHUB_CONTROL_PORT"]))
-            except OSError:
+            except Exception:
                 # The screen matters more than the game commands.
                 screen_stream.logger.warning("DT Hub control server not started", exc_info=True)
             await serve(self)
@@ -257,6 +260,20 @@ public sealed partial class PyMobileDevice : IDisposable
         {
             _mountGate.Release();
         }
+    }
+
+    /// <summary>Two different ports nothing listens on: the viewer page's and the game commands'.</summary>
+    public static (int Viewer, int Control) FreePorts()
+    {
+        // shortcut: the ports are free when picked, not guaranteed when
+        // serve-web binds them a few seconds later; let the tool pick and
+        // print them if a player ever hits "address in use".
+        // Both open at once, so they cannot be the same port.
+        using var viewer = new TcpListener(IPAddress.Loopback, 0);
+        using var control = new TcpListener(IPAddress.Loopback, 0);
+        viewer.Start();
+        control.Start();
+        return (((IPEndPoint)viewer.LocalEndpoint).Port, ((IPEndPoint)control.LocalEndpoint).Port);
     }
 
     /// <summary>A uv command, with uv's Python only and every folder under <paramref name="root"/>.</summary>
