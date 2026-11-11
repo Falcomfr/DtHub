@@ -5,6 +5,7 @@ using DtHub.Core.Devices;
 using DtHub.Core.Dofus;
 using DtHub.Core.Guidance;
 using DtHub.Core.Hotkeys;
+using DtHub.Core.IPhone;
 using DtHub.Core.Localization;
 using DtHub.Core.Scrcpy;
 using DtHub.Core.Sessions;
@@ -96,7 +97,29 @@ public sealed partial class GameLauncher : IAsyncDisposable
         ILogger<GameLauncher> logger)
     {
         _iphones = iphones;
-        _iphones.Changed += (_, _) => ArrangeableChanged?.Invoke(this, EventArgs.Empty);
+        _iphones.Changed += (_, _) =>
+        {
+            OnIPhonesChanged();
+            ArrangeableChanged?.Invoke(this, EventArgs.Empty);
+        };
+        // An iOS account opening or ending shifts the keys of the lines after it, as an Android
+        // one; closed by DT Hub, the closer retitles, as StopSessionAsync does.
+        _iphones.Ended += (_, ended) =>
+        {
+            OnIPhonesChanged();
+
+            if (ended.End != IosEnd.ByUs)
+            {
+                QueueRetitle();
+            }
+        };
+        _iphones.Opened += (_, _) =>
+        {
+            // Its new handle gets the account's colour and title.
+            OnIPhonesChanged();
+            _ = RefreshWindowColours();
+            QueueRetitle();
+        };
         _appLauncher = appLauncher;
         _adb = adb;
         _sessions = sessions;
@@ -580,22 +603,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // from StopSessionAsync, not from here, which would also retitle
         // every window while quitting; and one refresh per burst: a launch
         // or a phone dropping moves several sessions at once.
-        if (!session.StopRequested && Interlocked.Exchange(ref _retitleQueued, 1) == 0)
+        if (!session.StopRequested)
         {
-            _ = Task.Run(async () =>
-            {
-                await Task.Delay(RetitleDelay).ConfigureAwait(false);
-                _ = Interlocked.Exchange(ref _retitleQueued, 0);
-
-                try
-                {
-                    _ = await RefreshWindowTitlesAsync().ConfigureAwait(false);
-                }
-                catch (Exception exception) when (exception is not OutOfMemoryException)
-                {
-                    LogTitleStatusFailure(exception);
-                }
-            });
+            QueueRetitle();
         }
 
         // The window is back: the recovery notice no longer has a
@@ -816,6 +826,30 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     private int _retitleQueued;
 
+    /// <summary>Retitles every window once, shortly: a burst of changes asks once.</summary>
+    private void QueueRetitle()
+    {
+        if (Interlocked.Exchange(ref _retitleQueued, 1) != 0)
+        {
+            return;
+        }
+
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(RetitleDelay).ConfigureAwait(false);
+            _ = Interlocked.Exchange(ref _retitleQueued, 0);
+
+            try
+            {
+                _ = await RefreshWindowTitlesAsync().ConfigureAwait(false);
+            }
+            catch (Exception exception) when (exception is not OutOfMemoryException)
+            {
+                LogTitleStatusFailure(exception);
+            }
+        });
+    }
+
     private static readonly TimeSpan RetitleDelay = TimeSpan.FromMilliseconds(200);
 
     /// <summary>Sessions whose playtime has already been counted.</summary>
@@ -846,14 +880,17 @@ public sealed partial class GameLauncher : IAsyncDisposable
             return;
         }
 
-        var seconds = (int)(DateTimeOffset.UtcNow - session.StartedUtc).TotalSeconds;
+        AddPlaytime(session.Target.Key, (int)(DateTimeOffset.UtcNow - session.StartedUtc).TotalSeconds);
+    }
 
+    private void AddPlaytime(string key, int seconds)
+    {
         if (seconds < SettingsService.MinimumCountedPlaytimeSeconds)
         {
             return;
         }
 
-        _playtimeWrites.Add(_settings.AddPlaytimeAsync(session.Target.Key, seconds));
+        _playtimeWrites.Add(_settings.AddPlaytimeAsync(key, seconds));
     }
 
     /// <summary>
@@ -1024,9 +1061,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// Windows opened in passing are left out: stacking or tiling a portrait
     /// store page among the game windows would squash it.
     /// </remarks>
-    public IReadOnlyList<ScrcpySession> ManagedSessions =>
-        [.. _sessions.ActiveSessions.Where(
-            s => !_unmanaged.Contains(s.Target.Key) && !_tabbed.Contains(s.Target.Key) && !s.Target.IsTransient)];
+    public IReadOnlyList<IGameWindow> ManagedWindows =>
+        GameWindowList.Managed(
+            [.. _sessions.ActiveSessions.Where(s => !s.Target.IsTransient), .. _iosWindows], _unmanaged, _tabbed, Order);
 
     /// <summary>
     /// A game in full screen shows bands: opened windowed, it took its
@@ -1063,7 +1100,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// on the window's footer withdraw.
     /// </summary>
     public int ArrangeableCount =>
-        ManagedSessions.Count + (HousedCount > 0 && FrameMoves ? 1 : 0) + _iphones.OpenCount;
+        ManagedWindows.Count + (HousedCount > 0 && FrameMoves ? 1 : 0);
 
     /// <summary>
     /// The frame, when it exists, is visible, and no lock freezes
@@ -1277,6 +1314,36 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     private readonly IAdbClient _adb;
     private readonly IPhoneScreens _iphones;
+
+    /// <summary>
+    /// The iOS accounts' windows, alive or not, as last changed: IPhoneScreens
+    /// answers on the UI thread only, the shortcuts and the watch read this.
+    /// </summary>
+    private volatile IReadOnlyList<IGameWindow> _iosWindows = [];
+
+    private readonly IosPlaytime _iosPlaytime = new();
+
+    /// <summary>On the UI thread, from IPhoneScreens' events: the windows read elsewhere, and their playtime.</summary>
+    private void OnIPhonesChanged()
+    {
+        _iosWindows = [.. _iphones.Windows];
+
+        // Counted while the window shows the game: an unplug or a failure pauses it, as on Android.
+        var counting = _iosWindows.Select(w => w.Key).Where(_iphones.CountsPlaytime).ToList();
+
+        foreach (var (key, seconds) in _iosPlaytime.Update(counting, DateTimeOffset.UtcNow))
+        {
+            AddPlaytime(key, seconds);
+        }
+    }
+
+    /// <summary>Every game window, the phones' sessions then the iOS accounts', not yet in the list's order.</summary>
+    private IEnumerable<IGameWindow> AllWindows => [.. _sessions.ActiveSessions, .. _iosWindows];
+
+    /// <summary>The ranks <see cref="RefreshRanksAsync"/> gave the session manager.</summary>
+    private volatile IReadOnlyDictionary<string, int> _ranks = new Dictionary<string, int>(StringComparer.Ordinal);
+
+    private int Order(string key) => _ranks.TryGetValue(key, out var rank) ? rank : int.MaxValue;
 
     /// <summary>
     /// Opens a MakeInTouch app's Play Store page in a window on the PC, on a
@@ -2529,7 +2596,18 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // A housed window is a child of the frame, never in front itself.
         if (_tabs is { Handle: not 0 } frame && foreground == frame.Handle)
         {
-            await OnUiAsync(() => shown = frame.Items.FirstOrDefault(t => t.IsSelected)?.Key).ConfigureAwait(false);
+            await OnUiAsync(() =>
+            {
+                shown = frame.Items.FirstOrDefault(t => t.IsSelected)?.Key;
+
+                // An iPhone's tab shown: only that iPhone, before any phone's screen.
+                iphone = shown is not null && _iphones.ToggleDarkOf(shown);
+            }).ConfigureAwait(false);
+
+            if (iphone)
+            {
+                return;
+            }
         }
 
         var alive = _sessions.ActiveSessions.Where(s => s.IsAlive).ToList();
@@ -4710,7 +4788,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
             : null;
 
         var captured = _windows.CaptureGeometries(
-            [.. _sessions.ActiveSessions.Where(s => !_tabbed.Contains(s.Target.Key) && !s.Target.IsTransient)],
+            [.. AccountWindows().Where(w => !_tabbed.Contains(w.Key))],
             remembered);
 
         if (captured.Count == 0)
@@ -4760,13 +4838,13 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         // Tracking looks at every window: knowing which one is
         // active also applies to those housed in the frame.
-        _windows.TrackActiveWindow(_sessions.ActiveSessions);
+        _windows.TrackActiveWindow([.. AllWindows]);
 
         // The aspect ratio enforcement, though, only concerns free
         // windows. On a housed window, it undid the frame's layout
         // every half second, and the game came back to sit crooked
         // without anyone understanding why.
-        _windows.EnforceAspect(ManagedSessions);
+        _windows.EnforceAspect(ManagedWindows);
 
         // A safety net for sessions that die without going through
         // us: a game window closed by hand, a phone unplugged.
@@ -5006,7 +5084,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 && _windows.Controller.GetForegroundWindow() == frame.Handle;
 
             var placed = await _windows
-                .TileAsync(ManagedSessions, frameFirst, cancellationToken)
+                .TileAsync(ManagedWindows, frameFirst, cancellationToken)
                 .ConfigureAwait(false);
 
             if (frame is not null)
@@ -5054,7 +5132,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         try
         {
-            var sessions = ManagedSessions;
+            var sessions = ManagedWindows;
             var frame = ArrangeableCount > 1 ? MovableFrame : null;
             int? frameCell = null;
 
@@ -5062,15 +5140,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
             {
                 var before = 0;
 
-                foreach (var session in _sessions.ActiveSessions)
+                foreach (var window in GameWindowList.Accounts(AllWindows, Order))
                 {
-                    if (_tabbed.Contains(session.Target.Key))
+                    if (_tabbed.Contains(window.Key))
                     {
                         frameCell = before;
                         break;
                     }
 
-                    if (sessions.Contains(session))
+                    if (sessions.Contains(window))
                     {
                         before++;
                     }
@@ -5098,19 +5176,6 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
                 placed++;
             }
-
-            // The iPhones take the cells after the phones', at their picture's shape (D227).
-            await OnUiAsync(() =>
-            {
-                foreach (var (handle, aspect) in _iphones.TakeScreensForArranging())
-                {
-                    if (_windows.WorkAreaFor(handle) is { } work)
-                    {
-                        _windows.Controller.MoveWindow(
-                            handle, TileLayout.Quarter(work, placed++, aspect, _windows.MeasureChrome(handle)));
-                    }
-                }
-            }).ConfigureAwait(false);
 
             if (placed > 0)
             {
@@ -5140,7 +5205,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         try
         {
             var frame = MovableFrame;
-            var sessions = ManagedSessions;
+            var sessions = ManagedWindows;
 
             // The frame in the foreground serves as the reference:
             // what is being looked at is not moved in order to align
@@ -5211,12 +5276,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         // Before placing: the placement reads the size, and in full
         // screen it stacked every window back over the whole screen.
-        if (ManagedSessions.Count > 0 || MovableFrame is not null)
+        if (ManagedWindows.Count > 0 || MovableFrame is not null)
         {
             await LeaveFullscreenStateAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        var moved = await _windows.ArrangeAsync(ManagedSessions, cancellationToken)
+        var moved = await _windows.ArrangeAsync(ManagedWindows, cancellationToken)
             .ConfigureAwait(false);
 
         if (MovableFrame is { } frame)
@@ -5257,7 +5322,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         CancellationToken cancellationToken = default)
     {
         var moved = await _windows
-            .ApplyPercentAsync(ManagedSessions, percent, cancellationToken)
+            .ApplyPercentAsync(ManagedWindows, percent, cancellationToken)
             .ConfigureAwait(false);
 
         if (persist)
@@ -5338,7 +5403,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
 
         var moved = await _windows
-            .ApplySizeAsync(ManagedSessions, sizeIndex, cancellationToken)
+            .ApplySizeAsync(ManagedWindows, sizeIndex, cancellationToken)
             .ConfigureAwait(false);
 
         await ResizeFrameAsync(sizeIndex >= _windows.Presets.FullscreenIndex).ConfigureAwait(false);
@@ -5516,9 +5581,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }).ConfigureAwait(false);
 
         return _windows.Retitle(
-            _sessions.ActiveSessions,
+            [.. AllWindows],
             window => window is not ScrcpySession session
-                ? window.WindowTitle
+                ? ScrcpyCommandBuilder.BuildWindowTitle(IosName(window, settings), hint, AccountKeyOf(window.Key))
                 : ScrcpyCommandBuilder.BuildWindowTitle(
                     Status(session) is { } status
                         ? $"{CurrentName(session, settings)} · {status}"
@@ -5538,7 +5603,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     public int RefreshWindowColours() =>
         _windows.Recolour(
-            _sessions.ActiveSessions,
+            [.. AllWindows],
             session => AccountTints.FrameColourRefFor(
                 _launched.GetValueOrDefault(session.Key)?.Colour));
 
@@ -5563,6 +5628,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
         _launched.TryGetValue(session.Target.Key, out var instance)
             ? InstanceRenames.NameNow(instance.Key, instance.UserName, ChosenNameIn(document))
             : session.Target.DisplayName;
+
+    /// <summary>An iOS account's name as its row shows it, the device's name until it is stored.</summary>
+    private static string IosName(IGameWindow window, AppSettingsDocument document) =>
+        document.Instances.Find(i => string.Equals(i.Key, window.Key, StringComparison.Ordinal)) is { } stored
+            ? DofusInstance.NameOf(stored.CustomName, stored.UserName)
+            : window.WindowTitle;
 
     /// <summary>Reads a chosen name out of a settings document.</summary>
     private static Func<string, string?> ChosenNameIn(AppSettingsDocument document) =>
@@ -5870,7 +5941,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// applies to position, not to rank.
     /// </summary>
     public Task<int> ApplyWindowOrderAsync(CancellationToken cancellationToken = default) =>
-        _windows.ApplyOrderAsync(_sessions.ActiveSessions, cancellationToken);
+        _windows.ApplyOrderAsync(GameWindowList.Accounts(AllWindows, Order), cancellationToken);
 
     /// <summary>
     /// Rereads the intended order and gives it to the session
@@ -5890,6 +5961,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         var ranks = await _settings.GetInstanceRanksAsync(cancellationToken).ConfigureAwait(false);
 
+        _ranks = ranks;
         _sessions.OrderKey = session =>
             ranks.TryGetValue(session.Target.Key, out var rank) ? rank : int.MaxValue;
 
@@ -6523,7 +6595,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 LogHotkeyScope(LogMessages.Translate(mine ? "actifs" : "en veille"), window);
             }
 
-            _gameInFront = mine && OwnsWindow?.Invoke(window) != true;
+            // An iPhone's window is one of DT Hub's own and a game window: Escape leaves full screen there too.
+            _gameInFront = mine && (OwnsWindow?.Invoke(window) != true
+                || _iosWindows.Any(w => w.IsAlive && w.WindowHandle == window));
             await ArmEscapeAsync().ConfigureAwait(false);
 
             await _hotkeys.SetEnabledAsync(mine).ConfigureAwait(false);
@@ -6547,7 +6621,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// first if another of our windows held the keyboard.
     ///
     /// Ctrl+Tab used to do nothing inside the frame: navigation goes
-    /// through <see cref="ManagedSessions"/>, which sets housed
+    /// through <see cref="ManagedWindows"/>, which sets housed
     /// accounts aside because the automatic placements have nothing
     /// to say to them. The keyboard, though, still needed them, and
     /// the shortcut therefore did not mean the same thing depending
@@ -6568,7 +6642,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         // A free game window in front keeps cycling among the free ones.
         if (foreground != frame.Handle
-            && ManagedSessions.Any(s => s.IsAlive && s.WindowHandle == foreground))
+            && ManagedWindows.Any(s => s.IsAlive && s.WindowHandle == foreground))
         {
             return false;
         }
@@ -6601,7 +6675,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     public string? AccountKeyOf(string key) =>
         _hotkeySet?.AccountKeyText(
-            AccountSessions().FindIndex(s => string.Equals(s.Target.Key, key, StringComparison.Ordinal)));
+            AccountWindows().FindIndex(w => string.Equals(w.Key, key, StringComparison.Ordinal)));
 
     /// <summary>The shortcuts last applied, for the badges.</summary>
     private volatile HotkeySet? _hotkeySet;
@@ -6610,7 +6684,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// The open accounts, one per line of the list: windows opened in
     /// passing are not accounts.
     /// </summary>
-    private List<ScrcpySession> AccountSessions() => [.. ActiveSessions.Where(s => !s.Target.IsTransient)];
+    private List<IGameWindow> AccountWindows() =>
+        [.. GameWindowList.Accounts([.. ActiveSessions.Where(s => !s.Target.IsTransient), .. _iosWindows], Order)];
 
     /// <summary>
     /// Brings forward the open account on this line of the list, counted
@@ -6621,7 +6696,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     private async Task FocusAccountAsync(int line)
     {
-        if (AccountSessions().ElementAtOrDefault(line) is not { } session)
+        if (AccountWindows().ElementAtOrDefault(line) is not { } window)
         {
             return;
         }
@@ -6632,19 +6707,19 @@ public sealed partial class GameLauncher : IAsyncDisposable
         {
             await OnUiAsync(() =>
             {
-                housed = frame.Holds(session.Target.Key);
+                housed = frame.Holds(window.Key);
 
                 if (housed)
                 {
                     _ = frame.Activate();
-                    frame.Show(session.Target.Key);
+                    frame.Show(window.Key);
                 }
             }).ConfigureAwait(false);
         }
 
         if (!housed)
         {
-            _ = _windows.Focus(session);
+            _ = _windows.Focus(window);
         }
     }
 
@@ -6671,7 +6746,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 case HotkeyAction.NextInstance:
                     if (!await CycleTabsAsync(forward: true).ConfigureAwait(false))
                     {
-                        _windows.FocusNext(ManagedSessions);
+                        _windows.FocusNext(ManagedWindows);
                     }
 
                     break;
@@ -6679,7 +6754,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 case HotkeyAction.PreviousInstance:
                     if (!await CycleTabsAsync(forward: false).ConfigureAwait(false))
                     {
-                        _windows.FocusPrevious(ManagedSessions);
+                        _windows.FocusPrevious(ManagedWindows);
                     }
 
                     break;

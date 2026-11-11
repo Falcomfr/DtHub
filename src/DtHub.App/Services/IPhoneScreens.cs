@@ -49,25 +49,11 @@ public sealed partial class IPhoneScreens(
     /// <summary>A screen opened, closed or changed state: the arranging buttons count them.</summary>
     public event EventHandler? Changed;
 
-    /// <summary>Screens shown, counted by the arranging buttons.</summary>
-    public int OpenCount => _windows.Count;
-
     /// <summary>Where the account's window is in its life, <c>null</c> without one.</summary>
     public IosWindowState? StateOf(string key) => _windows.TryGetValue(key, out var window) ? window.Life.State : null;
 
-    /// <summary>
-    /// The screens shown, out of maximized, as handle and picture shape: the
-    /// grid places them after the phones'.
-    /// </summary>
-    public IReadOnlyList<(nint Handle, double Aspect)> TakeScreensForArranging()
-    {
-        foreach (var entry in Shown)
-        {
-            entry.Window.WindowState = System.Windows.WindowState.Normal;
-        }
-
-        return [.. Shown.Where(w => w.WindowHandle != 0).Select(w => (w.WindowHandle, w.SourceAspectRatio))];
-    }
+    /// <summary>The account's window shows the game now: its playtime runs.</summary>
+    public bool CountsPlaytime(string key) => _windows.TryGetValue(key, out var window) && window.Life.CountsPlaytime;
 
     /// <summary>Looks for iPhones, once the iPhone tools were set up.</summary>
     public async Task RefreshAsync()
@@ -470,9 +456,13 @@ public sealed partial class IPhoneScreens(
     }
 
     /// <summary>Ctrl+E on an iPhone's window: dims or lights that iPhone.</summary>
-    public bool ToggleDark(nint foreground)
+    public bool ToggleDark(nint foreground) => ToggleDark(Shown.FirstOrDefault(w => foreground != 0 && w.WindowHandle == foreground));
+
+    /// <summary>Ctrl+E on the frame showing this account's tab: dims or lights its iPhone, if it is one.</summary>
+    public bool ToggleDarkOf(string key) => ToggleDark(Shown.FirstOrDefault(w => w.Key == key));
+
+    private static bool ToggleDark(IosGameWindow? entry)
     {
-        var entry = Shown.FirstOrDefault(w => foreground != 0 && w.WindowHandle == foreground);
         entry?.Window.SetDark(null);
         return entry is not null;
     }

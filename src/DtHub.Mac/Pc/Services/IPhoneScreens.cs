@@ -2,6 +2,7 @@
 
 using DtHub.App.ViewModels;
 using DtHub.Core.IPhone;
+using DtHub.Core.Windows;
 
 namespace DtHub.App.Services;
 
@@ -17,15 +18,27 @@ public sealed class IPhoneScreens
 {
     public ObservableCollection<IPhoneRowViewModel> Devices { get; } = [];
 
+    public IReadOnlyList<IGameWindow> Windows => [];
+
     public event EventHandler? Changed
     {
         add { }
         remove { }
     }
 
-    public int OpenCount => 0;
+    public event EventHandler<string>? Opened
+    {
+        add { }
+        remove { }
+    }
 
-    public IReadOnlyList<(nint Handle, double Aspect)> TakeScreensForArranging() => [];
+    public event EventHandler<(string Key, IosEnd End)>? Ended
+    {
+        add { }
+        remove { }
+    }
+
+    public bool CountsPlaytime(string key) => false;
 
     public Task RefreshAsync() => Task.CompletedTask;
 
@@ -38,4 +51,6 @@ public sealed class IPhoneScreens
     }
 
     public bool ToggleDark(nint foreground) => false;
+
+    public bool ToggleDarkOf(string key) => false;
 }
