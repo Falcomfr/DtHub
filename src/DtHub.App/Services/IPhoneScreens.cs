@@ -2,7 +2,9 @@
 
 using DtHub.App.ViewModels;
 using DtHub.App.Windows;
+using DtHub.Core.Dofus;
 using DtHub.Core.IPhone;
+using DtHub.Core.Sessions;
 using DtHub.Core.Settings;
 using DtHub.Infrastructure.IPhone;
 
@@ -12,7 +14,8 @@ namespace DtHub.App.Services;
 
 /// <summary>
 /// The iPhones of the device list and their open screens, one window per
-/// iPhone (D227). Used on the UI thread only.
+/// iOS account (D227), each living as an Android account's window
+/// (<see cref="IosWindowLife"/>). Used on the UI thread only.
 /// </summary>
 public sealed partial class IPhoneScreens(
     PyMobileDevice tools, WebViewEnvironment engine, SettingsService settings, ILogger<IPhoneScreens> logger)
@@ -20,18 +23,37 @@ public sealed partial class IPhoneScreens(
     // usbmux list starts Python: not at every sweep of the list.
     private static readonly TimeSpan ListEvery = TimeSpan.FromSeconds(10);
 
-    private readonly Dictionary<string, IPhoneMirrorWindow> _open = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, IosGameWindow> _windows = new(StringComparer.Ordinal);
     private readonly HashSet<string> _opening = new(StringComparer.Ordinal);
     private DateTime _listed = DateTime.MinValue;
     private bool _listing;
+    private bool _stopping;
 
     public ObservableCollection<IPhoneRowViewModel> Devices { get; } = [];
 
-    /// <summary>A screen opened or closed: the arranging buttons count them.</summary>
+    /// <summary>The iOS accounts' windows, alive or not: <see cref="IosGameWindow.IsAlive"/> tells.</summary>
+    public IReadOnlyList<IosGameWindow> Windows => [.. _windows.Values];
+
+    /// <summary>The devices of the last search.</summary>
+    public IReadOnlyList<IPhoneDevice> Listed { get; private set; } = [];
+
+    /// <summary>A window was shown for this key, first time or again: its handle is new.</summary>
+    public event EventHandler<string>? Opened;
+
+    /// <summary>The account's window ended, and why.</summary>
+    public event EventHandler<(string Key, IosEnd End)>? Ended;
+
+    /// <summary>The account's picture changed shape.</summary>
+    public event EventHandler<string>? AspectChanged;
+
+    /// <summary>A screen opened, closed or changed state: the arranging buttons count them.</summary>
     public event EventHandler? Changed;
 
     /// <summary>Screens shown, counted by the arranging buttons.</summary>
-    public int OpenCount => _open.Count;
+    public int OpenCount => _windows.Count;
+
+    /// <summary>Where the account's window is in its life, <c>null</c> without one.</summary>
+    public IosWindowState? StateOf(string key) => _windows.TryGetValue(key, out var window) ? window.Life.State : null;
 
     /// <summary>
     /// The screens shown, out of maximized, as handle and picture shape: the
@@ -39,12 +61,12 @@ public sealed partial class IPhoneScreens(
     /// </summary>
     public IReadOnlyList<(nint Handle, double Aspect)> TakeScreensForArranging()
     {
-        foreach (var window in _open.Values)
+        foreach (var entry in _windows.Values)
         {
-            window.WindowState = System.Windows.WindowState.Normal;
+            entry.Window.WindowState = System.Windows.WindowState.Normal;
         }
 
-        return [.. _open.Values.Where(w => w.Handle != 0).Select(w => (w.Handle, w.Aspect))];
+        return [.. _windows.Values.Where(w => w.WindowHandle != 0).Select(w => (w.WindowHandle, w.SourceAspectRatio))];
     }
 
     /// <summary>Looks for iPhones, once the iPhone tools were set up.</summary>
@@ -84,17 +106,26 @@ public sealed partial class IPhoneScreens(
     {
         ArgumentNullException.ThrowIfNull(devices);
 
-        foreach (var (udid, window) in _open.ToList())
+        // Being opened again, or given up with its window saying why: left alone.
+        foreach (var entry in _windows.Values.Where(w => !_opening.Contains(w.Key) && w.Life.State != IosWindowState.Closed).ToList())
         {
-            var device = devices.FirstOrDefault(d => d.Udid == udid);
+            var device = devices.FirstOrDefault(d => d.Udid == entry.Device.Udid);
 
             if (device is null)
             {
-                window.Unplugged();
+                entry.Window.Unplugged();
             }
-            else if (window.IsUnplugged)
+
+            // Also a window that saw its tool wait for a tunnel, the iPhone still listed.
+            if (entry.Window.IsUnplugged && entry.Life.State != IosWindowState.Unplugged)
             {
-                _ = ReopenAsync(device, window);
+                entry.Life.Unplug();
+                Changed?.Invoke(this, EventArgs.Empty);
+            }
+
+            if (device is not null && entry.Life.State == IosWindowState.Unplugged)
+            {
+                _ = ReopenAsync(entry, device);
             }
         }
 
@@ -103,9 +134,11 @@ public sealed partial class IPhoneScreens(
 
     private void ShowRows(IReadOnlyList<IPhoneDevice> devices)
     {
+        Listed = devices;
+
         // An open screen keeps its row while the iPhone is briefly not listed.
         var rows = devices
-            .Select(d => Devices.FirstOrDefault(r => r.Device == d) ?? new IPhoneRowViewModel(d) { IsOpen = _open.ContainsKey(d.Udid) })
+            .Select(d => Devices.FirstOrDefault(r => r.Device == d) ?? new IPhoneRowViewModel(d) { IsOpen = IsShown(d.Udid) })
             .Concat(Devices.Where(r => r.IsOpen && devices.All(d => d.Udid != r.Device.Udid)))
             .ToList();
 
@@ -120,107 +153,278 @@ public sealed partial class IPhoneScreens(
         }
     }
 
-    /// <summary>Opens the iPhone's screen, or brings it forward.</summary>
-    /// <param name="place">Where the window goes, for a screen opened again.</param>
+    /// <summary>Opens the account's screen, or brings it forward.</summary>
     /// <exception cref="IPhoneException">The message says what to do.</exception>
-    public async Task OpenAsync(IPhoneDevice device, CancellationToken cancellationToken, System.Windows.Rect? place = null)
+    public async Task OpenAsync(DofusInstance account, IPhoneDevice device, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(account);
         ArgumentNullException.ThrowIfNull(device);
 
-        if (_open.TryGetValue(device.Udid, out var shown))
+        if (_windows.TryGetValue(account.Key, out var shown))
         {
-            shown.Activate();
-            return;
+            switch (shown.Life.State)
+            {
+                case IosWindowState.Failed:
+                    await ReopenAsync(shown, device).ConfigureAwait(true);
+                    return;
+
+                case IosWindowState.Closed:
+                    // Given up, its window saying why: a fresh start.
+                    shown.Window.Close();
+                    break;
+
+                default:
+                    shown.Window.Activate();
+                    return;
+            }
         }
 
-        if (!_opening.Add(device.Udid))
+        if (!_opening.Add(account.Key))
         {
             return;
         }
 
         try
         {
-            var preferences = await settings.GetAsync(cancellationToken).ConfigureAwait(true);
-            var (port, controlPort) = PyMobileDevice.FreePorts();
-            var session = await tools.StartMirrorAsync(device, port, preferences.AudioEnabled && device.StreamsSound, controlPort, cancellationToken).ConfigureAwait(true);
-            IPhoneMirrorWindow window;
-
-            try
-            {
-                window = new IPhoneMirrorWindow(device, port, session, engine, dark: preferences.TurnScreenOff);
-
-                if (place is { IsEmpty: false } rect)
-                {
-                    window.WindowStartupLocation = System.Windows.WindowStartupLocation.Manual;
-                    (window.Left, window.Top, window.Width, window.Height) = (rect.Left, rect.Top, rect.Width, rect.Height);
-                }
-            }
-            catch
-            {
-                // Without its window, nothing would ever stop the stream.
-                await session.DisposeAsync().ConfigureAwait(true);
-                throw;
-            }
-
-            _open[device.Udid] = window;
-            window.Closed += (_, _) =>
-            {
-                _open.Remove(device.Udid);
-                SetOpen(device.Udid, false);
-            };
-            window.Show();
-            SetOpen(device.Udid, true);
+            await ShowAsync(new IosGameWindow(account.Key, device, account.IosBundleId), place: null, cancellationToken).ConfigureAwait(true);
         }
         finally
         {
-            _opening.Remove(device.Udid);
+            _opening.Remove(account.Key);
         }
     }
 
-    /// <summary>The unplugged iPhone is back: a fresh tool and window, in the old one's place.</summary>
-    private async Task ReopenAsync(IPhoneDevice device, IPhoneMirrorWindow unplugged)
+    /// <summary>Closes the account's window; <paramref name="byHand"/> says the player asked for it.</summary>
+    public Task CloseAsync(string key, bool byHand)
     {
-        var place = unplugged.RestoreBounds;
-        unplugged.Close();
+        if (_windows.TryGetValue(key, out var entry))
+        {
+            // Closed first: the window's own Closed then only forgets it.
+            IosEnd? end = entry.Life.State == IosWindowState.Closed ? null : entry.Life.Close(byHand);
+            entry.Window.Close();
+
+            if (end is { } ended)
+            {
+                Ended?.Invoke(this, (key, ended));
+            }
+        }
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>DT Hub quits: the windows it closes are not closed by the player (D207).</summary>
+    public void MarkAllStopping() => _stopping = true;
+
+    /// <summary>Starts the device's stream and shows it, in <paramref name="place"/> when given.</summary>
+    /// <exception cref="IPhoneException">The message says what to do.</exception>
+    private async Task ShowAsync(IosGameWindow entry, System.Windows.Rect? place, CancellationToken cancellationToken)
+    {
+        var preferences = await settings.GetAsync(cancellationToken).ConfigureAwait(true);
+        var (port, controlPort) = PyMobileDevice.FreePorts();
+        var device = entry.Device;
+        var session = await tools.StartMirrorAsync(device, port, preferences.AudioEnabled && device.StreamsSound, controlPort, cancellationToken).ConfigureAwait(true);
+        IPhoneMirrorWindow window;
 
         try
         {
-            await OpenAsync(device, CancellationToken.None, place).ConfigureAwait(true);
+            window = new IPhoneMirrorWindow(device, port, session, engine, dark: preferences.TurnScreenOff);
+
+            if (place is { IsEmpty: false } rect)
+            {
+                window.WindowStartupLocation = System.Windows.WindowStartupLocation.Manual;
+                (window.Left, window.Top, window.Width, window.Height) = (rect.Left, rect.Top, rect.Width, rect.Height);
+            }
+        }
+        catch
+        {
+            // Without its window, nothing would ever stop the stream.
+            await session.DisposeAsync().ConfigureAwait(true);
+            throw;
+        }
+
+        window.Served += async (_, _) =>
+        {
+            if (IsCurrent(entry, window))
+            {
+                entry.Served = true;
+                entry.Life.Opened();
+                Changed?.Invoke(this, EventArgs.Empty);
+                await StartGameAsync(entry).ConfigureAwait(true);
+            }
+        };
+        window.Stopped += async (_, _) => await OnStoppedAsync(entry, window).ConfigureAwait(true);
+        window.AspectChanged += (_, _) =>
+        {
+            if (IsCurrent(entry, window))
+            {
+                AspectChanged?.Invoke(this, entry.Key);
+            }
+        };
+        window.Closed += (_, _) => OnClosed(entry, window);
+        window.Show();
+
+        entry.Window = window;
+        entry.Game = new IosGameControl(controlPort);
+        _windows[entry.Key] = entry;
+        SetOpen(device.Udid, true);
+        Opened?.Invoke(this, entry.Key);
+    }
+
+    /// <summary>
+    /// Opens DOFUS Touch once the stream serves, found on the device the
+    /// first time. A failure is logged; the window stays.
+    /// </summary>
+    private async Task StartGameAsync(IosGameWindow entry)
+    {
+        if (entry.Game is not { } game)
+        {
+            return;
+        }
+
+        try
+        {
+            if (entry.BundleId is null)
+            {
+                entry.BundleId = await game.FindDofusAsync(CancellationToken.None).ConfigureAwait(true);
+
+                if (entry.BundleId is null)
+                {
+                    LogGameMissing(entry.Device.Name);
+                    return;
+                }
+
+                await settings.SetIosBundleIdAsync(entry.Key, entry.BundleId).ConfigureAwait(true);
+            }
+
+            if (!await game.IsRunningAsync(entry.BundleId, CancellationToken.None).ConfigureAwait(true))
+            {
+                await game.LaunchAsync(entry.BundleId, CancellationToken.None).ConfigureAwait(true);
+            }
         }
         catch (IPhoneException exception)
         {
+            LogGameFailed(exception, entry.Device.Name);
+        }
+    }
+
+    /// <summary>
+    /// The stream stopped or never served: opened again as Android's
+    /// recovery does, unless the device was unplugged.
+    /// </summary>
+    private async Task OnStoppedAsync(IosGameWindow entry, IPhoneMirrorWindow window)
+    {
+        // A tool ended by an unplug is no failure: a fresh list tells.
+        _listed = DateTime.MinValue;
+        await RefreshAsync().ConfigureAwait(true);
+
+        if (!IsCurrent(entry, window) || entry.Life.State is not (IosWindowState.Open or IosWindowState.Opening))
+        {
+            return;
+        }
+
+        if (DateTime.UtcNow - entry.LastFailure > SessionRecovery.Forget)
+        {
+            entry.Life.Forget();
+        }
+
+        entry.LastFailure = DateTime.UtcNow;
+
+        // As Android: a stream that never served is not tried again, its window says why.
+        if (entry.Life.Fail(entry.Served ? SessionRecovery.MaxAttempts : 0) is { } end)
+        {
+            LogGaveUp(entry.Device.Name, entry.Life.Attempts);
+            Changed?.Invoke(this, EventArgs.Empty);
+            Ended?.Invoke(this, (entry.Key, end));
+            return;
+        }
+
+        Changed?.Invoke(this, EventArgs.Empty);
+        await Task.Delay(SessionRecovery.DelayFor(entry.Life.Attempts)).ConfigureAwait(true);
+
+        if (IsCurrent(entry, window) && entry.Life.State == IosWindowState.Failed)
+        {
+            LogReopening(entry.Device.Name, entry.Life.Attempts);
+            await ReopenAsync(entry, entry.Device).ConfigureAwait(true);
+        }
+    }
+
+    /// <summary>The device is back, or its stream failed: a fresh tool and window, in the old one's place.</summary>
+    private async Task ReopenAsync(IosGameWindow entry, IPhoneDevice device)
+    {
+        if (!_opening.Add(entry.Key))
+        {
+            return;
+        }
+
+        var old = entry.Window;
+        entry.Device = device;
+        entry.Life.Replugged();
+        Changed?.Invoke(this, EventArgs.Empty);
+
+        try
+        {
+            await ShowAsync(entry, old.RestoreBounds, CancellationToken.None).ConfigureAwait(true);
+
+            // Replaced: its Closed sees it is no longer the account's window.
+            old.Close();
+        }
+        catch (IPhoneException exception)
+        {
+            // The tool could not start: trying again would not help.
             LogReopenFailed(device.Name, exception.Message);
 
             foreach (var row in Devices.Where(r => r.Device.Udid == device.Udid))
             {
                 row.Problem = exception.Message;
             }
+
+            entry.Life.Fail(0);
+            old.Close();
+            Ended?.Invoke(this, (entry.Key, IosEnd.GaveUp));
+        }
+        finally
+        {
+            _opening.Remove(entry.Key);
         }
     }
 
-    public void Close(string udid)
+    private void OnClosed(IosGameWindow entry, IPhoneMirrorWindow window)
     {
-        if (_open.TryGetValue(udid, out var window))
+        if (!IsCurrent(entry, window))
         {
-            window.Close();
+            return;
         }
+
+        _windows.Remove(entry.Key);
+
+        if (entry.Life.State != IosWindowState.Closed)
+        {
+            Ended?.Invoke(this, (entry.Key, entry.Life.Close(byHand: !_stopping)));
+        }
+
+        SetOpen(entry.Device.Udid, false);
     }
+
+    private bool IsCurrent(IosGameWindow entry, IPhoneMirrorWindow window) =>
+        _windows.TryGetValue(entry.Key, out var current) && current == entry && current.Window == window;
+
+    private bool IsShown(string udid) => _windows.Values.Any(w => w.Device.Udid == udid);
 
     /// <summary>"Turn the phone's screen off" switched: dims or lights every iPhone shown.</summary>
     public void SetDark(bool dark)
     {
-        foreach (var window in _open.Values)
+        foreach (var entry in _windows.Values)
         {
-            window.SetDark(dark);
+            entry.Window.SetDark(dark);
         }
     }
 
     /// <summary>Ctrl+E on an iPhone's window: dims or lights that iPhone.</summary>
     public bool ToggleDark(nint foreground)
     {
-        var window = _open.Values.FirstOrDefault(w => foreground != 0 && w.Handle == foreground);
-        window?.SetDark(null);
-        return window is not null;
+        var entry = _windows.Values.FirstOrDefault(w => foreground != 0 && w.WindowHandle == foreground);
+        entry?.Window.SetDark(null);
+        return entry is not null;
     }
 
     private void SetOpen(string udid, bool open)
@@ -244,4 +448,16 @@ public sealed partial class IPhoneScreens(
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "L'iPhone {name} rebranché n'a pas pu être rouvert : {message}")]
     private partial void LogReopenFailed(string name, string message);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "DOFUS Touch n'est pas installé sur l'iPhone {name}.")]
+    private partial void LogGameMissing(string name);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Le jeu n'a pas pu être ouvert sur l'iPhone {name}.")]
+    private partial void LogGameFailed(Exception exception, string name);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "L'affichage de l'iPhone {name} a échoué, nouvel essai {attempt}.")]
+    private partial void LogReopening(string name, int attempt);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "L'affichage de l'iPhone {name} est abandonné après {attempts} essai(s).")]
+    private partial void LogGaveUp(string name, int attempts);
 }

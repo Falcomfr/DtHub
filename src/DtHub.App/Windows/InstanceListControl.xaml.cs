@@ -8,6 +8,7 @@ using DtHub.App.ViewModels;
 using DtHub.Core.Devices;
 using DtHub.Core.Guidance;
 using DtHub.Core.IPhone;
+using DtHub.Core.Settings;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DtHub.App.Windows;
@@ -355,7 +356,11 @@ public partial class InstanceListControl : UserControl
 
         if (row.IsOpen)
         {
-            list.IPhones.Close(row.Device.Udid);
+            foreach (var window in list.IPhones.Windows.Where(w => w.Device.Udid == row.Device.Udid))
+            {
+                await list.IPhones.CloseAsync(window.Key, byHand: false).ConfigureAwait(true);
+            }
+
             return;
         }
 
@@ -364,7 +369,10 @@ public partial class InstanceListControl : UserControl
 
         try
         {
-            await list.IPhones.OpenAsync(row.Device, CancellationToken.None).ConfigureAwait(true);
+            var account = await AppHost.Services.GetRequiredService<SettingsService>()
+                .EnsureIosAccountAsync(row.Device)
+                .ConfigureAwait(true);
+            await list.IPhones.OpenAsync(account, row.Device, CancellationToken.None).ConfigureAwait(true);
         }
         catch (IPhoneException exception)
         {

@@ -169,6 +169,18 @@ public partial class IPhoneMirrorWindow : Window
 
     public nint Handle => new WindowInteropHelper(this).Handle;
 
+    /// <summary>Held in DT Hub's tabbed frame: the frame sizes it, so the picture's shape is only told.</summary>
+    public bool Docked { get; set; }
+
+    /// <summary>The picture changed shape: a first frame, or the device turned.</summary>
+    public event EventHandler? AspectChanged;
+
+    /// <summary>The viewer page answers: the stream serves.</summary>
+    public event EventHandler? Served;
+
+    /// <summary>The stream stopped or never served, not on an unplug: a failure.</summary>
+    public event EventHandler? Stopped;
+
     // Read by the foreground watch, off the UI thread, as QuestPageWindow's:
     // unknown, this window put the shortcuts to sleep and Ctrl+E reached the
     // iPhone as a plain key, never dimming it (2026-11-11).
@@ -210,13 +222,7 @@ public partial class IPhoneMirrorWindow : Window
         Loaded += async (_, _) => await ShowScreenAsync().ConfigureAwait(true);
         // A finger or key held while the window loses the keyboard stays down on the
         // iPhone unless the page sees it go: the viewer releases everything on blur.
-        Deactivated += (_, _) =>
-        {
-            if (!_closed)
-            {
-                _ = View.CoreWebView2?.ExecuteScriptAsync("dispatchEvent(new Event('blur'))");
-            }
-        };
+        Deactivated += (_, _) => SendBlur();
         Closed += async (_, _) =>
         {
             lock (Handles)
@@ -267,6 +273,8 @@ public partial class IPhoneMirrorWindow : Window
                 return;
             }
 
+            Served?.Invoke(this, EventArgs.Empty);
+
             var loaded = new TaskCompletionSource<bool>();
             View.CoreWebView2.NavigationCompleted += (_, e) => loaded.TrySetResult(e.IsSuccess);
             View.CoreWebView2.Navigate(_address.ToString());
@@ -274,6 +282,7 @@ public partial class IPhoneMirrorWindow : Window
             if (!await loaded.Task.ConfigureAwait(true))
             {
                 ShowStatus(Strings.Get("IPhoneFailed"));
+                Stopped?.Invoke(this, EventArgs.Empty);
                 return;
             }
 
@@ -322,6 +331,15 @@ public partial class IPhoneMirrorWindow : Window
         _session.Kill();
     }
 
+    /// <summary>Releases what the page holds down, as when the window loses the keyboard.</summary>
+    public void SendBlur()
+    {
+        if (!_closed)
+        {
+            _ = View.CoreWebView2?.ExecuteScriptAsync("dispatchEvent(new Event('blur'))");
+        }
+    }
+
     /// <summary>Dims the iPhone, lights it, or with null turns it the other way.</summary>
     public void SetDark(bool? dark)
     {
@@ -345,9 +363,13 @@ public partial class IPhoneMirrorWindow : Window
             return;
         }
 
-        Aspect = width / height;
+        if (Aspect != width / height)
+        {
+            Aspect = width / height;
+            AspectChanged?.Invoke(this, EventArgs.Empty);
+        }
 
-        if (WindowState != WindowState.Normal || View.ActualWidth <= 0 || View.ActualHeight <= 0)
+        if (Docked || WindowState != WindowState.Normal || View.ActualWidth <= 0 || View.ActualHeight <= 0)
         {
             return;
         }
@@ -392,6 +414,7 @@ public partial class IPhoneMirrorWindow : Window
         if (!_closed && !_session.HasExited)
         {
             ShowStatus(Strings.Get("IPhoneFailed"));
+            Stopped?.Invoke(this, EventArgs.Empty);
         }
 
         return false;
@@ -436,6 +459,11 @@ public partial class IPhoneMirrorWindow : Window
         var errors = string.Join('\n', _errors);
         Log.Warning("L'affichage de l'iPhone s'est arrêté : {Errors}", errors);
         ShowStatus(IsUnplugged ? Strings.Get("IPhoneUnpluggedWait") : Strings.Format("IPhoneStopped", PyMobileDevice.Explain(errors)));
+
+        if (!IsUnplugged)
+        {
+            Stopped?.Invoke(this, EventArgs.Empty);
+        }
     }
 
     private void ShowStatus(string text)

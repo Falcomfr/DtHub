@@ -5,6 +5,7 @@ using DtHub.App.Services;
 using DtHub.App.ViewModels;
 using DtHub.Core.IPhone;
 using DtHub.Core.Localization;
+using DtHub.Core.Settings;
 using DtHub.Infrastructure.IPhone;
 
 namespace DtHub.App.Windows;
@@ -18,6 +19,7 @@ public partial class IPhoneWindow : Window
 {
     private readonly PyMobileDevice _tools;
     private readonly IPhoneScreens _screens;
+    private readonly SettingsService _settings;
 
     // Closing the list stops its search or its opening.
     private readonly CancellationToken _closing;
@@ -26,10 +28,11 @@ public partial class IPhoneWindow : Window
     // tool itself across windows.
     private bool _busy;
 
-    public IPhoneWindow(PyMobileDevice tools, IPhoneScreens screens)
+    public IPhoneWindow(PyMobileDevice tools, IPhoneScreens screens, SettingsService settings)
     {
         _tools = tools;
         _screens = screens;
+        _settings = settings;
 
         InitializeComponent();
 
@@ -86,7 +89,8 @@ public partial class IPhoneWindow : Window
         try
         {
             // Not owned: it stays open when this list is closed.
-            await _screens.OpenAsync(device, _closing).ConfigureAwait(true);
+            var account = await _settings.EnsureIosAccountAsync(device, _closing).ConfigureAwait(true);
+            await _screens.OpenAsync(account, device, _closing).ConfigureAwait(true);
             Status.Text = string.Empty;
         }
         catch (IPhoneException exception)

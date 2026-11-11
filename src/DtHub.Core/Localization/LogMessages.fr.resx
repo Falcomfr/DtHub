@@ -830,4 +830,16 @@
   <data name="{command} a échoué : {error}" xml:space="preserve">
     <value>{command} a échoué : {error}</value>
   </data>
+  <data name="DOFUS Touch n'est pas installé sur l'iPhone {name}." xml:space="preserve">
+    <value>DOFUS Touch n'est pas installé sur l'iPhone {name}.</value>
+  </data>
+  <data name="Le jeu n'a pas pu être ouvert sur l'iPhone {name}." xml:space="preserve">
+    <value>Le jeu n'a pas pu être ouvert sur l'iPhone {name}.</value>
+  </data>
+  <data name="L'affichage de l'iPhone {name} a échoué, nouvel essai {attempt}." xml:space="preserve">
+    <value>L'affichage de l'iPhone {name} a échoué, nouvel essai {attempt}.</value>
+  </data>
+  <data name="L'affichage de l'iPhone {name} est abandonné après {attempts} essai(s)." xml:space="preserve">
+    <value>L'affichage de l'iPhone {name} est abandonné après {attempts} essai(s).</value>
+  </data>
 </root>

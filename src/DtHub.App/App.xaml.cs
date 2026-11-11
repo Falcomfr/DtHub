@@ -613,8 +613,11 @@ public partial class App : Application, IDisposable
     /// its accounts, unmarked, read as closed by hand: quitting took every
     /// tabbed account out of the next startup (D207).
     /// </summary>
-    private void MarkSessionsStopping() =>
+    private void MarkSessionsStopping()
+    {
         _ = _host?.Services.GetRequiredService<ScrcpySessionManager>().MarkAllStopping();
+        _host?.Services.GetRequiredService<IPhoneScreens>().MarkAllStopping();
+    }
 
     /// <summary>
     /// Saves where the windows are and whether the configurator was
