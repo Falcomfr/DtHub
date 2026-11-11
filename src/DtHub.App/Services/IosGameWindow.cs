@@ -13,7 +13,8 @@ public sealed class IosGameWindow(string key, IPhoneDevice device, string? bundl
 {
     private IPhoneMirrorWindow? _window;
 
-    public IosWindowLife Life { get; } = new();
+    /// <summary>A fresh one when a given-up window's device comes back.</summary>
+    public IosWindowLife Life { get; internal set; } = new();
 
     /// <summary>As last listed: a device back from an unplug is listed afresh.</summary>
     public IPhoneDevice Device { get; internal set; } = device;

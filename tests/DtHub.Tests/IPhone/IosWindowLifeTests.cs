@@ -89,4 +89,42 @@ public class IosWindowLifeTests
         Assert.Equal(IosWindowState.Closed, life.State);
         Assert.True(IosWindowLife.KeepsStartup(end));
     }
+
+    [Fact]
+    public void Une_fenetre_fermee_ne_se_rouvre_pas_et_ne_finit_pas_deux_fois()
+    {
+        var life = new IosWindowLife();
+        life.Opened();
+        life.Close(byHand: false);
+
+        life.Opened();
+        Assert.Equal(IosWindowState.Closed, life.State);
+        Assert.False(life.CountsPlaytime);
+
+        Assert.Null(life.Fail(SessionRecovery.MaxAttempts));
+        Assert.Equal(0, life.Attempts);
+        Assert.Equal(IosWindowState.Closed, life.State);
+
+        life.Unplug();
+        life.Replugged();
+        Assert.Equal(IosWindowState.Closed, life.State);
+
+        life.Close(byHand: true);
+        Assert.Equal(IosWindowState.Closed, life.State);
+    }
+
+    [Fact]
+    public void Un_debranchement_apres_une_erreur_attend_l_appareil()
+    {
+        var life = new IosWindowLife();
+        life.Opened();
+        Assert.Null(life.Fail(SessionRecovery.MaxAttempts));
+
+        life.Unplug();
+
+        Assert.Equal(IosWindowState.Unplugged, life.State);
+        life.Replugged();
+        Assert.Equal(IosWindowState.Opening, life.State);
+        Assert.Equal(1, life.Attempts);
+    }
 }

@@ -43,8 +43,14 @@ public sealed class IosWindowLife
     /// <summary>Playtime runs only while the game is shown.</summary>
     public bool CountsPlaytime => State == IosWindowState.Open;
 
-    /// <summary>The stream serves.</summary>
-    public void Opened() => State = IosWindowState.Open;
+    /// <summary>The stream serves. Nothing brings back a closed window.</summary>
+    public void Opened()
+    {
+        if (State != IosWindowState.Closed)
+        {
+            State = IosWindowState.Open;
+        }
+    }
 
     public void Unplug()
     {
@@ -67,9 +73,15 @@ public sealed class IosWindowLife
     /// The stream stopped on an error: <c>null</c> while an attempt is
     /// left (<see cref="State"/> is then <see cref="IosWindowState.Failed"/>),
     /// <see cref="IosEnd.GaveUp"/> once <paramref name="maxAttempts"/> were made.
+    /// A closed window has already ended: <c>null</c>, nothing changes.
     /// </summary>
     public IosEnd? Fail(int maxAttempts)
     {
+        if (State == IosWindowState.Closed)
+        {
+            return null;
+        }
+
         if (Attempts >= maxAttempts)
         {
             State = IosWindowState.Closed;

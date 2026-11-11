@@ -61,12 +61,12 @@ public sealed partial class IPhoneScreens(
     /// </summary>
     public IReadOnlyList<(nint Handle, double Aspect)> TakeScreensForArranging()
     {
-        foreach (var entry in _windows.Values)
+        foreach (var entry in Shown)
         {
             entry.Window.WindowState = System.Windows.WindowState.Normal;
         }
 
-        return [.. _windows.Values.Where(w => w.WindowHandle != 0).Select(w => (w.WindowHandle, w.SourceAspectRatio))];
+        return [.. Shown.Where(w => w.WindowHandle != 0).Select(w => (w.WindowHandle, w.SourceAspectRatio))];
     }
 
     /// <summary>Looks for iPhones, once the iPhone tools were set up.</summary>
@@ -106,8 +106,7 @@ public sealed partial class IPhoneScreens(
     {
         ArgumentNullException.ThrowIfNull(devices);
 
-        // Being opened again, or given up with its window saying why: left alone.
-        foreach (var entry in _windows.Values.Where(w => !_opening.Contains(w.Key) && w.Life.State != IosWindowState.Closed).ToList())
+        foreach (var entry in Shown.ToList())
         {
             var device = devices.FirstOrDefault(d => d.Udid == entry.Device.Udid);
 
@@ -117,14 +116,21 @@ public sealed partial class IPhoneScreens(
             }
 
             // Also a window that saw its tool wait for a tunnel, the iPhone still listed.
-            if (entry.Window.IsUnplugged && entry.Life.State != IosWindowState.Unplugged)
+            if (entry.Window.IsUnplugged && entry.Life.State is not (IosWindowState.Unplugged or IosWindowState.Closed))
             {
                 entry.Life.Unplug();
                 Changed?.Invoke(this, EventArgs.Empty);
             }
 
-            if (device is not null && entry.Life.State == IosWindowState.Unplugged)
+            if (device is not null && entry.Window.IsUnplugged)
             {
+                if (entry.Life.State == IosWindowState.Closed)
+                {
+                    // Given up, its window still shown: back from an unplug, a fresh start, as before.
+                    entry.Life = new IosWindowLife();
+                    entry.Served = false;
+                }
+
                 _ = ReopenAsync(entry, device);
             }
         }
@@ -159,6 +165,11 @@ public sealed partial class IPhoneScreens(
     {
         ArgumentNullException.ThrowIfNull(account);
         ArgumentNullException.ThrowIfNull(device);
+
+        if (_opening.Contains(account.Key))
+        {
+            return;
+        }
 
         if (_windows.TryGetValue(account.Key, out var shown))
         {
@@ -197,11 +208,18 @@ public sealed partial class IPhoneScreens(
     /// <summary>Closes the account's window; <paramref name="byHand"/> says the player asked for it.</summary>
     public Task CloseAsync(string key, bool byHand)
     {
-        if (_windows.TryGetValue(key, out var entry))
+        if (_windows.Remove(key, out var entry))
         {
-            // Closed first: the window's own Closed then only forgets it.
             IosEnd? end = entry.Life.State == IosWindowState.Closed ? null : entry.Life.Close(byHand);
-            entry.Window.Close();
+
+            // Being opened again, its old window is already closed and the new one
+            // not shown yet: the closed life stops the opening (ShowAsync).
+            if (!_opening.Contains(key))
+            {
+                entry.Window.Close();
+            }
+
+            SetOpen(entry.Device.Udid, false);
 
             if (end is { } ended)
             {
@@ -223,6 +241,14 @@ public sealed partial class IPhoneScreens(
         var (port, controlPort) = PyMobileDevice.FreePorts();
         var device = entry.Device;
         var session = await tools.StartMirrorAsync(device, port, preferences.AudioEnabled && device.StreamsSound, controlPort, cancellationToken).ConfigureAwait(true);
+
+        if (entry.Life.State == IosWindowState.Closed)
+        {
+            // Closed while the tool started: it goes, nothing is shown.
+            await session.DisposeAsync().ConfigureAwait(true);
+            return;
+        }
+
         IPhoneMirrorWindow window;
 
         try
@@ -249,7 +275,11 @@ public sealed partial class IPhoneScreens(
                 entry.Served = true;
                 entry.Life.Opened();
                 Changed?.Invoke(this, EventArgs.Empty);
-                await StartGameAsync(entry).ConfigureAwait(true);
+
+                if (entry.Life.State == IosWindowState.Open)
+                {
+                    await StartGameAsync(entry).ConfigureAwait(true);
+                }
             }
         };
         window.Stopped += async (_, _) => await OnStoppedAsync(entry, window).ConfigureAwait(true);
@@ -272,7 +302,8 @@ public sealed partial class IPhoneScreens(
 
     /// <summary>
     /// Opens DOFUS Touch once the stream serves, found on the device the
-    /// first time. A failure is logged; the window stays.
+    /// first time. A failure is logged, never thrown: this runs from an
+    /// event handler, and the window stays.
     /// </summary>
     private async Task StartGameAsync(IosGameWindow entry)
     {
@@ -301,8 +332,9 @@ public sealed partial class IPhoneScreens(
                 await game.LaunchAsync(entry.BundleId, CancellationToken.None).ConfigureAwait(true);
             }
         }
-        catch (IPhoneException exception)
+        catch (Exception exception) when (exception is not OutOfMemoryException)
         {
+            // Also the bundle id that could not be saved.
             LogGameFailed(exception, entry.Device.Name);
         }
     }
@@ -313,11 +345,20 @@ public sealed partial class IPhoneScreens(
     /// </summary>
     private async Task OnStoppedAsync(IosGameWindow entry, IPhoneMirrorWindow window)
     {
-        // A tool ended by an unplug is no failure: a fresh list tells.
+        // A tool ended by an unplug is no failure: a fresh list tells. One in
+        // flight may predate the unplug, so it is waited for, then made again.
+        while (_listing)
+        {
+            await Task.Delay(200).ConfigureAwait(true);
+        }
+
         _listed = DateTime.MinValue;
         await RefreshAsync().ConfigureAwait(true);
 
-        if (!IsCurrent(entry, window) || entry.Life.State is not (IosWindowState.Open or IosWindowState.Opening))
+        if (window.IsUnplugged
+            || _opening.Contains(entry.Key)
+            || !IsCurrent(entry, window)
+            || entry.Life.State is not (IosWindowState.Open or IosWindowState.Opening))
         {
             return;
         }
@@ -357,16 +398,18 @@ public sealed partial class IPhoneScreens(
         }
 
         var old = entry.Window;
+        var place = old.RestoreBounds;
         entry.Device = device;
         entry.Life.Replugged();
+
+        // Closed first, as before: two tools on one device at once is not tried.
+        // Its Closed sees the reopening and ends nothing.
+        old.Close();
         Changed?.Invoke(this, EventArgs.Empty);
 
         try
         {
-            await ShowAsync(entry, old.RestoreBounds, CancellationToken.None).ConfigureAwait(true);
-
-            // Replaced: its Closed sees it is no longer the account's window.
-            old.Close();
+            await ShowAsync(entry, place, CancellationToken.None).ConfigureAwait(true);
         }
         catch (IPhoneException exception)
         {
@@ -378,9 +421,13 @@ public sealed partial class IPhoneScreens(
                 row.Problem = exception.Message;
             }
 
-            entry.Life.Fail(0);
-            old.Close();
-            Ended?.Invoke(this, (entry.Key, IosEnd.GaveUp));
+            // Closed meanwhile from DT Hub: already ended.
+            if (entry.Life.Fail(0) is { } end)
+            {
+                _windows.Remove(entry.Key);
+                SetOpen(device.Udid, false);
+                Ended?.Invoke(this, (entry.Key, end));
+            }
         }
         finally
         {
@@ -390,7 +437,7 @@ public sealed partial class IPhoneScreens(
 
     private void OnClosed(IosGameWindow entry, IPhoneMirrorWindow window)
     {
-        if (!IsCurrent(entry, window))
+        if (!IsCurrent(entry, window) || _opening.Contains(entry.Key))
         {
             return;
         }
@@ -410,10 +457,13 @@ public sealed partial class IPhoneScreens(
 
     private bool IsShown(string udid) => _windows.Values.Any(w => w.Device.Udid == udid);
 
+    /// <summary>The accounts whose window is on screen: one being opened again has none for a moment.</summary>
+    private IEnumerable<IosGameWindow> Shown => _windows.Values.Where(w => !_opening.Contains(w.Key));
+
     /// <summary>"Turn the phone's screen off" switched: dims or lights every iPhone shown.</summary>
     public void SetDark(bool dark)
     {
-        foreach (var entry in _windows.Values)
+        foreach (var entry in Shown)
         {
             entry.Window.SetDark(dark);
         }
@@ -422,7 +472,7 @@ public sealed partial class IPhoneScreens(
     /// <summary>Ctrl+E on an iPhone's window: dims or lights that iPhone.</summary>
     public bool ToggleDark(nint foreground)
     {
-        var entry = _windows.Values.FirstOrDefault(w => foreground != 0 && w.WindowHandle == foreground);
+        var entry = Shown.FirstOrDefault(w => foreground != 0 && w.WindowHandle == foreground);
         entry?.Window.SetDark(null);
         return entry is not null;
     }

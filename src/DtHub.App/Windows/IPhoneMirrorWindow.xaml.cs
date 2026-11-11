@@ -282,7 +282,13 @@ public partial class IPhoneMirrorWindow : Window
             if (!await loaded.Task.ConfigureAwait(true))
             {
                 ShowStatus(Strings.Get("IPhoneFailed"));
-                Stopped?.Invoke(this, EventArgs.Empty);
+
+                // Unplugged meanwhile: the page went with the tool, no failure.
+                if (!_closed && !IsUnplugged)
+                {
+                    Stopped?.Invoke(this, EventArgs.Empty);
+                }
+
                 return;
             }
 
