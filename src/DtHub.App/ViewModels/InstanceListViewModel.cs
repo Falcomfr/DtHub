@@ -1360,7 +1360,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// </summary>
     private async Task EnsureIosAccountsAsync(CancellationToken cancellationToken)
     {
-        _forgottenIos.IntersectWith(IPhones.Listed.Select(d => d.Udid));
+        IosAccountRow.KeepForgotten(_forgottenIos, IPhones.Listed.Select(d => d.Udid), IPhones.ListFailed);
 
         foreach (var device in IPhones.Listed.Where(d => !_forgottenIos.Contains(d.Udid)))
         {
@@ -1387,7 +1387,10 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// <summary>A header per iPhone listed, kept while its window waits for it unplugged.</summary>
     private void SyncIosHeaders()
     {
-        foreach (var device in IPhones.Listed)
+        // A forgotten one has no row: its header would stand alone and hide the no-device card.
+        var shown = IPhones.Listed.Where(d => !_forgottenIos.Contains(d.Udid)).ToList();
+
+        foreach (var device in shown)
         {
             if (!_iosDevices.TryGetValue(device.Udid, out var view))
             {
@@ -1398,9 +1401,9 @@ public sealed partial class InstanceListViewModel : ObservableObject
             view.Update(device);
         }
 
-        foreach (var (udid, view) in _iosDevices.Where(p => IPhones.Listed.All(d => d.Udid != p.Key)).ToList())
+        foreach (var (udid, view) in _iosDevices.Where(p => shown.All(d => d.Udid != p.Key)).ToList())
         {
-            if (IPhones.StateOf(IosAccountRow.KeyOf(udid)) is null)
+            if (_forgottenIos.Contains(udid) || IPhones.StateOf(IosAccountRow.KeyOf(udid)) is null)
             {
                 _iosDevices.Remove(udid);
             }
@@ -1417,6 +1420,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
         foreach (var row in Rows.Where(r => r.IsIos))
         {
             row.SetIosStatus(IosAccountRow.Status(IPhones.StateOf(row.Key), IPhones.IsGameMissing(row.Key)));
+            row.CanOpen = IosAccountRow.CanOpen(IPhones.Listed.FirstOrDefault(d => d.Udid == row.DeviceId));
 
             if (row.Device is { IsIos: true } header)
             {

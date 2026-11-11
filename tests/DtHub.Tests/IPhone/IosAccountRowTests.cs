@@ -60,6 +60,36 @@ public class IosAccountRowTests
     }
 
     [Fact]
+    public void Un_appareil_trop_ancien_ne_s_ouvre_pas()
+    {
+        Assert.False(IosAccountRow.CanOpen(IPad with { IosVersion = "26.1" }));
+        Assert.True(IosAccountRow.CanOpen(IPad));
+
+        // Not listed: the launcher says it is not plugged in, the button stays.
+        Assert.True(IosAccountRow.CanOpen(null));
+    }
+
+    [Fact]
+    public void Un_iPhone_oublie_reste_oublie_quand_la_recherche_echoue()
+    {
+        var forgotten = new HashSet<string> { "U1" };
+
+        IosAccountRow.KeepForgotten(forgotten, listed: [], listingFailed: true);
+
+        Assert.Contains("U1", forgotten);
+    }
+
+    [Fact]
+    public void Un_iPhone_oublie_puis_debranche_redevient_un_compte_au_retour()
+    {
+        var forgotten = new HashSet<string> { "U1", "U2" };
+
+        IosAccountRow.KeepForgotten(forgotten, listed: ["U2"], listingFailed: false);
+
+        Assert.Equal(["U2"], forgotten);
+    }
+
+    [Fact]
     public void La_cle_est_celle_du_compte_iOS()
     {
         Assert.Equal("U1|0|ios", IosAccountRow.KeyOf("U1"));
@@ -129,6 +159,7 @@ public class IosAccountRowTests
         row.SetIosStatus(IosAccountRow.Status(IosWindowState.Unplugged, gameMissing: false));
 
         Assert.True(row.IsIos);
+        Assert.True(row.CanOpen);
         Assert.Equal("débranché, en attente", row.StatusLine);
         Assert.Equal("WarningBrush", row.StatusLineBrushKey);
     }

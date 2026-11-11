@@ -15,6 +15,8 @@ public sealed class IPhoneScreens
 {
     public IReadOnlyList<IPhoneDevice> Listed => [];
 
+    public bool ListFailed => false;
+
     public IReadOnlyList<IGameWindow> Windows => [];
 
     public event EventHandler? Changed

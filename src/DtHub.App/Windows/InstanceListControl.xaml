@@ -338,16 +338,34 @@
                       Stroke="{Binding Device.ProblemsBrushKey, Converter={StaticResource KeyToBrush}}"
                       Data="M 6.5,2 L 12.5,11.5 H 0.5 Z M 6.5,5.5 V 8 M 6.5,9.6 V 10.1" />
 
-                <TextBlock Grid.Column="1" Text="{Binding Device.Headline}"
+                <!-- Under an iPhone, the whole text: how to update a device too
+                     old to show was cut to its first words (D227). In a style,
+                     so the trigger can override what Android keeps. -->
+                <TextBlock Grid.Column="1"
                            FontFamily="{StaticResource UiFont}" FontSize="{StaticResource FontSmall}"
-                           TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
                            Foreground="{Binding Device.ProblemsBrushKey,
-                                                Converter={StaticResource KeyToBrush}}" />
+                                                Converter={StaticResource KeyToBrush}}">
+                  <TextBlock.Style>
+                    <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                      <Setter Property="Text" Value="{Binding Device.Headline}" />
+                      <Setter Property="TextWrapping" Value="NoWrap" />
+                      <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                      <Style.Triggers>
+                        <DataTrigger Binding="{Binding Device.IsIos}" Value="True">
+                          <Setter Property="Text" Value="{Binding Device.Problems}" />
+                          <Setter Property="TextWrapping" Value="Wrap" />
+                          <Setter Property="TextTrimming" Value="None" />
+                        </DataTrigger>
+                      </Style.Triggers>
+                    </Style>
+                  </TextBlock.Style>
+                </TextBlock>
 
                 <TextBlock Grid.Column="2" Text="{Binding Device.More}" Margin="4,0,0,0"
                            FontFamily="{StaticResource UiFont}" FontSize="{StaticResource FontSmall}"
                            Foreground="{Binding Device.ProblemsBrushKey,
-                                                Converter={StaticResource KeyToBrush}}" />
+                                                Converter={StaticResource KeyToBrush}}"
+                           Visibility="{Binding Device.IsIos, Converter={StaticResource InverseBoolToVisibility}}" />
 
                 <!-- The help comes with the problem it answers, and only
                      then: the battery page of the app the line names, or
@@ -1000,6 +1018,7 @@
                       <Grid>
                         <Button Style="{StaticResource RowActionButton}"
                                 ToolTip="{loc:T OpenInstanceTip}"
+                                IsEnabled="{Binding CanOpen}"
                                 Visibility="{Binding IsRunning,
                                                      Converter={StaticResource InverseBoolToVisibility}}"
                                 Command="{Binding DataContext.LaunchInstanceCommand,

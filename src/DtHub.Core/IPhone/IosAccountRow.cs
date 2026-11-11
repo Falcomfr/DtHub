@@ -17,6 +17,26 @@ public static class IosAccountRow
     }
 
     /// <summary>
+    /// False for a listed device below iOS 27, which refuses the stream. An
+    /// unlisted one is left to the launcher, which says it is not plugged in.
+    /// </summary>
+    public static bool CanOpen(IPhoneDevice? listed) => listed?.CanMirror != false;
+
+    /// <summary>
+    /// A device forgotten while plugged in stays forgotten until a listing that
+    /// worked no longer shows it: a failed one says nothing about it.
+    /// </summary>
+    public static void KeepForgotten(ISet<string> forgotten, IEnumerable<string> listed, bool listingFailed)
+    {
+        ArgumentNullException.ThrowIfNull(forgotten);
+
+        if (!listingFailed)
+        {
+            forgotten.IntersectWith(listed);
+        }
+    }
+
+    /// <summary>
     /// A window waiting for its device or reopening after a failure is still
     /// a window the row must offer to close; a given-up one opens afresh.
     /// </summary>

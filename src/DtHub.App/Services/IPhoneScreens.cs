@@ -1,4 +1,5 @@
-﻿using DtHub.App.Windows;
+﻿using DtHub.App.ViewModels;
+using DtHub.App.Windows;
 using DtHub.Core.Dofus;
 using DtHub.Core.IPhone;
 using DtHub.Core.Localization;
@@ -36,6 +37,9 @@ public sealed partial class IPhoneScreens(
 
     /// <summary>The devices of the last search.</summary>
     public IReadOnlyList<IPhoneDevice> Listed { get; private set; } = [];
+
+    /// <summary>The last search failed: <see cref="Listed"/> is empty for want of an answer.</summary>
+    public bool ListFailed { get; private set; }
 
     /// <summary>A window was shown for this key, first time or again: its handle is new.</summary>
     public event EventHandler<string>? Opened;
@@ -90,6 +94,7 @@ public sealed partial class IPhoneScreens(
             // that one was unplugged, so the open screens are left alone.
             LogListFailed(exception.Message);
             Listed = [];
+            ListFailed = true;
         }
         finally
         {
@@ -138,6 +143,7 @@ public sealed partial class IPhoneScreens(
 
         // The list keeps an account row while its window waits for the device.
         Listed = devices;
+        ListFailed = false;
     }
 
     /// <summary>Opens the account's screen, or brings it forward.</summary>
@@ -146,6 +152,12 @@ public sealed partial class IPhoneScreens(
     {
         ArgumentNullException.ThrowIfNull(account);
         ArgumentNullException.ThrowIfNull(device);
+
+        // Every way in (row, startup, team, iPhone window): below iOS 27 the tool is refused.
+        if (DeviceGroupViewModel.TooOldHelp(device) is { } tooOld)
+        {
+            throw new IPhoneException(tooOld);
+        }
 
         if (_opening.Contains(account.Key))
         {

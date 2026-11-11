@@ -55,6 +55,10 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     /// </summary>
     public bool IsIos => Instance.IsIos;
 
+    /// <summary>False for an iPhone below iOS 27: its play button is greyed, the header says why.</summary>
+    [ObservableProperty]
+    private bool _canOpen = true;
+
     /// <summary>An iOS account's status line, from its window's life; <c>null</c> without a window.</summary>
     private (string Text, bool Warning)? _iosStatus;
 
