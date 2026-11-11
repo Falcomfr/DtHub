@@ -940,7 +940,7 @@ public partial class App : Application, IDisposable
         // Through a set of handles and not through the window list:
         // this question is asked from the foreground watcher, which
         // does not live on the UI thread.
-        return QuestPageWindow.Owns(handle) || AlmanaxWindow.Owns(handle);
+        return QuestPageWindow.Owns(handle) || AlmanaxWindow.Owns(handle) || IPhoneMirrorWindow.Owns(handle);
     }
 
     /// <summary>

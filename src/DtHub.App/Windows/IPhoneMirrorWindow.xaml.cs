@@ -169,6 +169,20 @@ public partial class IPhoneMirrorWindow : Window
 
     public nint Handle => new WindowInteropHelper(this).Handle;
 
+    // Read by the foreground watch, off the UI thread, as QuestPageWindow's:
+    // unknown, this window put the shortcuts to sleep and Ctrl+E reached the
+    // iPhone as a plain key, never dimming it (2026-11-11).
+    private static readonly HashSet<nint> Handles = [];
+
+    /// <summary>True if this handle is that of an open iPhone window.</summary>
+    public static bool Owns(nint handle)
+    {
+        lock (Handles)
+        {
+            return Handles.Contains(handle);
+        }
+    }
+
     public IPhoneMirrorWindow(IPhoneDevice device, int port, IProcessSession session, WebViewEnvironment engine, bool dark)
     {
         ArgumentNullException.ThrowIfNull(device);
@@ -183,6 +197,16 @@ public partial class IPhoneMirrorWindow : Window
         Title = device.Name;
         Status.Text = Strings.Format("IPhoneStarting", device.Name);
 
+        nint own = 0;
+        SourceInitialized += (_, _) =>
+        {
+            own = Handle;
+            lock (Handles)
+            {
+                Handles.Add(own);
+            }
+        };
+
         Loaded += async (_, _) => await ShowScreenAsync().ConfigureAwait(true);
         // A finger or key held while the window loses the keyboard stays down on the
         // iPhone unless the page sees it go: the viewer releases everything on blur.
@@ -195,6 +219,11 @@ public partial class IPhoneMirrorWindow : Window
         };
         Closed += async (_, _) =>
         {
+            lock (Handles)
+            {
+                Handles.Remove(own);
+            }
+
             _closed = true;
             View.Dispose();
             await _session.DisposeAsync().ConfigureAwait(true);
