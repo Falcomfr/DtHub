@@ -1343,29 +1343,7 @@ public sealed class SettingsService : IDisposable
 
             merged = [.. settings.Instances
                 .OrderBy(i => i.Order)
-                .Select(i => new DofusInstance
-                {
-                    Platform = i.Platform,
-                    IosBundleId = i.IosBundleId,
-                    DeviceId = i.DeviceId,
-                    DeviceName = i.DeviceName,
-                    UserId = i.UserId,
-                    UserName = i.UserName,
-                    PackageName = i.PackageName,
-                    LaunchComponent = i.LaunchComponent,
-                    CustomName = i.CustomName,
-                    IsEnabled = i.IsEnabled,
-                    IsManaged = i.IsManaged,
-                    IsTabbed = i.IsTabbed,
-                    Quality = i.Quality,
-                    Zoom = i.GameZoom,
-                    PhoneFormat = i.PhoneFormat,
-                    QuietReducedRender = i.QuietReducedRender,
-                    Colour = i.Colour,
-                    PlayedThisWeek = PlaytimeLog.Week(i.Playtime, DateOnly.FromDateTime(DateTime.Now)),
-                    IsDeviceConnected = live.Contains(i.Key),
-                    AppLabel = shown.GetValueOrDefault(i.Key),
-                })];
+                .Select(i => ToInstance(i, live.Contains(i.Key), shown.GetValueOrDefault(i.Key)))];
         }, cancellationToken).ConfigureAwait(false);
 
         return merged;
@@ -1409,30 +1387,35 @@ public sealed class SettingsService : IDisposable
                 entry.DeviceName = device.Name;
             }
 
-            account = new DofusInstance
-            {
-                Platform = DevicePlatform.Ios,
-                IosBundleId = entry.IosBundleId,
-                DeviceId = entry.DeviceId,
-                DeviceName = entry.DeviceName,
-                UserId = entry.UserId,
-                UserName = entry.UserName,
-                PackageName = entry.PackageName,
-                CustomName = entry.CustomName,
-                IsEnabled = entry.IsEnabled,
-                IsManaged = entry.IsManaged,
-                IsTabbed = entry.IsTabbed,
-                Quality = entry.Quality,
-                Zoom = entry.GameZoom,
-                PhoneFormat = entry.PhoneFormat,
-                QuietReducedRender = entry.QuietReducedRender,
-                Colour = entry.Colour,
-                IsDeviceConnected = true,
-            };
+            account = ToInstance(entry, connected: true);
         }, cancellationToken).ConfigureAwait(false);
 
         return account!;
     }
+
+    private static DofusInstance ToInstance(StoredInstance i, bool connected, string? appLabel = null) => new()
+    {
+        Platform = i.Platform,
+        IosBundleId = i.IosBundleId,
+        DeviceId = i.DeviceId,
+        DeviceName = i.DeviceName,
+        UserId = i.UserId,
+        UserName = i.UserName,
+        PackageName = i.PackageName,
+        LaunchComponent = i.LaunchComponent,
+        CustomName = i.CustomName,
+        IsEnabled = i.IsEnabled,
+        IsManaged = i.IsManaged,
+        IsTabbed = i.IsTabbed,
+        Quality = i.Quality,
+        Zoom = i.GameZoom,
+        PhoneFormat = i.PhoneFormat,
+        QuietReducedRender = i.QuietReducedRender,
+        Colour = i.Colour,
+        PlayedThisWeek = PlaytimeLog.Week(i.Playtime, DateOnly.FromDateTime(DateTime.Now)),
+        IsDeviceConnected = connected,
+        AppLabel = appLabel,
+    };
 
     /// <summary>Remembers the game's bundle id on an iOS account.</summary>
     public Task SetIosBundleIdAsync(string key, string bundleId, CancellationToken cancellationToken = default) =>

@@ -92,4 +92,17 @@ public sealed class IosAccountTests : IDisposable
             """{"instances":[{"deviceId":"d","userId":0,"packageName":"p"}]}""");
         Assert.Equal(DevicePlatform.Android, ancien!.Instances[0].Platform);
     }
+
+    [Fact]
+    public async Task Un_compte_iOS_reste_iOS_apres_la_fusion_de_decouverte()
+    {
+        var compte = await _service.EnsureIosAccountAsync(Phone());
+        await _service.SetIosBundleIdAsync(compte.Key, "com.ankama.dofustouch");
+
+        var fusion = await _service.MergeInstancesAsync([]);
+
+        var ios = Assert.Single(fusion);
+        Assert.True(ios.IsIos);
+        Assert.Equal("com.ankama.dofustouch", ios.IosBundleId);
+    }
 }
