@@ -46,7 +46,26 @@ public sealed partial class InstanceRowViewModel : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsShownApp))]
+    [NotifyPropertyChangedFor(nameof(IsIos))]
     private DofusInstance _instance;
+
+    /// <summary>
+    /// An iPhone or iPad's account: no quality, distance, phone format, game
+    /// mode, reduced render nor "+", which drive scrcpy or Android (D227).
+    /// </summary>
+    public bool IsIos => Instance.IsIos;
+
+    /// <summary>An iOS account's status line, from its window's life; <c>null</c> without a window.</summary>
+    private (string Text, bool Warning)? _iosStatus;
+
+    /// <summary>Set by the list from <see cref="Core.IPhone.IosAccountRow.Status" />.</summary>
+    public void SetIosStatus((string Key, bool Warning)? status)
+    {
+        _iosStatus = status is { } said ? (Strings.Get(said.Key), said.Warning) : null;
+
+        OnPropertyChanged(nameof(StatusLine));
+        OnPropertyChanged(nameof(StatusLineBrushKey));
+    }
 
     /// <summary>
     /// True for an application added from the plus button, which can be
@@ -273,7 +292,7 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     /// an opening, which outranks how long it has been running, which
     /// outranks where the account came from.
     /// </summary>
-    public string? StatusLine => Activity switch
+    public string? StatusLine => IsIos ? _iosStatus?.Text : Activity switch
     {
         InstanceActivity.Recovering => Strings.Get("StatusReconnecting"),
         InstanceActivity.Starting => Strings.Get("StatusOpening"),
@@ -307,8 +326,9 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     /// Only a reconnection earns a colour: it is the one line that
     /// reports something the reader may want to act on.
     /// </summary>
-    public string StatusLineBrushKey =>
-        Activity == InstanceActivity.Recovering ? "WarningBrush" : "TextMutedBrush";
+    public string StatusLineBrushKey => (IsIos ? _iosStatus is { Warning: true } : Activity == InstanceActivity.Recovering)
+        ? "WarningBrush"
+        : "TextMutedBrush";
 
     /// <summary>
     /// Moves the session clock on.

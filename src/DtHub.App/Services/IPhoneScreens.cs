@@ -1,9 +1,7 @@
-﻿using System.Collections.ObjectModel;
-
-using DtHub.App.ViewModels;
-using DtHub.App.Windows;
+﻿using DtHub.App.Windows;
 using DtHub.Core.Dofus;
 using DtHub.Core.IPhone;
+using DtHub.Core.Localization;
 using DtHub.Core.Sessions;
 using DtHub.Core.Settings;
 using DtHub.Infrastructure.IPhone;
@@ -25,11 +23,13 @@ public sealed partial class IPhoneScreens(
 
     private readonly Dictionary<string, IosGameWindow> _windows = new(StringComparer.Ordinal);
     private readonly HashSet<string> _opening = new(StringComparer.Ordinal);
+
+    // Kept past the window: a reopening that failed removes it, its row still says why.
+    private readonly Dictionary<string, string> _problems = new(StringComparer.Ordinal);
+
     private DateTime _listed = DateTime.MinValue;
     private bool _listing;
     private bool _stopping;
-
-    public ObservableCollection<IPhoneRowViewModel> Devices { get; } = [];
 
     /// <summary>The iOS accounts' windows, alive or not: <see cref="IosGameWindow.IsAlive"/> tells.</summary>
     public IReadOnlyList<IosGameWindow> Windows => [.. _windows.Values];
@@ -51,6 +51,12 @@ public sealed partial class IPhoneScreens(
 
     /// <summary>Where the account's window is in its life, <c>null</c> without one.</summary>
     public IosWindowState? StateOf(string key) => _windows.TryGetValue(key, out var window) ? window.Life.State : null;
+
+    /// <summary>The window shows, and DOFUS Touch was not found on the device.</summary>
+    public bool IsGameMissing(string key) => _windows.TryGetValue(key, out var window) && window.GameMissing;
+
+    /// <summary>What went wrong with the account's window or its game, said to the player; <c>null</c> when nothing.</summary>
+    public string? ProblemOf(string key) => _problems.GetValueOrDefault(key);
 
     /// <summary>Out of maximized, before an arrangement moves them: Windows would keep them flagged so.</summary>
     public void Unmaximize()
@@ -83,7 +89,7 @@ public sealed partial class IPhoneScreens(
             // Apple Devices closed, say: the list just shows no iPhone. Not a sign
             // that one was unplugged, so the open screens are left alone.
             LogListFailed(exception.Message);
-            ShowRows([]);
+            Listed = [];
         }
         finally
         {
@@ -130,28 +136,8 @@ public sealed partial class IPhoneScreens(
             }
         }
 
-        ShowRows(devices);
-    }
-
-    private void ShowRows(IReadOnlyList<IPhoneDevice> devices)
-    {
+        // The list keeps an account row while its window waits for the device.
         Listed = devices;
-
-        // An open screen keeps its row while the iPhone is briefly not listed.
-        var rows = devices
-            .Select(d => Devices.FirstOrDefault(r => r.Device == d) ?? new IPhoneRowViewModel(d) { IsOpen = IsShown(d.Udid) })
-            .Concat(Devices.Where(r => r.IsOpen && devices.All(d => d.Udid != r.Device.Udid)))
-            .ToList();
-
-        if (!rows.SequenceEqual(Devices))
-        {
-            Devices.Clear();
-
-            foreach (var row in rows)
-            {
-                Devices.Add(row);
-            }
-        }
     }
 
     /// <summary>Opens the account's screen, or brings it forward.</summary>
@@ -165,6 +151,8 @@ public sealed partial class IPhoneScreens(
         {
             return;
         }
+
+        SetProblem(account.Key, null);
 
         if (_windows.TryGetValue(account.Key, out var shown))
         {
@@ -214,7 +202,7 @@ public sealed partial class IPhoneScreens(
                 entry.Window.Close();
             }
 
-            SetOpen(entry.Device.Udid, false);
+            SetOpen(false);
 
             if (end is { } ended)
             {
@@ -291,7 +279,7 @@ public sealed partial class IPhoneScreens(
         entry.Window = window;
         entry.Game = new IosGameControl(controlPort);
         _windows[entry.Key] = entry;
-        SetOpen(device.Udid, true);
+        SetOpen(true);
         Opened?.Invoke(this, entry.Key);
     }
 
@@ -312,6 +300,8 @@ public sealed partial class IPhoneScreens(
             if (entry.BundleId is null)
             {
                 entry.BundleId = await game.FindDofusAsync(CancellationToken.None).ConfigureAwait(true);
+                entry.GameMissing = entry.BundleId is null;
+                Changed?.Invoke(this, EventArgs.Empty);
 
                 if (entry.BundleId is null)
                 {
@@ -331,6 +321,7 @@ public sealed partial class IPhoneScreens(
         {
             // Also the bundle id that could not be saved.
             LogGameFailed(exception, entry.Device.Name);
+            SetProblem(entry.Key, Strings.Get("IPhoneGameFailed"));
         }
     }
 
@@ -411,16 +402,13 @@ public sealed partial class IPhoneScreens(
             // The tool could not start: trying again would not help.
             LogReopenFailed(device.Name, exception.Message);
 
-            foreach (var row in Devices.Where(r => r.Device.Udid == device.Udid))
-            {
-                row.Problem = exception.Message;
-            }
+            SetProblem(entry.Key, exception.Message);
 
             // Closed meanwhile from DT Hub: already ended.
             if (entry.Life.Fail(0) is { } end)
             {
                 _windows.Remove(entry.Key);
-                SetOpen(device.Udid, false);
+                SetOpen(false);
                 Ended?.Invoke(this, (entry.Key, end));
             }
         }
@@ -444,13 +432,11 @@ public sealed partial class IPhoneScreens(
             Ended?.Invoke(this, (entry.Key, entry.Life.Close(byHand: !_stopping)));
         }
 
-        SetOpen(entry.Device.Udid, false);
+        SetOpen(false);
     }
 
     private bool IsCurrent(IosGameWindow entry, IPhoneMirrorWindow window) =>
         _windows.TryGetValue(entry.Key, out var current) && current == entry && current.Window == window;
-
-    private bool IsShown(string udid) => _windows.Values.Any(w => w.Device.Udid == udid);
 
     /// <summary>The accounts whose window is on screen: one being opened again has none for a moment.</summary>
     private IEnumerable<IosGameWindow> Shown => _windows.Values.Where(w => !_opening.Contains(w.Key));
@@ -476,20 +462,34 @@ public sealed partial class IPhoneScreens(
         return entry is not null;
     }
 
-    private void SetOpen(string udid, bool open)
+    private void SetOpen(bool open)
     {
         Changed?.Invoke(this, EventArgs.Empty);
 
-        foreach (var row in Devices.Where(r => r.Device.Udid == udid))
-        {
-            row.IsOpen = open;
-        }
-
         if (!open)
         {
-            // An unplugged iPhone's row goes once its screen is closed.
+            // An unplugged iPhone's row goes once its screen is closed: listed afresh.
             _listed = DateTime.MinValue;
         }
+    }
+
+    private void SetProblem(string key, string? problem)
+    {
+        if (_problems.GetValueOrDefault(key) == problem)
+        {
+            return;
+        }
+
+        if (problem is null)
+        {
+            _problems.Remove(key);
+        }
+        else
+        {
+            _problems[key] = problem;
+        }
+
+        Changed?.Invoke(this, EventArgs.Empty);
     }
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Recherche des iPhone impossible : {message}")]

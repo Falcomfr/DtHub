@@ -3489,4 +3489,19 @@ A phone already paired over Wi-Fi comes back on its own.</value>
   <data name="InstallLinuxToolsArm" xml:space="preserve">
     <value>On an ARM processor DT Hub cannot download adb and scrcpy: install them from your distribution (scrcpy 3 or later) and put them in ~/.local/bin or in the PATH.</value>
   </data>
+  <data name="IosOpening" xml:space="preserve">
+    <value>opening</value>
+  </data>
+  <data name="IosOpen" xml:space="preserve">
+    <value>open</value>
+  </data>
+  <data name="IosUnplugged" xml:space="preserve">
+    <value>unplugged, waiting</value>
+  </data>
+  <data name="IosFailed" xml:space="preserve">
+    <value>display failed</value>
+  </data>
+  <data name="IosGameMissing" xml:space="preserve">
+    <value>DOFUS Touch not installed</value>
+  </data>
 </root>

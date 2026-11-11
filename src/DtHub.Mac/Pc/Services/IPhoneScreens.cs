@@ -1,7 +1,4 @@
-﻿using System.Collections.ObjectModel;
-
-using DtHub.App.ViewModels;
-using DtHub.Core.IPhone;
+﻿using DtHub.Core.IPhone;
 using DtHub.Core.Windows;
 
 namespace DtHub.App.Services;
@@ -16,7 +13,7 @@ namespace DtHub.App.Services;
 /// </summary>
 public sealed class IPhoneScreens
 {
-    public ObservableCollection<IPhoneRowViewModel> Devices { get; } = [];
+    public IReadOnlyList<IPhoneDevice> Listed => [];
 
     public IReadOnlyList<IGameWindow> Windows => [];
 
@@ -39,6 +36,12 @@ public sealed class IPhoneScreens
     }
 
     public bool CountsPlaytime(string key) => false;
+
+    public IosWindowState? StateOf(string key) => null;
+
+    public bool IsGameMissing(string key) => false;
+
+    public string? ProblemOf(string key) => null;
 
     public void Unmaximize()
     {

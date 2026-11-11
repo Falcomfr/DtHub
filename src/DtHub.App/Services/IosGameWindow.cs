@@ -37,6 +37,9 @@ public sealed class IosGameWindow(string key, IPhoneDevice device, string? bundl
     /// <summary>DOFUS Touch on the device, once found.</summary>
     public string? BundleId { get; internal set; } = bundleId;
 
+    /// <summary>The device was asked for DOFUS Touch and does not have it.</summary>
+    internal bool GameMissing { get; set; }
+
     /// <summary>The stream served at least once: only then is a failure tried again, as Android's.</summary>
     internal bool Served { get; set; }
 
