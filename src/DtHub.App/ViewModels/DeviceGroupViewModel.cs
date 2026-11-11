@@ -4,6 +4,7 @@ using DtHub.Core.Adb;
 using DtHub.Core.Devices;
 using DtHub.Core.Dofus;
 using DtHub.Core.Guidance;
+using DtHub.Core.IPhone;
 using DtHub.Core.Localization;
 
 namespace DtHub.App.ViewModels;
@@ -195,7 +196,9 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
         OnPropertyChanged(nameof(OfflineHow));
     }
 
-    public string StatusText => _needsPairing && !IsConnected
+    public string StatusText => _ios is { } ios
+        ? (IsConnected ? $"{ios.SystemName} {ios.IosVersion}" : Strings.Get("Offline"))
+        : _needsPairing && !IsConnected
         ? Strings.Get("ToPairAgain")
         : IsLookingForGames
         ? Strings.Get("LookingForGames")
@@ -252,7 +255,9 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
     /// </summary>
     public string OfflineHow => Strings.Get(OfflineAdvice.HowKey(Connection));
 
-    public string StatusBrushKey => _needsPairing && !IsConnected
+    public string StatusBrushKey => _ios is { } ios
+        ? (!IsConnected ? "TextMutedBrush" : ios.CanMirror ? "SuccessBrush" : "WarningBrush")
+        : _needsPairing && !IsConnected
         ? "WarningBrush"
         // Work in progress is not a warning: it stays muted, so a phone that
         // turns out to hold the game never flashed orange on the way.
@@ -585,6 +590,61 @@ public sealed partial class DeviceGroupViewModel : ObservableObject
         OnPropertyChanged(nameof(IsCharging));
         OnPropertyChanged(nameof(BatteryFill));
         OnPropertyChanged(nameof(BatteryBrushKey));
+    }
+
+    /// <summary>The iPhone or iPad this header names, as last listed; <c>null</c> for an Android phone.</summary>
+    private IPhoneDevice? _ios;
+
+    /// <summary>True for an iPhone or iPad: no battery, no screen switch, no "+" (D227).</summary>
+    public bool IsIos => _ios is not null;
+
+    /// <summary>The device's line in the iPhone window.</summary>
+    public static string LabelOf(IPhoneDevice device)
+    {
+        ArgumentNullException.ThrowIfNull(device);
+        return Strings.Format(device.CanMirror ? "IPhoneRow" : "IPhoneRowTooOld", device.Name, device.IosVersion, device.SystemName);
+    }
+
+    /// <summary>For a device below version 27: what it has, what it needs, how to update; null otherwise.</summary>
+    public static string? TooOldHelp(IPhoneDevice device)
+    {
+        ArgumentNullException.ThrowIfNull(device);
+        return device.CanMirror ? null : Strings.Format("IPhoneTooOldHelp", device.SystemName, device.IosVersion);
+    }
+
+    /// <summary>An iPhone or iPad listed by Apple's USB service: its name and system, no battery.</summary>
+    public void Update(IPhoneDevice device)
+    {
+        ArgumentNullException.ThrowIfNull(device);
+
+        _ios = device;
+        Name = device.Name;
+        Connection = AdbConnectionKind.Usb;
+        SetListed(true);
+
+        // Its one account is known by the list: there is nothing to look for.
+        SetPresence(GamePresence.Present);
+        OnPropertyChanged(nameof(IsIos));
+    }
+
+    /// <summary>No longer listed, its window waiting for it in place.</summary>
+    public void Unplugged() => SetListed(false);
+
+    private void SetListed(bool listed)
+    {
+        State = listed ? AdbDeviceState.Device : AdbDeviceState.Offline;
+
+        OnPropertyChanged(nameof(IsConnected));
+        OnPropertyChanged(nameof(StatusText));
+        OnPropertyChanged(nameof(StatusBrushKey));
+    }
+
+    /// <summary>What the header says under an iPhone: too old to show, then what went wrong with its window.</summary>
+    public void SetIosProblem(string? problem)
+    {
+        var lines = new[] { _ios is { } ios ? TooOldHelp(ios) : null, problem }.OfType<string>().ToList();
+
+        SetProblems(lines.Count > 0 ? string.Join(Environment.NewLine, lines) : null, serious: false);
     }
 
     public void Update(AndroidDevice device)

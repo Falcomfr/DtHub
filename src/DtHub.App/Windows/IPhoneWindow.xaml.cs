@@ -119,7 +119,7 @@ public partial class IPhoneWindow : Window
 
             var label = new TextBlock
             {
-                Text = IPhoneRowViewModel.LabelOf(device),
+                Text = DeviceGroupViewModel.LabelOf(device),
                 VerticalAlignment = VerticalAlignment.Center,
                 TextWrapping = TextWrapping.Wrap,
                 Foreground = (System.Windows.Media.Brush)FindResource("TextBrush"),
@@ -131,7 +131,7 @@ public partial class IPhoneWindow : Window
             row.Children.Add(label);
             Rows.Children.Add(row);
 
-            if (IPhoneRowViewModel.TooOldHelp(device) is { } help)
+            if (DeviceGroupViewModel.TooOldHelp(device) is { } help)
             {
                 Rows.Children.Add(new TextBlock
                 {

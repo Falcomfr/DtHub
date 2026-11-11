@@ -1,7 +1,4 @@
-﻿using System.Collections.ObjectModel;
-
-using DtHub.App.ViewModels;
-using DtHub.Core.Dofus;
+﻿using DtHub.Core.Dofus;
 using DtHub.Core.IPhone;
 using DtHub.Core.Windows;
 
@@ -17,11 +14,11 @@ namespace DtHub.App.Services;
 /// </summary>
 public sealed class IPhoneScreens
 {
-    public ObservableCollection<IPhoneRowViewModel> Devices { get; } = [];
+    public IReadOnlyList<IPhoneDevice> Listed => [];
+
+    public bool ListFailed => false;
 
     public IReadOnlyList<IGameWindow> Windows => [];
-
-    public IReadOnlyList<IPhoneDevice> Listed => [];
 
     public event EventHandler? Changed
     {
@@ -44,6 +41,12 @@ public sealed class IPhoneScreens
     public bool CountsPlaytime(string key) => false;
 
     public bool AnyKeepsAppAlive => false;
+
+    public IosWindowState? StateOf(string key) => null;
+
+    public bool IsGameMissing(string key) => false;
+
+    public string? ProblemOf(string key) => null;
 
     public void Unmaximize()
     {

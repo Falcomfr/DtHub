@@ -8,6 +8,7 @@ using DtHub.Core.Adb;
 using DtHub.Core.Android;
 using DtHub.Core.Devices;
 using DtHub.Core.Dofus;
+using DtHub.Core.IPhone;
 using DtHub.Core.Localization;
 using DtHub.Core.Sessions;
 using DtHub.Core.Settings;
@@ -37,7 +38,9 @@ public sealed partial class InstanceListViewModel : ObservableObject
     {
         _launcher = launcher;
         IPhones = iphones;
-        IPhones.Devices.CollectionChanged += (_, _) => OnPropertyChanged(nameof(ShowsNoDeviceCard));
+
+        // An iPhone's window opening, waiting or closing shows at once on its row.
+        IPhones.Changed += (_, _) => RefreshRunningState();
         _settings = settings;
         _dialogs = dialogs;
         _icons = icons;
@@ -110,6 +113,19 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// Devices seen, by identifier. Each one is shared by its rows.
     /// </summary>
     private readonly Dictionary<string, DeviceGroupViewModel> _devices = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// The iPhones and iPads with a header, by UDID: listed, or unplugged while
+    /// a window waits for them. Apart from <see cref="_devices" />, which every
+    /// adb path reads.
+    /// </summary>
+    private readonly Dictionary<string, DeviceGroupViewModel> _iosDevices = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// iPhones forgotten while still plugged in: not made an account again
+    /// until they are unplugged, or "Oublier" would undo itself.
+    /// </summary>
+    private readonly HashSet<string> _forgottenIos = new(StringComparer.Ordinal);
 
     /// <summary>
     /// Last discovery of instances, reused between two sweeps.
@@ -325,7 +341,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// the word "none": the row that names it already says what is
     /// missing.
     /// </summary>
-    public bool ShowsNoDeviceCard => _scanned && HasNoConnectedDevice && !HasInactiveDevices && IPhones.Devices.Count == 0;
+    public bool ShowsNoDeviceCard => _scanned && HasNoConnectedDevice && !HasInactiveDevices && _iosDevices.Count == 0;
 
     /// <summary>The iPhones and iPads, under the phones (D227).</summary>
     public IPhoneScreens IPhones { get; }
@@ -764,7 +780,10 @@ public sealed partial class InstanceListViewModel : ObservableObject
             var discovery = await _launcher.RefreshDevicesAsync(cancellationToken).ConfigureAwait(true);
 
             // Not awaited: Python takes a second or two, the phones' list must not wait for it.
+            // The sweep uses the iPhones of the last search.
             _ = IPhones.RefreshAsync();
+            await EnsureIosAccountsAsync(cancellationToken).ConfigureAwait(true);
+            SyncIosHeaders();
 
             foreach (var device in discovery.Devices)
             {
@@ -895,8 +914,13 @@ public sealed partial class InstanceListViewModel : ObservableObject
                 .Where(d => d.IsConnected)
                 .ToDictionary(d => d.Id, StringComparer.Ordinal);
 
-            SyncRows([.. instances.Where(i => connected.ContainsKey(i.DeviceId))]);
+            var listed = IPhones.Listed.Select(d => d.Udid).ToHashSet(StringComparer.Ordinal);
+
+            SyncRows([.. instances.Where(i => i.IsIos
+                ? IosAccountRow.Shows(i.DeviceId, listed, IPhones.StateOf(i.Key))
+                : connected.ContainsKey(i.DeviceId))]);
             RefreshDeviceHeaders();
+            RefreshIos();
         }
 
         RefreshBusyState();
@@ -1042,6 +1066,13 @@ public sealed partial class InstanceListViewModel : ObservableObject
         {
             if (row.IconPath is not null)
             {
+                continue;
+            }
+
+            // The same game: the icon of an Android row's copy, the iPhone asked nothing.
+            if (row.IsIos)
+            {
+                row.IconPath = Rows.FirstOrDefault(r => r is { IsIos: false, IsShownApp: false, IconPath: not null })?.IconPath;
                 continue;
             }
 
@@ -1318,6 +1349,85 @@ public sealed partial class InstanceListViewModel : ObservableObject
         {
             RefreshScreen(view);
         }
+
+        RefreshIos();
+    }
+
+    /// <summary>
+    /// Makes each iPhone listed an account the first time it is seen, as
+    /// discovery does for a new Android profile, and keeps its device name.
+    /// Only on a change: a write on every sweep would wear the file out.
+    /// </summary>
+    private async Task EnsureIosAccountsAsync(CancellationToken cancellationToken)
+    {
+        IosAccountRow.KeepForgotten(_forgottenIos, IPhones.Listed.Select(d => d.Udid), IPhones.ListFailed);
+
+        foreach (var device in IPhones.Listed.Where(d => !_forgottenIos.Contains(d.Udid)))
+        {
+            var key = IosAccountRow.KeyOf(device.Udid);
+
+            if (_instances?.FirstOrDefault(i => i.Key == key) is { } known && known.DeviceName == device.Name)
+            {
+                continue;
+            }
+
+            try
+            {
+                await _settings.EnsureIosAccountAsync(device, cancellationToken).ConfigureAwait(true);
+                InvalidateInstances();
+            }
+            catch (Exception exception) when (exception is not (OutOfMemoryException or OperationCanceledException))
+            {
+                // A locked settings file: said, and the phones' sweep goes on.
+                ShowBanner(exception.Message);
+            }
+        }
+    }
+
+    /// <summary>A header per iPhone listed, kept while its window waits for it unplugged.</summary>
+    private void SyncIosHeaders()
+    {
+        // A forgotten one has no row: its header would stand alone and hide the no-device card.
+        var shown = IPhones.Listed.Where(d => !_forgottenIos.Contains(d.Udid)).ToList();
+
+        foreach (var device in shown)
+        {
+            if (!_iosDevices.TryGetValue(device.Udid, out var view))
+            {
+                view = new DeviceGroupViewModel(device.Udid, device.Name);
+                _iosDevices[device.Udid] = view;
+            }
+
+            view.Update(device);
+        }
+
+        foreach (var (udid, view) in _iosDevices.Where(p => shown.All(d => d.Udid != p.Key)).ToList())
+        {
+            if (_forgottenIos.Contains(udid) || IPhones.StateOf(IosAccountRow.KeyOf(udid)) is null)
+            {
+                _iosDevices.Remove(udid);
+            }
+            else
+            {
+                view.Unplugged();
+            }
+        }
+    }
+
+    /// <summary>What the iOS rows and their headers say, from their windows' life.</summary>
+    private void RefreshIos()
+    {
+        foreach (var row in Rows.Where(r => r.IsIos))
+        {
+            row.SetIosStatus(IosAccountRow.Status(IPhones.StateOf(row.Key), IPhones.IsGameMissing(row.Key)));
+            row.CanOpen = IosAccountRow.CanOpen(IPhones.Listed.FirstOrDefault(d => d.Udid == row.DeviceId));
+
+            if (row.Device is { IsIos: true } header)
+            {
+                header.IsPlaying = row.IsRunning;
+                header.SetIosProblem(IPhones.ProblemOf(row.Key));
+            }
+        }
     }
 
     /// <summary>
@@ -1325,8 +1435,9 @@ public sealed partial class InstanceListViewModel : ObservableObject
     /// itself is in <see cref="InstanceActivities.Of" />, where it is
     /// tested; this only asks the two questions it needs.
     /// </summary>
-    private InstanceActivity ActivityOf(Core.Dofus.DofusInstance instance) =>
-        InstanceActivities.Of(_launcher.SessionStateOf(instance), _launcher.IsRecovering(instance.Key));
+    private InstanceActivity ActivityOf(Core.Dofus.DofusInstance instance) => instance.IsIos
+        ? IosAccountRow.Activity(IPhones.StateOf(instance.Key))
+        : InstanceActivities.Of(_launcher.SessionStateOf(instance), _launcher.IsRecovering(instance.Key));
 
     /// <summary>Opens an instance that is not open yet.</summary>
     [RelayCommand(AllowConcurrentExecutions = true)]
@@ -1537,13 +1648,13 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
             row.TickSession(_launcher.SessionStartedUtc(instance));
 
-            row.Device = _devices.GetValueOrDefault(instance.DeviceId);
+            row.Device = _devices.GetValueOrDefault(instance.DeviceId) ?? _iosDevices.GetValueOrDefault(instance.DeviceId);
 
             // The distance at which its window runs, so that a setting
             // waiting for the next opening says so instead of looking
             // dead. Nothing to show when the window is closed.
             row.RunningZoom = row.IsRunning ? _launcher.ZoomInUse(instance.Key) : null;
-            row.ReducedRenderPercent = row.IsRunning && !row.QuietReducedRender
+            row.ReducedRenderPercent = row.IsRunning && !row.QuietReducedRender && !instance.IsIos
                 ? _launcher.ReducedRenderPercent(instance.Key)
                 : null;
             row.StandardDidNotHelp = _launcher.StandardDidNotHelp(instance.Key);
@@ -1844,6 +1955,11 @@ public sealed partial class InstanceListViewModel : ObservableObject
             return;
         }
 
+        if (device.IsIos)
+        {
+            _ = _forgottenIos.Add(device.DeviceId);
+        }
+
         await _launcher.ForgetDeviceAsync(device.DeviceId).ConfigureAwait(true);
         await _settings.ForgetDeviceAsync(device.DeviceId).ConfigureAwait(true);
 
@@ -1893,6 +2009,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
 
         _ = InactiveDevices.Remove(device);
         _ = _devices.Remove(device.DeviceId);
+        _ = _iosDevices.Remove(device.DeviceId);
     }
 
     private async void OnEnabledChanged(object? sender, InstanceRowViewModel row)

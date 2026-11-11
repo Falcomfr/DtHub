@@ -3495,4 +3495,19 @@ Un téléphone déjà associé en Wi-Fi revient tout seul.</value>
   <data name="IosGameUnreachable" xml:space="preserve">
     <value>DT Hub ne peut pas relancer le jeu : l'iPhone ou l'iPad est débranché, ou DOFUS Touch n'y a pas été trouvé.</value>
   </data>
+  <data name="IosOpening" xml:space="preserve">
+    <value>ouverture</value>
+  </data>
+  <data name="IosOpen" xml:space="preserve">
+    <value>ouvert</value>
+  </data>
+  <data name="IosUnplugged" xml:space="preserve">
+    <value>débranché, en attente</value>
+  </data>
+  <data name="IosFailed" xml:space="preserve">
+    <value>affichage en échec</value>
+  </data>
+  <data name="IosGameMissing" xml:space="preserve">
+    <value>DOFUS Touch non installé</value>
+  </data>
 </root>

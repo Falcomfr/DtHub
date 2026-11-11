@@ -7,8 +7,6 @@ using System.Windows.Media;
 using DtHub.App.ViewModels;
 using DtHub.Core.Devices;
 using DtHub.Core.Guidance;
-using DtHub.Core.IPhone;
-using DtHub.Core.Settings;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DtHub.App.Windows;
@@ -342,46 +340,6 @@ public partial class InstanceListControl : UserControl
             // it again.
             binding.UpdateTarget();
             e.Handled = true;
-        }
-    }
-
-    /// <summary>Opens or closes an iPhone's screen from its row (D227).</summary>
-    private async void OnIPhoneToggle(object sender, RoutedEventArgs e)
-    {
-        if (sender is not FrameworkElement { DataContext: IPhoneRowViewModel row }
-            || DataContext is not InstanceListViewModel list)
-        {
-            return;
-        }
-
-        if (row.IsOpen)
-        {
-            foreach (var window in list.IPhones.Windows.Where(w => w.Device.Udid == row.Device.Udid))
-            {
-                await list.IPhones.CloseAsync(window.Key, byHand: false).ConfigureAwait(true);
-            }
-
-            return;
-        }
-
-        row.IsBusy = true;
-        row.Problem = null;
-
-        try
-        {
-            var account = await AppHost.Services.GetRequiredService<SettingsService>()
-                .EnsureIosAccountAsync(row.Device)
-                .ConfigureAwait(true);
-            await list.IPhones.OpenAsync(account, row.Device, CancellationToken.None).ConfigureAwait(true);
-        }
-        catch (IPhoneException exception)
-        {
-            // Shown under the row: it says what to do.
-            row.Problem = exception.Message;
-        }
-        finally
-        {
-            row.IsBusy = false;
         }
     }
 
