@@ -845,4 +845,7 @@
   <data name="Le jeu n'a pas pu être arrêté sur l'iPhone {name}." xml:space="preserve">
     <value>No se pudo detener el juego en el iPhone {name}.</value>
   </data>
+  <data name="La fenêtre de l'iPhone {name} n'a pas pu être fermée." xml:space="preserve">
+    <value>No se pudo cerrar la ventana del iPhone {name}.</value>
+  </data>
 </root>

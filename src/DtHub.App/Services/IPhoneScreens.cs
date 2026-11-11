@@ -251,8 +251,9 @@ public sealed partial class IPhoneScreens(
         {
             await entry.Game!.StopAsync(entry.BundleId!, limit.Token).ConfigureAwait(true);
         }
-        catch (Exception exception) when (exception is IPhoneException or OperationCanceledException)
+        catch (Exception exception) when (exception is not OutOfMemoryException)
         {
+            // Also the quit's: nothing may escape it. A device too slow is a cancel here.
             LogGameStopFailed(exception, entry.Device.Name);
         }
     }
@@ -351,11 +352,21 @@ public sealed partial class IPhoneScreens(
         window.Closing += (_, e) =>
         {
             // Held once: the close that follows the game's stop goes through.
-            if (!closingHeld && HoldsClosing(entry, window))
+            if (closingHeld || !HoldsClosing(entry, window))
             {
-                e.Cancel = closingHeld = true;
-                _ = StopThenCloseAsync(entry, window);
+                return;
             }
+
+            var preferences = settings.GetAsync(CancellationToken.None);
+
+            // Read from memory, the setting is known now: off, nothing to hold.
+            if (preferences.IsCompletedSuccessfully && !preferences.Result.StopAppOnClose)
+            {
+                return;
+            }
+
+            e.Cancel = closingHeld = true;
+            _ = StopThenCloseAsync(entry, window, preferences);
         };
         window.Closed += (_, _) => OnClosed(entry, window);
         window.Show();
@@ -516,11 +527,14 @@ public sealed partial class IPhoneScreens(
         && entry.Life.State == IosWindowState.Open
         && Controlled(entry.Key) is not null;
 
-    private async Task StopThenCloseAsync(IosGameWindow entry, IPhoneMirrorWindow window)
+    private async Task StopThenCloseAsync(IosGameWindow entry, IPhoneMirrorWindow window, Task<AppSettingsDocument> preferences)
     {
+        // After the Closing that held it has returned: WPF refuses a Close from inside it.
+        await Task.Yield();
+
         try
         {
-            if ((await settings.GetAsync(CancellationToken.None).ConfigureAwait(true)).StopAppOnClose)
+            if ((await preferences.ConfigureAwait(true)).StopAppOnClose)
             {
                 await StopGameAsync(entry.Key).ConfigureAwait(true);
             }
@@ -531,10 +545,18 @@ public sealed partial class IPhoneScreens(
             LogGameStopFailed(exception, entry.Device.Name);
         }
 
-        // Closed meanwhile (a second cross, a reopening): nothing left to close.
-        if (IsCurrent(entry, window))
+        try
         {
-            window.Close();
+            // Closed meanwhile (a second cross, a reopening): nothing left to close.
+            if (IsCurrent(entry, window))
+            {
+                window.Close();
+            }
+        }
+        catch (InvalidOperationException exception)
+        {
+            // Never held open in silence: the player's next cross goes through.
+            LogCloseFailed(exception, entry.Device.Name);
         }
     }
 
@@ -611,6 +633,9 @@ public sealed partial class IPhoneScreens(
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Le jeu n'a pas pu être ouvert sur l'iPhone {name}.")]
     private partial void LogGameFailed(Exception exception, string name);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "La fenêtre de l'iPhone {name} n'a pas pu être fermée.")]
+    private partial void LogCloseFailed(Exception exception, string name);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Le jeu n'a pas pu être arrêté sur l'iPhone {name}.")]
     private partial void LogGameStopFailed(Exception exception, string name);
