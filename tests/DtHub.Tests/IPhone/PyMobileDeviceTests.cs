@@ -46,7 +46,7 @@ public class PyMobileDeviceTests
     [InlineData(false, true)]
     public void L_ecran_passe_par_le_lanceur_qui_decode_le_son_hors_Mac(bool audio, bool silent)
     {
-        var request = PyMobileDevice.MirrorRequest("python.exe", "00008020-000A", 8123, audio);
+        var request = PyMobileDevice.MirrorRequest("python.exe", "00008020-000A", 8123, audio, 50123);
 
         Assert.Equal(["-c", PyMobileDevice.MirrorBootstrap], request.Arguments.Take(2));
         Assert.Contains("screen_stream.AACELDDecoder = Decoder", PyMobileDevice.MirrorBootstrap, StringComparison.Ordinal);
@@ -55,6 +55,23 @@ public class PyMobileDeviceTests
             request.Arguments.Skip(2));
         Assert.Equal("00008020-000A", request.Environment["PYMOBILEDEVICE3_UDID"]);
         Assert.True(request.KillEntireTree);
+    }
+
+    [Fact]
+    public void Le_port_de_commande_est_donne_a_l_outil()
+    {
+        var request = PyMobileDevice.MirrorRequest("python.exe", "00008020-000A", 8123, audio: true, 50123);
+
+        Assert.Equal("50123", request.Environment["DTHUB_CONTROL_PORT"]);
+    }
+
+    [Fact]
+    public void Le_script_de_demarrage_sert_les_quatre_commandes()
+    {
+        foreach (var command in new[] { "/apps", "/running", "/launch", "/stop" })
+        {
+            Assert.Contains($"\"{command}\"", PyMobileDevice.MirrorBootstrap, StringComparison.Ordinal);
+        }
     }
 
     [Fact]
@@ -182,7 +199,7 @@ public class PyMobileDeviceTests
         using var tools = new PyMobileDevice(
             new UvAlreadyThere(), runner, new FakeProcessLauncher(), new FakeAppPaths(root), NullLogger<PyMobileDevice>.Instance);
 
-        var opening = tools.StartMirrorAsync(new IPhoneDevice("a", "iPad", "27.0", "USB"), 8123, audio: false, CancellationToken.None);
+        var opening = tools.StartMirrorAsync(new IPhoneDevice("a", "iPad", "27.0", "USB"), 8123, audio: false, 50123, CancellationToken.None);
         await runner.Mounting.Task.WaitAsync(TimeSpan.FromSeconds(10));
 
         Assert.Empty(await tools.ListAsync(CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(10)));

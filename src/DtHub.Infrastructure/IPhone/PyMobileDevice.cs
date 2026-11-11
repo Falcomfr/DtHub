@@ -45,16 +45,20 @@ public sealed partial class PyMobileDevice : IDisposable
     private static readonly TimeSpan ListTimeout = TimeSpan.FromMinutes(1);
 
     /// <summary>
-    /// Runs <c>serve-web</c> with two additions. Sound: the tool decodes the
+    /// Runs <c>serve-web</c> with three additions. Sound: the tool decodes the
     /// iPhone's AAC-ELD with macOS's AudioToolbox only, so elsewhere PyAV's
     /// FFmpeg, already installed with it, does (checked bit-exact against
     /// FFmpeg's ELD 480 reference on 2026-11-10). Brightness: two more
     /// named buttons, the HID consumer brightness keys, as the screen can
-    /// only be dimmed, not switched off, while it is streamed.
+    /// only be dimmed, not switched off, while it is streamed. The game: a
+    /// JSON server on <c>127.0.0.1:DTHUB_CONTROL_PORT</c> lists the apps and
+    /// launches or stops one through the stream's own tunnel, as a second
+    /// tunnel beside it is untried (<see cref="IosGameControl"/>).
     /// </summary>
     public const string MirrorBootstrap = """
-        import runpy, sys
+        import asyncio, json, os, runpy, sys, urllib.parse
         from pymobiledevice3.remote.core_device import screen_stream
+        from pymobiledevice3.remote.core_device.app_service import AppServiceService
         if sys.platform != "darwin":
             import av
 
@@ -78,6 +82,80 @@ public sealed partial class PyMobileDevice : IDisposable
             screen_stream.ScreenStreamServer._missing_audio_deps = staticmethod(lambda: [])
         screen_stream._NAMED_BUTTONS["brightness-down"] = (0x0C, 0x70, 0.05)
         screen_stream._NAMED_BUTTONS["brightness-up"] = (0x0C, 0x6F, 0.05)
+
+
+        def file_path(url):
+            # CoreDevice encodes a URL as {"relative": "file:///..."}; /private/var and /var are one folder.
+            url = url.get("relative", "") if isinstance(url, dict) else str(url or "")
+            return urllib.parse.unquote(url.removeprefix("file://")).removeprefix("/private").rstrip("/")
+
+
+        async def game_pid(apps, bundle):
+            # A process names its executable, not its app: it is the one inside the app's folder.
+            folder = next((file_path(a.get("url")) + "/" for a in await apps.list_apps() if a.get("bundleIdentifier") == bundle), None)
+            if folder is None:
+                return None
+            processes = await apps.list_processes()
+            return next((int(p["processIdentifier"]) for p in processes if file_path(p.get("executableURL")).startswith(folder)), None)
+
+
+        async def command(apps, method, path, query, body):
+            if method == "GET" and path == "/apps":
+                return [{"name": str(a.get("name", "")), "bundle": str(a.get("bundleIdentifier", ""))} for a in await apps.list_apps()]
+            if method == "GET" and path == "/running":
+                return {"pid": await game_pid(apps, query["bundle"][0])}
+            if method == "POST" and path == "/launch":
+                # Not kill_existing: launching a running game brings it forward instead of restarting it.
+                await apps.launch_application(body["bundle"], kill_existing=False)
+                return {}
+            if method == "POST" and path == "/stop":
+                pid = await game_pid(apps, body["bundle"])
+                if pid is not None:
+                    await apps.send_signal_to_process(pid, 9)
+                return {}
+            raise ValueError(f"unknown command {method} {path}")
+
+
+        async def control(server, reader, writer):
+            try:
+                method, target, *_ = (await reader.readline()).decode("latin-1").split() + ["", ""]
+                headers = {}
+                while (line := await reader.readline()) not in (b"\r\n", b""):
+                    name, _, value = line.decode("latin-1").partition(":")
+                    headers[name.strip().lower()] = value.strip()
+                # The stream's own check: a web page in the player's browser is turned away.
+                refusal = server._refuse_request(headers)
+                if refusal is not None:
+                    writer.write(refusal)
+                    return
+                url = urllib.parse.urlsplit(target)
+                try:
+                    body = json.loads(await server._read_body(reader, headers) or b"{}")
+                    # Read per request: the stream rebinds _rsd when the device comes back.
+                    async with AppServiceService(server._rsd) as apps:
+                        answer = await command(apps, method, url.path, urllib.parse.parse_qs(url.query), body)
+                    status = b"200 OK"
+                except Exception as e:
+                    status, answer = b"500 Internal Server Error", {"error": repr(e)}
+                screen_stream._respond(writer, status, json.dumps(answer).encode(), b"application/json")
+                await writer.drain()
+            finally:
+                writer.close()
+
+
+        serve = screen_stream.ScreenStreamServer.serve
+
+
+        async def serve_with_control(self):
+            try:
+                await asyncio.start_server(lambda r, w: control(self, r, w), "127.0.0.1", int(os.environ["DTHUB_CONTROL_PORT"]))
+            except OSError:
+                # The screen matters more than the game commands.
+                screen_stream.logger.warning("DT Hub control server not started", exc_info=True)
+            await serve(self)
+
+
+        screen_stream.ScreenStreamServer.serve = serve_with_control
         runpy.run_module("pymobiledevice3", run_name="__main__", alter_sys=True)
         """;
 
@@ -143,12 +221,13 @@ public sealed partial class PyMobileDevice : IDisposable
     }
 
     /// <summary>
-    /// Serves the device's screen on <c>http://127.0.0.1:port/</c> until
+    /// Serves the device's screen on <c>http://127.0.0.1:port/</c>, and the game
+    /// commands on <paramref name="controlPort"/> (<see cref="IosGameControl"/>), until
     /// the session is killed, which ends its whole process tree.
     /// </summary>
     /// <exception cref="IPhoneException">The message says what to do.</exception>
     public async Task<IProcessSession> StartMirrorAsync(
-        IPhoneDevice device, int port, bool audio, CancellationToken cancellationToken)
+        IPhoneDevice device, int port, bool audio, int controlPort, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(device);
 
@@ -167,7 +246,7 @@ public sealed partial class PyMobileDevice : IDisposable
 
             try
             {
-                return _launcher.Start(MirrorRequest(python, device.Udid, port, audio));
+                return _launcher.Start(MirrorRequest(python, device.Udid, port, audio, controlPort));
             }
             catch (ProcessLaunchException exception)
             {
@@ -222,7 +301,7 @@ public sealed partial class PyMobileDevice : IDisposable
     }
 
     /// <summary><c>serve-web</c> through <see cref="MirrorBootstrap"/>, silent when the player turned sound off.</summary>
-    public static ProcessRequest MirrorRequest(string python, string udid, int port, bool audio)
+    public static ProcessRequest MirrorRequest(string python, string udid, int port, bool audio, int controlPort)
     {
         string[] arguments =
         [
@@ -231,7 +310,16 @@ public sealed partial class PyMobileDevice : IDisposable
             .. audio ? Array.Empty<string>() : ["--no-audio"],
         ];
 
-        return ToolRequest(python, udid, arguments) with { Arguments = ["-c", MirrorBootstrap, .. arguments] };
+        var request = ToolRequest(python, udid, arguments);
+
+        return request with
+        {
+            Arguments = ["-c", MirrorBootstrap, .. arguments],
+            Environment = new Dictionary<string, string?>(request.Environment, StringComparer.Ordinal)
+            {
+                ["DTHUB_CONTROL_PORT"] = controlPort.ToString(CultureInfo.InvariantCulture),
+            },
+        };
     }
 
     /// <summary>

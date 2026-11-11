@@ -3424,6 +3424,9 @@ Un téléphone déjà associé en Wi-Fi revient tout seul.</value>
   <data name="IPhoneTimedOut" xml:space="preserve">
     <value>L'iPhone n'a pas répondu à temps. Déverrouillez-le et touchez « Se fier » s'il le demande, vérifiez la connexion Internet (la première ouverture en a besoin), puis réessayez.</value>
   </data>
+  <data name="IPhoneGameFailed" xml:space="preserve">
+    <value>DT Hub n'a pas pu lancer, arrêter ou trouver DOFUS Touch sur l'iPhone. Rouvrez son écran dans DT Hub, puis réessayez.</value>
+  </data>
   <data name="IPhoneUnpluggedWait" xml:space="preserve">
     <value>L'iPhone a été débranché. Rebranchez-le et déverrouillez-le : son écran revient ici tout seul.</value>
   </data>
