@@ -43,6 +43,8 @@ public sealed class IPhoneScreens
 
     public bool CountsPlaytime(string key) => false;
 
+    public bool AnyKeepsAppAlive => false;
+
     public void Unmaximize()
     {
     }

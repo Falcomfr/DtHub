@@ -4873,7 +4873,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // Before the playtime writes are awaited: closing an iOS window ends its span.
         foreach (var key in _iosWindows.Select(w => w.Key).ToList())
         {
-            await CloseIosAsync(key, byHand: false).ConfigureAwait(false);
+            await CloseIosAsync(key, byHand: false, retitle: false).ConfigureAwait(false);
         }
 
         // Again: a window that died before StopAllAsync marked it asked
@@ -5602,8 +5602,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// <summary>A device's one iOS account, as <see cref="SettingsService.EnsureIosAccountAsync" /> keys it.</summary>
     private static string IosKeyOf(string udid) => $"{udid}|0|{DofusInstance.IosPackage}";
 
-    /// <summary>An iOS account's window that shows or waits for its device keeps DT Hub alive.</summary>
-    public bool HasIosWindows => _iosWindows.Any(w => w.IsAlive);
+    /// <summary>
+    /// An iOS account's window that shows, or waits for its device or its next
+    /// attempt, keeps DT Hub alive. Read on the UI thread.
+    /// </summary>
+    public bool HasIosWindows => _iphones.AnyKeepsAppAlive;
 
     /// <summary>
     /// Where this account's window is in its life, or <c>null</c> when
@@ -6355,9 +6358,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// <summary>
     /// Closes an iOS account's window from DT Hub, its game stopped first when
     /// "Stop the game on close" asks for it, then retitles the others, whose
-    /// keys shift, as <see cref="StopSessionAsync" /> does.
+    /// keys shift, as <see cref="StopSessionAsync" /> does. Closing them all
+    /// leaves nothing to retitle.
     /// </summary>
-    private async Task CloseIosAsync(string key, bool byHand)
+    private async Task CloseIosAsync(string key, bool byHand, bool retitle = true)
     {
         if (_sessions.StopAppOnClose)
         {
@@ -6365,6 +6369,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }
 
         await RunOnUiAsync(() => _iphones.CloseAsync(key, byHand)).ConfigureAwait(false);
+
+        if (!retitle)
+        {
+            return;
+        }
 
         try
         {

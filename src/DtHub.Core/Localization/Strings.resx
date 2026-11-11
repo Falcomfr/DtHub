@@ -3492,4 +3492,7 @@ A phone already paired over Wi-Fi comes back on its own.</value>
   <data name="IosNotPlugged" xml:space="preserve">
     <value>{0}: the iPhone or iPad is not plugged in.</value>
   </data>
+  <data name="IosGameUnreachable" xml:space="preserve">
+    <value>DT Hub cannot restart the game: the iPhone or iPad is unplugged, or DOFUS Touch was not found on it.</value>
+  </data>
 </root>

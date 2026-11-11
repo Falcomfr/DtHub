@@ -127,4 +127,31 @@ public class IosWindowLifeTests
         Assert.Equal(IosWindowState.Opening, life.State);
         Assert.Equal(1, life.Attempts);
     }
+
+    [Fact]
+    public void Une_fenetre_qui_attend_son_prochain_essai_garde_DT_Hub_ouvert()
+    {
+        var life = new IosWindowLife();
+        Assert.True(life.KeepsAppAlive);
+
+        life.Opened();
+        Assert.True(life.KeepsAppAlive);
+
+        life.Unplug();
+        Assert.True(life.KeepsAppAlive);
+
+        life.Replugged();
+        life.Opened();
+        Assert.Null(life.Fail(3));
+        Assert.Equal(IosWindowState.Failed, life.State);
+        Assert.True(life.KeepsAppAlive);
+
+        // Given up, its window saying why: nothing more will come.
+        var givenUp = new IosWindowLife();
+        Assert.Equal(IosEnd.GaveUp, givenUp.Fail(0));
+        Assert.False(givenUp.KeepsAppAlive);
+
+        life.Close(byHand: true);
+        Assert.False(life.KeepsAppAlive);
+    }
 }

@@ -4,6 +4,7 @@ using DtHub.App.ViewModels;
 using DtHub.App.Windows;
 using DtHub.Core.Dofus;
 using DtHub.Core.IPhone;
+using DtHub.Core.Localization;
 using DtHub.Core.Sessions;
 using DtHub.Core.Settings;
 using DtHub.Infrastructure.IPhone;
@@ -22,6 +23,9 @@ public sealed partial class IPhoneScreens(
 {
     // usbmux list starts Python: not at every sweep of the list.
     private static readonly TimeSpan ListEvery = TimeSpan.FromSeconds(10);
+
+    // A close or a quit waits this long at most for the device to end its game.
+    private static readonly TimeSpan StopLimit = TimeSpan.FromSeconds(3);
 
     private readonly Dictionary<string, IosGameWindow> _windows = new(StringComparer.Ordinal);
     private readonly HashSet<string> _opening = new(StringComparer.Ordinal);
@@ -60,6 +64,9 @@ public sealed partial class IPhoneScreens(
             entry.Window.WindowState = System.Windows.WindowState.Normal;
         }
     }
+
+    /// <summary>A window shows, or waits for its device or its next attempt: DT Hub stays.</summary>
+    public bool AnyKeepsAppAlive => _windows.Values.Any(w => w.Life.KeepsAppAlive);
 
     /// <summary>The account's window shows the game now: its playtime runs.</summary>
     public bool CountsPlaytime(string key) => _windows.TryGetValue(key, out var window) && window.Life.CountsPlaytime;
@@ -228,7 +235,8 @@ public sealed partial class IPhoneScreens(
 
     /// <summary>
     /// Ends the account's game, when its device is listed and the game known:
-    /// an unplugged device is not tried. A failure is logged, never thrown.
+    /// an unplugged device is not tried. A failure or a device too slow is
+    /// logged, never thrown.
     /// </summary>
     public async Task StopGameAsync(string key)
     {
@@ -237,13 +245,27 @@ public sealed partial class IPhoneScreens(
             return;
         }
 
+        using var limit = new CancellationTokenSource(StopLimit);
+
         try
         {
-            await entry.Game!.StopAsync(entry.BundleId!, CancellationToken.None).ConfigureAwait(true);
+            await entry.Game!.StopAsync(entry.BundleId!, limit.Token).ConfigureAwait(true);
         }
-        catch (IPhoneException exception)
+        catch (Exception exception) when (exception is IPhoneException or OperationCanceledException)
         {
             LogGameStopFailed(exception, entry.Device.Name);
+        }
+    }
+
+    /// <summary>
+    /// DT Hub quits: every game shown ends, when "Stop the game on close" asks
+    /// for it, while the streams still run. Each waits <see cref="StopLimit"/> at most.
+    /// </summary>
+    public async Task StopAllGamesAsync()
+    {
+        if ((await settings.GetAsync(CancellationToken.None).ConfigureAwait(true)).StopAppOnClose)
+        {
+            await Task.WhenAll(_windows.Keys.ToList().Select(StopGameAsync)).ConfigureAwait(true);
         }
     }
 
@@ -251,11 +273,10 @@ public sealed partial class IPhoneScreens(
     /// <exception cref="IPhoneException">The message says what to do.</exception>
     public async Task RestartGameAsync(string key)
     {
-        if (Controlled(key) is { } entry)
-        {
-            await entry.Game!.StopAsync(entry.BundleId!, CancellationToken.None).ConfigureAwait(true);
-            await entry.Game.LaunchAsync(entry.BundleId!, CancellationToken.None).ConfigureAwait(true);
-        }
+        var entry = Controlled(key) ?? throw new IPhoneException(Strings.Get("IosGameUnreachable"));
+
+        await entry.Game!.StopAsync(entry.BundleId!, CancellationToken.None).ConfigureAwait(true);
+        await entry.Game.LaunchAsync(entry.BundleId!, CancellationToken.None).ConfigureAwait(true);
     }
 
     /// <summary>The account's window whose game can be told what to do: device listed, game found.</summary>
@@ -324,6 +345,16 @@ public sealed partial class IPhoneScreens(
             if (IsCurrent(entry, window))
             {
                 AspectChanged?.Invoke(this, entry.Key);
+            }
+        };
+        var closingHeld = false;
+        window.Closing += (_, e) =>
+        {
+            // Held once: the close that follows the game's stop goes through.
+            if (!closingHeld && HoldsClosing(entry, window))
+            {
+                e.Cancel = closingHeld = true;
+                _ = StopThenCloseAsync(entry, window);
             }
         };
         window.Closed += (_, _) => OnClosed(entry, window);
@@ -468,6 +499,42 @@ public sealed partial class IPhoneScreens(
         finally
         {
             _opening.Remove(entry.Key);
+        }
+    }
+
+    /// <summary>
+    /// The player's cross on a window showing the game: its first close is
+    /// held while "Stop the game on close" reaches the game, the stream still
+    /// running, as Android's cross stops its game. DT Hub's own closes, a
+    /// reopening and quitting go straight through: they stop the game
+    /// themselves, or cannot.
+    /// </summary>
+    private bool HoldsClosing(IosGameWindow entry, IPhoneMirrorWindow window) =>
+        !_stopping
+        && !_opening.Contains(entry.Key)
+        && IsCurrent(entry, window)
+        && entry.Life.State == IosWindowState.Open
+        && Controlled(entry.Key) is not null;
+
+    private async Task StopThenCloseAsync(IosGameWindow entry, IPhoneMirrorWindow window)
+    {
+        try
+        {
+            if ((await settings.GetAsync(CancellationToken.None).ConfigureAwait(true)).StopAppOnClose)
+            {
+                await StopGameAsync(entry.Key).ConfigureAwait(true);
+            }
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            // The settings could not be read: the window still closes.
+            LogGameStopFailed(exception, entry.Device.Name);
+        }
+
+        // Closed meanwhile (a second cross, a reopening): nothing left to close.
+        if (IsCurrent(entry, window))
+        {
+            window.Close();
         }
     }
 

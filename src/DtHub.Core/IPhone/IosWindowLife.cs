@@ -43,6 +43,9 @@ public sealed class IosWindowLife
     /// <summary>Playtime runs only while the game is shown.</summary>
     public bool CountsPlaytime => State == IosWindowState.Open;
 
+    /// <summary>Shown, or waiting for its device or its next attempt: DT Hub must not quit under it.</summary>
+    public bool KeepsAppAlive => State != IosWindowState.Closed;
+
     /// <summary>The stream serves. Nothing brings back a closed window.</summary>
     public void Opened()
     {

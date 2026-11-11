@@ -600,6 +600,12 @@ public partial class App : Application, IDisposable
         try
         {
             await SaveSessionStateAsync(_configurator?.IsVisible == true).ConfigureAwait(true);
+
+            // Before Shutdown closes their streams: "Stop the game on close" reaches the iPhones too.
+            if (_host?.Services.GetRequiredService<IPhoneScreens>() is { } iphones)
+            {
+                await iphones.StopAllGamesAsync().ConfigureAwait(true);
+            }
         }
         finally
         {
