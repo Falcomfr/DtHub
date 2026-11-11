@@ -3430,6 +3430,9 @@ Un téléphone déjà associé en Wi-Fi revient tout seul.</value>
   <data name="IPhoneUnpluggedWait" xml:space="preserve">
     <value>L'iPhone a été débranché. Rebranchez-le et déverrouillez-le : son écran revient ici tout seul.</value>
   </data>
+  <data name="IPhoneReconnecting" xml:space="preserve">
+    <value>Reconnexion à l'iPhone… son écran revient ici tout seul.</value>
+  </data>
   <data name="IPhoneOffline" xml:space="preserve">
     <value>Plus d'image de l'iPhone. S'il s'est verrouillé, déverrouillez-le. Pour l'éviter : Réglages &gt; Luminosité et affichage &gt; Verrouillage automatique &gt; Jamais.</value>
   </data>

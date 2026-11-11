@@ -50,6 +50,12 @@ public sealed partial class GameTabViewModel : ObservableObject
     [ObservableProperty]
     private bool _isWaiting;
 
+    /// <summary>
+    /// What the waiting view says for this tab, or <c>null</c> for the
+    /// phone's Wi-Fi link: an iPhone waits on its cable or a new stream.
+    /// </summary>
+    public string? WaitingText { get; set; }
+
     /// <summary>True when the tab has a game to show.</summary>
     public bool ShowsGame => Window != 0 && !IsWaiting;
 

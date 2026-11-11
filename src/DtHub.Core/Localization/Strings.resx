@@ -3430,6 +3430,9 @@ A phone already paired over Wi-Fi comes back on its own.</value>
   <data name="IPhoneUnpluggedWait" xml:space="preserve">
     <value>The iPhone was unplugged. Plug it back in and unlock it: its screen comes back here by itself.</value>
   </data>
+  <data name="IPhoneReconnecting" xml:space="preserve">
+    <value>Reconnecting to the iPhone… its screen comes back here by itself.</value>
+  </data>
   <data name="IPhoneOffline" xml:space="preserve">
     <value>No picture from the iPhone. If it locked, unlock it. To keep it from locking: Settings &gt; Display &amp; Brightness &gt; Auto-Lock &gt; Never.</value>
   </data>

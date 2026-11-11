@@ -76,8 +76,8 @@ public sealed partial class IPhoneScreens(
 
     /// <summary>
     /// The account's window goes into the tabbed frame, or leaves it: held,
-    /// the frame alone sizes it. Out of maximized first, or Windows would
-    /// restore it out of its tab.
+    /// the frame alone sizes it, and a window opened again for it is born
+    /// off screen for the frame (<see cref="IPhoneMirrorWindow.ShowForFrame"/>).
     /// </summary>
     public void SetDocked(string key, bool docked)
     {
@@ -86,11 +86,7 @@ public sealed partial class IPhoneScreens(
             return;
         }
 
-        if (docked)
-        {
-            entry.Window.WindowState = System.Windows.WindowState.Normal;
-        }
-
+        entry.Docked = docked;
         entry.Window.Docked = docked;
     }
 
@@ -341,7 +337,8 @@ public sealed partial class IPhoneScreens(
         {
             window = new IPhoneMirrorWindow(device, port, session, engine, dark: preferences.TurnScreenOff);
 
-            if (place is { IsEmpty: false } rect)
+            // A docked account's is placed by ShowForFrame below.
+            if (!entry.Docked && place is { IsEmpty: false } rect)
             {
                 window.WindowStartupLocation = System.Windows.WindowStartupLocation.Manual;
                 (window.Left, window.Top, window.Width, window.Height) = (rect.Left, rect.Top, rect.Width, rect.Height);
@@ -397,7 +394,15 @@ public sealed partial class IPhoneScreens(
             _ = StopThenCloseAsync(entry, window, preferences);
         };
         window.Closed += (_, _) => OnClosed(entry, window);
-        window.Show();
+        // Opened again for a tabbed account: off screen, not activated, the launcher docks it on Opened.
+        if (entry.Docked)
+        {
+            window.ShowForFrame(place ?? System.Windows.Rect.Empty);
+        }
+        else
+        {
+            window.Show();
+        }
 
         entry.Window = window;
         entry.Game = new IosGameControl(controlPort);
@@ -507,7 +512,8 @@ public sealed partial class IPhoneScreens(
         }
 
         var old = entry.Window;
-        var place = old.RestoreBounds;
+        // A docked window's own bounds are the frame's: where it stood free instead.
+        var place = old.Docked ? old.FreeBounds : old.RestoreBounds;
         entry.Device = device;
         entry.Life.Replugged();
 

@@ -274,6 +274,7 @@ public partial class TabbedGameWindow : Window
 
         Attente.Visibility = shown is { IsWaiting: true } ? Visibility.Visible : Visibility.Collapsed;
         Attente.Tag = shown?.Key;
+        Attente.Explain(shown?.WaitingText);
     }
 
     /// <summary>The waiting view's Close: closes that account, as its tab's cross does.</summary>
@@ -318,6 +319,21 @@ public partial class TabbedGameWindow : Window
         {
             Settle();
         }
+    }
+
+    /// <summary>
+    /// What the waiting view says while this tab waits, <c>null</c> for the
+    /// phone's Wi-Fi link. Has no effect if this account is not housed here.
+    /// </summary>
+    public void Explain(string key, string? text)
+    {
+        if (Find(key) is not { } tab || tab.WaitingText == text)
+        {
+            return;
+        }
+
+        tab.WaitingText = text;
+        UpdateWaitingView();
     }
 
     /// <summary>True if this account is housed here.</summary>

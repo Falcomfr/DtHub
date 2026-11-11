@@ -173,14 +173,28 @@ public partial class IPhoneMirrorWindow : Window
 
     /// <summary>
     /// Held in DT Hub's tabbed frame: the frame sizes it, so the picture's
-    /// shape is only told. Let go, it takes the picture's shape again, the
-    /// iPhone may have turned meanwhile.
+    /// shape is only told. Docked, it leaves maximized and keeps where it
+    /// stood free; let go, it goes back there and takes the picture's shape
+    /// again, the iPhone may have turned meanwhile.
     /// </summary>
     public bool Docked
     {
         get => _docked;
         set
         {
+            if (value && !_docked && FreeBounds.IsEmpty)
+            {
+                // Restored inside the frame, a maximized window would jump out of its tab.
+                WindowState = WindowState.Normal;
+                FreeBounds = RestoreBounds;
+            }
+
+            if (!value && _docked && !FreeBounds.IsEmpty && !_closed)
+            {
+                (Left, Top, Width, Height) = (FreeBounds.Left, FreeBounds.Top, FreeBounds.Width, FreeBounds.Height);
+                FreeBounds = Rect.Empty;
+            }
+
             _docked = value;
 
             if (!value && _shape.Length > 0 && !_closed)
@@ -195,6 +209,25 @@ public partial class IPhoneMirrorWindow : Window
                 });
             }
         }
+    }
+
+    /// <summary>Where the window stood free before it was docked, empty while free.</summary>
+    public Rect FreeBounds { get; private set; } = Rect.Empty;
+
+    /// <summary>
+    /// Shows a window opened again for a docked account: off screen and
+    /// not activated, for the frame to take it without a flash, with the
+    /// old window's free place to go back to.
+    /// </summary>
+    public void ShowForFrame(Rect freeBounds)
+    {
+        // Never left off screen should the frame refuse it.
+        FreeBounds = freeBounds.IsEmpty ? new Rect(100, 100, Width, Height) : freeBounds;
+        _docked = true;
+        ShowActivated = false;
+        WindowStartupLocation = WindowStartupLocation.Manual;
+        (Left, Top) = (-32000, -32000);
+        Show();
     }
 
     private bool _docked;

@@ -386,6 +386,11 @@ public sealed partial class TabbedGameWindow : Window
     {
     }
 
+    /// <summary>The PC's iPhone tabs only: no iPhone is wired on the Mac (D227).</summary>
+    public void Explain(string key, string? text)
+    {
+    }
+
     public void Show(string key)
     {
         if (Find(key) is { } tab)

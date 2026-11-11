@@ -40,6 +40,9 @@ public sealed class IosGameWindow(string key, IPhoneDevice device, string? bundl
     /// <summary>The device was asked for DOFUS Touch and does not have it.</summary>
     internal bool GameMissing { get; set; }
 
+    /// <summary>Held in the tabbed frame: a window opened again for it is born for the frame.</summary>
+    internal bool Docked { get; set; }
+
     /// <summary>The stream served at least once: only then is a failure tried again, as Android's.</summary>
     internal bool Served { get; set; }
 

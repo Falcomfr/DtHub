@@ -6,7 +6,7 @@
   <!-- Stands where the game was while its phone's link is down: in the
        tab, or in a small window at the free window's place. -->
   <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="360" Margin="16">
-    <Grid Width="48" Height="48" HorizontalAlignment="Center" Margin="0,0,0,14">
+    <Grid x:Name="Link" Width="48" Height="48" HorizontalAlignment="Center" Margin="0,0,0,14">
       <Path Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="3"
             StrokeStartLineCap="Round" StrokeEndLineCap="Round"
             Data="M 4,18 A 28,28 0 0 1 44,18 M 10,25 A 20,20 0 0 1 38,25 M 16,32 A 11,11 0 0 1 32,32" />
@@ -17,7 +17,9 @@
     </Grid>
     <TextBlock Text="{loc:T WaitingPhoneTitle}" Style="{StaticResource Title}"
                HorizontalAlignment="Center" TextAlignment="Center" />
-    <TextBlock Text="{loc:T WaitingPhoneText}" Style="{StaticResource Muted}"
+    <TextBlock x:Name="LinkText" Text="{loc:T WaitingPhoneText}" Style="{StaticResource Muted}"
+               HorizontalAlignment="Center" TextAlignment="Center" Margin="0,6,0,16" />
+    <TextBlock x:Name="OwnText" Style="{StaticResource Muted}" Visibility="Collapsed" TextWrapping="Wrap"
                HorizontalAlignment="Center" TextAlignment="Center" Margin="0,6,0,16" />
     <Button Content="{loc:T Close}" Style="{StaticResource OutlineButton}"
             HorizontalAlignment="Center" Click="OnClose" />

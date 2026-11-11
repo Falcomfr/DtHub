@@ -3430,6 +3430,9 @@ Un teléfono ya vinculado por Wi-Fi vuelve solo.</value>
   <data name="IPhoneUnpluggedWait" xml:space="preserve">
     <value>El iPhone se desconectó. Vuelve a conectarlo y desbloquéalo: su pantalla volverá aquí sola.</value>
   </data>
+  <data name="IPhoneReconnecting" xml:space="preserve">
+    <value>Reconectando con el iPhone… su pantalla vuelve aquí sola.</value>
+  </data>
   <data name="IPhoneOffline" xml:space="preserve">
     <value>No llega imagen del iPhone. Si se bloqueó, desbloquéalo. Para evitarlo: Ajustes &gt; Pantalla y brillo &gt; Bloqueo automático &gt; Nunca.</value>
   </data>

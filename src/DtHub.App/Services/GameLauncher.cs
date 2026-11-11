@@ -5012,6 +5012,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
             [.. _sessions.ActiveSessions.Select(s => s.Target.Key), .. iosShown],
             iosWaiting.Count == 0 ? waiting : new HashSet<string>(waiting.Concat(iosWaiting), StringComparer.Ordinal));
 
+        // Its cable or a new stream, not the Wi-Fi link the view says for a phone.
+        foreach (var key in iosWaiting)
+        {
+            _tabs?.Explain(
+                key,
+                Strings.Get(_iphones.StateOf(key) == IosWindowState.Unplugged ? "IPhoneUnpluggedWait" : "IPhoneReconnecting"));
+        }
+
         UpdateWaitingWindows(waiting);
 
         ReportFirstImages();
@@ -6315,6 +6323,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         try
         {
             var settings = await _settings.GetAsync(cancellationToken).ConfigureAwait(false);
+            var housed = false;
 
             await OnUiAsync(() =>
             {
@@ -6338,6 +6347,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     return;
                 }
 
+                housed = true;
+
                 // Shown activated as a free window a moment ago, it stayed the foreground once
                 // docked: the frame looked inactive and its shortcuts did not see it in front.
                 if (_windows.Controller.GetForegroundWindow() == window.WindowHandle)
@@ -6345,6 +6356,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     _ = _tabs?.Activate();
                 }
             }).ConfigureAwait(false);
+
+            // The frame counts one more window: the arranging buttons recount, as for a session joining it.
+            if (housed)
+            {
+                ArrangeableChanged?.Invoke(this, EventArgs.Empty);
+            }
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
