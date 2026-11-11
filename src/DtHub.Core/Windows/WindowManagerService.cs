@@ -235,7 +235,7 @@ public sealed class WindowManagerService
     /// full screen covers the entire screen.
     /// </summary>
     public async Task<int> ScaleInPlaceAsync(
-        IReadOnlyList<ScrcpySession> sessions,
+        IReadOnlyList<IGameWindow> sessions,
         double factor,
         CancellationToken cancellationToken = default)
     {
@@ -354,7 +354,7 @@ public sealed class WindowManagerService
     /// directions there.
     /// </summary>
     /// <returns>Number of windows corrected.</returns>
-    public int EnforceAspect(IReadOnlyList<ScrcpySession> sessions)
+    public int EnforceAspect(IReadOnlyList<IGameWindow> sessions)
     {
         ArgumentNullException.ThrowIfNull(sessions);
 
@@ -456,7 +456,7 @@ public sealed class WindowManagerService
     /// display took the window's format (D209) and keeps it until they
     /// reopen, since the game fixes its layout height at start (D16).
     /// </summary>
-    public IReadOnlyList<ScrcpySession> FullscreenMisfits(IReadOnlyList<ScrcpySession> sessions)
+    public IReadOnlyList<IGameWindow> FullscreenMisfits(IReadOnlyList<IGameWindow> sessions)
     {
         ArgumentNullException.ThrowIfNull(sessions);
 
@@ -504,7 +504,7 @@ public sealed class WindowManagerService
     /// refused.
     /// </summary>
     public Task<int> ApplySizeAsync(
-        IReadOnlyList<ScrcpySession> sessions,
+        IReadOnlyList<IGameWindow> sessions,
         int sizeIndex,
         CancellationToken cancellationToken = default)
     {
@@ -524,7 +524,7 @@ public sealed class WindowManagerService
     /// screen separately.
     /// </summary>
     private Task<int> ResizeAsync(
-        IReadOnlyList<ScrcpySession> sessions,
+        IReadOnlyList<IGameWindow> sessions,
         bool wasFullscreen,
         int previousPercent,
         CancellationToken cancellationToken) => (wasFullscreen, IsFullscreen) switch
@@ -556,7 +556,7 @@ public sealed class WindowManagerService
     /// arrangement stays left and right, only resized.
     /// </summary>
     private async Task<int> ResizeToPercentAsync(
-        IReadOnlyList<ScrcpySession> sessions,
+        IReadOnlyList<IGameWindow> sessions,
         CancellationToken cancellationToken)
     {
         var monitors = _controller.GetMonitors();
@@ -604,7 +604,7 @@ public sealed class WindowManagerService
     /// sits on, and remembers where it came from.
     /// </summary>
     private async Task<int> EnterFullscreenAsync(
-        IReadOnlyList<ScrcpySession> sessions,
+        IReadOnlyList<IGameWindow> sessions,
         int previousPercent,
         CancellationToken cancellationToken)
     {
@@ -633,7 +633,7 @@ public sealed class WindowManagerService
                 continue;
             }
 
-            _beforeFullscreen[session.Target.Key] = rect;
+            _beforeFullscreen[session.Key] = rect;
 
             var monitor = WindowLayoutCalculator.ChooseMonitor(monitors, rect.CenterX, rect.CenterY);
 
@@ -672,7 +672,7 @@ public sealed class WindowManagerService
     /// had, scaled if the requested size is not the one from before.
     /// </summary>
     private async Task<int> LeaveFullscreenAsync(
-        IReadOnlyList<ScrcpySession> sessions,
+        IReadOnlyList<IGameWindow> sessions,
         CancellationToken cancellationToken)
     {
         var monitors = _controller.GetMonitors();
@@ -701,7 +701,7 @@ public sealed class WindowManagerService
 
             var chrome = MeasureChrome(handle);
 
-            var rect = _beforeFullscreen.TryGetValue(session.Target.Key, out var before)
+            var rect = _beforeFullscreen.TryGetValue(session.Key, out var before)
                 ? Rescale(
                       before,
                       factor,
@@ -788,7 +788,7 @@ public sealed class WindowManagerService
     /// to appear.
     /// </summary>
     public async Task<nint> ResolveWindowAsync(
-        ScrcpySession session,
+        IGameWindow session,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(session);
@@ -819,7 +819,11 @@ public sealed class WindowManagerService
 
             if (match.Handle != 0)
             {
-                session.WindowHandle = match.Handle;
+                if (session is ScrcpySession scrcpy)
+                {
+                    scrcpy.WindowHandle = match.Handle;
+                }
+
                 return match.Handle;
             }
 
@@ -838,7 +842,7 @@ public sealed class WindowManagerService
     /// for a later detach. A refused or failed attach falls back visibly.
     /// </summary>
     public async Task PrepareForDockAsync(
-        ScrcpySession session,
+        IGameWindow session,
         ScrcpyWindowPlacement? placement,
         Func<Task> attach,
         CancellationToken cancellationToken = default)
@@ -879,7 +883,7 @@ public sealed class WindowManagerService
     /// </summary>
     /// <returns>Number of windows actually moved.</returns>
     public async Task<int> ArrangeAsync(
-        IReadOnlyList<ScrcpySession> sessions,
+        IReadOnlyList<IGameWindow> sessions,
         CancellationToken cancellationToken = default)
     {
         var applied = await ApplyLayoutAsync(sessions, remembered: null, cancellationToken)
@@ -895,7 +899,7 @@ public sealed class WindowManagerService
     /// </summary>
     /// <returns>The rectangles actually applied, by instance key.</returns>
     public Task<IReadOnlyList<(string Key, ScreenRect Rect)>> RestoreAsync(
-        IReadOnlyList<ScrcpySession> sessions,
+        IReadOnlyList<IGameWindow> sessions,
         IReadOnlyDictionary<string, StoredWindowRect> remembered,
         CancellationToken cancellationToken = default)
     {
@@ -910,7 +914,7 @@ public sealed class WindowManagerService
     /// <c>null</c> in full screen, whose rectangle is not a place, or when
     /// it was never seen.
     /// </summary>
-    public (string Key, StoredWindowRect Rect)? CaptureLost(ScrcpySession session)
+    public (string Key, StoredWindowRect Rect)? CaptureLost(IGameWindow session)
     {
         ArgumentNullException.ThrowIfNull(session);
 
@@ -923,7 +927,7 @@ public sealed class WindowManagerService
 
         return monitors.Count == 0
             ? null
-            : (session.Target.Key,
+            : (session.Key,
                 StoredWindowRect.From(rect, WindowLayoutCalculator.ChooseMonitor(monitors, rect.CenterX, rect.CenterY)));
     }
 
@@ -939,7 +943,7 @@ public sealed class WindowManagerService
     /// set aside too, its rectangle meaning nothing.
     /// </summary>
     public IReadOnlyList<(string Key, StoredWindowRect Rect)> CaptureGeometries(
-        IReadOnlyList<ScrcpySession> sessions,
+        IReadOnlyList<IGameWindow> sessions,
         IReadOnlyDictionary<string, StoredWindowRect>? remembered = null)
     {
         ArgumentNullException.ThrowIfNull(sessions);
@@ -964,7 +968,7 @@ public sealed class WindowManagerService
 
             if (!IsFullscreen)
             {
-                captured.Add((session.Target.Key, StoredWindowRect.From(rect, monitor)));
+                captured.Add((session.Key, StoredWindowRect.From(rect, monitor)));
                 continue;
             }
 
@@ -974,7 +978,7 @@ public sealed class WindowManagerService
                 continue;
             }
 
-            var before = remembered is not null && remembered.TryGetValue(session.Target.Key, out var stored)
+            var before = remembered is not null && remembered.TryGetValue(session.Key, out var stored)
                 ? WindowLayoutCalculator.RestoreRemembered(stored.Bounds, stored.MonitorDeviceName, stored.Monitor, monitors)
                 : null;
 
@@ -993,7 +997,7 @@ public sealed class WindowManagerService
                       WindowLayoutCalculator.Rescale(placed, from.Bounds, monitor.Bounds), UsableArea(monitor))
                 : UsableArea(monitor);
 
-            captured.Add((session.Target.Key, StoredWindowRect.From(windowed, monitor)));
+            captured.Add((session.Key, StoredWindowRect.From(windowed, monitor)));
         }
 
         return captured;
@@ -1004,7 +1008,7 @@ public sealed class WindowManagerService
     /// windows receive the rectangle calculated from the anchor.
     /// </summary>
     private async Task<IReadOnlyList<(string Key, ScreenRect Rect)>> ApplyLayoutAsync(
-        IReadOnlyList<ScrcpySession> sessions,
+        IReadOnlyList<IGameWindow> sessions,
         IReadOnlyDictionary<string, StoredWindowRect>? remembered,
         CancellationToken cancellationToken)
     {
@@ -1050,7 +1054,7 @@ public sealed class WindowManagerService
                 _controller.MoveWindow(handle, rect);
             }
 
-            applied.Add((session.Target.Key, rect));
+            applied.Add((session.Key, rect));
         }
 
         return applied;
@@ -1062,14 +1066,14 @@ public sealed class WindowManagerService
     /// remembered geometry's screen is kept.
     /// </summary>
     private ScreenRect Resolve(
-        ScrcpySession session,
+        IGameWindow session,
         MonitorInfo monitor,
         IReadOnlyList<MonitorInfo> monitors,
         (int Width, int Height) chrome,
         IReadOnlyDictionary<string, StoredWindowRect>? remembered)
     {
         if (remembered is not null
-            && remembered.TryGetValue(session.Target.Key, out var stored)
+            && remembered.TryGetValue(session.Key, out var stored)
             && WindowLayoutCalculator.RestoreRemembered(
                 stored.Bounds, stored.MonitorDeviceName, stored.Monitor, monitors) is { } restored)
         {
@@ -1163,7 +1167,7 @@ public sealed class WindowManagerService
     /// windows.
     /// </summary>
     public Task<int> ApplyPercentAsync(
-        IReadOnlyList<ScrcpySession> sessions,
+        IReadOnlyList<IGameWindow> sessions,
         int percent,
         CancellationToken cancellationToken = default)
     {
@@ -1189,7 +1193,7 @@ public sealed class WindowManagerService
     /// with no window has nothing to paint, and a dead one is not worth
     /// asking about.
     /// </summary>
-    public int Recolour(IReadOnlyList<ScrcpySession> sessions, Func<ScrcpySession, int?> colour)
+    public int Recolour(IReadOnlyList<IGameWindow> sessions, Func<IGameWindow, int?> colour)
     {
         ArgumentNullException.ThrowIfNull(sessions);
         ArgumentNullException.ThrowIfNull(colour);
@@ -1205,7 +1209,7 @@ public sealed class WindowManagerService
         return painted;
     }
 
-    public int Retitle(IReadOnlyList<ScrcpySession> sessions, Func<ScrcpySession, string> title)
+    public int Retitle(IReadOnlyList<IGameWindow> sessions, Func<IGameWindow, string> title)
     {
         ArgumentNullException.ThrowIfNull(sessions);
         ArgumentNullException.ThrowIfNull(title);
@@ -1233,7 +1237,7 @@ public sealed class WindowManagerService
     /// </summary>
     /// <returns>Number of windows moved.</returns>
     public async Task<int> StackOnActiveAsync(
-        IReadOnlyList<ScrcpySession> sessions,
+        IReadOnlyList<IGameWindow> sessions,
         CancellationToken cancellationToken = default)
     {
         if (await StackTargetAsync(sessions, cancellationToken).ConfigureAwait(false)
@@ -1254,8 +1258,8 @@ public sealed class WindowManagerService
     /// cannot appear in the list, and stacking it anywhere else than
     /// them would be anything but a rearrangement.
     /// </summary>
-    public async Task<(ScrcpySession Reference, ScreenRect Rect)?> StackTargetAsync(
-        IReadOnlyList<ScrcpySession> sessions,
+    public async Task<(IGameWindow Reference, ScreenRect Rect)?> StackTargetAsync(
+        IReadOnlyList<IGameWindow> sessions,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(sessions);
@@ -1289,9 +1293,9 @@ public sealed class WindowManagerService
     /// </param>
     /// <returns>Number of windows moved.</returns>
     public async Task<int> StackOnAsync(
-        IReadOnlyList<ScrcpySession> sessions,
+        IReadOnlyList<IGameWindow> sessions,
         ScreenRect rect,
-        ScrcpySession? except = null,
+        IGameWindow? except = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(sessions);
@@ -1337,7 +1341,7 @@ public sealed class WindowManagerService
     /// </param>
     /// <returns>Number of windows placed.</returns>
     public async Task<int> TileAsync(
-        IReadOnlyList<ScrcpySession> sessions,
+        IReadOnlyList<IGameWindow> sessions,
         bool leaveRightFree = false,
         CancellationToken cancellationToken = default)
     {
@@ -1426,7 +1430,7 @@ public sealed class WindowManagerService
     /// </param>
     /// <returns>Number of windows placed.</returns>
     public async Task<int> GridAsync(
-        IReadOnlyList<ScrcpySession> sessions,
+        IReadOnlyList<IGameWindow> sessions,
         int? frameCell = null,
         CancellationToken cancellationToken = default)
     {
@@ -1490,7 +1494,7 @@ public sealed class WindowManagerService
     /// Called continuously: by the time of the rearrangement it is
     /// too late, the configurator having taken the foreground.
     /// </summary>
-    public void TrackActiveWindow(IReadOnlyList<ScrcpySession> sessions)
+    public void TrackActiveWindow(IReadOnlyList<IGameWindow> sessions)
     {
         ArgumentNullException.ThrowIfNull(sessions);
 
@@ -1515,7 +1519,7 @@ public sealed class WindowManagerService
     /// never draw beyond that again.
     /// </summary>
     public async Task MoveOnlyAsync(
-        ScrcpySession session,
+        IGameWindow session,
         int x,
         int y,
         CancellationToken cancellationToken = default)
@@ -1553,7 +1557,7 @@ public sealed class WindowManagerService
     /// order and does not move: Windows does not expose it.
     /// </summary>
     public async Task<int> ApplyOrderAsync(
-        IReadOnlyList<ScrcpySession> sessions,
+        IReadOnlyList<IGameWindow> sessions,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(sessions);
@@ -1582,7 +1586,7 @@ public sealed class WindowManagerService
     /// Asks a session's window to close itself, without waiting.
     /// Nothing happens if the window was never found.
     /// </summary>
-    public void RequestClose(ScrcpySession session)
+    public void RequestClose(IGameWindow session)
     {
         ArgumentNullException.ThrowIfNull(session);
 
@@ -1596,13 +1600,13 @@ public sealed class WindowManagerService
     public int GetWindowProcessId(nint handle) => _controller.GetWindowProcessId(handle);
 
     /// <summary>Moves to the next instance, cyclically.</summary>
-    public ScrcpySession? FocusNext(IReadOnlyList<ScrcpySession> sessions) => Cycle(sessions, forward: true);
+    public IGameWindow? FocusNext(IReadOnlyList<IGameWindow> sessions) => Cycle(sessions, forward: true);
 
     /// <summary>Moves back to the previous instance, cyclically.</summary>
-    public ScrcpySession? FocusPrevious(IReadOnlyList<ScrcpySession> sessions) => Cycle(sessions, forward: false);
+    public IGameWindow? FocusPrevious(IReadOnlyList<IGameWindow> sessions) => Cycle(sessions, forward: false);
 
     /// <summary>Brings a specific session to the foreground.</summary>
-    public bool Focus(ScrcpySession session)
+    public bool Focus(IGameWindow session)
     {
         ArgumentNullException.ThrowIfNull(session);
 
@@ -1620,7 +1624,7 @@ public sealed class WindowManagerService
     /// sessions. The window shortcuts only apply in that case,
     /// otherwise Ctrl+Tab would be hijacked in other software.
     /// </summary>
-    public bool IsManagedWindowFocused(IReadOnlyList<ScrcpySession> sessions)
+    public bool IsManagedWindowFocused(IReadOnlyList<IGameWindow> sessions)
     {
         ArgumentNullException.ThrowIfNull(sessions);
 
@@ -1629,7 +1633,7 @@ public sealed class WindowManagerService
         return foreground != 0 && sessions.Any(s => s.IsAlive && s.WindowHandle == foreground);
     }
 
-    private ScrcpySession? Cycle(IReadOnlyList<ScrcpySession> sessions, bool forward)
+    private IGameWindow? Cycle(IReadOnlyList<IGameWindow> sessions, bool forward)
     {
         ArgumentNullException.ThrowIfNull(sessions);
 

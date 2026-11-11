@@ -759,7 +759,7 @@ public class WindowManagerServiceTests
         var service = new WindowManagerService(desktop, NoDelay);
         await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
 
-        var renamed = service.Retitle(sessions, s => $"DT Hub {s.Target.UserId} (Ctrl + N)");
+        var renamed = service.Retitle(sessions, s => $"DT Hub {((ScrcpySession)s).Target.UserId} (Ctrl + N)");
 
         Assert.Equal(2, renamed);
         Assert.Equal("DT Hub 0 (Ctrl + N)", desktop.Titles[sessions[0].WindowHandle]);
@@ -781,7 +781,7 @@ public class WindowManagerServiceTests
         var service = new WindowManagerService(desktop, NoDelay);
         await service.RestoreAsync(sessions, new Dictionary<string, StoredWindowRect>(), CancellationToken.None);
 
-        var painted = service.Recolour(sessions, s => s.Target.UserId == 0 ? 0x00888D3F : null);
+        var painted = service.Recolour(sessions, s => ((ScrcpySession)s).Target.UserId == 0 ? 0x00888D3F : null);
 
         Assert.Equal(2, painted);
         Assert.Equal(0x00888D3F, desktop.FrameColours[sessions[0].WindowHandle]);

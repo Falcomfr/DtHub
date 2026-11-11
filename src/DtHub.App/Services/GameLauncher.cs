@@ -5517,12 +5517,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         return _windows.Retitle(
             _sessions.ActiveSessions,
-            session => ScrcpyCommandBuilder.BuildWindowTitle(
-                Status(session) is { } status
-                    ? $"{CurrentName(session, settings)} · {status}"
-                    : CurrentName(session, settings),
-                session.Target.IsTransient ? null : hint,
-                AccountKeyOf(session.Target.Key)));
+            window => window is not ScrcpySession session
+                ? window.WindowTitle
+                : ScrcpyCommandBuilder.BuildWindowTitle(
+                    Status(session) is { } status
+                        ? $"{CurrentName(session, settings)} · {status}"
+                        : CurrentName(session, settings),
+                    session.Target.IsTransient ? null : hint,
+                    AccountKeyOf(session.Target.Key)));
     }
 
 
@@ -5538,7 +5540,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         _windows.Recolour(
             _sessions.ActiveSessions,
             session => AccountTints.FrameColourRefFor(
-                _launched.GetValueOrDefault(session.Target.Key)?.Colour));
+                _launched.GetValueOrDefault(session.Key)?.Colour));
 
     /// <summary>
     /// The name this account carries now, not the one it carried at

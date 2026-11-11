@@ -1,5 +1,6 @@
 ﻿using DtHub.Core.Processes;
 using DtHub.Core.Sessions;
+using DtHub.Core.Windows;
 
 namespace DtHub.Core.Scrcpy;
 
@@ -28,7 +29,7 @@ public enum ScrcpySessionState
 /// the corresponding scrcpy process, and carries what is needed to
 /// find it again, move it and close it.
 /// </summary>
-public sealed class ScrcpySession
+public sealed class ScrcpySession : IGameWindow
 {
     internal ScrcpySession(string id, LaunchTarget target, string windowTitle, IProcessSession process)
     {
@@ -45,6 +46,8 @@ public sealed class ScrcpySession
     public string Id { get; }
 
     public LaunchTarget Target { get; }
+
+    public string Key => Target.Key;
 
     /// <summary>ADB serial number used at launch.</summary>
     public string Serial => Target.Serial;
