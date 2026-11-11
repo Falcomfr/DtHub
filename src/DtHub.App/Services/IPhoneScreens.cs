@@ -144,7 +144,7 @@ public sealed partial class IPhoneScreens(
         {
             var preferences = await settings.GetAsync(cancellationToken).ConfigureAwait(true);
             var port = FreePort();
-            var session = await tools.StartMirrorAsync(device, port, preferences.AudioEnabled, cancellationToken).ConfigureAwait(true);
+            var session = await tools.StartMirrorAsync(device, port, preferences.AudioEnabled && device.StreamsSound, cancellationToken).ConfigureAwait(true);
             IPhoneMirrorWindow window;
 
             try

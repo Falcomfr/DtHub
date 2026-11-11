@@ -26,6 +26,20 @@ public class IPhoneDeviceTests
         ]
         """;
 
+    [Theory]
+    [InlineData("iPad", false)]
+    [InlineData("iPhone", true)]
+    [InlineData("", true)]
+    public void Un_iPad_s_ouvre_sans_le_son(string deviceClass, bool sound)
+    {
+        // An iPad Pro M4 on iPadOS 27.2.1 showed its screen but took no click
+        // (2026-11-11); its last difference from the iPhone that took clicks
+        // was the sound stream, added in 0.14.5.
+        var device = new IPhoneDevice("UDID", "Appareil", "27.2.1", "USB", deviceClass);
+
+        Assert.Equal(sound, device.StreamsSound);
+    }
+
     [Fact]
     public void La_liste_donne_l_identifiant_le_nom_et_la_version()
     {
