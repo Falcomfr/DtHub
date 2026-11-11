@@ -128,11 +128,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
             _ = RefreshWindowColours();
             QueueRetitle();
 
-            // Tabbed, it goes into its tab, kept through an unplug or a retry.
-            if (_tabbed.Contains(key))
-            {
-                _ = AttachToTabsAsync(key, CancellationToken.None);
-            }
+            // Tabbed, it goes into its tab, kept through an unplug or a retry. Untabbed
+            // meanwhile, a window born off screen for the frame comes back free.
+            _ = _tabbed.Contains(key)
+                ? AttachToTabsAsync(key, CancellationToken.None)
+                : FreeUnlessDockedAsync(key);
         };
         // Docked, the window only tells its new shape (an iPhone turned): the frame takes it.
         _iphones.AspectChanged += (_, key) =>
@@ -6365,7 +6365,32 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
-            // Started from an event, not awaited there: the window stays free, said in the log.
+            // Started from an event, not awaited there: said in the log, the window stays free.
+            LogTabsFailure(exception);
+            await FreeUnlessDockedAsync(iosKey).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// Gives an iOS window that did not make it into the frame back its free
+    /// place: one opened again for a tab is born off screen, and nothing else
+    /// would bring it back. Never throws.
+    /// </summary>
+    private async Task FreeUnlessDockedAsync(string iosKey)
+    {
+        try
+        {
+            await OnUiAsync(() =>
+            {
+                if (_iphones.Windows.FirstOrDefault(w => w.Key == iosKey) is { } window
+                    && !_windows.Controller.IsDocked(window.WindowHandle))
+                {
+                    _iphones.SetDocked(iosKey, false);
+                }
+            }).ConfigureAwait(false);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
             LogTabsFailure(exception);
         }
     }
