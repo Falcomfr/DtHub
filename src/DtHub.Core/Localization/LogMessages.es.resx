@@ -842,4 +842,7 @@
   <data name="L'affichage de l'iPhone {name} est abandonné après {attempts} essai(s)." xml:space="preserve">
     <value>Se abandona la pantalla del iPhone {name} tras {attempts} intento(s).</value>
   </data>
+  <data name="Le jeu n'a pas pu être arrêté sur l'iPhone {name}." xml:space="preserve">
+    <value>No se pudo detener el juego en el iPhone {name}.</value>
+  </data>
 </root>

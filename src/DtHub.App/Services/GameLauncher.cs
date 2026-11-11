@@ -111,6 +111,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
             if (ended.End != IosEnd.ByUs)
             {
                 QueueRetitle();
+
+                // Its cross does what the Close button does (D207); given up, it stays.
+                if (ended.End == IosEnd.ByHand)
+                {
+                    _ = ForgetClosedByHandAsync([ended.Key]);
+                }
+
+                NotifyIfNothingLeft();
             }
         };
         _iphones.Opened += (_, _) =>
@@ -3701,7 +3709,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // connecté", six seconds before the sweep reconnected it, and stayed
         // closed (2026-10-26). Only then: an absent phone costs the attempt's
         // few seconds, a present one nothing.
-        if (enabled.Exists(i => !_serials.ContainsKey(i.DeviceId)))
+        if (enabled.Exists(i => !i.IsIos && !_serials.ContainsKey(i.DeviceId)))
         {
             await EnsureKnownDevicesConnectedAsync(cancellationToken).ConfigureAwait(false);
 
@@ -3734,7 +3742,20 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         try
         {
-            return await LaunchHeldAsync(instances, remembered, cancellationToken).ConfigureAwait(false);
+            // The device paths never see an iOS account: its window comes from its own stream.
+            var (android, ios) = IosLaunchSplit.Split(instances);
+
+            if (ios.Count == 0)
+            {
+                return await LaunchHeldAsync(android, remembered, cancellationToken).ConfigureAwait(false);
+            }
+
+            var opened = android.Count > 0
+                ? await LaunchHeldAsync(android, remembered, cancellationToken).ConfigureAwait(false)
+                : new LaunchReport(0, []);
+            var iosOpened = await LaunchIosAsync(ios, remembered, cancellationToken).ConfigureAwait(false);
+
+            return new LaunchReport(opened.Opened + iosOpened.Opened, [.. opened.Problems, .. iosOpened.Problems]);
         }
         finally
         {
@@ -4174,6 +4195,66 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>
+    /// Opens the iOS accounts whose device is listed, each through its own
+    /// stream; an absent one is said and holds no one back. What opened
+    /// stands where it was left and reopens at the next launch.
+    /// </summary>
+    private async Task<LaunchReport> LaunchIosAsync(
+        IReadOnlyList<DofusInstance> accounts,
+        IReadOnlyDictionary<string, StoredWindowRect>? remembered,
+        CancellationToken cancellationToken)
+    {
+        var listed = _iphones.Listed;
+        var missing = IosLaunchSplit.Missing(accounts, listed.Select(d => d.Udid).ToHashSet(StringComparer.Ordinal));
+        List<string> problems = [];
+        List<string> asked = [];
+
+        foreach (var account in accounts)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Its colour and its name, as an Android account's.
+            _launched[account.Key] = account;
+
+            if (missing.Contains(account.Key))
+            {
+                problems.Add(Strings.Format("IosNotPlugged", account.DisplayName));
+                continue;
+            }
+
+            if (IsOpen(account))
+            {
+                continue;
+            }
+
+            try
+            {
+                var device = listed.First(d => d.Udid == account.DeviceId);
+                await RunOnUiAsync(() => _iphones.OpenAsync(account, device, cancellationToken)).ConfigureAwait(false);
+                asked.Add(account.Key);
+            }
+            catch (IPhoneException exception)
+            {
+                // Said in the launch's report, as an Android window's refusal.
+                problems.Add($"{account.DisplayName} : {exception.Message}");
+            }
+        }
+
+        // A window closed while its stream was starting never showed: not placed, not enabled.
+        var shown = _iosWindows.Where(w => w.IsAlive && asked.Contains(w.Key)).ToList();
+
+        if (shown.Count > 0)
+        {
+            remembered ??= await _settings.GetWindowRectsAsync(cancellationToken).ConfigureAwait(false);
+            await _windows.RestoreAsync(shown, remembered, cancellationToken).ConfigureAwait(false);
+            await _settings.SetInstancesEnabledAsync([.. shown.Select(w => w.Key)], enabled: true, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        return new LaunchReport(shown.Count, problems);
+    }
+
+    /// <summary>
     /// Closes then reopens an instance, without touching the
     /// others. The game is properly stopped on the device: without
     /// this it would resume in the state it was in, and the restart
@@ -4184,6 +4265,21 @@ public sealed partial class GameLauncher : IAsyncDisposable
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(instance);
+
+        if (instance.IsIos && IsIosOpen(instance.Key))
+        {
+            // The game restarts on the device, its window kept.
+            try
+            {
+                await RunOnUiAsync(() => _iphones.RestartGameAsync(instance.Key)).ConfigureAwait(false);
+                return new LaunchReport(1, []);
+            }
+            catch (IPhoneException exception)
+            {
+                // Said in the report, as a failed Android restart.
+                return new LaunchReport(0, [$"{instance.DisplayName} : {exception.Message}"]);
+            }
+        }
 
         if (FindSession(instance) is not { } session)
         {
@@ -4337,7 +4433,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         CancelRecovery(instance.Key);
 
-        if (FindSession(instance) is { } session)
+        if (instance.IsIos)
+        {
+            if (_iosWindows.Any(w => w.Key == instance.Key))
+            {
+                await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
+                await CloseIosAsync(instance.Key, byHand: false).ConfigureAwait(false);
+            }
+        }
+        else if (FindSession(instance) is { } session)
         {
             // Geometry is captured before closing: otherwise the
             // window would reopen elsewhere the day it is relaunched.
@@ -4393,6 +4497,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         CancelRecoveries(deviceId);
         await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
+
+        // An iPhone's one account: its UDID never reaches the scrcpy sessions.
+        if (_iosWindows.FirstOrDefault(w => w.Key == IosKeyOf(deviceId)) is { } ios)
+        {
+            await CloseIosAsync(ios.Key, byHand: false).ConfigureAwait(false);
+            await _settings.SetInstancesEnabledAsync([ios.Key], enabled: false, cancellationToken).ConfigureAwait(false);
+            NotifyIfNothingLeft();
+            return;
+        }
 
         var closed = await _sessions.StopDeviceAsync(deviceId, cancellationToken).ConfigureAwait(false);
 
@@ -4567,6 +4680,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
     public async Task ForgetDeviceAsync(string deviceId, CancellationToken cancellationToken = default)
     {
         CancelRecoveries(deviceId);
+
+        // An iPhone: its window closes, the settings then forget its account; no adb, no registry.
+        if ((await _settings.GetAsync(cancellationToken).ConfigureAwait(false)).Instances
+            .Find(i => i.Platform == DevicePlatform.Ios && string.Equals(i.DeviceId, deviceId, StringComparison.Ordinal)) is { } ios)
+        {
+            await CloseIosAsync(IosKeyOf(deviceId), byHand: false).ConfigureAwait(false);
+            LogDeviceForgotten(ios.DeviceName);
+            return;
+        }
 
         foreach (var session in _sessions.ActiveSessions
             .Where(s => string.Equals(s.Target.DeviceId, deviceId, StringComparison.Ordinal))
@@ -4747,6 +4869,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         await _sessions.StopAllAsync(cancellationToken).ConfigureAwait(false);
         _sessions.PruneFinished();
+
+        // Before the playtime writes are awaited: closing an iOS window ends its span.
+        foreach (var key in _iosWindows.Select(w => w.Key).ToList())
+        {
+            await CloseIosAsync(key, byHand: false).ConfigureAwait(false);
+        }
 
         // Again: a window that died before StopAllAsync marked it asked
         // for a recovery in between.
@@ -5465,7 +5593,17 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     /// <summary>True if the instance has an open window.</summary>
-    public bool IsOpen(DofusInstance instance) => FindSession(instance) is not null;
+    public bool IsOpen(DofusInstance instance) =>
+        instance.IsIos ? IsIosOpen(instance.Key) : FindSession(instance) is not null;
+
+    /// <summary>An iOS account's window that shows or waits for its device; one given up or failed does not.</summary>
+    private bool IsIosOpen(string key) => _iosWindows.Any(w => w.IsAlive && w.Key == key);
+
+    /// <summary>A device's one iOS account, as <see cref="SettingsService.EnsureIosAccountAsync" /> keys it.</summary>
+    private static string IosKeyOf(string udid) => $"{udid}|0|{DofusInstance.IosPackage}";
+
+    /// <summary>An iOS account's window that shows or waits for its device keeps DT Hub alive.</summary>
+    public bool HasIosWindows => _iosWindows.Any(w => w.IsAlive);
 
     /// <summary>
     /// Where this account's window is in its life, or <c>null</c> when
@@ -6206,6 +6344,38 @@ public sealed partial class GameLauncher : IAsyncDisposable
         return thread.InvokeAsync(geste).Task;
     }
 
+    /// <summary>Starts an asynchronous UI action on its thread, and waits for its end.</summary>
+    private static async Task RunOnUiAsync(Func<Task> geste)
+    {
+        var running = Task.CompletedTask;
+        await OnUiAsync(() => running = geste()).ConfigureAwait(false);
+        await running.ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Closes an iOS account's window from DT Hub, its game stopped first when
+    /// "Stop the game on close" asks for it, then retitles the others, whose
+    /// keys shift, as <see cref="StopSessionAsync" /> does.
+    /// </summary>
+    private async Task CloseIosAsync(string key, bool byHand)
+    {
+        if (_sessions.StopAppOnClose)
+        {
+            await RunOnUiAsync(() => _iphones.StopGameAsync(key)).ConfigureAwait(false);
+        }
+
+        await RunOnUiAsync(() => _iphones.CloseAsync(key, byHand)).ConfigureAwait(false);
+
+        try
+        {
+            _ = await RefreshWindowTitlesAsync(CancellationToken.None).ConfigureAwait(false);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            LogTitleStatusFailure(exception);
+        }
+    }
+
     /// <summary>
     /// Closes the accounts the tabbed frame was housing.
     ///
@@ -6231,6 +6401,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         foreach (var key in keys)
         {
+            // By hand, as the frame's cross is: its Ended takes it out of the next
+            // startup, unless DT Hub quits (IPhoneScreens.MarkAllStopping).
+            if (_iosWindows.Any(w => w.Key == key))
+            {
+                await CloseIosAsync(key, byHand: true).ConfigureAwait(false);
+                continue;
+            }
+
             if (_sessions.ActiveSessions.FirstOrDefault(
                     s => string.Equals(s.Target.Key, key, StringComparison.Ordinal)) is not { } session)
             {

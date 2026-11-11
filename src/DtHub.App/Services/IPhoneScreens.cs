@@ -205,7 +205,8 @@ public sealed partial class IPhoneScreens(
     {
         if (_windows.Remove(key, out var entry))
         {
-            IosEnd? end = entry.Life.State == IosWindowState.Closed ? null : entry.Life.Close(byHand);
+            // A tab's cross as DT Hub quits is not the player's close (D207).
+            IosEnd? end = entry.Life.State == IosWindowState.Closed ? null : entry.Life.Close(byHand && !_stopping);
 
             // Being opened again, its old window is already closed and the new one
             // not shown yet: the closed life stops the opening (ShowAsync).
@@ -224,6 +225,46 @@ public sealed partial class IPhoneScreens(
 
         return Task.CompletedTask;
     }
+
+    /// <summary>
+    /// Ends the account's game, when its device is listed and the game known:
+    /// an unplugged device is not tried. A failure is logged, never thrown.
+    /// </summary>
+    public async Task StopGameAsync(string key)
+    {
+        if (Controlled(key) is not { } entry)
+        {
+            return;
+        }
+
+        try
+        {
+            await entry.Game!.StopAsync(entry.BundleId!, CancellationToken.None).ConfigureAwait(true);
+        }
+        catch (IPhoneException exception)
+        {
+            LogGameStopFailed(exception, entry.Device.Name);
+        }
+    }
+
+    /// <summary>Stops then starts the account's game again, its window kept.</summary>
+    /// <exception cref="IPhoneException">The message says what to do.</exception>
+    public async Task RestartGameAsync(string key)
+    {
+        if (Controlled(key) is { } entry)
+        {
+            await entry.Game!.StopAsync(entry.BundleId!, CancellationToken.None).ConfigureAwait(true);
+            await entry.Game.LaunchAsync(entry.BundleId!, CancellationToken.None).ConfigureAwait(true);
+        }
+    }
+
+    /// <summary>The account's window whose game can be told what to do: device listed, game found.</summary>
+    private IosGameWindow? Controlled(string key) =>
+        _windows.TryGetValue(key, out var entry)
+        && entry is { Game: not null, BundleId: not null }
+        && Listed.Any(d => d.Udid == entry.Device.Udid)
+            ? entry
+            : null;
 
     /// <summary>DT Hub quits: the windows it closes are not closed by the player (D207).</summary>
     public void MarkAllStopping() => _stopping = true;
@@ -503,6 +544,9 @@ public sealed partial class IPhoneScreens(
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Le jeu n'a pas pu être ouvert sur l'iPhone {name}.")]
     private partial void LogGameFailed(Exception exception, string name);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Le jeu n'a pas pu être arrêté sur l'iPhone {name}.")]
+    private partial void LogGameStopFailed(Exception exception, string name);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "L'affichage de l'iPhone {name} a échoué, nouvel essai {attempt}.")]
     private partial void LogReopening(string name, int attempt);

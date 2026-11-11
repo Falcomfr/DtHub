@@ -3489,4 +3489,7 @@ A phone already paired over Wi-Fi comes back on its own.</value>
   <data name="InstallLinuxToolsArm" xml:space="preserve">
     <value>On an ARM processor DT Hub cannot download adb and scrcpy: install them from your distribution (scrcpy 3 or later) and put them in ~/.local/bin or in the PATH.</value>
   </data>
+  <data name="IosNotPlugged" xml:space="preserve">
+    <value>{0}: the iPhone or iPad is not plugged in.</value>
+  </data>
 </root>

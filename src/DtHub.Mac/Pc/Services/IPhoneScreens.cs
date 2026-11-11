@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 
 using DtHub.App.ViewModels;
+using DtHub.Core.Dofus;
 using DtHub.Core.IPhone;
 using DtHub.Core.Windows;
 
@@ -19,6 +20,8 @@ public sealed class IPhoneScreens
     public ObservableCollection<IPhoneRowViewModel> Devices { get; } = [];
 
     public IReadOnlyList<IGameWindow> Windows => [];
+
+    public IReadOnlyList<IPhoneDevice> Listed => [];
 
     public event EventHandler? Changed
     {
@@ -45,6 +48,14 @@ public sealed class IPhoneScreens
     }
 
     public Task RefreshAsync() => Task.CompletedTask;
+
+    public Task OpenAsync(DofusInstance account, IPhoneDevice device, CancellationToken cancellationToken) => Task.CompletedTask;
+
+    public Task CloseAsync(string key, bool byHand) => Task.CompletedTask;
+
+    public Task StopGameAsync(string key) => Task.CompletedTask;
+
+    public Task RestartGameAsync(string key) => Task.CompletedTask;
 
     public void Show(IReadOnlyList<IPhoneDevice> devices)
     {

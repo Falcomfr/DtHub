@@ -774,7 +774,7 @@ public partial class App : Application, IDisposable
         // it while accounts wait for their phone to come back, or for
         // their window to reopen.
         if (_host?.Services.GetRequiredService<GameLauncher>() is { } launcher
-            && (launcher.ActiveSessions.Count > 0 || launcher.AwaitsPhone || launcher.Recovers || launcher.Launches))
+            && (launcher.ActiveSessions.Count > 0 || launcher.HasIosWindows || launcher.AwaitsPhone || launcher.Recovers || launcher.Launches))
         {
             return;
         }
