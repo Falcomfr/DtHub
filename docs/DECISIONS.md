@@ -12361,3 +12361,100 @@ le coefficient d'XP s'applique après le mélange des deux niveaux, pas avant
 comme pour une étape de quête (`QuestRewards.AchievementExperience`, test sur
 ce relevé). Le « ≈ » de la bulle est retiré. Un seul relevé au-dessus du niveau
 du succès : un deuxième, à un autre niveau, confirmerait l'arrondi.
+
+## D233 - Un iPhone ou un iPad est un compte, comme un téléphone Android
+
+Demandé le 11/11/2026 : la ligne iPhone n'avait qu'« Ouvrir/Fermer », alors
+qu'un compte Android a les onglets, F1-F8, Ctrl+Tab, le rangement, le plein
+écran, le nom, la couleur, le verrou, les teams et le démarrage. L'utilisateur
+veut tout ce que fait un compte Android, autant qu'iOS le permet, en une seule
+version. Suite de D227. Spec et plan :
+`docs/superpowers/specs/2026-11-11-iphone-as-account-design.md`,
+`docs/superpowers/plans/2026-11-11-iphone-as-account.md`.
+
+**Choix : un compte iOS et une seule liste de fenêtres de jeu.** Écartés :
+faire passer la fenêtre iPhone pour une session scrcpy (chaque chemin adb
+aurait visé l'UDID) et recopier chaque fonction pour l'iPhone (deux versions
+qui divergent).
+
+- **Compte.** `StoredInstance` et `DofusInstance` gagnent `Platform`
+  (`Android` par défaut, `Ios`). Clé `UDID|0|ios`, `PackageName` fixé à
+  `ios`, l'identifiant de DOFUS Touch à part (`IosBundleId`). Un appareil
+  listé devient un compte la première fois qu'il est vu ; le balayage des
+  profils Android ne l'oublie jamais, seul « Oublier » le fait.
+- **Fenêtres.** `IGameWindow` (clé, poignée, format) couvre les sessions
+  scrcpy et les fenêtres iPhone (`IosGameWindow`). Tout ce qui ne touche que
+  la fenêtre la lit : Ctrl+Tab, F1-F8, Empiler, Côte à côte, En grille,
+  tailles, plein écran, titre, couleur, place, ordre de la liste. Les chemins
+  qui parlent au téléphone (écran, son, santé, surveillance du jeu,
+  réouverture, relance) lisent les sessions scrcpy seules : aucune commande
+  adb ni scrcpy ne reçoit un UDID. Le cas à part de l'iPhone dans la grille
+  disparaît.
+- **Vie de la fenêtre** (`IosWindowLife`) : ouverture, débranchement (la
+  fenêtre attend à sa place, le temps de jeu s'arrête), retour, échec. Un flux
+  arrêté par une erreur se rouvre comme une session Android (3 réouvertures,
+  mêmes délais) ; un flux qui n'a jamais affiché d'image n'est pas réessayé.
+  Fermé par sa croix, le compte quitte le démarrage suivant (D207) ; fermé par
+  DT Hub, il suit les règles d'Android. « Fermer aussi le jeu sur le
+  téléphone » s'applique.
+- **Le jeu sur l'appareil.** Lister les applis, savoir si le jeu tourne, le
+  lancer et l'arrêter passent par le processus `serve-web` lui-même : des
+  adresses locales ajoutées par `MirrorBootstrap` sur un port de commande
+  réutilisent son tunnel (deux tunnels sur un appareil : inconnu, pas
+  essayable ici). DOFUS Touch est cherché par son nom dans la liste des
+  applis puis gardé dans le compte ; absent, la fenêtre s'ouvre quand même et
+  la ligne dit « DOFUS Touch non installé ». Lancement avec
+  `kill_existing=False`, pour ne pas relancer un jeu déjà ouvert.
+- **Onglets.** La fenêtre iPhone existante est accrochée au cadre comme une
+  fenêtre scrcpy (`SetParent`, `WS_CHILD`), validé sur un faux serveur avant
+  d'écrire le reste. Accrochée, elle ne se redimensionne plus : son format
+  passe au cadre, qui suit la rotation. Le relâchement des appuis tenus part
+  au changement d'onglet et quand le cadre perd le premier plan. Débranché,
+  l'onglet attend avec un texte iPhone (pas celui du Wi-Fi d'Android).
+- **Ligne.** Même modèle de ligne qu'Android, sous l'en-tête de l'appareil
+  (« iPadOS 27.2.1 », USB). Masqués pour iOS : qualité, distance, format du
+  téléphone, mode de jeu, rendu réduit, « + » et le lien d'écran éteint
+  (l'iPhone se tamise par sa fenêtre ou Ctrl+E). Un appareil sous iOS 27 ne
+  s'ouvre jamais, par aucun chemin.
+- **iPad sans son** (branche `fix/ipad-sans-son`, 8fb51e9, incluse) : un iPad
+  Pro M4 en iPadOS 27.2.1 montrait son écran sans prendre un clic ; le son,
+  ajouté en 0.14.5, était la seule différence avec l'iPhone qui prenait les
+  clics. L'iPad s'ouvre sans son ; le son revient quand un appareil confirme.
+
+**Ce qu'iOS ne permet pas** : plusieurs comptes sur un appareil (ni profils,
+ni écrans virtuels), éteindre l'écran (on le tamise), la batterie, la chaleur
+et le Wi-Fi dans le titre, le maintien éveillé, les iPhone en Wi-Fi (USB
+seulement). macOS et Linux restent sans iPhone.
+
+**Vérifié** le 11/11/2026 :
+- tests unitaires (comptes, liste de fenêtres, vie de la fenêtre, temps de
+  jeu, partage d'un lancement, ligne, onglets en attente, lecture de la liste
+  des applis) ; build sans avertissement, format propre ;
+- les adresses du jeu, servies par le vrai script de démarrage avec un faux
+  service d'applis : liste, en cours, lancement, arrêt, refus d'une autre
+  origine ;
+- sur faux serveur (`C:\Dev\dthub-uia\ipadclic7`), deux vraies fenêtres
+  iPhone : accrochées au cadre, appui posté depuis l'onglet, rotation suivie
+  par le cadre, onglet en attente au débranchement, réouverture échangée dans
+  son onglet, décrochage au bon format, fermeture par la croix de l'onglet ;
+- le rendu de la liste avec de vraies lignes iPhone, iPad et Android ;
+- la version de dev sur le PC avec le Xiaomi 13T Pro : Cra et Iop ouverts en
+  onglets, Iop sorti puis réduit puis remis en onglet, Côte à côte et Empiler,
+  Iop fermé par sa ligne puis rouvert, Quitter. Aucun avertissement ni erreur
+  que la 0.14.6 ne produit pas.
+
+**Non vérifié, faute d'iPhone ou d'iPad en iOS 27** : les appuis réels (un
+iPad sans son prend-il enfin les clics ?), le nom exact « DOFUS Touch » dans
+la liste des applis, les noms des champs de la liste des processus (si le jeu
+paraît toujours arrêté, relire `list-apps` et `list-processes`), le
+comportement de `kill_existing=False` sur un jeu ouvert, un second service
+ouvert à côté du flux, le débranchement dans un onglet, Ctrl+E et les
+raccourcis clavier sur un onglet iOS, le plein écran avec un onglet iOS. Le
+premier joueur équipé fera l'essai, comme pour D227.
+
+**Limites connues** : « Oublier » un iPhone encore branché ne tient qu'en
+mémoire (il revient après un redémarrage de DT Hub s'il est toujours
+branché) ; l'icône de la ligne est celle d'un compte Android, aucune sans
+compte Android ; la ligne dit « ouvert » sans le chrono des sessions Android ;
+une fenêtre rouverte peut apparaître un instant libre avant de rejoindre son
+onglet.

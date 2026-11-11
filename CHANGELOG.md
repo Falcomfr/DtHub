@@ -17,6 +17,22 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Added
+
+- An iPhone or iPad is an account in the device list, like an Android phone: open, close, rename, colour, lock, F key, week's playtime and status line.
+- iPhone and iPad accounts open at startup and with teams; one closed by its cross is left out of the next startup, as on Android.
+- iPhone and iPad windows take part in Ctrl+Tab, F1-F8, Stack, Side by side, Grid, the sizes and full screen with the other game windows.
+- An iPhone or iPad can go into the tabbed frame, next to the Android accounts.
+- DT Hub starts DOFUS Touch on the iPhone or iPad when its window opens, and the row's restart button restarts the game there.
+- "Close the game on the phone too" also closes DOFUS Touch on the iPhone or iPad.
+- An iPhone or iPad window that stops on an error reopens by itself, like an Android one.
+
+### Fixed
+
+- An iPad's screen now opens without its sound, the one difference from the iPhone that took clicks.
+
 ## [0.14.6] - 2026-11-11
 
 ### Fixed

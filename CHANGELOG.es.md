@@ -10,6 +10,22 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Añadido
+
+- Un iPhone o un iPad es una cuenta de la lista de dispositivos, como un teléfono Android: abrir, cerrar, renombrar, color, candado, tecla F, tiempo de juego de la semana y línea de estado.
+- Las cuentas de iPhone y iPad se abren al inicio y con los teams; cerrada con su cruz, una cuenta sale del siguiente inicio, como en Android.
+- Las ventanas de iPhone y iPad siguen Ctrl+Tab, F1-F8, Apilar, Lado a lado, En cuadrícula, los tamaños y la pantalla completa con las demás ventanas de juego.
+- Un iPhone o un iPad puede entrar en el marco con pestañas, junto a las cuentas Android.
+- DT Hub abre DOFUS Touch en el iPhone o el iPad al abrir su ventana, y el botón de reinicio de la fila reinicia allí el juego.
+- «Cerrar también el juego en el teléfono» también cierra DOFUS Touch en el iPhone o el iPad.
+- Una ventana de iPhone o iPad detenida por un error se vuelve a abrir sola, como una ventana Android.
+
+### Corregido
+
+- La pantalla de un iPad se abre ahora sin su sonido, la única diferencia con el iPhone que aceptaba los clics.
+
 ## [0.14.6] - 2026-11-11
 
 ### Corregido
