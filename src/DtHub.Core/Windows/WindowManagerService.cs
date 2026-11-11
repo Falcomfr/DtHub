@@ -798,6 +798,13 @@ public sealed class WindowManagerService
             return session.WindowHandle;
         }
 
+        // Only scrcpy owns its process: an iPhone's window lives in DT Hub's, and
+        // the search found another of our windows while it was being reopened.
+        if (session is not ScrcpySession)
+        {
+            return 0;
+        }
+
         var deadline = DateTimeOffset.UtcNow + WindowAppearanceTimeout;
 
         while (true)

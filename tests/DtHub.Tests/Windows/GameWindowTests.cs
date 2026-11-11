@@ -72,4 +72,17 @@ public class GameWindowTests
 
         Assert.Equal(a.WindowHandle, handle);
     }
+
+    [Fact]
+    public async Task Une_fenetre_morte_qui_n_est_pas_une_session_n_est_pas_cherchee_par_son_processus()
+    {
+        // An iPhone window being reopened keeps its closed handle a moment, and
+        // its process is DT Hub's own: searching it found another of our windows.
+        var (manager, _, a, _) = Setup();
+        var reopening = a with { WindowHandle = 999 };
+
+        var handle = await manager.ResolveWindowAsync(reopening);
+
+        Assert.Equal(0, handle);
+    }
 }
