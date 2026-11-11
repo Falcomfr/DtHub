@@ -771,7 +771,7 @@ public partial class App : Application, IDisposable
         // it while accounts wait for their phone to come back, or for
         // their window to reopen.
         if (_host?.Services.GetRequiredService<GameLauncher>() is { } launcher
-            && (launcher.ActiveSessions.Count > 0 || launcher.AwaitsPhone || launcher.Recovers))
+            && (launcher.ActiveSessions.Count > 0 || launcher.AwaitsPhone || launcher.Recovers || launcher.Launches))
         {
             return;
         }
@@ -810,7 +810,23 @@ public partial class App : Application, IDisposable
                 }
             }
 
-            return false;
+            // A first instance still quitting ignores the wake and frees the
+            // slot within its 8 s shutdown: "Quit" then a double click, for an
+            // update, opened nothing. Waited for, this launch carries on.
+            try
+            {
+                mine = _instance.WaitOne(TimeSpan.FromSeconds(10));
+            }
+            catch (AbandonedMutexException)
+            {
+                // The first one ended without releasing it: the slot is ours.
+                mine = true;
+            }
+
+            if (!mine)
+            {
+                return false;
+            }
         }
 
         _wake = new EventWaitHandle(initialState: false, EventResetMode.AutoReset, WakeName);

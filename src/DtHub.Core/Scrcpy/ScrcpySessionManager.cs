@@ -480,6 +480,17 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         CancellationToken cancellationToken,
         bool replace = false)
     {
+        // It pushes a server like an opening does, so it takes its turn in
+        // the same queue, and holds it until the screen is off: two pushes
+        // that overlap break. Without saying the phone busy, which greyed its
+        // play buttons at every switch-off: an opening clicked meanwhile
+        // waits its turn all the same. Taken before the shared lock: taken
+        // after, a 30 s opening on this phone held every other phone's
+        // window closing behind it.
+        await using var lease = await _gate
+            .EnterQuietlyAsync(deviceId, cancellationToken)
+            .ConfigureAwait(false);
+
         // ponytail: one lock for every phone, held until the screen is off
         // (under a second measured, ScreenOffTimeout at worst). A phone that
         // never confirms delays the others by that much; a lock per phone if
@@ -501,15 +512,6 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
                 _ = _screenKeepers.TryRemove(deviceId, out _);
                 await StopKeeperAsync(running).ConfigureAwait(false);
             }
-
-            // It pushes a server like an opening does, so it takes its
-            // turn in the same queue, and holds it until the screen is
-            // off: two pushes that overlap break. Without saying the phone
-            // busy, which greyed its play buttons at every switch-off: an
-            // opening clicked meanwhile waits its turn all the same.
-            await using var lease = await _gate
-                .EnterQuietlyAsync(deviceId, cancellationToken)
-                .ConfigureAwait(false);
 
             IProcessSession keeper;
 
@@ -575,6 +577,12 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         string adbPath,
         CancellationToken cancellationToken)
     {
+        // Its server push takes its turn like the screen-off session's,
+        // before the shared lock for the same reason.
+        await using var lease = await _gate
+            .EnterQuietlyAsync(deviceId, cancellationToken)
+            .ConfigureAwait(false);
+
         await _screenKeepersLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
         try
@@ -590,11 +598,6 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
                 _ = _awakeKeepers.TryRemove(deviceId, out _);
                 await StopKeeperAsync(running).ConfigureAwait(false);
             }
-
-            // Its server push takes its turn like the screen-off session's.
-            await using var lease = await _gate
-                .EnterQuietlyAsync(deviceId, cancellationToken)
-                .ConfigureAwait(false);
 
             IProcessSession keeper;
 

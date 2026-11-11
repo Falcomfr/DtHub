@@ -597,6 +597,40 @@ public class ScrcpySessionManagerTests
     }
 
     [Fact]
+    public async Task Une_ouverture_lente_sur_un_telephone_ne_retient_pas_la_fermeture_sur_un_autre()
+    {
+        // Phone A's screen-off waited A's queue while holding the lock every
+        // phone shares: closing a window on B waited A's opening out.
+        var keeperB = new FakeProcessSession(19).Emit(ScreenOffLine);
+        var launcher = new FakeProcessLauncher()
+            .Prepare(new FakeProcessSession(1).Emit(NewDisplayLine))
+            .Prepare(new FakeProcessSession(9).Emit(ScreenOffLine))
+            .Prepare(new FakeProcessSession(11).Emit(NewDisplayLine))
+            .Prepare(keeperB)
+            .Prepare(new FakeProcessSession(2))
+            .Prepare(new FakeProcessSession(29).Emit(ScreenOffLine));
+
+        await using var manager = Manager(launcher, new FakeAppLauncher(), TimeSpan.FromSeconds(20));
+
+        var phoneB = Target() with { DeviceId = "MATERIEL456", Serial = "USB0002" };
+        _ = await manager.StartAsync(Target(0), DarkScreen, null, CancellationToken.None);
+        var b = await manager.StartAsync(phoneB, DarkScreen, null, CancellationToken.None);
+
+        using var stop = new CancellationTokenSource();
+        var slowOpening = manager.StartAsync(Target(999), DarkScreen, null, stop.Token);
+        await Task.Delay(200);
+        var screenAgain = manager.TurnScreenOffAgainAsync(Target().DeviceId, Target().Serial, stop.Token);
+        await Task.Delay(200);
+
+        await manager.StopAsync(b.Id, CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(3));
+
+        Assert.True(keeperB.WasKilled);
+
+        await stop.CancelAsync();
+        await Task.WhenAll(slowOpening, screenAgain).ContinueWith(_ => { }, TaskScheduler.Default);
+    }
+
+    [Fact]
     public async Task Un_ecran_qui_ne_confirme_pas_ne_bloque_pas_l_ouverture()
     {
         // A keeper that never says the screen is off: the opening goes

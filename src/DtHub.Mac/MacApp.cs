@@ -798,7 +798,7 @@ internal sealed class MacApp : Application
 
         var launcher = _services.GetRequiredService<GameLauncher>();
 
-        if (launcher.ActiveSessions.Count > 0 || launcher.AwaitsPhone || launcher.Recovers)
+        if (launcher.ActiveSessions.Count > 0 || launcher.AwaitsPhone || launcher.Recovers || launcher.Launches)
         {
             return;
         }

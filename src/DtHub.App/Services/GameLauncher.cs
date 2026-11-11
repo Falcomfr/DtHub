@@ -957,6 +957,22 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }
     }
 
+    /// <summary>
+    /// True while any account is being launched. A reopen stops every window
+    /// then pauses five seconds: the panel hidden meanwhile, the application
+    /// quit in the middle of it.
+    /// </summary>
+    public bool Launches
+    {
+        get
+        {
+            lock (_launching)
+            {
+                return _launching.Count > 0;
+            }
+        }
+    }
+
     /// <summary>Raised when an account starts or ends being launched, from any thread.</summary>
     public event EventHandler? LaunchingChanged;
 
@@ -980,6 +996,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
         }
 
         LaunchingChanged?.Invoke(this, EventArgs.Empty);
+
+        // The quit held back by Launches is asked again once nothing launches.
+        if (!held && !Launches)
+        {
+            NotifyIfNothingLeft();
+        }
     }
 
     /// <summary>
@@ -1505,7 +1527,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
             }
 
             var state = await _appLauncher
-                .ReadGameWindowAsync(session.Serial, display, session.Target.PackageName, CancellationToken.None)
+                .ReadGameWindowAsync(Routable(session.Target), display, session.Target.PackageName, CancellationToken.None)
                 .ConfigureAwait(false);
 
             _windowStates[session.Id] = $"{session.DisplayName} ({DisplaySize(session)}) : {state}";
@@ -1533,7 +1555,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
             }
 
             var modes = await _appLauncher
-                .ReadGameModesAsync(session.Serial, session.Target.UserId, session.Target.PackageName, CancellationToken.None)
+                .ReadGameModesAsync(Routable(session.Target), session.Target.UserId, session.Target.PackageName, CancellationToken.None)
                 .ConfigureAwait(false);
 
             if (modes is not null)
@@ -1650,7 +1672,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
             // page open, Install on DTStuff only brought that window forward.
             if (instance.StartUri is { } uri && open.VirtualDisplayId is { } display)
             {
-                _ = await _appLauncher.OpenUriAsync(open.Serial, 0, uri, display, cancellationToken)
+                _ = await _appLauncher.OpenUriAsync(Routable(open.Target), 0, uri, display, cancellationToken)
                     .ConfigureAwait(false);
             }
 
@@ -3718,6 +3740,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         ProbeEncoders(instances, devices);
 
+        // Sessions that died on their own (a Wi-Fi drop, a refused display)
+        // were never pruned: each kept its process handle and output for the
+        // whole evening. Every recovery comes through here.
+        _sessions.PruneFinished();
+
         List<ScrcpySession> started = [];
 
         // Tabs share one frame, so one format: an open tab's, else the first
@@ -4042,12 +4069,13 @@ public sealed partial class GameLauncher : IAsyncDisposable
             _ = await RefreshWindowTitlesAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        // What has just opened will reopen at the next launch. Only
-        // the "Close" button removes an instance from this set:
-        // closing a game window by hand should change nothing here.
+        // What has just opened will reopen at the next launch. A window
+        // already closed by its cross, while later accounts were still
+        // opening, has left the next startup (D207) and must not come back.
         // A window opened in passing, the Play Store's or a MakeInTouch
         // app's, is never part of that set.
-        if (started.Where(s => !s.Target.IsTransient).Select(s => s.Target.Key).ToList() is { Count: > 0 } kept)
+        if (started.Where(s => !s.Target.IsTransient && s.State != ScrcpySessionState.Stopped)
+                .Select(s => s.Target.Key).ToList() is { Count: > 0 } kept)
         {
             await _settings.SetInstancesEnabledAsync(kept, enabled: true, cancellationToken)
                 .ConfigureAwait(false);
@@ -4095,9 +4123,19 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // reopened, which remains the last useful resort.
         LogRestartFallback(instance.DisplayName, restart.UserMessage ?? LogMessages.Translate("afficheur inconnu"));
 
-        await StopSessionAsync(session, cancellationToken).ConfigureAwait(false);
+        // Held across the gap, or a hidden panel quits the application there.
+        HoldLaunching([instance.Key], held: true);
 
-        return await LaunchAsync([instance], cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await StopSessionAsync(session, cancellationToken).ConfigureAwait(false);
+
+            return await LaunchAsync([instance], cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            HoldLaunching([instance.Key], held: false);
+        }
     }
 
     /// <summary>
@@ -4172,7 +4210,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         ArgumentNullException.ThrowIfNull(instance);
 
-        var serial = FindSession(instance)?.Serial ?? _serials.GetValueOrDefault(instance.DeviceId);
+        // The routable serial first: the session's own may be an mDNS name adb refuses.
+        var serial = _serials.GetValueOrDefault(instance.DeviceId) ?? FindSession(instance)?.Serial;
 
         if (serial is null
             || !await _appLauncher
@@ -4646,7 +4685,9 @@ public sealed partial class GameLauncher : IAsyncDisposable
             await OnUiAsync(() => _tabs?.DetachAll()).ConfigureAwait(false);
         }
 
-        await _hotkeys.SetEnabledAsync(false).ConfigureAwait(false);
+        // Asked of the window in front, not switched off: off, they stayed
+        // dead with the panel in front until another window came forward.
+        OnForegroundChanged(this, 0);
     }
 
     /// <summary>
@@ -6313,6 +6354,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
     {
         if (_hotkeysWired)
         {
+            // A close-all may have left them asleep with the panel in front.
+            OnForegroundChanged(this, 0);
             return;
         }
 

@@ -176,8 +176,23 @@ public sealed partial class JsonDocumentStore<T> : IDocumentStore<T>, IDisposabl
             // Compared with the file itself rather than with what this store
             // last wrote: a restore or a hand edit in between would otherwise
             // have had its replacement skipped.
-            if (File.Exists(FilePath)
-                && await File.ReadAllTextAsync(FilePath, cancellationToken).ConfigureAwait(false) == json)
+            //
+            // Unreadable for a moment, an antivirus holding it: the write
+            // goes ahead, the comparison only spares a needless one.
+            string? current = null;
+
+            try
+            {
+                current = File.Exists(FilePath)
+                    ? await File.ReadAllTextAsync(FilePath, cancellationToken).ConfigureAwait(false)
+                    : null;
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                // Compared as different: the write below retries on its own.
+            }
+
+            if (current == json)
             {
                 return;
             }
@@ -195,8 +210,22 @@ public sealed partial class JsonDocumentStore<T> : IDocumentStore<T>, IDisposabl
 
             // Replacement in a single operation: the final file is
             // either the old one or the new one, never a mix of the
-            // two.
-            File.Move(temporary, FilePath, overwrite: true);
+            // two. Retried as reading is: tried once, a file held by an
+            // antivirus lost the windows' places at exit.
+            for (var attempt = 1; ; attempt++)
+            {
+                try
+                {
+                    File.Move(temporary, FilePath, overwrite: true);
+                    break;
+                }
+                catch (Exception exception) when (exception is IOException or UnauthorizedAccessException
+                                                  && attempt < ReadAttempts)
+                {
+                    // Still held: the last attempt throws to the caller as before.
+                    await Task.Delay(ReadRetryDelay, cancellationToken).ConfigureAwait(false);
+                }
+            }
         }
         finally
         {
