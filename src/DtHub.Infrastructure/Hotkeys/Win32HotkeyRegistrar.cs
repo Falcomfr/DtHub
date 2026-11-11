@@ -29,7 +29,6 @@ public sealed partial class Win32HotkeyRegistrar : IHotkeyRegistrar
     private HotkeySet _hotkeys = HotkeySet.Default;
     private uint _threadId;
     private nint _winEventHook;
-    private int _nextId = 1;
     private volatile bool _enabled;
     private bool _disposed;
 
@@ -204,9 +203,14 @@ public sealed partial class Win32HotkeyRegistrar : IHotkeyRegistrar
     {
         List<HotkeyAction> refused = [];
 
+        // Ids reused from one registration to the next, all of them freed
+        // before: counted up, ~23 per foreground return, they would pass
+        // 0xBFFF, the documented ceiling, within a long evening.
+        var id = 0;
+
         foreach (var binding in _hotkeys.Bindings.Where(b => b.IsAssigned))
         {
-            var id = _nextId++;
+            id++;
 
             // MOD_NOREPEAT prevents a held key from triggering the
             // action dozens of times per second.

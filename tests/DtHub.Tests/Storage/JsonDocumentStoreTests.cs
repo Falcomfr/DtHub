@@ -42,6 +42,23 @@ public sealed class JsonDocumentStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task Un_fichier_tenu_un_instant_par_l_antivirus_est_quand_meme_ecrit()
+    {
+        using var store = Store();
+        await store.SaveAsync(new Reglages { Nom = "avant" }, CancellationToken.None);
+
+        // Held as an antivirus scan does, then let go: reading already
+        // retried, writing gave up at once and lost the exit state.
+        var held = new FileStream(Path0, FileMode.Open, FileAccess.Read, FileShare.None);
+        var released = Task.Delay(400).ContinueWith(_ => held.Dispose(), TaskScheduler.Default);
+
+        await store.SaveAsync(new Reglages { Nom = "après" }, CancellationToken.None);
+        await released;
+
+        Assert.Contains("après", await File.ReadAllTextAsync(Path0));
+    }
+
+    [Fact]
     public async Task Ce_qui_est_ecrit_est_relu_a_l_identique()
     {
         using var store = Store();

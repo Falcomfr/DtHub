@@ -342,6 +342,13 @@ public sealed partial class Win32WindowController : IWindowController
             return false;
         }
 
+        // A minimized window has no rectangle: refused, it stayed free while
+        // already counted as a tab, ignored by Arrange and the grid.
+        if (IsIconic(child))
+        {
+            _ = ShowWindow(child, SwShowNoActivate);
+        }
+
         var style = GetWindowLong(child, GwlStyle);
         var rect = GetWindowRect(child);
 
