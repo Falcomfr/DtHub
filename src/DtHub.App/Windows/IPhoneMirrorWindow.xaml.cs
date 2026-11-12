@@ -399,13 +399,13 @@ public partial class IPhoneMirrorWindow : Window
         }
     }
 
-    /// <param name="capture">Set for the HD picture: its capture is stopped cleanly before the tool is killed.</param>
-    public IPhoneMirrorWindow(IPhoneDevice device, int port, IProcessSession session, WebViewEnvironment engine, bool dark, IosGameControl? capture)
+    /// <param name="hd">The tool streams the HD picture, H.264.</param>
+    public IPhoneMirrorWindow(IPhoneDevice device, int port, IProcessSession session, WebViewEnvironment engine, bool dark, bool hd)
     {
         ArgumentNullException.ThrowIfNull(device);
 
         _dark = dark;
-        _hd = capture is not null;
+        _hd = hd;
         _session = session;
         _engine = engine;
         _address = new Uri($"http://127.0.0.1:{port.ToString(CultureInfo.InvariantCulture)}/");
@@ -439,22 +439,6 @@ public partial class IPhoneMirrorWindow : Window
 
             _closed = true;
             View.Dispose();
-
-            // Killed in its capture, the device stayed in QuickTime's USB configuration.
-            if (capture is not null && !_session.HasExited)
-            {
-                using var limit = new CancellationTokenSource(TimeSpan.FromSeconds(2));
-                try
-                {
-                    await capture.StopCaptureAsync(limit.Token).ConfigureAwait(true);
-                }
-                catch (Exception exception) when (exception is IPhoneException or OperationCanceledException)
-                {
-                    // Killed below all the same.
-                    Log.Information(exception, "La capture HD de l'iPhone ne s'est pas arrêtée proprement.");
-                }
-            }
-
             await _session.DisposeAsync().ConfigureAwait(true);
         };
     }

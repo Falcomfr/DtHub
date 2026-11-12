@@ -25,6 +25,9 @@ public sealed partial class IPhoneScreens(
     // A close or a quit waits this long at most for the device to end its game.
     private static readonly TimeSpan StopLimit = TimeSpan.FromSeconds(3);
 
+    // The tool answers capture/stop within about 2 s.
+    private static readonly TimeSpan CaptureStopLimit = TimeSpan.FromSeconds(2);
+
     private readonly Dictionary<string, IosGameWindow> _windows = new(StringComparer.Ordinal);
     private readonly HashSet<string> _opening = new(StringComparer.Ordinal);
 
@@ -224,7 +227,7 @@ public sealed partial class IPhoneScreens(
                     return;
 
                 case IosWindowState.Closed:
-                    // Given up, its window saying why: a fresh start.
+                    // Given up, its window saying why: a fresh start. Its tool is gone, no capture to stop.
                     shown.Window.Close();
                     break;
 
@@ -250,8 +253,15 @@ public sealed partial class IPhoneScreens(
     }
 
     /// <summary>Closes the account's window; <paramref name="byHand"/> says the player asked for it.</summary>
-    public Task CloseAsync(string key, bool byHand)
+    public async Task CloseAsync(string key, bool byHand)
     {
+        // DT Hub's every caller closes the account for good (stop, forget, quit, the frame's cross).
+        if (_windows.TryGetValue(key, out var closing) && !_opening.Contains(key))
+        {
+            using var limit = new CancellationTokenSource(CaptureStopLimit);
+            await StopCaptureAsync(closing, limit.Token).ConfigureAwait(true);
+        }
+
         if (_windows.Remove(key, out var entry))
         {
             // A tab's cross as DT Hub quits is not the player's close (D207).
@@ -271,8 +281,6 @@ public sealed partial class IPhoneScreens(
                 Ended?.Invoke(this, (key, ended));
             }
         }
-
-        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -338,6 +346,38 @@ public sealed partial class IPhoneScreens(
             ? entry
             : null;
 
+    /// <summary>DT Hub quits: every HD device shown goes back to its normal USB configuration, <see cref="CaptureStopLimit"/> in all.</summary>
+    public async Task StopAllCapturesAsync()
+    {
+        using var limit = new CancellationTokenSource(CaptureStopLimit);
+        await Task.WhenAll(Shown.ToList().Select(entry => StopCaptureAsync(entry, limit.Token))).ConfigureAwait(true);
+    }
+
+    /// <summary>
+    /// The player closes an HD account for good: its capture ends cleanly before the tool
+    /// is killed, the device back in its normal USB configuration. Never on a reopen
+    /// (<see cref="ReopenAsync"/>). Logged, never thrown.
+    /// </summary>
+    private async Task StopCaptureAsync(IosGameWindow entry, CancellationToken cancellationToken)
+    {
+        // Unplugged, failed or given up: its tool is gone already.
+        if (entry is not { HdStartedUtc: not null, Game: { } game, Life.State: IosWindowState.Open or IosWindowState.Opening }
+            || entry.Window.IsUnplugged)
+        {
+            return;
+        }
+
+        try
+        {
+            await game.StopCaptureAsync(cancellationToken).ConfigureAwait(true);
+        }
+        catch (Exception exception) when (exception is IPhoneException or OperationCanceledException)
+        {
+            // Killed by the close all the same.
+            LogCaptureStopFailed(exception, entry.Device.Name);
+        }
+    }
+
     /// <summary>DT Hub quits: the windows it closes are not closed by the player (D207).</summary>
     public void MarkAllStopping() => _stopping = true;
 
@@ -364,7 +404,7 @@ public sealed partial class IPhoneScreens(
 
         try
         {
-            window = new IPhoneMirrorWindow(device, port, session, engine, dark: preferences.TurnScreenOff, capture: libusb0Path is null ? null : game);
+            window = new IPhoneMirrorWindow(device, port, session, engine, dark: preferences.TurnScreenOff, hd: libusb0Path is not null);
 
             // A docked account's is placed by ShowForFrame below.
             if (!entry.Docked && place is { IsEmpty: false } rect)
@@ -413,8 +453,8 @@ public sealed partial class IPhoneScreens(
 
             var preferences = settings.GetAsync(CancellationToken.None);
 
-            // Read from memory, the setting is known now: off, nothing to hold.
-            if (preferences.IsCompletedSuccessfully && !preferences.Result.StopAppOnClose)
+            // Read from memory, the setting is known now: off and no HD capture to stop, nothing to hold.
+            if (preferences.IsCompletedSuccessfully && !preferences.Result.StopAppOnClose && entry.HdStartedUtc is null)
             {
                 return;
             }
@@ -550,7 +590,8 @@ public sealed partial class IPhoneScreens(
         entry.Life.Replugged();
 
         // Closed first, as before: two tools on one device at once is not tried.
-        // Its Closed sees the reopening and ends nothing.
+        // Its Closed sees the reopening and ends nothing. No capture/stop here: it would
+        // re-enumerate the device under the next tool, which reuses the capture configuration.
         old.Close();
         Changed?.Invoke(this, EventArgs.Empty);
 
@@ -591,7 +632,7 @@ public sealed partial class IPhoneScreens(
         && !_opening.Contains(entry.Key)
         && IsCurrent(entry, window)
         && entry.Life.State == IosWindowState.Open
-        && Controlled(entry.Key) is not null;
+        && (Controlled(entry.Key) is not null || entry.HdStartedUtc is not null);
 
     private async Task StopThenCloseAsync(IosGameWindow entry, IPhoneMirrorWindow window, Task<AppSettingsDocument> preferences)
     {
@@ -609,6 +650,11 @@ public sealed partial class IPhoneScreens(
         {
             // The settings could not be read: the window still closes.
             LogGameStopFailed(exception, entry.Device.Name);
+        }
+
+        using (var limit = new CancellationTokenSource(CaptureStopLimit))
+        {
+            await StopCaptureAsync(entry, limit.Token).ConfigureAwait(true);
         }
 
         try
@@ -717,6 +763,9 @@ public sealed partial class IPhoneScreens(
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Le jeu n'a pas pu être arrêté sur l'iPhone {name}.")]
     private partial void LogGameStopFailed(Exception exception, string name);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "La capture HD de l'iPhone {name} ne s'est pas arrêtée proprement.")]
+    private partial void LogCaptureStopFailed(Exception exception, string name);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Les jeux des iPhone n'ont pas pu être arrêtés à la fermeture.")]
     private partial void LogStopAllFailed(Exception exception);

@@ -606,6 +606,9 @@ public partial class App : Application, IDisposable
             if (_host?.Services.GetRequiredService<IPhoneScreens>() is { } iphones)
             {
                 await iphones.StopAllGamesAsync().ConfigureAwait(true);
+
+                // Then the HD captures, the devices back in their normal USB configuration (2 s at most).
+                await iphones.StopAllCapturesAsync().ConfigureAwait(true);
             }
         }
         finally
