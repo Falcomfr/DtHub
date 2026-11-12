@@ -3552,4 +3552,7 @@ Un téléphone déjà associé en Wi-Fi revient tout seul.</value>
   <data name="IosHdHelp" xml:space="preserve">
     <value>Image floue ? Essaie l'Image HD dans les réglages.</value>
   </data>
+  <data name="IosHdRemoveFailed" xml:space="preserve">
+    <value>Le pilote USB de l'image HD n'a pas été retiré. Tu peux réessayer en cochant puis décochant la case.</value>
+  </data>
 </root>

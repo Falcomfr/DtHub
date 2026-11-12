@@ -228,8 +228,8 @@ server for the whole machine. A test verifies this.
 - Touching Windows Defender, creating antivirus exclusions,
   requesting elevation. One exception, bounded by D234: running
   `install-filter.exe install` or `uninstall` (libusb-win32, binaries from
-  `build/dependencies.json`) on Apple devices only, after the player
-  explicitly turned Image HD on or off. Nothing else asks for elevation.
+  `build/dependencies.json`) on Apple devices only, once per device, after
+  the player explicitly turned Image HD on (or clicked Activate) or off. Nothing else asks for elevation.
 - A low-level keyboard hook. Shortcuts go through `RegisterHotKey`,
   active only when a DT Hub window is active.
 - Downloading or running a binary from an unofficial source. The

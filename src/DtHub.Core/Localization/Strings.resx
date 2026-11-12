@@ -3552,4 +3552,7 @@ A phone already paired over Wi-Fi comes back on its own.</value>
   <data name="IosHdHelp" xml:space="preserve">
     <value>Blurry picture? Try the HD picture in the settings.</value>
   </data>
+  <data name="IosHdRemoveFailed" xml:space="preserve">
+    <value>The HD picture's USB driver was not removed. You can try again by ticking then unticking the box.</value>
+  </data>
 </root>

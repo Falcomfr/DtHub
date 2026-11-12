@@ -637,12 +637,14 @@
 
                   <CheckBox Content="{loc:T IosHdPicture}" Margin="0,0,0,5"
                             IsChecked="{Binding IosHdPicture}"
+                            IsEnabled="{Binding IosHdBusy, Converter={StaticResource InverseBool}}"
                             ToolTip="{loc:T IosHdPictureTip}" />
                   <StackPanel Orientation="Horizontal" Margin="22,0,0,5"
                               Visibility="{Binding IosHdPending, Converter={StaticResource EmptyToVisibility},
                                                 ConverterParameter=inverse}">
                     <TextBlock Text="{Binding IosHdPending}" VerticalAlignment="Center" Margin="0,0,10,0" />
-                    <Button Content="{loc:T IosHdActivate}" Command="{Binding ActivateHdDevicesCommand}" MinWidth="80" />
+                    <Button Content="{loc:T IosHdActivate}" Command="{Binding ActivateHdDevicesCommand}"
+                            IsEnabled="{Binding IosHdBusy, Converter={StaticResource InverseBool}}" MinWidth="80" />
                   </StackPanel>
 
                   <Popup IsOpen="{Binding IsChecked, ElementName=CustomGear, Mode=TwoWay}" StaysOpen="False"

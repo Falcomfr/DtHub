@@ -12494,9 +12494,10 @@ l'appareil, donc une élévation, ce que `AGENTS.md` interdit et que
 pour une exception bornée :
 - sur demande seulement : la case « Image HD (iPhone et iPad) », décochée par
   défaut ; DT Hub explique ce qu'il installe avant que Windows demande ;
-- une élévation pour installer le filtre, sur les appareils Apple seulement
-  (`USB\VID_05AC&PID_xxxx`, parent composite, id exact en majuscules), une pour
-  le retirer si le joueur décoche et accepte ;
+- une élévation par appareil Apple pour installer le filtre, sur ces appareils
+  seulement (`USB\VID_05AC&PID_xxxx`, parent composite, id exact en
+  majuscules), et une par appareil pour le retirer si le joueur décoche et
+  accepte ; un appareil branché plus tard demande « Activer » ;
 - les binaires viennent de `build/dependencies.json` (libusb-win32, hash
   vérifié) ; le filtre se pose par-dessus le pilote d'Apple et ne le remplace
   pas : les clics, les touches et les commandes du jeu passent comme avant ;

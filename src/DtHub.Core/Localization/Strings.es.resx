@@ -3552,4 +3552,7 @@ Un teléfono ya vinculado por Wi-Fi vuelve solo.</value>
   <data name="IosHdHelp" xml:space="preserve">
     <value>¿Imagen borrosa? Prueba la Imagen HD en los ajustes.</value>
   </data>
+  <data name="IosHdRemoveFailed" xml:space="preserve">
+    <value>El controlador USB de la imagen HD no se quitó. Puedes volver a intentarlo marcando y desmarcando la casilla.</value>
+  </data>
 </root>
