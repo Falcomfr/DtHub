@@ -51,22 +51,86 @@ public partial class IPhoneMirrorWindow : Window
           }; }
         // Without a size in its config, as the viewer sets it, Edge hands each
         // frame cropped to 1280x720: the top of the screen only (measured
-        // 2026-11-09). The whole picture is decoded, so show all of it.
-        // shortcut: the coded size may hold a few alignment pixels past the picture, unseen at 1264x2752.
+        // 2026-11-09). Given one, it shows that size, whatever the stream says
+        // (2026-11-12). So the picture's own size, read in the stream's SPS, goes
+        // in the config: the encoder rounds it up to whole blocks (an iPad's 1668
+        // sent as 1680), and showing the rounded frame left a black band at the
+        // edge, clicks shifted as much.
+        const pictureSize = description => {
+          try {
+            const b = ArrayBuffer.isView(description)
+              ? new Uint8Array(description.buffer, description.byteOffset, description.byteLength)
+              : new Uint8Array(description);
+            // hvcC: its arrays of parameter sets start at byte 23; the SPS is NAL type 33.
+            let p = 23, sps = null;
+            for (let a = 0; a < b[22] && !sps; a++) {
+              const type = b[p] & 63, count = (b[p + 1] << 8) | b[p + 2];
+              p += 3;
+              for (let n = 0; n < count; n++) {
+                const length = (b[p] << 8) | b[p + 1];
+                if (type === 33 && !sps) sps = b.subarray(p + 2, p + 2 + length);
+                p += 2 + length;
+              }
+            }
+            if (!sps) return null;
+            // Past its 2-byte header, without the emulation-prevention bytes (00 00 03).
+            const bytes = [];
+            for (let i = 2; i < sps.length; i++) {
+              if (i >= 4 && sps[i] === 3 && sps[i - 1] === 0 && sps[i - 2] === 0) continue;
+              bytes.push(sps[i]);
+            }
+            let bit = 0;
+            const u = n => { let v = 0; for (let k = 0; k < n; k++, bit++) v = v * 2 + ((bytes[bit >> 3] >> (7 - (bit & 7))) & 1); return v; };
+            const ue = () => { let zeros = 0; while (u(1) === 0) if (++zeros > 31) throw new Error('SPS'); return 2 ** zeros - 1 + u(zeros); };
+            u(4);
+            const layers = u(3);
+            u(1);
+            bit += 96; // general profile, tier and level
+            const present = [];
+            for (let i = 0; i < layers; i++) present.push([u(1), u(1)]);
+            if (layers > 0) bit += 2 * (8 - layers);
+            for (const [profile, level] of present) bit += (profile ? 88 : 0) + (level ? 8 : 0);
+            ue();
+            const chroma = ue();
+            if (chroma === 3) u(1);
+            let width = ue(), height = ue();
+            if (u(1)) {
+              const left = ue(), right = ue(), top = ue(), bottom = ue();
+              // Cropped from the top or left: Edge would still show the frame from 0,0.
+              if (left || top) return null;
+              width -= (chroma === 1 || chroma === 2 ? 2 : 1) * right;
+              height -= (chroma === 1 ? 2 : 1) * bottom;
+            }
+            return width > 0 && height > 0 ? { width, height } : null;
+          } catch (e) {
+            return null;
+          }
+        };
         if (typeof VideoDecoder !== 'undefined') {
           window.VideoDecoder = class extends VideoDecoder {
             constructor(init) {
+              const sized = { on: false };
               super({ ...init, output: f => {
                 const w = f.codedWidth, h = f.codedHeight;
-                if (f.visibleRect.width === w && f.visibleRect.height === h && f.displayWidth === w && f.displayHeight === h) {
+                // A size read wrong would cut the picture: the rounding never reaches a 64-pixel block.
+                const read = sized.on && w - f.visibleRect.width < 64 && h - f.visibleRect.height < 64;
+                if (read || (f.visibleRect.width === w && f.visibleRect.height === h && f.displayWidth === w && f.displayHeight === h)) {
                   init.output(f);
                   return;
                 }
+                // No size read: the whole decoded frame, its rounding margin included, beats Edge's crop.
                 let whole;
                 try { whole = new VideoFrame(f, { visibleRect: { x: 0, y: 0, width: w, height: h }, displayWidth: w, displayHeight: h }); }
                 finally { f.close(); }
                 init.output(whole);
               } });
+              this.sized = sized;
+            }
+
+            configure(config) {
+              const size = config && config.description ? pictureSize(config.description) : null;
+              this.sized.on = !!size;
+              super.configure(size ? { ...config, codedWidth: size.width, codedHeight: size.height } : config);
             }
           };
         }
