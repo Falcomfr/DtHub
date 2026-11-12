@@ -200,13 +200,19 @@ public sealed class WindowManagerService
     private (int Width, int Height) ComputeSize(
         MonitorInfo monitor,
         double sourceAspectRatio,
-        (int Width, int Height) chrome)
+        (int Width, int Height) chrome,
+        int? heightCap = null)
     {
         var work = UsableArea(monitor);
         var fraction = Math.Clamp(SizePercent, 20, 100) / 100.0;
 
         var availableWidth = Math.Max(1, (int)Math.Round(work.Width * fraction));
         var availableHeight = Math.Max(1, (int)Math.Round(work.Height * fraction));
+
+        if (heightCap is { } cap)
+        {
+            availableHeight = Math.Min(availableHeight, cap + chrome.Height);
+        }
 
         if (sourceAspectRatio <= 0)
         {
@@ -568,7 +574,7 @@ public sealed class WindowManagerService
             return 0;
         }
 
-        var resized = 0;
+        List<(IGameWindow Session, nint Handle, ScreenRect Current, (int Width, int Height) Chrome, ScreenRect Target)> planned = [];
 
         foreach (var session in sessions.Where(s => s.IsAlive))
         {
@@ -586,9 +592,40 @@ public sealed class WindowManagerService
                 continue;
             }
 
-            if (ResizedRect(handle, session.SourceAspectRatio, MeasureChrome(handle))
-                is not { } target
-                || target == current)
+            var chrome = MeasureChrome(handle);
+
+            if (ResizedRect(handle, session.SourceAspectRatio, chrome) is { } target)
+            {
+                planned.Add((session, handle, current, chrome, target));
+            }
+        }
+
+        // Windows of different shapes on one screen get the height of the
+        // lowest: an iPhone's long screen fills its share's width first, an
+        // iPad's its height, and the iPad came out far taller (2026-11-12).
+        foreach (var screen in planned.GroupBy(p => MonitorOf(p.Handle)?.DeviceName))
+        {
+            var lowest = screen.Min(p => p.Target.Height - p.Chrome.Height);
+
+            for (var i = 0; i < planned.Count; i++)
+            {
+                var p = planned[i];
+
+                if (screen.Contains(p)
+                    && p.Session.SourceAspectRatio > 0
+                    && p.Target.Height - p.Chrome.Height > lowest
+                    && ResizedRect(p.Handle, p.Session.SourceAspectRatio, p.Chrome, lowest) is { } lower)
+                {
+                    planned[i] = p with { Target = lower };
+                }
+            }
+        }
+
+        var resized = 0;
+
+        foreach (var (session, handle, current, _, target) in planned)
+        {
+            if (target == current)
             {
                 continue;
             }
@@ -1112,7 +1149,7 @@ public sealed class WindowManagerService
     /// Aspect ratio of the image, zero if unknown.
     /// </param>
     /// <param name="chrome">Footprint of the window chrome.</param>
-    public ScreenRect? ResizedRect(nint handle, double aspectRatio, (int Width, int Height) chrome)
+    public ScreenRect? ResizedRect(nint handle, double aspectRatio, (int Width, int Height) chrome, int? heightCap = null)
     {
         if (MonitorOf(handle) is not { } monitor)
         {
@@ -1120,7 +1157,7 @@ public sealed class WindowManagerService
         }
 
         var work = UsableArea(monitor);
-        var (width, height) = ComputeSize(monitor, aspectRatio, chrome);
+        var (width, height) = ComputeSize(monitor, aspectRatio, chrome, heightCap);
 
         if (_controller.GetWindowRect(handle) is not { } current || current.IsEmpty)
         {

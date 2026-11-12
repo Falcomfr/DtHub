@@ -1668,4 +1668,60 @@ public class WindowManagerServiceTests
         Assert.True(first.X >= work.CenterX && first.Bottom <= work.CenterY);
         Assert.True(second.Right <= work.CenterX && second.Y >= work.CenterY);
     }
+
+    [Fact]
+    public async Task Un_iPhone_et_un_iPad_prennent_la_meme_hauteur()
+    {
+        // An iPhone's long screen fills the width of its share first, an iPad's
+        // squarer one its height: the iPad came out far taller (2026-11-12).
+        var desktop = new FakeWindowController();
+        IGameWindow[] windows =
+        [
+            new ShapedWindow(1, 2752.0 / 1264),
+            new ShapedWindow(2, 2420.0 / 1668),
+        ];
+        foreach (var window in windows)
+        {
+            desktop.AddWindow(window.WindowHandle, window.ProcessId, window.WindowTitle);
+        }
+
+        var service = new WindowManagerService(desktop, NoDelay);
+
+        await service.ApplySizeAsync(windows, 1, CancellationToken.None);
+
+        var phone = desktop.GetWindowRect(1)!.Value;
+        var pad = desktop.GetWindowRect(2)!.Value;
+        Assert.Equal(phone.Height, pad.Height);
+        Assert.InRange(pad.Width - (pad.Height * 2420.0 / 1668), -1, 1);
+        Assert.Equal((int)Math.Round(FakeWindowController.PrimaryMonitor.WorkArea.Width * 0.6), phone.Width);
+    }
+
+    [Fact]
+    public async Task Une_fenetre_seule_garde_toute_sa_part_de_l_ecran()
+    {
+        var desktop = new FakeWindowController();
+        IGameWindow pad = new ShapedWindow(2, 2420.0 / 1668);
+        desktop.AddWindow(pad.WindowHandle, pad.ProcessId, pad.WindowTitle);
+
+        var service = new WindowManagerService(desktop, NoDelay);
+
+        await service.ApplySizeAsync([pad], 1, CancellationToken.None);
+
+        Assert.Equal(
+            (int)Math.Round(FakeWindowController.PrimaryMonitor.WorkArea.Height * 0.6),
+            desktop.GetWindowRect(2)!.Value.Height);
+    }
+
+    private sealed record ShapedWindow(nint WindowHandle, double SourceAspectRatio) : IGameWindow
+    {
+        public string Id => "ios:" + WindowHandle;
+
+        public string Key => Id;
+
+        public bool IsAlive => true;
+
+        public string WindowTitle => "iOS " + WindowHandle;
+
+        public int ProcessId => 4242;
+    }
 }
