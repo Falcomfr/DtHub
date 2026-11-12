@@ -809,6 +809,9 @@
   <data name="L'ancienne application n'a pas pu reprendre sa place, une copie la remplace." xml:space="preserve">
     <value>L'ancienne application n'a pas pu reprendre sa place, une copie la remplace.</value>
   </data>
+  <data name="La capture HD de l'iPhone ne s'est pas arrêtée proprement." xml:space="preserve">
+    <value>La capture HD de l'iPhone ne s'est pas arrêtée proprement.</value>
+  </data>
   <data name="L'écran de l'iPhone n'a pas pu s'afficher." xml:space="preserve">
     <value>L'écran de l'iPhone n'a pas pu s'afficher.</value>
   </data>

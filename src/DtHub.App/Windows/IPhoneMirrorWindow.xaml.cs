@@ -39,7 +39,7 @@ public partial class IPhoneMirrorWindow : Window
         // turns the touch back with the device's orientation; the flag says the picture was landscape
         // and not turned by the viewer (an iPhone's game turned by ↻ is already measured upright).
         { const send = window.fetch;
-          window.fetch = (url, init) => {
+          window.fetch = async (url, init) => {
             try {
               const c = document.getElementById('c');
               if (url === '/touch' && init && typeof init.body === 'string' && c && c.width > c.height
@@ -47,8 +47,59 @@ public partial class IPhoneMirrorWindow : Window
                 init = { ...init, body: JSON.stringify({ ...JSON.parse(init.body), landscape: true }) };
               }
             } catch (e) {}
-            return send(url, init);
+            const response = await send(url, init);
+            // The HD picture's H.264 says its size here, for the decoder config as HEVC's is read in its SPS.
+            if (url === '/codec' && response.ok) {
+              try { window.dthubSize = (await response.clone().json()).size || null; } catch (e) {}
+            }
+            return url === '/stream.bin' && response.ok && response.body
+              ? new Response(withoutConfigs(response.body), { status: response.status, statusText: response.statusText, headers: response.headers })
+              : response;
           }; }
+        // A new decoder config (type 3) comes in the stream when the HD picture turns or falls back to
+        // DisplayService's HEVC, and the viewer reads only types 0 to 2: it is taken out and applied here.
+        // Read on demand, so a config is applied once the viewer has decoded every message before it.
+        // After it the device sends a key frame first; a delta first would error and the viewer resyncs.
+        const decoders = new Set();
+        const applyConfig = bytes => {
+          try {
+            const info = JSON.parse(new TextDecoder().decode(bytes));
+            if (!info.codec || !info.description) return;
+            window.dthubConfig = { codec: info.codec.trim(), description: Uint8Array.from(atob(info.description), ch => ch.charCodeAt(0)) };
+            window.dthubSize = info.size || null;
+            for (const d of decoders) if (d.state !== 'closed' && d.base) d.configure(d.base);
+          } catch (e) {}
+        };
+        const withoutConfigs = body => {
+          const reader = body.getReader();
+          let buf = new Uint8Array(0);
+          const length = at => ((buf[at] << 24) | (buf[at + 1] << 16) | (buf[at + 2] << 8) | buf[at + 3]) >>> 0;
+          return new ReadableStream({
+            async pull(controller) {
+              for (;;) {
+                while (buf.length >= 5 && buf[4] === 3 && buf.length >= 4 + length(0)) {
+                  applyConfig(buf.subarray(5, 4 + length(0)));
+                  buf = buf.subarray(4 + length(0));
+                }
+                // Every whole message up to the next config, at once.
+                let end = 0;
+                while (end + 5 <= buf.length && buf[end + 4] !== 3 && end + 4 + length(end) <= buf.length) end += 4 + length(end);
+                if (end > 0) {
+                  controller.enqueue(buf.slice(0, end));
+                  buf = buf.subarray(end);
+                  return;
+                }
+                const { value, done } = await reader.read();
+                if (done) { controller.close(); return; }
+                const merged = new Uint8Array(buf.length + value.length);
+                merged.set(buf);
+                merged.set(value, buf.length);
+                buf = merged;
+              }
+            },
+            cancel: reason => reader.cancel(reason),
+          }, { highWaterMark: 0 });
+        };
         // Without a size in its config, as the viewer sets it, Edge hands each
         // frame cropped to 1280x720: the top of the screen only (measured
         // 2026-11-09). Given one, it shows that size, whatever the stream says
@@ -112,7 +163,7 @@ public partial class IPhoneMirrorWindow : Window
               const sized = { on: false };
               super({ ...init, output: f => {
                 const w = f.codedWidth, h = f.codedHeight;
-                // A size read wrong would cut the picture: the rounding never reaches a 64-pixel block.
+                // A size given wrong would cut the picture: the rounding never reaches a 64-pixel block.
                 const read = sized.on && w - f.visibleRect.width < 64 && h - f.visibleRect.height < 64;
                 if (read || (f.visibleRect.width === w && f.visibleRect.height === h && f.displayWidth === w && f.displayHeight === h)) {
                   init.output(f);
@@ -125,12 +176,19 @@ public partial class IPhoneMirrorWindow : Window
                 init.output(whole);
               } });
               this.sized = sized;
+              for (const d of decoders) if (d.state === 'closed') decoders.delete(d);
+              decoders.add(this);
             }
 
             configure(config) {
-              const size = config && config.description ? pictureSize(config.description) : null;
-              this.sized.on = !!size;
-              super.configure(size ? { ...config, codedWidth: size.width, codedHeight: size.height } : config);
+              // The viewer's own resets keep the config of its /codec: the stream's latest replaces it.
+              this.base = config;
+              config = config && window.dthubConfig ? { ...config, ...window.dthubConfig } : config;
+              const codec = config && typeof config.codec === 'string' ? config.codec : '';
+              const size = /^(hev1|hvc1)/.test(codec) && config.description ? pictureSize(config.description)
+                : codec.startsWith('avc1') ? window.dthubSize : null;
+              this.sized.on = !!(size && size.width > 0 && size.height > 0);
+              super.configure(this.sized.on ? { ...config, codedWidth: size.width, codedHeight: size.height } : config);
             }
           };
         }
@@ -217,10 +275,13 @@ public partial class IPhoneMirrorWindow : Window
             const now = c && c.width && !(c.width === 300 && c.height === 150) ? c.width + 'x' + c.height : '';
             if (now && now !== shape) { shape = now; chrome.webview.postMessage('shape:' + now); }
           }, 300);
-          (typeof VideoDecoder === 'undefined'
-            ? Promise.resolve(false)
-            : VideoDecoder.isConfigSupported({ codec: 'hvc1.1.6.L93.B0' }).then(s => s.supported, () => false))
-            .then(ok => { if (!ok) chrome.webview.postMessage('no-hevc'); });
+          // The HD picture is H.264, which every engine decodes.
+          if (!__HD__) {
+            (typeof VideoDecoder === 'undefined'
+              ? Promise.resolve(false)
+              : VideoDecoder.isConfigSupported({ codec: 'hvc1.1.6.L93.B0' }).then(s => s.supported, () => false))
+              .then(ok => { if (!ok) chrome.webview.postMessage('no-hevc'); });
+          }
         });
         """;
 
@@ -234,6 +295,7 @@ public partial class IPhoneMirrorWindow : Window
     private readonly Queue<string> _errors = new();
 
     private readonly bool _dark;
+    private readonly bool _hd;
     private int _logged;
 
     private bool _closed;
@@ -337,11 +399,13 @@ public partial class IPhoneMirrorWindow : Window
         }
     }
 
-    public IPhoneMirrorWindow(IPhoneDevice device, int port, IProcessSession session, WebViewEnvironment engine, bool dark)
+    /// <param name="capture">Set for the HD picture: its capture is stopped cleanly before the tool is killed.</param>
+    public IPhoneMirrorWindow(IPhoneDevice device, int port, IProcessSession session, WebViewEnvironment engine, bool dark, IosGameControl? capture)
     {
         ArgumentNullException.ThrowIfNull(device);
 
         _dark = dark;
+        _hd = capture is not null;
         _session = session;
         _engine = engine;
         _address = new Uri($"http://127.0.0.1:{port.ToString(CultureInfo.InvariantCulture)}/");
@@ -375,6 +439,22 @@ public partial class IPhoneMirrorWindow : Window
 
             _closed = true;
             View.Dispose();
+
+            // Killed in its capture, the device stayed in QuickTime's USB configuration.
+            if (capture is not null && !_session.HasExited)
+            {
+                using var limit = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+                try
+                {
+                    await capture.StopCaptureAsync(limit.Token).ConfigureAwait(true);
+                }
+                catch (Exception exception) when (exception is IPhoneException or OperationCanceledException)
+                {
+                    // Killed below all the same.
+                    Log.Information(exception, "La capture HD de l'iPhone ne s'est pas arrêtée proprement.");
+                }
+            }
+
             await _session.DisposeAsync().ConfigureAwait(true);
         };
     }
@@ -390,7 +470,8 @@ public partial class IPhoneMirrorWindow : Window
                 .AddScriptToExecuteOnDocumentCreatedAsync(ScreenOnly
                     .Replace("__ROTATE__", JsonSerializer.Serialize(Strings.Get("IPhoneRotate")), StringComparison.Ordinal)
                     .Replace("__DIM__", JsonSerializer.Serialize(Strings.Get("IPhoneDim")), StringComparison.Ordinal)
-                    .Replace("__OFFLINE__", JsonSerializer.Serialize(Strings.Get("IPhoneOffline")), StringComparison.Ordinal))
+                    .Replace("__OFFLINE__", JsonSerializer.Serialize(Strings.Get("IPhoneOffline")), StringComparison.Ordinal)
+                    .Replace("__HD__", _hd ? "true" : "false", StringComparison.Ordinal))
                 .ConfigureAwait(true);
             View.CoreWebView2.NewWindowRequested += (_, e) => e.Handled = true;
 

@@ -17,7 +17,7 @@ namespace DtHub.App.Services;
 /// (<see cref="IosWindowLife"/>). Used on the UI thread only.
 /// </summary>
 public sealed partial class IPhoneScreens(
-    PyMobileDevice tools, WebViewEnvironment engine, SettingsService settings, ILogger<IPhoneScreens> logger)
+    PyMobileDevice tools, WebViewEnvironment engine, SettingsService settings, IUsbFilterDriver filter, ILogger<IPhoneScreens> logger)
 {
     // usbmux list starts Python: not at every sweep of the list.
     private static readonly TimeSpan ListEvery = TimeSpan.FromSeconds(10);
@@ -161,6 +161,12 @@ public sealed partial class IPhoneScreens(
 
             if (device is null)
             {
+                // The HD picture's USB switch takes the device out of the list for a moment.
+                if (entry.HdStartedUtc is { } started && IosHdGrace.Tolerates(started, DateTime.UtcNow))
+                {
+                    continue;
+                }
+
                 entry.Window.Unplugged();
             }
 
@@ -342,7 +348,10 @@ public sealed partial class IPhoneScreens(
         var preferences = await settings.GetAsync(cancellationToken).ConfigureAwait(true);
         var (port, controlPort) = PyMobileDevice.FreePorts();
         var device = entry.Device;
-        var session = await tools.StartMirrorAsync(device, port, preferences.AudioEnabled, controlPort, libusb0Path: null, cancellationToken).ConfigureAwait(true);
+        var libusb0Path = preferences.IosHdPicture ? HdLibUsb0Path() : null;
+        var session = await tools.StartMirrorAsync(device, port, preferences.AudioEnabled, controlPort, libusb0Path, cancellationToken).ConfigureAwait(true);
+        var game = new IosGameControl(controlPort);
+        entry.HdStartedUtc = libusb0Path is null ? null : DateTime.UtcNow;
 
         if (entry.Life.State == IosWindowState.Closed)
         {
@@ -355,7 +364,7 @@ public sealed partial class IPhoneScreens(
 
         try
         {
-            window = new IPhoneMirrorWindow(device, port, session, engine, dark: preferences.TurnScreenOff);
+            window = new IPhoneMirrorWindow(device, port, session, engine, dark: preferences.TurnScreenOff, capture: libusb0Path is null ? null : game);
 
             // A docked account's is placed by ShowForFrame below.
             if (!entry.Docked && place is { IsEmpty: false } rect)
@@ -425,10 +434,20 @@ public sealed partial class IPhoneScreens(
         }
 
         entry.Window = window;
-        entry.Game = new IosGameControl(controlPort);
+        entry.Game = game;
         _windows[entry.Key] = entry;
         SetOpen(true);
         Opened?.Invoke(this, entry.Key);
+    }
+
+    /// <summary>
+    /// libusb0 for the HD picture, or null: the filter is per Apple model, not per
+    /// device, so it is asked only when every Apple device present is filtered.
+    /// </summary>
+    private string? HdLibUsb0Path()
+    {
+        var parents = filter.PresentAppleDevices();
+        return parents.Count > 0 && parents.All(filter.IsFiltered) ? filter.LibUsb0Path() : null;
     }
 
     /// <summary>

@@ -46,6 +46,9 @@ public sealed class IosGameWindow(string key, IPhoneDevice device, string? bundl
     /// <summary>The stream served at least once: only then is a failure tried again, as Android's.</summary>
     internal bool Served { get; set; }
 
+    /// <summary>When the current stream started with the HD picture, null without it (<see cref="IosHdGrace"/>).</summary>
+    internal DateTime? HdStartedUtc { get; set; }
+
     /// <summary>For Android's quiet spell after which the attempts start over.</summary>
     internal DateTime LastFailure { get; set; }
 
