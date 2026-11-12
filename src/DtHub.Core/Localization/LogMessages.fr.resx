@@ -860,4 +860,13 @@
   <data name="Le compte iOS {name} n'a pas pu être ouvert." xml:space="preserve">
     <value>Le compte iOS {name} n'a pas pu être ouvert.</value>
   </data>
+  <data name="L'image HD de l'iPhone {name} n'a pas démarré : il est rouvert sans elle pour cette session." xml:space="preserve">
+    <value>L'image HD de l'iPhone {name} n'a pas démarré : il est rouvert sans elle pour cette session.</value>
+  </data>
+  <data name="Image HD non utilisée pour l'iPhone {name} : un appareil Apple branché n'a pas le pilote USB de l'image HD." xml:space="preserve">
+    <value>Image HD non utilisée pour l'iPhone {name} : un appareil Apple branché n'a pas le pilote USB de l'image HD.</value>
+  </data>
+  <data name="Image HD non utilisée pour l'iPhone {name} : libusb0.dll est introuvable." xml:space="preserve">
+    <value>Image HD non utilisée pour l'iPhone {name} : libusb0.dll est introuvable.</value>
+  </data>
 </root>

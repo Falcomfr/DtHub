@@ -47,6 +47,7 @@ public partial class IPhoneMirrorWindow : Window
                 init = { ...init, body: JSON.stringify({ ...JSON.parse(init.body), landscape: true }) };
               }
             } catch (e) {}
+            if (!__HD__) return send(url, init);
             const response = await send(url, init);
             // The HD picture's H.264 says its size here, for the decoder config as HEVC's is read in its SPS.
             if (url === '/codec' && response.ok) {
@@ -61,6 +62,7 @@ public partial class IPhoneMirrorWindow : Window
         // Read on demand, so a config is applied once the viewer has decoded every message before it.
         // After it the device sends a key frame first; a delta first would error and the viewer resyncs.
         const decoders = new Set();
+        let hevcChecked = false;
         const applyConfig = bytes => {
           try {
             const info = JSON.parse(new TextDecoder().decode(bytes));
@@ -176,16 +178,31 @@ public partial class IPhoneMirrorWindow : Window
                 init.output(whole);
               } });
               this.sized = sized;
-              for (const d of decoders) if (d.state === 'closed') decoders.delete(d);
-              decoders.add(this);
+              if (__HD__) {
+                for (const d of decoders) if (d.state === 'closed') decoders.delete(d);
+                decoders.add(this);
+              }
             }
 
             configure(config) {
+              if (!__HD__) {
+                const size = config && config.description ? pictureSize(config.description) : null;
+                this.sized.on = !!size;
+                super.configure(size ? { ...config, codedWidth: size.width, codedHeight: size.height } : config);
+                return;
+              }
               // The viewer's own resets keep the config of its /codec: the stream's latest replaces it.
               this.base = config;
               config = config && window.dthubConfig ? { ...config, ...window.dthubConfig } : config;
               const codec = config && typeof config.codec === 'string' ? config.codec : '';
-              const size = /^(hev1|hvc1)/.test(codec) && config.description ? pictureSize(config.description)
+              const hevc = /^(hev1|hvc1)/.test(codec);
+              // Fallen back to DisplayService's HEVC: said once if the engine cannot decode it.
+              if (hevc && !hevcChecked) {
+                hevcChecked = true;
+                VideoDecoder.isConfigSupported({ codec }).then(s => s.supported, () => false)
+                  .then(ok => { if (!ok) chrome.webview.postMessage('no-hevc'); });
+              }
+              const size = hevc && config.description ? pictureSize(config.description)
                 : codec.startsWith('avc1') ? window.dthubSize : null;
               this.sized.on = !!(size && size.width > 0 && size.height > 0);
               super.configure(this.sized.on ? { ...config, codedWidth: size.width, codedHeight: size.height } : config);
@@ -275,7 +292,7 @@ public partial class IPhoneMirrorWindow : Window
             const now = c && c.width && !(c.width === 300 && c.height === 150) ? c.width + 'x' + c.height : '';
             if (now && now !== shape) { shape = now; chrome.webview.postMessage('shape:' + now); }
           }, 300);
-          // The HD picture is H.264, which every engine decodes.
+          // The HD picture is H.264, which every engine decodes: its fallback to HEVC is checked in configure.
           if (!__HD__) {
             (typeof VideoDecoder === 'undefined'
               ? Promise.resolve(false)

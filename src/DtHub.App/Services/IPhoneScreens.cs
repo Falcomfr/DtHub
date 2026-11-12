@@ -34,6 +34,12 @@ public sealed partial class IPhoneScreens(
     // Kept past the window: a reopening that failed removes it, its row still says why.
     private readonly Dictionary<string, string> _problems = new(StringComparer.Ordinal);
 
+    // For the session, by UDID: the devices whose HD start never served, opened without it since.
+    private readonly HashSet<string> _hdFailed = new(StringComparer.Ordinal);
+
+    // For the session, by UDID: why the HD picture was not used is said once.
+    private readonly HashSet<string> _hdUnusedTold = new(StringComparer.Ordinal);
+
     private DateTime _listed = DateTime.MinValue;
     private bool _listing;
     private bool _stopping;
@@ -391,7 +397,7 @@ public sealed partial class IPhoneScreens(
         var preferences = await settings.GetAsync(cancellationToken).ConfigureAwait(true);
         var (port, controlPort) = PyMobileDevice.FreePorts();
         var device = entry.Device;
-        var libusb0Path = preferences.IosHdPicture ? HdLibUsb0Path() : null;
+        var libusb0Path = preferences.IosHdPicture && !_hdFailed.Contains(device.Udid) ? HdLibUsb0Path(device) : null;
         var session = await tools.StartMirrorAsync(device, port, preferences.AudioEnabled, controlPort, libusb0Path, cancellationToken).ConfigureAwait(true);
         var game = new IosGameControl(controlPort);
         entry.HdStartedUtc = libusb0Path is null ? null : DateTime.UtcNow;
@@ -486,11 +492,28 @@ public sealed partial class IPhoneScreens(
     /// <summary>
     /// libusb0 for the HD picture, or null: the filter is per Apple model, not per
     /// device, so it is asked only when every Apple device present is filtered.
+    /// Why not is logged once per device and session.
     /// </summary>
-    private string? HdLibUsb0Path()
+    private string? HdLibUsb0Path(IPhoneDevice device)
     {
         var parents = filter.PresentAppleDevices();
-        return parents.Count > 0 && parents.All(filter.IsFiltered) ? filter.LibUsb0Path() : null;
+        if (parents.Count == 0 || !parents.All(filter.IsFiltered))
+        {
+            if (_hdUnusedTold.Add(device.Udid))
+            {
+                LogHdNotFiltered(device.Name);
+            }
+
+            return null;
+        }
+
+        var path = filter.LibUsb0Path();
+        if (path is null && _hdUnusedTold.Add(device.Udid))
+        {
+            LogHdNoLibUsb0(device.Name);
+        }
+
+        return path;
     }
 
     /// <summary>
@@ -557,6 +580,14 @@ public sealed partial class IPhoneScreens(
             entry.Life.Forget();
         }
 
+        // DisplayService refused beside the HD capture: once more without it, and so for the session.
+        if (!entry.Served && entry.HdStartedUtc is not null && _hdFailed.Add(entry.Device.Udid))
+        {
+            LogHdFallback(entry.Device.Name);
+            await ReopenAsync(entry, entry.Device).ConfigureAwait(true);
+            return;
+        }
+
         entry.LastFailure = DateTime.UtcNow;
 
         // As Android: a stream that never served is not tried again, its window says why.
@@ -594,7 +625,7 @@ public sealed partial class IPhoneScreens(
 
         // Closed first, as before: two tools on one device at once is not tried.
         // Its Closed sees the reopening and ends nothing. No capture/stop here: it would
-        // re-enumerate the device under the next tool, which reuses the capture configuration.
+        // re-enumerate the device under the next tool, which resets the capture configuration before its tunnel.
         old.Close();
         Changed?.Invoke(this, EventArgs.Empty);
 
@@ -769,6 +800,15 @@ public sealed partial class IPhoneScreens(
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "La capture HD de l'iPhone {name} ne s'est pas arrêtée proprement.")]
     private partial void LogCaptureStopFailed(Exception exception, string name);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "L'image HD de l'iPhone {name} n'a pas démarré : il est rouvert sans elle pour cette session.")]
+    private partial void LogHdFallback(string name);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Image HD non utilisée pour l'iPhone {name} : un appareil Apple branché n'a pas le pilote USB de l'image HD.")]
+    private partial void LogHdNotFiltered(string name);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Image HD non utilisée pour l'iPhone {name} : libusb0.dll est introuvable.")]
+    private partial void LogHdNoLibUsb0(string name);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Les jeux des iPhone n'ont pas pu être arrêtés à la fermeture.")]
     private partial void LogStopAllFailed(Exception exception);
