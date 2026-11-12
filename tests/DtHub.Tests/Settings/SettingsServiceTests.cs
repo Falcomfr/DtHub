@@ -890,6 +890,35 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task L_image_HD_et_ses_appareils_filtres_sont_gardes()
+    {
+        await _service.SetIosHdPictureAsync(true, ["USB\\VID_05AC&PID_12A8"], CancellationToken.None);
+        _service.Invalidate();
+        var on = await _service.GetAsync(CancellationToken.None);
+        Assert.True(on.IosHdPicture);
+        Assert.Equal(["USB\\VID_05AC&PID_12A8"], on.IosHdFilteredDevices);
+
+        await _service.SetIosHdPictureAsync(false, [], CancellationToken.None);
+        _service.Invalidate();
+        var off = await _service.GetAsync(CancellationToken.None);
+        Assert.False(off.IosHdPicture);
+        Assert.Empty(off.IosHdFilteredDevices);
+    }
+
+    [Fact]
+    public async Task Un_fichier_sans_image_HD_la_laisse_eteinte()
+    {
+        Directory.CreateDirectory(_directory);
+        await File.WriteAllTextAsync(_store.FilePath, """{ "schemaVersion": 2 }""", CancellationToken.None);
+
+        _service.Invalidate();
+        var settings = await _service.GetAsync(CancellationToken.None);
+
+        Assert.False(settings.IosHdPicture);
+        Assert.Empty(settings.IosHdFilteredDevices);
+    }
+
+    [Fact]
     public async Task L_ecran_virtuel_par_defaut_est_en_paysage()
     {
         // The game displays in landscape: a portrait screen would shrink it to

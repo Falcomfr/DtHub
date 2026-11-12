@@ -396,6 +396,22 @@ public sealed class SettingsService : IDisposable
         UpdateAsync(settings => settings.SharpImage = enabled, cancellationToken);
 
     /// <summary>
+    /// Remembers the HD picture choice and the devices filtered for it, in
+    /// one update so the two never disagree on disk.
+    /// </summary>
+    public Task SetIosHdPictureAsync(
+        bool enabled,
+        IReadOnlyList<string> filteredDevices,
+        CancellationToken cancellationToken = default) =>
+        UpdateAsync(
+            settings =>
+            {
+                settings.IosHdPicture = enabled;
+                settings.IosHdFilteredDevices = [.. filteredDevices];
+            },
+            cancellationToken);
+
+    /// <summary>
     /// Remembers whether the phone's screen goes dark during the game.
     /// </summary>
     public Task SetTurnScreenOffAsync(bool enabled, CancellationToken cancellationToken = default) =>

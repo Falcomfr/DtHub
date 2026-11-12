@@ -301,6 +301,18 @@ public sealed class AppSettingsDocument
     /// </summary>
     public bool SharpImage { get; set; }
 
+    /// <summary>
+    /// Opt-in HD picture for an iPhone or iPad over QuickTime's USB capture.
+    /// It needs a libusb-win32 filter on the device, so it is off by default.
+    /// </summary>
+    public bool IosHdPicture { get; set; }
+
+    /// <summary>
+    /// Hardware ids of the Apple devices DT Hub put the libusb-win32 filter
+    /// on, kept so it can remove exactly those filters later.
+    /// </summary>
+    public List<string> IosHdFilteredDevices { get; set; } = [];
+
     /// <summary>DTStuff opens in landscape instead of portrait.</summary>
     public bool DtStuffLandscape { get; set; }
 
