@@ -11,11 +11,16 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
-## [Unreleased]
+## [0.15.2] - 2026-11-12
 
 ### Ajouté
 
-- iPhone et iPad : un réglage « Image HD » affiche l'écran en pleine définition par le câble USB, bien plus net ; il installe une fois un petit pilote USB sur l'appareil, avec l'autorisation de Windows.
+- iPhone et iPad : un réglage « Image HD » affiche l'écran en pleine définition par le câble USB, bien plus net ; il installe une fois un petit pilote USB sur l'appareil, avec l'autorisation de Windows. Seuls les joueurs qui ont un iPhone ou un iPad le voient.
+- « Afficher les nouveautés après une mise à jour » peut se décocher, et « Voir les nouveautés » les montre sur GitHub, dans votre langue.
+
+### Modifié
+
+- Un iPhone et un iPad ouverts ensemble prennent maintenant la même hauteur avec une taille (Ctrl+1 à Ctrl+4, le curseur) et quand on les replace depuis « Replacer les fenêtres de jeu », chacun gardant sa forme.
 
 ### Corrigé
 

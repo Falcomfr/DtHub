@@ -10,11 +10,16 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
-## [Unreleased]
+## [0.15.2] - 2026-11-12
 
 ### Añadido
 
-- iPhone y iPad: un ajuste «Imagen HD» muestra la pantalla en su resolución completa por el cable USB, mucho más nítida; instala una vez un pequeño controlador USB en el dispositivo, con el permiso de Windows.
+- iPhone y iPad: un ajuste «Imagen HD» muestra la pantalla en su resolución completa por el cable USB, mucho más nítida; instala una vez un pequeño controlador USB en el dispositivo, con el permiso de Windows. Solo lo ven los jugadores con un iPhone o un iPad.
+- «Mostrar las novedades tras una actualización» se puede desmarcar, y «Ver las novedades» las muestra en GitHub, en su idioma.
+
+### Cambiado
+
+- Un iPhone y un iPad abiertos a la vez reciben ahora la misma altura con un tamaño (Ctrl+1 a Ctrl+4, el control deslizante) y al recolocarlas desde «Recolocar las ventanas de juego», cada uno con su forma.
 
 ### Corregido
 
