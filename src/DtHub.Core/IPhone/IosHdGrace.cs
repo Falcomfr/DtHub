@@ -6,7 +6,8 @@
 /// </summary>
 public static class IosHdGrace
 {
-    private static readonly TimeSpan Span = TimeSpan.FromSeconds(15);
+    // Two re-enumerations, each up to 10 s, when a killed tool left the capture shown.
+    private static readonly TimeSpan Span = TimeSpan.FromSeconds(30);
 
     /// <summary>True while an absent device is still within the switch's grace.</summary>
     public static bool Tolerates(DateTime startedUtc, DateTime nowUtc) => nowUtc - startedUtc < Span;

@@ -56,7 +56,8 @@ Read it first. This plan argues from it.
   only (HPD1, no HPA1).
 - The fallback triggers on no first QuickTime frame within **5 s**. A window
   starting in HD tolerates the device's absence from `usbmux list` for
-  **15 s**. A clean capture stop on close waits **2 s** at most.
+  **30 s** (two re-enumerations of up to 10 s each when a killed tool left
+  the capture shown). A clean capture stop on close waits **2 s** at most.
 - Repository rules:
   - English in code, comments and documents;
   - test method names in French;
@@ -369,7 +370,7 @@ Read it first. This plan argues from it.
   - a new placeholder `__HD__` (`true`/`false`) skips the `no-hevc` check
     when true.
 - `IosHdGrace.Tolerates(DateTime startedUtc, DateTime nowUtc)`: true for
-  less than 15 s.
+  less than 30 s (two re-enumerations of up to 10 s each, plus margin).
 - `IPhoneScreens.ShowAsync`, when `preferences.IosHdPicture` and
   `filter.IsFiltered(parent of the device)` and `filter.LibUsb0Path()` is
   not null:
@@ -385,7 +386,7 @@ Read it first. This plan argues from it.
   filtered (*builder's call* if a serial-to-parent map is easy through
   `Win32_PnPEntity`).
 
-- [ ] **Step 1: Failing tests** `IosHdGraceTests`: 14.9 s is tolerated, 15 s is not, and a negative span is tolerated.
+- [ ] **Step 1: Failing tests** `IosHdGraceTests`: 29.9 s is tolerated, 30 s is not, and a negative span is tolerated.
 - [ ] **Step 2: Run, expect FAIL. Implement. Run the full suite, expect PASS.**
 - [ ] **Step 3: Wire** `ShowAsync`, `Show`, the window constructor and `Closed`.
 - [ ] **Step 4: Bench check**, Edge, with ffmpeg's libx264:

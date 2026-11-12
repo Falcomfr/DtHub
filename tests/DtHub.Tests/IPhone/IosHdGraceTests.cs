@@ -7,15 +7,15 @@ public class IosHdGraceTests
     private static readonly DateTime Start = new(2026, 11, 12, 20, 0, 0, DateTimeKind.Utc);
 
     [Fact]
-    public void Un_appareil_absent_moins_de_15_s_apres_le_debut_du_HD_est_tolere()
+    public void Un_appareil_absent_moins_de_30_s_apres_le_debut_du_HD_est_tolere()
     {
-        Assert.True(IosHdGrace.Tolerates(Start, Start.AddSeconds(14.9)));
+        Assert.True(IosHdGrace.Tolerates(Start, Start.AddSeconds(29.9)));
     }
 
     [Fact]
-    public void A_15_s_l_absence_n_est_plus_toleree()
+    public void A_30_s_l_absence_n_est_plus_toleree()
     {
-        Assert.False(IosHdGrace.Tolerates(Start, Start.AddSeconds(15)));
+        Assert.False(IosHdGrace.Tolerates(Start, Start.AddSeconds(30)));
     }
 
     [Fact]
