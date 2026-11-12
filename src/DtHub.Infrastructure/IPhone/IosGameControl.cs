@@ -44,6 +44,14 @@ public sealed class IosGameControl(int controlPort)
     public Task StopAsync(string bundle, CancellationToken cancellationToken) =>
         SendAsync(HttpMethod.Post, "stop", bundle, cancellationToken);
 
+    /// <summary>
+    /// Ends the HD capture cleanly, for closing only: the device goes back to its normal
+    /// configuration, which ends the stream's tunnel. The caller kills the tool right after.
+    /// </summary>
+    /// <exception cref="IPhoneException">The message says what to do.</exception>
+    public Task StopCaptureAsync(CancellationToken cancellationToken) =>
+        SendAsync(HttpMethod.Post, "capture/stop", bundle: null, cancellationToken);
+
     private async Task<string> SendAsync(HttpMethod method, string path, string? bundle, CancellationToken cancellationToken)
     {
         using var request = new HttpRequestMessage(method, new Uri(_root, path))

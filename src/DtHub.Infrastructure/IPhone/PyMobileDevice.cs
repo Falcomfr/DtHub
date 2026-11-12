@@ -35,6 +35,8 @@ public sealed partial class PyMobileDevice : IDisposable
     /// <summary>The exact Python uv installs, from its own pinned downloads.</summary>
     public const string PythonVersion = "3.13.18";
 
+    private const string QuickTimeFile = "dthub_quicktime.py";
+    private const string QuickTimeResource = "DtHub.Infrastructure.dthub_quicktime.py";
     private const string RequirementsResource = "DtHub.Infrastructure.iphone-requirements.txt";
 
     // The first setup downloads Python and ninety packages, near three
@@ -58,7 +60,7 @@ public sealed partial class PyMobileDevice : IDisposable
     /// tunnel beside it is untried (<see cref="IosGameControl"/>).
     /// </summary>
     public const string MirrorBootstrap = """
-        import asyncio, json, os, runpy, sys, urllib.parse
+        import asyncio, importlib.util, json, os, runpy, sys, urllib.parse
         from pymobiledevice3.remote.core_device import screen_stream
         from pymobiledevice3.remote.core_device.app_service import AppServiceService
         if sys.platform != "darwin":
@@ -156,7 +158,15 @@ public sealed partial class PyMobileDevice : IDisposable
             return next((int(p["processIdentifier"]) for p in processes if file_path(p.get("executableURL")).startswith(folder + "/")), None)
 
 
+        _quicktime = None
+
+
         async def command(apps, method, path, query, body):
+            if method == "POST" and path == "/capture/stop":
+                # For closing only: it blocks for a moment, so never on the loop.
+                if _quicktime is not None:
+                    await asyncio.to_thread(_quicktime.stop_capture)
+                return {}
             if method == "GET" and path == "/apps":
                 return [{"name": str(a.get("name", "")), "bundle": str(a.get("bundleIdentifier", ""))} for a in await apps.list_apps()]
             if method == "GET" and path == "/running":
@@ -213,6 +223,14 @@ public sealed partial class PyMobileDevice : IDisposable
 
 
         screen_stream.ScreenStreamServer.serve = serve_with_control
+        if os.environ.get("DTHUB_QUICKTIME"):
+            try:
+                spec = importlib.util.spec_from_file_location("dthub_quicktime", os.environ["DTHUB_QUICKTIME"])
+                _quicktime = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(_quicktime)
+                _quicktime.install(screen_stream, os.environ["PYMOBILEDEVICE3_UDID"], os.environ["DTHUB_LIBUSB0"])
+            except Exception as e:
+                screen_stream.logger.warning("DT Hub: HD picture unavailable: %s", e, exc_info=True)
         runpy.run_module("pymobiledevice3", run_name="__main__", alter_sys=True)
         """;
 
@@ -284,7 +302,7 @@ public sealed partial class PyMobileDevice : IDisposable
     /// </summary>
     /// <exception cref="IPhoneException">The message says what to do.</exception>
     public async Task<IProcessSession> StartMirrorAsync(
-        IPhoneDevice device, int port, bool audio, int controlPort, CancellationToken cancellationToken)
+        IPhoneDevice device, int port, bool audio, int controlPort, string? libusb0Path, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(device);
 
@@ -301,9 +319,26 @@ public sealed partial class PyMobileDevice : IDisposable
 
             LogStarting(device.Name, port);
 
+            if (libusb0Path is not null)
+            {
+                WriteQuickTimeModule();
+            }
+
             try
             {
-                return _launcher.Start(MirrorRequest(python, device.Udid, port, audio, controlPort));
+                var request = MirrorRequest(python, device.Udid, port, audio, controlPort, libusb0Path);
+                if (libusb0Path is not null)
+                {
+                    request = request with
+                    {
+                        Environment = new Dictionary<string, string?>(request.Environment, StringComparer.Ordinal)
+                        {
+                            ["DTHUB_QUICKTIME"] = Path.Combine(Root, QuickTimeFile),
+                        },
+                    };
+                }
+
+                return _launcher.Start(request);
             }
             catch (ProcessLaunchException exception)
             {
@@ -371,8 +406,12 @@ public sealed partial class PyMobileDevice : IDisposable
         };
     }
 
-    /// <summary><c>serve-web</c> through <see cref="MirrorBootstrap"/>, silent when the player turned sound off.</summary>
-    public static ProcessRequest MirrorRequest(string python, string udid, int port, bool audio, int controlPort)
+    /// <summary>
+    /// <c>serve-web</c> through <see cref="MirrorBootstrap"/>, silent when the player turned sound off.
+    /// A <paramref name="libusb0Path"/> asks for the HD picture: <c>DTHUB_QUICKTIME</c> is then the module's
+    /// file name, which <see cref="StartMirrorAsync"/> turns into its path once written.
+    /// </summary>
+    public static ProcessRequest MirrorRequest(string python, string udid, int port, bool audio, int controlPort, string? libusb0Path)
     {
         string[] arguments =
         [
@@ -383,14 +422,17 @@ public sealed partial class PyMobileDevice : IDisposable
 
         var request = ToolRequest(python, udid, arguments);
 
-        return request with
+        var environment = new Dictionary<string, string?>(request.Environment, StringComparer.Ordinal)
         {
-            Arguments = ["-c", MirrorBootstrap, .. arguments],
-            Environment = new Dictionary<string, string?>(request.Environment, StringComparer.Ordinal)
-            {
-                ["DTHUB_CONTROL_PORT"] = controlPort.ToString(CultureInfo.InvariantCulture),
-            },
+            ["DTHUB_CONTROL_PORT"] = controlPort.ToString(CultureInfo.InvariantCulture),
         };
+        if (libusb0Path is not null)
+        {
+            environment["DTHUB_LIBUSB0"] = libusb0Path;
+            environment["DTHUB_QUICKTIME"] = QuickTimeFile;
+        }
+
+        return request with { Arguments = ["-c", MirrorBootstrap, .. arguments], Environment = environment };
     }
 
     /// <summary>
@@ -524,6 +566,29 @@ public sealed partial class PyMobileDevice : IDisposable
         }
 
         return python;
+    }
+
+    /// <summary>The capture module, beside the requirements; rewritten only when it differs.</summary>
+    private void WriteQuickTimeModule()
+    {
+        using var stream = typeof(PyMobileDevice).Assembly.GetManifestResourceStream(QuickTimeResource)
+            ?? throw new InvalidOperationException($"Ressource « {QuickTimeResource} » absente.");
+        using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+        var source = reader.ReadToEnd();
+
+        try
+        {
+            Directory.CreateDirectory(Root);
+            var path = Path.Combine(Root, QuickTimeFile);
+            if (!File.Exists(path) || File.ReadAllText(path) != source)
+            {
+                File.WriteAllText(path, source, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+            }
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            throw new IPhoneException(Strings.Get("IPhoneFailed"), exception);
+        }
     }
 
     private static string ReadRequirements()

@@ -31,6 +31,22 @@ public sealed class IosGameControlTests
         Assert.EndsWith("{\"bundle\":\"com.ankama.dofustouch\"}", request, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task L_arret_de_la_capture_est_un_POST_sans_corps()
+    {
+        var listener = new TcpListener(IPAddress.Loopback, 0);
+        listener.Start();
+        var port = ((IPEndPoint)listener.LocalEndpoint).Port;
+
+        var received = ReceiveOneAsync(listener);
+        await new IosGameControl(port).StopCaptureAsync(CancellationToken.None);
+        var request = await received;
+        listener.Stop();
+
+        Assert.StartsWith("POST /capture/stop ", request, StringComparison.Ordinal);
+        Assert.EndsWith("\r\n\r\n", request, StringComparison.Ordinal);
+    }
+
     private static async Task<string> ReceiveOneAsync(TcpListener listener)
     {
         using var client = await listener.AcceptTcpClientAsync();
