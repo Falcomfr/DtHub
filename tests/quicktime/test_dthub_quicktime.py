@@ -484,6 +484,13 @@ class ServeWeb(unittest.IsolatedAsyncioTestCase):
         self.assertEqual([config(self.fmt) + qt.frame(0, b"\x00\x00\x00\x02\x65\x88")
                           + qt.frame(1, b"\x00\x00\x00\x02\x41\x9a")], drain(queue))
 
+    async def test_trop_de_en_tetes_sont_refuses_sans_remplir_le_rejeu(self):
+        reader, writer = await asyncio.open_connection("127.0.0.1", self.port)
+        writer.write(b"POST /pli HTTP/1.1\r\nHost: 127.0.0.1\r\n" + b"X-A: 1\r\n" * 500 + b"\r\n")
+        answer = await asyncio.wait_for(reader.read(), 5)
+        writer.close()
+        self.assertTrue(answer.startswith(b"HTTP/1.1 431"))
+
     async def test_une_pli_refusee_ne_repart_pas_du_cache(self):
         queue = asyncio.Queue()
         self.server._subscribers[queue] = SimpleNamespace(needs_key=True)
@@ -615,6 +622,16 @@ class Session(unittest.TestCase):
         video = device_clock("cvrp-request")
         self.assertEqual([qt.need(video), qt.reply(message("cvrp-request"), video + 0x1000AF, 0), qt.need(video),
                           qt.hpd0(), ("release", device, 0)], log)
+
+    def test_un_abandon_pendant_stop_n_ecrit_rien_apres(self):
+        log = []
+        session = qt._Session(SimpleNamespace(ctrl_transfer=lambda *a, **k: None), None, 0, FakeIn([]), FakeOut(log))
+        with mock.patch.dict(sys.modules, fake_usb(log, [])):
+            session.stop()
+            log.clear()
+            session.give_up()
+            session._main()
+        self.assertEqual([], log)
 
 
 def fake_usb(log, devices, claim_error=None):

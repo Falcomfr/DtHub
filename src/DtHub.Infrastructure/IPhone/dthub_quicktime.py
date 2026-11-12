@@ -576,6 +576,10 @@ def _init_server(self, *args, **kwargs):
         _loop = asyncio.get_running_loop()
 
 
+_MAX_HEADER_LINES = 100
+_MAX_HEADER_BYTES = 64 * 1024
+
+
 class _CodecRoute:
     """A connection's reader that answers GET /codec itself while the HD picture
     feeds. Every request line goes through readline (bodies through readexactly),
@@ -602,7 +606,14 @@ class _CodecRoute:
         if not pli and (parts[0] != b"GET" or path != b"/codec"):
             return line
         headers = {}
+        size = 0
         while (header := await self._reader.readline()) not in (b"\r\n", b""):
+            size += len(header)
+            if len(self._replay) >= _MAX_HEADER_LINES or size > _MAX_HEADER_BYTES:
+                self._replay.clear()
+                _ss._respond(self._writer, b"431 Request Header Fields Too Large", b"{}", b"application/json")
+                await self._writer.drain()
+                return b""
             self._replay.append(header)
             name, _, value = header.decode("latin-1").partition(":")
             headers[name.strip().lower()] = value.strip()
@@ -658,6 +669,8 @@ class _Session:
     def give_up(self):
         """The picture gave up waiting for a key frame: the capture thread ends the
         capture as after a failure. Not here, on the server's loop: HPD0 can block 1 s."""
+        if self._stopped:
+            return  # stop() is closing the device: the thread must not touch it after
         self._given_up = True
         self._done.set()
 

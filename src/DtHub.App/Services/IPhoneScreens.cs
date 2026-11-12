@@ -514,7 +514,7 @@ public sealed partial class IPhoneScreens(
     {
         if (_hdFailed.Contains(device.Udid))
         {
-            if (_hdUnusedTold.Add(device.Udid))
+            if (_hdUnusedTold.Add(device.Udid + "|failed"))
             {
                 LogHdFailedBefore(device.Name);
             }
@@ -525,7 +525,7 @@ public sealed partial class IPhoneScreens(
         var parents = filter.PresentAppleDevices();
         if (parents.Count == 0 || !parents.All(filter.IsFiltered))
         {
-            if (_hdUnusedTold.Add(device.Udid))
+            if (_hdUnusedTold.Add(device.Udid + "|notfiltered"))
             {
                 LogHdNotFiltered(device.Name);
             }
@@ -534,7 +534,7 @@ public sealed partial class IPhoneScreens(
         }
 
         var path = filter.LibUsb0Path();
-        if (path is null && _hdUnusedTold.Add(device.Udid))
+        if (path is null && _hdUnusedTold.Add(device.Udid + "|nolibusb0"))
         {
             LogHdNoLibUsb0(device.Name);
         }
