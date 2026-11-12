@@ -74,6 +74,9 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         // restart.
         _settings.Changed += OnSettingsChanged;
 
+        // An Apple device plugged since the panel loaded: the pending line follows, without a USB enumeration every poll.
+        Instances.IPhones.ListChanged += (_, _) => _ = RefreshIosHdPendingAsync();
+
         // What the connection absorbs depends on the number of open
         // windows. Without this subscription, the line reported the
         // cost of a single window while two were running, that is
@@ -1105,11 +1108,25 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         await Instances.RefreshAsync(cancellationToken).ConfigureAwait(true);
         Instances.RefreshRunningState();
         RefreshConnection();
+    }
 
-        // An Apple device plugged since the panel loaded: the pending line follows. A toggle sets it itself.
-        if (!IosHdBusy)
+    /// <summary>Rereads the "devices to activate" line, as the device list changes or the panel comes forward.</summary>
+    public async Task RefreshIosHdPendingAsync()
+    {
+        // A toggle or an activation sets it itself.
+        if (IosHdBusy)
         {
-            RefreshIosHdPending(await _settings.GetAsync(cancellationToken).ConfigureAwait(true));
+            return;
+        }
+
+        try
+        {
+            RefreshIosHdPending(await _settings.GetAsync().ConfigureAwait(true));
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            // The line stays as it was: the next change or activation tries again.
+            Instances.ShowBanner(exception.Message);
         }
     }
 
@@ -1814,6 +1831,12 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         {
             Instances.ShowBanner(exception.Message);
             return UsbFilterResult.Failed;
+        }
+
+        if (result == UsbFilterResult.Done)
+        {
+            // Set up again: a device whose HD start failed earlier in the session tries it again.
+            Instances.IPhones.ForgetHdFailures();
         }
 
         RefreshIosHdPending(await _settings.GetAsync().ConfigureAwait(true));

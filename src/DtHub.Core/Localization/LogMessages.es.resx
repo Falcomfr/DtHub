@@ -869,4 +869,7 @@
   <data name="Image HD non utilisée pour l'iPhone {name} : libusb0.dll est introuvable." xml:space="preserve">
     <value>Imagen HD no usada para el iPhone {name}: no se encuentra libusb0.dll.</value>
   </data>
+  <data name="Image HD non utilisée pour l'iPhone {name} : elle n'a pas démarré plus tôt dans cette session." xml:space="preserve">
+    <value>Imagen HD no usada para el iPhone {name}: no arrancó antes en esta sesión.</value>
+  </data>
 </root>

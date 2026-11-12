@@ -26,6 +26,12 @@ public sealed class IPhoneScreens
         remove { }
     }
 
+    public event EventHandler? ListChanged
+    {
+        add { }
+        remove { }
+    }
+
     public event EventHandler<string>? Opened
     {
         add { }
@@ -79,6 +85,10 @@ public sealed class IPhoneScreens
     public Task RestartGameAsync(string key) => Task.CompletedTask;
 
     public void Show(IReadOnlyList<IPhoneDevice> devices)
+    {
+    }
+
+    public void ForgetHdFailures()
     {
     }
 

@@ -34,7 +34,7 @@ public sealed partial class IPhoneScreens(
     // Kept past the window: a reopening that failed removes it, its row still says why.
     private readonly Dictionary<string, string> _problems = new(StringComparer.Ordinal);
 
-    // For the session, by UDID: the devices whose HD start never served, opened without it since.
+    // By UDID, until the player sets HD up again: the devices whose HD start never served, opened without it since.
     private readonly HashSet<string> _hdFailed = new(StringComparer.Ordinal);
 
     // For the session, by UDID: why the HD picture was not used is said once.
@@ -64,6 +64,9 @@ public sealed partial class IPhoneScreens(
 
     /// <summary>A screen opened, closed or changed state: the arranging buttons count them.</summary>
     public event EventHandler? Changed;
+
+    /// <summary>A search listed other devices than the one before.</summary>
+    public event EventHandler? ListChanged;
 
     /// <summary>Where the account's window is in its life, <c>null</c> without one.</summary>
     public IosWindowState? StateOf(string key) => _windows.TryGetValue(key, out var window) ? window.Life.State : null;
@@ -200,8 +203,14 @@ public sealed partial class IPhoneScreens(
         }
 
         // The list keeps an account row while its window waits for the device.
+        var listChanged = !Listed.Select(d => d.Udid).SequenceEqual(devices.Select(d => d.Udid), StringComparer.Ordinal);
         Listed = devices;
         ListFailed = false;
+
+        if (listChanged)
+        {
+            ListChanged?.Invoke(this, EventArgs.Empty);
+        }
     }
 
     /// <summary>Opens the account's screen, or brings it forward.</summary>
@@ -397,7 +406,7 @@ public sealed partial class IPhoneScreens(
         var preferences = await settings.GetAsync(cancellationToken).ConfigureAwait(true);
         var (port, controlPort) = PyMobileDevice.FreePorts();
         var device = entry.Device;
-        var libusb0Path = preferences.IosHdPicture && !_hdFailed.Contains(device.Udid) ? HdLibUsb0Path(device) : null;
+        var libusb0Path = preferences.IosHdPicture ? HdLibUsb0Path(device) : null;
         var session = await tools.StartMirrorAsync(device, port, preferences.AudioEnabled, controlPort, libusb0Path, cancellationToken).ConfigureAwait(true);
         var game = new IosGameControl(controlPort);
         entry.HdStartedUtc = libusb0Path is null ? null : DateTime.UtcNow;
@@ -489,6 +498,13 @@ public sealed partial class IPhoneScreens(
         Opened?.Invoke(this, entry.Key);
     }
 
+    /// <summary>The player set the HD picture up again: every device tries it, and says why not, afresh.</summary>
+    public void ForgetHdFailures()
+    {
+        _hdFailed.Clear();
+        _hdUnusedTold.Clear();
+    }
+
     /// <summary>
     /// libusb0 for the HD picture, or null: the filter is per Apple model, not per
     /// device, so it is asked only when every Apple device present is filtered.
@@ -496,6 +512,16 @@ public sealed partial class IPhoneScreens(
     /// </summary>
     private string? HdLibUsb0Path(IPhoneDevice device)
     {
+        if (_hdFailed.Contains(device.Udid))
+        {
+            if (_hdUnusedTold.Add(device.Udid))
+            {
+                LogHdFailedBefore(device.Name);
+            }
+
+            return null;
+        }
+
         var parents = filter.PresentAppleDevices();
         if (parents.Count == 0 || !parents.All(filter.IsFiltered))
         {
@@ -809,6 +835,9 @@ public sealed partial class IPhoneScreens(
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Image HD non utilisée pour l'iPhone {name} : libusb0.dll est introuvable.")]
     private partial void LogHdNoLibUsb0(string name);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Image HD non utilisée pour l'iPhone {name} : elle n'a pas démarré plus tôt dans cette session.")]
+    private partial void LogHdFailedBefore(string name);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Les jeux des iPhone n'ont pas pu être arrêtés à la fermeture.")]
     private partial void LogStopAllFailed(Exception exception);

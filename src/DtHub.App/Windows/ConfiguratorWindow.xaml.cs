@@ -44,6 +44,9 @@ public partial class ConfiguratorWindow : Window
 
         Loaded += async (_, _) => await _viewModel.LoadAsync(CancellationToken.None).ConfigureAwait(true);
 
+        // An Apple device plugged while the panel was in the background: the HD pending line follows.
+        Activated += async (_, _) => await _viewModel.RefreshIosHdPendingAsync().ConfigureAwait(true);
+
         // The polling follows visibility, not loading. It used to never stop:
         // the close button hides instead of closing, so OnClosing returned
         // control before Stop, and Toggle hides without going through there
