@@ -4482,7 +4482,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
             if (_iosWindows.Any(w => w.Key == instance.Key))
             {
                 await CaptureGeometriesAsync(cancellationToken).ConfigureAwait(false);
-                await CloseIosAsync(instance.Key, byHand: false).ConfigureAwait(false);
+                await CloseIosAsync(instance.Key, byHand: false, stopCapture: true).ConfigureAwait(false);
             }
         }
         else if (FindSession(instance) is { } session)
@@ -4545,7 +4545,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // An iPhone's one account: its UDID never reaches the scrcpy sessions.
         if (_iosWindows.FirstOrDefault(w => w.Key == IosKeyOf(deviceId)) is { } ios)
         {
-            await CloseIosAsync(ios.Key, byHand: false).ConfigureAwait(false);
+            await CloseIosAsync(ios.Key, byHand: false, stopCapture: true).ConfigureAwait(false);
             await _settings.SetInstancesEnabledAsync([ios.Key], enabled: false, cancellationToken).ConfigureAwait(false);
             NotifyIfNothingLeft();
             return;
@@ -4729,7 +4729,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         if ((await _settings.GetAsync(cancellationToken).ConfigureAwait(false)).Instances
             .Find(i => i.Platform == DevicePlatform.Ios && string.Equals(i.DeviceId, deviceId, StringComparison.Ordinal)) is { } ios)
         {
-            await CloseIosAsync(IosKeyOf(deviceId), byHand: false).ConfigureAwait(false);
+            await CloseIosAsync(IosKeyOf(deviceId), byHand: false, stopCapture: true).ConfigureAwait(false);
             LogDeviceForgotten(ios.DeviceName);
             return;
         }
@@ -4917,7 +4917,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
         // Before the playtime writes are awaited: closing an iOS window ends its span.
         foreach (var key in _iosWindows.Select(w => w.Key).ToList())
         {
-            await CloseIosAsync(key, byHand: false, retitle: false).ConfigureAwait(false);
+            // No capture stop: a launch profile may reopen the same device right after.
+            await CloseIosAsync(key, byHand: false, stopCapture: false, retitle: false).ConfigureAwait(false);
         }
 
         // Again: a window that died before StopAllAsync marked it asked
@@ -6515,14 +6516,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// keys shift, as <see cref="StopSessionAsync" /> does. Closing them all
     /// leaves nothing to retitle.
     /// </summary>
-    private async Task CloseIosAsync(string key, bool byHand, bool retitle = true)
+    /// <param name="stopCapture">The player closes the account for good: its HD capture ends cleanly first.</param>
+    private async Task CloseIosAsync(string key, bool byHand, bool stopCapture, bool retitle = true)
     {
         if (_sessions.StopAppOnClose)
         {
             await RunOnUiAsync(() => _iphones.StopGameAsync(key)).ConfigureAwait(false);
         }
 
-        await RunOnUiAsync(() => _iphones.CloseAsync(key, byHand)).ConfigureAwait(false);
+        await RunOnUiAsync(() => _iphones.CloseAsync(key, byHand, stopCapture)).ConfigureAwait(false);
 
         if (!retitle)
         {
@@ -6568,7 +6570,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
             // startup, unless DT Hub quits (IPhoneScreens.MarkAllStopping).
             if (_iosWindows.Any(w => w.Key == key))
             {
-                await CloseIosAsync(key, byHand: true).ConfigureAwait(false);
+                await CloseIosAsync(key, byHand: true, stopCapture: true).ConfigureAwait(false);
                 continue;
             }
 

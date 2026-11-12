@@ -252,11 +252,14 @@ public sealed partial class IPhoneScreens(
         }
     }
 
-    /// <summary>Closes the account's window; <paramref name="byHand"/> says the player asked for it.</summary>
-    public async Task CloseAsync(string key, bool byHand)
+    /// <summary>
+    /// Closes the account's window; <paramref name="byHand"/> says the player asked for it.
+    /// <paramref name="stopCapture"/> only when the player closes the account for good: a launch
+    /// profile may reopen the same device at once, and quitting stopped every capture already.
+    /// </summary>
+    public async Task CloseAsync(string key, bool byHand, bool stopCapture)
     {
-        // DT Hub's every caller closes the account for good (stop, forget, quit, the frame's cross).
-        if (_windows.TryGetValue(key, out var closing) && !_opening.Contains(key))
+        if (stopCapture && !_stopping && _windows.TryGetValue(key, out var closing) && !_opening.Contains(key))
         {
             using var limit = new CancellationTokenSource(CaptureStopLimit);
             await StopCaptureAsync(closing, limit.Token).ConfigureAwait(true);
