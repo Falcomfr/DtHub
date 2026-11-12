@@ -292,13 +292,13 @@ def frame(kind, payload):
 class KeyCache:
     """The last IDR and every AU since, so a new viewer can start decoding.
 
-    Capped at max_aus AUs (10 s at 60 fps) and max_bytes: past either, the
-    cache empties and stays empty until the next IDR, since a replay without
-    its IDR cannot be decoded.
+    Capped at max_bytes only: DOFUS animates without pause, so a count cap
+    would empty it seconds after each IDR, and QuickTime cannot be asked for
+    another. Past the cap the cache empties and stays empty until the next
+    IDR, since a replay without its IDR cannot be decoded.
     """
 
-    def __init__(self, max_aus=600, max_bytes=64 * 1024 * 1024):
-        self._max_aus = max_aus
+    def __init__(self, max_bytes=64 * 1024 * 1024):
         self._max_bytes = max_bytes
         self._aus = []
         self._bytes = 0
@@ -310,7 +310,7 @@ class KeyCache:
             return
         self._aus.append(au)
         self._bytes += len(au)
-        if len(self._aus) > self._max_aus or self._bytes > self._max_bytes:
+        if self._bytes > self._max_bytes:
             self._aus, self._bytes = [], 0
 
     def replay(self):
@@ -439,6 +439,9 @@ class _Picture:
             return False
         _log.warning("DT Hub: HD picture unavailable: no key frame for a viewer")
         self.end()
+        session = _session
+        if session is not None:
+            session.give_up()  # the device would keep a second encoder busy for nothing
         return True
 
     def subscribe(self, queue, state):
@@ -582,32 +585,41 @@ class _CodecRoute:
         self._server = server
         self._reader = reader
         self._writer = writer
+        self._replay = []  # header lines read here, handed back to serve-web
 
     def __getattr__(self, name):
         return getattr(self._reader, name)
 
     async def readline(self):
+        if self._replay:
+            return self._replay.pop(0)
         line = await self._reader.readline()
         parts = line.split()
         if _picture.mode != "hd" or len(parts) < 2:
             return line
         path = parts[1].split(b"?", 1)[0]
-        if parts[0] == b"POST" and path == b"/pli":
-            # The viewer's decoder needs a key frame QuickTime cannot be asked for: the cache's,
-            # or none and DisplayService's after _KEY_WAIT_SECONDS. serve-web still answers it.
-            _picture.restart_all()
-            return line
-        if parts[0] != b"GET" or path != b"/codec":
+        pli = parts[0] == b"POST" and path == b"/pli"
+        if not pli and (parts[0] != b"GET" or path != b"/codec"):
             return line
         headers = {}
         while (header := await self._reader.readline()) not in (b"\r\n", b""):
+            self._replay.append(header)
             name, _, value = header.decode("latin-1").partition(":")
             headers[name.strip().lower()] = value.strip()
+        self._replay.append(header)
         # The stream's own check, as for every other request.
         refusal = self._server._refuse_request(headers)
         if refusal is not None:
+            self._replay.clear()
             self._writer.write(refusal)
+        elif pli:
+            # The viewer's decoder needs a key frame QuickTime cannot be asked for: the cache's,
+            # or none and DisplayService's after _KEY_WAIT_SECONDS. serve-web reads the headers
+            # back and answers it too.
+            _picture.restart_all()
+            return line
         else:
+            self._replay.clear()
             body = json.dumps(codec_payload(_picture.format)).encode()
             _ss._respond(self._writer, b"200 OK", body, b"application/json", no_store=True)
         await self._writer.drain()
@@ -633,6 +645,7 @@ class _Session:
         self._released = threading.Event()
         self._stop_lock = threading.Lock()
         self._stopped = False
+        self._given_up = False
         self._need = None
         self._clock_start = time.monotonic_ns()
         self._first_frame_at = None
@@ -642,6 +655,12 @@ class _Session:
         with self._write_lock:
             self._out.write(data, timeout)
 
+    def give_up(self):
+        """The picture gave up waiting for a key frame: the capture thread ends the
+        capture as after a failure. Not here, on the server's loop: HPD0 can block 1 s."""
+        self._given_up = True
+        self._done.set()
+
     def _main(self):
         try:
             self._run(self._clock())
@@ -649,13 +668,14 @@ class _Session:
             # Nothing here may take serve-web down. Before the first frame this is the
             # fallback; after it, DisplayService's picture comes back so the window
             # keeps one, as when its own stream ends and restarts.
-            if self._done.is_set():
-                return  # stop_capture ended it
-            if self._first_frame_at is None:
-                _log.warning("DT Hub: HD picture unavailable: %s", _reason(error))
-            else:
-                _log.warning("DT Hub: HD picture ended, DisplayService's picture is back: %s", _reason(error))
-            _on_picture(_picture.end)
+            if not self._done.is_set():
+                if self._first_frame_at is None:
+                    _log.warning("DT Hub: HD picture unavailable: %s", _reason(error))
+                else:
+                    _log.warning("DT Hub: HD picture ended, DisplayService's picture is back: %s", _reason(error))
+                _on_picture(_picture.end)
+                self._given_up = True
+        if self._given_up:
             # The configuration stays: usbmux works in it and serve-web's tunnel rides on it.
             with contextlib.suppress(Exception):
                 self._write(hpd0())
@@ -674,7 +694,7 @@ class _Session:
                 if is_timeout(error):
                     continue
                 raise
-            while len(buffer) >= 4:
+            while len(buffer) >= 4 and not self._done.is_set():
                 length = int.from_bytes(buffer[:4], "little")
                 if not 8 <= length <= _MAX_MESSAGE:
                     raise ValueError("bad message length %d" % length)
@@ -732,7 +752,8 @@ class _Session:
             if self._first_frame_at is None:
                 self._first_frame_at = self._clock()
             _on_picture(_picture.deliver, au, is_key(au))
-        self._write(self._need)
+        if not self._done.is_set():
+            self._write(self._need)
 
     def stop(self):
         with self._stop_lock:

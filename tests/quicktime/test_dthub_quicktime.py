@@ -190,23 +190,24 @@ class Framing(unittest.TestCase):
         cache.add(b"B", False)
         self.assertEqual([], cache.replay())
 
-    def test_le_cache_plein_se_vide_jusqu_a_la_prochaine_image_cle(self):
-        cache = qt.KeyCache(max_aus=3)
-        cache.add(b"K1", True)
-        for au in (b"d1", b"d2", b"d3"):
-            cache.add(au, False)
-        self.assertEqual([], cache.replay())
-        cache.add(b"d4", False)
-        self.assertEqual([], cache.replay())
-        cache.add(b"K2", True)
-        cache.add(b"d5", False)
-        self.assertEqual([b"K2", b"d5"], cache.replay())
+    def test_le_cache_garde_tout_depuis_l_image_cle_quel_que_soit_le_nombre(self):
+        # DOFUS animates without pause: a count cap would empty it 10 s after each IDR.
+        cache = qt.KeyCache()
+        cache.add(b"K", True)
+        for _ in range(5000):
+            cache.add(b"d", False)
+        self.assertEqual(5001, len(cache.replay()))
 
-    def test_le_cache_se_vide_aussi_au_plafond_d_octets(self):
+    def test_le_cache_plein_d_octets_se_vide_jusqu_a_la_prochaine_image_cle(self):
         cache = qt.KeyCache(max_bytes=10)
         cache.add(b"K" * 6, True)
         cache.add(b"d" * 6, False)
         self.assertEqual([], cache.replay())
+        cache.add(b"d", False)
+        self.assertEqual([], cache.replay())
+        cache.add(b"K2", True)
+        cache.add(b"d5", False)
+        self.assertEqual([b"K2", b"d5"], cache.replay())
 
 
 class FakeDevice:
@@ -404,7 +405,7 @@ class Subscribers(unittest.TestCase):
         self.picture.subscribers = self.subscribers
         self.picture.set_format(self.fmt)
         self.picture.deliver(b"K", True)
-        self.picture.cache = qt.KeyCache()  # emptied at its cap, as 10 s after the only key frame
+        self.picture.cache = qt.KeyCache()  # emptied at its byte cap, as long after the only key frame
         queue, _ = self.subscribe()
         self.assertEqual([config(self.fmt)], drain(queue))
         now[0] = 2.9
@@ -482,6 +483,18 @@ class ServeWeb(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(answer.startswith(b"HTTP/1.1 202"))
         self.assertEqual([config(self.fmt) + qt.frame(0, b"\x00\x00\x00\x02\x65\x88")
                           + qt.frame(1, b"\x00\x00\x00\x02\x41\x9a")], drain(queue))
+
+    async def test_une_pli_refusee_ne_repart_pas_du_cache(self):
+        queue = asyncio.Queue()
+        self.server._subscribers[queue] = SimpleNamespace(needs_key=True)
+        drain(queue)
+        reader, writer = await asyncio.open_connection("127.0.0.1", self.port)
+        writer.write(b"POST /pli HTTP/1.1\r\nHost: 127.0.0.1\r\nOrigin: http://other.example\r\n"
+                     b"Content-Length: 0\r\n\r\n")
+        answer = await asyncio.wait_for(reader.read(), 5)
+        writer.close()
+        self.assertTrue(answer.startswith(b"HTTP/1.1 403"))
+        self.assertEqual([], drain(queue))
 
     async def test_stream_bin_commence_par_la_config_et_le_cache(self):
         self.server._active_service, self.server._init_sequence = object(), b"hevc-key"
@@ -579,6 +592,29 @@ class Session(unittest.TestCase):
             session._main()
         self.assertTrue(logs.records[-1].getMessage().startswith("DT Hub: HD picture ended"))
         self.assertEqual("off", qt._picture.mode)
+
+    def test_apres_un_abandon_faute_d_image_cle_la_capture_s_arrete(self):
+        log = []
+        qt._picture = qt._Picture(clock=itertools.count(0.0, 3.0).__next__)
+        qt._picture.subscribers = qt._Subscribers(qt._picture)
+        qt._picture.subscribers[asyncio.Queue()] = SimpleNamespace(needs_key=True)
+        feed = fixture("asyn-feed")
+        device = SimpleNamespace()
+        session = qt._Session(device, None, 0, FakeIn([fixture("cvrp-request"), feed, feed + feed]), FakeOut(log))
+        qt._session = session
+        try:
+            # Deltas only: the viewer waits from the first one, and gives up at the next.
+            with mock.patch.dict(sys.modules, fake_usb(log, [])), mock.patch.object(qt, "is_key", return_value=False), \
+                    self.assertLogs(qt._log, "WARNING"):
+                session.thread.start()
+                session.thread.join(2)
+        finally:
+            qt._session = None
+        self.assertFalse(session.thread.is_alive())
+        self.assertEqual("off", qt._picture.mode)
+        video = device_clock("cvrp-request")
+        self.assertEqual([qt.need(video), qt.reply(message("cvrp-request"), video + 0x1000AF, 0), qt.need(video),
+                          qt.hpd0(), ("release", device, 0)], log)
 
 
 def fake_usb(log, devices, claim_error=None):
