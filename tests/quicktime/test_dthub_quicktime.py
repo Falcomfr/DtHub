@@ -5,10 +5,14 @@ Run with the iPhone tool's Python, from the repository root:
     python -I -m unittest discover -s tests/quicktime -v
 """
 
+import asyncio
+import base64
+import json
 import struct
 import sys
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parents[1] / "src" / "DtHub.Infrastructure" / "IPhone"))
@@ -200,6 +204,243 @@ class Framing(unittest.TestCase):
         cache.add(b"K" * 6, True)
         cache.add(b"d" * 6, False)
         self.assertEqual([], cache.replay())
+
+
+class FakeDevice:
+    def __init__(self, serial):
+        self._serial = serial
+
+    @property
+    def serial_number(self):
+        if isinstance(self._serial, Exception):
+            raise self._serial
+        return self._serial
+
+
+def interface(cls, subclass):
+    return SimpleNamespace(bInterfaceClass=cls, bInterfaceSubClass=subclass)
+
+
+class Device(unittest.TestCase):
+    def test_l_appareil_se_trouve_par_son_udid_sans_tiret_ni_casse(self):
+        wanted = FakeDevice("00008120001a2b3c4d5e")
+        devices = [FakeDevice("00008030000A1B2C3D4E"), wanted]
+        self.assertIs(wanted, qt.pick_device(devices, "00008120-001A2B3C4D5E"))
+
+    def test_un_autre_appareil_apple_ne_convient_pas(self):
+        self.assertIsNone(qt.pick_device([FakeDevice("00008030000A1B2C3D4E")], "00008120-001A2B3C4D5E"))
+
+    def test_un_numero_illisible_est_saute(self):
+        wanted = FakeDevice("00008120001A2B3C4D5E")
+        devices = [FakeDevice(ValueError("The device has no langid")), FakeDevice(None), wanted]
+        self.assertIs(wanted, qt.pick_device(devices, "00008120-001A2B3C4D5E"))
+
+    def test_un_numero_complete_de_zeros_nuls_convient(self):
+        # quicktime_video_hack trims them: 24-character serials come padded.
+        wanted = FakeDevice("00008120001A2B3C4D5E" + "\x00" * 16)
+        self.assertIs(wanted, qt.pick_device([wanted], "00008120-001A2B3C4D5E"))
+
+    def test_la_configuration_de_capture_a_l_interface_2a(self):
+        usbmux = [interface(6, 1), interface(0xFF, 0xFE)]
+        capture = [interface(6, 1), interface(0xFF, 0xFE), interface(0xFF, 0x2A)]
+        self.assertIs(capture, qt.capture_configuration([usbmux, capture]))
+        self.assertIsNone(qt.capture_configuration([usbmux]))
+
+    def test_la_configuration_de_capture_garde_usbmux(self):
+        self.assertIsNone(qt.capture_configuration([[interface(0xFF, 0x2A)]]))
+
+    def test_la_configuration_usbmux_est_la_derniere_sans_capture(self):
+        ptp = [interface(6, 1)]
+        usbmux = [interface(6, 1), interface(0xFF, 0xFE)]
+        usbmux_ncm = [interface(6, 1), interface(0xFF, 0xFE), interface(2, 0x0D)]
+        capture = [interface(0xFF, 0xFE), interface(0xFF, 0x2A)]
+        self.assertIs(usbmux_ncm, qt.usbmux_configuration([ptp, usbmux, usbmux_ncm, capture]))
+
+    def test_repli_apres_cinq_secondes_sans_image(self):
+        self.assertFalse(qt.should_fall_back(0, None, 4.9))
+        self.assertTrue(qt.should_fall_back(0, None, 5.0))
+        self.assertFalse(qt.should_fall_back(0, 1.0, 60))
+
+    def test_une_lecture_vide_n_est_pas_une_erreur(self):
+        USBTimeoutError = type("USBTimeoutError", (Exception,), {})
+        USBError = type("USBError", (Exception,), {})
+        timeout_116 = USBError("libusb0-dll:err [_usb_reap_async] timeout error")
+        timeout_116.backend_error_code = -116
+        timeout_138 = USBError("Unknown error")
+        timeout_138.backend_error_code = -138
+        gone = USBError("libusb0-dll:err [_usb_reap_async] reaping request failed")
+        gone.backend_error_code = -5
+        self.assertTrue(qt.is_timeout(USBTimeoutError("Operation timed out")))
+        self.assertTrue(qt.is_timeout(timeout_116))
+        self.assertTrue(qt.is_timeout(timeout_138))
+        self.assertFalse(qt.is_timeout(gone))
+
+    def test_la_reponse_au_ping_est_celle_de_quicktime_video_hack(self):
+        self.assertEqual(bytes.fromhex("10000000676e69700000000001000000"), qt.ping())
+
+
+class Samples(unittest.TestCase):
+    def test_une_image_cle_se_reconnait_a_son_idr(self):
+        self.assertTrue(qt.is_key(qt.sample_nalus(message("asyn-feed"))))
+        delta = b"\x00\x00\x00\x03\x21\xaa\xbb"
+        self.assertFalse(qt.is_key(delta))
+        self.assertFalse(qt.is_key(b"\x00\x00\x00\x09\x21"))  # truncated: no crash
+
+    def test_le_feed_porte_le_meme_format_que_le_cvrp(self):
+        self.assertEqual(qt.format_description(message("cvrp-request")), qt.sample_format(message("asyn-feed")))
+
+    def test_un_feed_sans_description_ne_donne_pas_de_format(self):
+        feed = message("asyn-feed")
+        empty = qt.Message(feed.kind, feed.magic, feed.correlation_id, feed.clock_ref,
+                           struct.pack("<I", 8) + b"fubs")
+        self.assertIsNone(qt.sample_format(empty))
+
+    def test_codec_donne_le_codec_l_avcc_de_l_appareil_et_la_taille(self):
+        fmt = qt.format_description(message("cvrp-request"))
+        self.assertEqual({"codec": "avc1.640033", "description": base64.b64encode(fmt.avcc).decode(),
+                          "size": {"width": 1126, "height": 2436}}, qt.codec_payload(fmt))
+
+    def test_codec_sans_avcc_de_l_appareil_le_reconstruit(self):
+        fmt = qt.format_description(message("cvrp-request"))
+        bare = qt.VideoFormat(fmt.sps, fmt.pps, fmt.width, fmt.height)
+        self.assertEqual(base64.b64encode(qt.avcc(fmt.sps, fmt.pps)).decode(), qt.codec_payload(bare)["description"])
+
+
+def drain(queue):
+    items = []
+    while not queue.empty():
+        items.append(queue.get_nowait())
+    return items
+
+
+def config(fmt):
+    return qt.frame(3, json.dumps(qt.codec_payload(fmt)).encode())
+
+
+class Subscribers(unittest.TestCase):
+    """serve-web's subscriber queues, without the server: asyncio queues work without a loop."""
+
+    def setUp(self):
+        self.fmt = qt.format_description(message("cvrp-request"))
+        self.picture = qt._Picture()
+        self.subscribers = qt._Subscribers(self.picture)
+        self.picture.subscribers = self.subscribers
+
+    def subscribe(self, maxsize=64):
+        # As serve-web's /stream.bin does: DisplayService's cached key frame first, then the state.
+        queue = asyncio.Queue(maxsize=maxsize)
+        queue.put_nowait(b"hevc-key")
+        state = SimpleNamespace(needs_key=True, reset_on_key=True)
+        self.subscribers[queue] = state
+        return queue, state
+
+    def test_avant_l_image_hd_displayservice_garde_ses_abonnes(self):
+        queue, state = self.subscribe()
+        self.assertEqual([b"hevc-key"], drain(queue))
+        self.assertTrue(state.needs_key)
+        self.assertEqual([(queue, state)], list(self.subscribers.items()))
+
+    def test_en_hd_un_abonne_recoit_la_config_et_le_cache_au_lieu_de_displayservice(self):
+        self.picture.set_format(self.fmt)
+        self.picture.deliver(b"K", True)
+        self.picture.deliver(b"D", False)
+        queue, state = self.subscribe()
+        self.assertEqual([config(self.fmt) + qt.frame(0, b"K") + qt.frame(1, b"D")], drain(queue))
+        self.assertFalse(state.needs_key)  # DisplayService would otherwise restart its stream for it
+        self.assertEqual([], list(self.subscribers.items()))
+        self.assertEqual([], list(self.subscribers.values()))
+        self.assertIn(queue, self.subscribers)
+        self.assertEqual(1, len(self.subscribers))
+
+    def test_la_premiere_image_hd_reprend_les_abonnes_deja_la(self):
+        queue, state = self.subscribe()
+        self.picture.set_format(self.fmt)
+        self.picture.deliver(b"K", True)
+        self.assertEqual([config(self.fmt) + qt.frame(0, b"K")], drain(queue))
+        self.assertFalse(state.needs_key)
+
+    def test_apres_un_changement_de_format_l_abonne_attend_une_image_cle(self):
+        self.picture.set_format(self.fmt)
+        self.picture.deliver(b"K", True)
+        queue, _ = self.subscribe()
+        drain(queue)
+        self.picture.deliver(b"D", False)
+        self.assertEqual([qt.frame(1, b"D")], drain(queue))
+        turned = qt.VideoFormat(self.fmt.sps, self.fmt.pps, self.fmt.height, self.fmt.width, self.fmt.avcc)
+        self.picture.set_format(turned)
+        self.picture.deliver(b"D2", False)
+        self.assertEqual([config(turned)], drain(queue))
+        self.picture.deliver(b"K2", True)
+        self.picture.deliver(b"D3", False)
+        self.assertEqual([qt.frame(0, b"K2"), qt.frame(1, b"D3")], drain(queue))
+
+    def test_une_file_pleine_repart_de_l_image_cle(self):
+        self.picture.set_format(self.fmt)
+        self.picture.deliver(b"K", True)
+        queue, _ = self.subscribe(maxsize=2)
+        self.picture.deliver(b"D1", False)
+        self.picture.deliver(b"D2", False)
+        self.assertEqual([config(self.fmt) + qt.frame(0, b"K") + qt.frame(1, b"D1") + qt.frame(1, b"D2")],
+                         drain(queue))
+
+    def test_apres_la_fin_de_la_capture_displayservice_reprend(self):
+        self.picture.set_format(self.fmt)
+        self.picture.deliver(b"K", True)
+        queue, state = self.subscribe()
+        drain(queue)
+        self.picture.end()
+        self.picture.deliver(b"D", False)
+        self.assertEqual([], drain(queue))
+        self.assertEqual([(queue, state)], list(self.subscribers.items()))
+
+
+class ServeWeb(unittest.IsolatedAsyncioTestCase):
+    """The patches on serve-web's own server (the installed pymobiledevice3), on a local socket, without a device."""
+
+    @classmethod
+    def setUpClass(cls):
+        from pymobiledevice3.remote.core_device import screen_stream  # slow first import, kept off the loop
+        cls.screen_stream = screen_stream
+
+    async def asyncSetUp(self):
+        screen_stream = self.screen_stream
+        server_class = screen_stream.ScreenStreamServer
+        self.saved = (server_class.__init__, server_class._serve_connection)
+        qt._ss, qt._picture, qt._loop = screen_stream, qt._Picture(), None
+        qt._server_init, qt._serve_connection = self.saved
+        server_class.__init__, server_class._serve_connection = qt._init_server, qt._serve_connection_hd
+        self.server = server_class(SimpleNamespace(service=SimpleNamespace(address=("::1", 0))), http_port=0)
+        self.listener = await asyncio.start_server(self.server._handle_http, "127.0.0.1", 0)
+        self.port = self.listener.sockets[0].getsockname()[1]
+        self.fmt = qt.format_description(message("cvrp-request"))
+        qt._picture.set_format(self.fmt)
+        qt._picture.deliver(b"\x00\x00\x00\x02\x65\x88", True)
+
+    async def asyncTearDown(self):
+        self.listener.close()
+        server_class = self.screen_stream.ScreenStreamServer
+        server_class.__init__, server_class._serve_connection = self.saved
+        qt._picture, qt._loop = qt._Picture(), None
+
+    async def test_codec_repond_l_image_hd_meme_apres_un_toucher_sur_la_connexion(self):
+        reader, writer = await asyncio.open_connection("127.0.0.1", self.port)
+        writer.write(b"POST /touch HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length: 2\r\n\r\n{}"
+                     b"GET /codec HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n")
+        answer = await asyncio.wait_for(reader.read(), 5)
+        writer.close()
+        self.assertTrue(answer.endswith(b"\r\n\r\n" + json.dumps(qt.codec_payload(self.fmt)).encode()))
+
+    async def test_stream_bin_commence_par_la_config_et_le_cache(self):
+        self.server._active_service, self.server._init_sequence = object(), b"hevc-key"
+        self.server._stream_ready.set()
+        reader, writer = await asyncio.open_connection("127.0.0.1", self.port)
+        writer.write(b"GET /stream.bin HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n")
+        await reader.readuntil(b"\r\n\r\n")
+        size = int(await reader.readline(), 16)
+        chunk = await reader.readexactly(size)
+        writer.close()
+        self.assertEqual(config(self.fmt) + qt.frame(0, b"\x00\x00\x00\x02\x65\x88"), chunk)
+        self.assertEqual([], list(self.server._subscribers.items()))
 
 
 if __name__ == "__main__":
