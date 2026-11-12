@@ -46,7 +46,7 @@ public class PyMobileDeviceTests
     [InlineData(false, true)]
     public void L_ecran_passe_par_le_lanceur_qui_decode_le_son_hors_Mac(bool audio, bool silent)
     {
-        var request = PyMobileDevice.MirrorRequest("python.exe", "00008020-000A", 8123, audio, 50123, libusb0Path: null);
+        var request = PyMobileDevice.MirrorRequest("python.exe", "00008020-000A", 8123, audio, 50123, libusb0Path: null, quickTimeModule: null);
 
         Assert.Equal(["-c", PyMobileDevice.MirrorBootstrap], request.Arguments.Take(2));
         Assert.Contains("screen_stream.AACELDDecoder = Decoder", PyMobileDevice.MirrorBootstrap, StringComparison.Ordinal);
@@ -60,7 +60,7 @@ public class PyMobileDeviceTests
     [Fact]
     public void Sans_image_HD_l_outil_ne_charge_pas_la_capture()
     {
-        var request = PyMobileDevice.MirrorRequest("python.exe", "00008020-000A", 8123, audio: true, 50123, libusb0Path: null);
+        var request = PyMobileDevice.MirrorRequest("python.exe", "00008020-000A", 8123, audio: true, 50123, libusb0Path: null, quickTimeModule: null);
 
         Assert.False(request.Environment.ContainsKey("DTHUB_LIBUSB0"));
         Assert.False(request.Environment.ContainsKey("DTHUB_QUICKTIME"));
@@ -69,10 +69,11 @@ public class PyMobileDeviceTests
     [Fact]
     public void En_image_HD_l_outil_recoit_la_dll_et_le_module()
     {
-        var request = PyMobileDevice.MirrorRequest("python.exe", "00008020-000A", 8123, audio: true, 50123, @"C:\x\libusb0.dll");
+        var request = PyMobileDevice.MirrorRequest(
+            "python.exe", "00008020-000A", 8123, audio: true, 50123, @"C:\x\libusb0.dll", @"C:\tools\iphone\dthub_quicktime.py");
 
         Assert.Equal(@"C:\x\libusb0.dll", request.Environment["DTHUB_LIBUSB0"]);
-        Assert.EndsWith("dthub_quicktime.py", request.Environment["DTHUB_QUICKTIME"], StringComparison.Ordinal);
+        Assert.Equal(@"C:\tools\iphone\dthub_quicktime.py", request.Environment["DTHUB_QUICKTIME"]);
     }
 
     [Fact]
@@ -85,7 +86,7 @@ public class PyMobileDeviceTests
     [Fact]
     public void Le_port_de_commande_est_donne_a_l_outil()
     {
-        var request = PyMobileDevice.MirrorRequest("python.exe", "00008020-000A", 8123, audio: true, 50123, libusb0Path: null);
+        var request = PyMobileDevice.MirrorRequest("python.exe", "00008020-000A", 8123, audio: true, 50123, libusb0Path: null, quickTimeModule: null);
 
         Assert.Equal("50123", request.Environment["DTHUB_CONTROL_PORT"]);
     }

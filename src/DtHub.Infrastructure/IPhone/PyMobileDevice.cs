@@ -162,11 +162,6 @@ public sealed partial class PyMobileDevice : IDisposable
 
 
         async def command(apps, method, path, query, body):
-            if method == "POST" and path == "/capture/stop":
-                # For closing only: it blocks for a moment, so never on the loop.
-                if _quicktime is not None:
-                    await asyncio.to_thread(_quicktime.stop_capture)
-                return {}
             if method == "GET" and path == "/apps":
                 return [{"name": str(a.get("name", "")), "bundle": str(a.get("bundleIdentifier", ""))} for a in await apps.list_apps()]
             if method == "GET" and path == "/running":
@@ -196,6 +191,14 @@ public sealed partial class PyMobileDevice : IDisposable
                     writer.write(refusal)
                     return
                 url = urllib.parse.urlsplit(target)
+                if method == "POST" and url.path == "/capture/stop":
+                    # Before the app service, which a close must not wait for. For closing only:
+                    # it blocks for a moment, so never on the loop. stop_capture never raises.
+                    if _quicktime is not None:
+                        await asyncio.to_thread(_quicktime.stop_capture)
+                    screen_stream._respond(writer, b"200 OK", b"{}", b"application/json")
+                    await writer.drain()
+                    return
                 try:
                     body = json.loads(await server._read_body(reader, headers) or b"{}")
                     # Read per request: the stream rebinds _rsd when the device comes back.
@@ -319,26 +322,11 @@ public sealed partial class PyMobileDevice : IDisposable
 
             LogStarting(device.Name, port);
 
-            if (libusb0Path is not null)
-            {
-                WriteQuickTimeModule();
-            }
+            var quickTimeModule = libusb0Path is null ? null : WriteQuickTimeModule();
 
             try
             {
-                var request = MirrorRequest(python, device.Udid, port, audio, controlPort, libusb0Path);
-                if (libusb0Path is not null)
-                {
-                    request = request with
-                    {
-                        Environment = new Dictionary<string, string?>(request.Environment, StringComparer.Ordinal)
-                        {
-                            ["DTHUB_QUICKTIME"] = Path.Combine(Root, QuickTimeFile),
-                        },
-                    };
-                }
-
-                return _launcher.Start(request);
+                return _launcher.Start(MirrorRequest(python, device.Udid, port, audio, controlPort, libusb0Path, quickTimeModule));
             }
             catch (ProcessLaunchException exception)
             {
@@ -408,10 +396,10 @@ public sealed partial class PyMobileDevice : IDisposable
 
     /// <summary>
     /// <c>serve-web</c> through <see cref="MirrorBootstrap"/>, silent when the player turned sound off.
-    /// A <paramref name="libusb0Path"/> asks for the HD picture: <c>DTHUB_QUICKTIME</c> is then the module's
-    /// file name, which <see cref="StartMirrorAsync"/> turns into its path once written.
+    /// A <paramref name="libusb0Path"/> asks for the HD picture, run by the module at <paramref name="quickTimeModule"/>.
     /// </summary>
-    public static ProcessRequest MirrorRequest(string python, string udid, int port, bool audio, int controlPort, string? libusb0Path)
+    public static ProcessRequest MirrorRequest(
+        string python, string udid, int port, bool audio, int controlPort, string? libusb0Path, string? quickTimeModule)
     {
         string[] arguments =
         [
@@ -428,8 +416,9 @@ public sealed partial class PyMobileDevice : IDisposable
         };
         if (libusb0Path is not null)
         {
+            ArgumentNullException.ThrowIfNull(quickTimeModule);
             environment["DTHUB_LIBUSB0"] = libusb0Path;
-            environment["DTHUB_QUICKTIME"] = QuickTimeFile;
+            environment["DTHUB_QUICKTIME"] = quickTimeModule;
         }
 
         return request with { Arguments = ["-c", MirrorBootstrap, .. arguments], Environment = environment };
@@ -568,8 +557,8 @@ public sealed partial class PyMobileDevice : IDisposable
         return python;
     }
 
-    /// <summary>The capture module, beside the requirements; rewritten only when it differs.</summary>
-    private void WriteQuickTimeModule()
+    /// <summary>The capture module, beside the requirements; rewritten only when it differs. Returns its path.</summary>
+    private string WriteQuickTimeModule()
     {
         using var stream = typeof(PyMobileDevice).Assembly.GetManifestResourceStream(QuickTimeResource)
             ?? throw new InvalidOperationException($"Ressource « {QuickTimeResource} » absente.");
@@ -584,6 +573,8 @@ public sealed partial class PyMobileDevice : IDisposable
             {
                 File.WriteAllText(path, source, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
             }
+
+            return path;
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
