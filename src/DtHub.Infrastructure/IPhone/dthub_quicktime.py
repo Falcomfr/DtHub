@@ -325,11 +325,12 @@ _USBMUX_SUBCLASS = 0xFE
 _CAPTURE_SUBCLASS = 0x2A
 _FIRST_FRAME_SECONDS = 5.0
 _SWITCH_SECONDS = 10.0
+_KEY_WAIT_SECONDS = 3.0  # QuickTime has no PLI: a viewer left without a key frame goes back to DisplayService
 # shortcut: one 4 KiB read at a time where quicktime_video_hack keeps five in flight; raise it if FEEDs lag.
 _READ_SIZE = 4096
 _READ_TIMEOUT_MS = 500
 _WRITE_TIMEOUT_MS = 1000
-_STOP_TIMEOUT_MS = 300  # stop_capture has about 2 s in all
+_STOP_TIMEOUT_MS = 300  # stop_capture has 2 s in all, the hide request first
 _MAX_MESSAGE = 64 * 1024 * 1024
 
 
@@ -399,13 +400,14 @@ class _Picture:
     the capture thread before, when nothing else reads it (see _on_picture).
     """
 
-    def __init__(self):
+    def __init__(self, clock=time.monotonic):
         self.mode = "pending"
         self.format = None
         self.cache = KeyCache()
         self.server = None
         self.subscribers = None  # the server's _Subscribers once it exists
-        self.waiting = set()  # queues that must get a key frame before any delta
+        self.waiting = {}  # queue -> since when it waits for a key frame before any delta
+        self._clock = clock  # seconds; tests pass their own
 
     def _queues(self):
         return list(self.subscribers or ())
@@ -418,9 +420,26 @@ class _Picture:
         config = frame(3, json.dumps(codec_payload(self.format)).encode())
         queue.put_nowait(config + b"".join(frame(0 if i == 0 else 1, au) for i, au in enumerate(aus)))
         if aus:
-            self.waiting.discard(queue)
-        else:
-            self.waiting.add(queue)
+            self.waiting.pop(queue, None)
+            return
+        self.waiting.setdefault(queue, self._clock())
+        with contextlib.suppress(RuntimeError):  # no loop yet: the next AU checks
+            asyncio.get_running_loop().call_later(_KEY_WAIT_SECONDS + 0.1, self._gave_up)
+
+    def restart_all(self):
+        """A viewer's /pli: every queue starts over from the cache."""
+        if self.mode == "hd":
+            for queue in self._queues():
+                self._restart(queue)
+
+    def _gave_up(self):
+        """Ends the HD picture when a viewer waited too long for a key frame."""
+        if self.mode != "hd" or not any(self._clock() - since >= _KEY_WAIT_SECONDS
+                                        for since in self.waiting.values()):
+            return False
+        _log.warning("DT Hub: HD picture unavailable: no key frame for a viewer")
+        self.end()
+        return True
 
     def subscribe(self, queue, state):
         # Unmarked, DisplayService's escalation would restart its stream for a key this queue never gets.
@@ -455,7 +474,8 @@ class _Picture:
                 self._restart(queue)  # the replay carries this AU
             else:
                 queue.put_nowait(message)
-                self.waiting.discard(queue)
+                self.waiting.pop(queue, None)
+        self._gave_up()
 
     def _start(self):
         self.mode = "hd"
@@ -512,7 +532,7 @@ class _Subscribers(dict):
         super().__setitem__(queue, state)
 
     def pop(self, queue, *default):
-        self._picture.waiting.discard(queue)
+        self._picture.waiting.pop(queue, None)
         return super().pop(queue, *default)
 
     def items(self):
@@ -569,8 +589,15 @@ class _CodecRoute:
     async def readline(self):
         line = await self._reader.readline()
         parts = line.split()
-        if (_picture.mode != "hd" or len(parts) < 2 or parts[0] != b"GET"
-                or parts[1].split(b"?", 1)[0] != b"/codec"):
+        if _picture.mode != "hd" or len(parts) < 2:
+            return line
+        path = parts[1].split(b"?", 1)[0]
+        if parts[0] == b"POST" and path == b"/pli":
+            # The viewer's decoder needs a key frame QuickTime cannot be asked for: the cache's,
+            # or none and DisplayService's after _KEY_WAIT_SECONDS. serve-web still answers it.
+            _picture.restart_all()
+            return line
+        if parts[0] != b"GET" or path != b"/codec":
             return line
         headers = {}
         while (header := await self._reader.readline()) not in (b"\r\n", b""):
@@ -716,13 +743,14 @@ class _Session:
         if self.thread.is_alive():
             with contextlib.suppress(Exception):
                 self._write(hpd0(), _STOP_TIMEOUT_MS)
-                self._released.wait(0.7)  # the thread answers the device's STOP meanwhile
+                self._released.wait(0.4)  # the thread answers the device's STOP meanwhile
         self._done.set()
-        self.thread.join(_READ_TIMEOUT_MS / 1000 + 0.1)
         steps = [
-            lambda: usb.util.release_interface(self._device, self._interface),
-            # Then as quicktime_video_hack: hide the capture configuration, back to usbmux's.
+            # First, as it is what resets the device: hide the capture configuration, as
+            # quicktime_video_hack does, then the rest, each bounded.
             lambda: self._device.ctrl_transfer(0x40, 0x52, 0x00, 0x00, timeout=_STOP_TIMEOUT_MS),
+            lambda: self.thread.join(0.3),
+            lambda: usb.util.release_interface(self._device, self._interface),
         ]
         if self._usbmux is not None:
             steps.append(lambda: self._device.set_configuration(self._usbmux.bConfigurationValue))
@@ -739,7 +767,8 @@ def _device_clock(message):
 
 
 def _open(udid, libusb0_path):
-    """Finds the device, shows its capture configuration and claims QuickTime's interface."""
+    """Finds the device, shows its capture configuration (hidden first when a killed
+    tool left it shown) and claims QuickTime's interface."""
     try:
         import usb.backend.libusb0
         import usb.core
@@ -762,29 +791,38 @@ def _open(udid, libusb0_path):
                 dispose(other)  # reading its serial opened it
         return found
 
-    device = find()
-    if device is None:
-        raise _Unavailable("device not found by libusb0")
-    config = capture_configuration(device.configurations())
-    if config is None:
+    def switch(device, value, shown):
+        """Sends the capture configuration request (2 shows it, 0 hides it): the device
+        leaves the bus and comes back with it shown or not."""
         try:
-            device.ctrl_transfer(0x40, 0x52, 0x00, 0x02)
+            device.ctrl_transfer(0x40, 0x52, 0x00, value)
         except usb.core.USBError:
             pass  # quicktime_video_hack: "happens sometimes but it still works usually"
-        # The device leaves the bus and comes back with the hidden configuration.
         dispose(device)
         deadline = time.monotonic() + _SWITCH_SECONDS
-        while config is None:
+        while True:
             if time.monotonic() >= deadline:
-                raise _Unavailable("the capture configuration did not come back within %d s" % _SWITCH_SECONDS)
+                raise _Unavailable("the capture configuration did not %s within %d s"
+                                   % ("come back" if shown else "go away", _SWITCH_SECONDS))
             time.sleep(0.5)
             try:
                 device = find()
                 config = capture_configuration(device.configurations()) if device is not None else None
             except usb.core.USBError:
-                config = None  # still re-enumerating
-            if config is None and device is not None:
+                device = config = None  # still re-enumerating
+            if device is not None and (config is not None) == shown:
+                return device, config
+            if device is not None:
                 dispose(device)
+
+    device = find()
+    if device is None:
+        raise _Unavailable("device not found by libusb0")
+    if capture_configuration(device.configurations()) is not None:
+        # Left by a tool killed without its stop: the device is mid-session and would
+        # never PING the new host. Hidden and shown again, it starts over.
+        device, _ = switch(device, 0x00, shown=False)
+    device, config = switch(device, 0x02, shown=True)
     configs = device.configurations()
     usbmux = usbmux_configuration(configs)
     interface = next(i for i in config
@@ -812,8 +850,9 @@ def _open(udid, libusb0_path):
 
 def install(screen_stream_module, udid, libusb0_path):
     """Called by the bootstrap before serve-web starts. Switches the device to its
-    capture configuration here (up to 10 s: serve-web's tunnel must open after the
-    device came back), patches the server, starts the capture thread and returns.
+    capture configuration here (up to 10 s, twice when a killed tool left it
+    shown: serve-web's tunnel must open after the device came back), patches the
+    server, starts the capture thread and returns.
     Never raises: a failure logs "DT Hub: HD picture unavailable: <reason>" and
     leaves serve-web as it is."""
     global _ss, _log, _session, _server_init, _serve_connection
@@ -835,10 +874,11 @@ def install(screen_stream_module, udid, libusb0_path):
 
 def stop_capture():
     """Ends the capture cleanly: HPD0, the device's STOP answered, RELS awaited
-    briefly, then usbmux's configuration back. For closing only: going back
-    re-enumerates the device and resets usbmux, which ends serve-web's tunnel;
-    the caller kills the tool right after. Idempotent, never raises, about 2 s
-    at most. Called by the bootstrap's POST /capture/stop, and at exit."""
+    briefly, then the capture configuration hidden and usbmux's back. For
+    closing only: going back re-enumerates the device and resets usbmux, which
+    ends serve-web's tunnel;
+    the caller kills the tool right after. Idempotent, never raises, well
+    within 2 s. Called by the bootstrap's POST /capture/stop, and at exit."""
     session = _session
     if session is None:
         return

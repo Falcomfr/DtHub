@@ -397,6 +397,43 @@ class Subscribers(unittest.TestCase):
         self.assertEqual([(queue, state)], list(self.subscribers.items()))
 
 
+    def test_sans_image_cle_trois_secondes_l_image_hd_rend_displayservice(self):
+        now = [0.0]
+        self.picture = qt._Picture(clock=lambda: now[0])
+        self.subscribers = qt._Subscribers(self.picture)
+        self.picture.subscribers = self.subscribers
+        self.picture.set_format(self.fmt)
+        self.picture.deliver(b"K", True)
+        self.picture.cache = qt.KeyCache()  # emptied at its cap, as 10 s after the only key frame
+        queue, _ = self.subscribe()
+        self.assertEqual([config(self.fmt)], drain(queue))
+        now[0] = 2.9
+        self.picture.deliver(b"D1", False)
+        self.assertEqual("hd", self.picture.mode)
+        now[0] = 3.0
+        with self.assertLogs(qt._log, "WARNING") as logs:
+            self.picture.deliver(b"D2", False)
+        self.assertEqual(["DT Hub: HD picture unavailable: no key frame for a viewer"],
+                         [r.getMessage() for r in logs.records])
+        self.assertEqual("off", self.picture.mode)
+
+    def test_une_image_cle_a_temps_garde_l_image_hd(self):
+        now = [0.0]
+        self.picture = qt._Picture(clock=lambda: now[0])
+        self.subscribers = qt._Subscribers(self.picture)
+        self.picture.subscribers = self.subscribers
+        self.picture.set_format(self.fmt)
+        self.picture.deliver(b"K", True)
+        self.picture.cache = qt.KeyCache()
+        queue, _ = self.subscribe()
+        now[0] = 2.0
+        self.picture.deliver(b"K2", True)
+        now[0] = 10.0
+        self.picture.deliver(b"D", False)
+        self.assertEqual("hd", self.picture.mode)
+        self.assertEqual([config(self.fmt), qt.frame(0, b"K2"), qt.frame(1, b"D")], drain(queue))
+
+
 class ServeWeb(unittest.IsolatedAsyncioTestCase):
     """The patches on serve-web's own server (the installed pymobiledevice3), on a local socket, without a device."""
 
@@ -432,6 +469,19 @@ class ServeWeb(unittest.IsolatedAsyncioTestCase):
         answer = await asyncio.wait_for(reader.read(), 5)
         writer.close()
         self.assertTrue(answer.endswith(b"\r\n\r\n" + json.dumps(qt.codec_payload(self.fmt)).encode()))
+
+    async def test_pli_en_hd_repart_du_cache(self):
+        queue = asyncio.Queue()
+        self.server._subscribers[queue] = SimpleNamespace(needs_key=True)
+        drain(queue)
+        qt._picture.deliver(b"\x00\x00\x00\x02\x41\x9a", False)
+        reader, writer = await asyncio.open_connection("127.0.0.1", self.port)
+        writer.write(b"POST /pli HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length: 0\r\n\r\n")
+        answer = await asyncio.wait_for(reader.read(), 5)
+        writer.close()
+        self.assertTrue(answer.startswith(b"HTTP/1.1 202"))
+        self.assertEqual([config(self.fmt) + qt.frame(0, b"\x00\x00\x00\x02\x65\x88")
+                          + qt.frame(1, b"\x00\x00\x00\x02\x41\x9a")], drain(queue))
 
     async def test_stream_bin_commence_par_la_config_et_le_cache(self):
         self.server._active_service, self.server._init_sequence = object(), b"hevc-key"
@@ -576,14 +626,17 @@ class UsbDevice(FakeDevice):
 class UsbCleanup(unittest.TestCase):
     def test_un_echec_a_la_prise_de_l_interface_la_rend_et_libere_l_appareil(self):
         log = []
+        usbmux = Configuration(4, [interface(0xFF, 0xFE, 1)])
         capture = Configuration(5, [interface(0xFF, 0xFE, 1), interface(0xFF, 0x2A, 2)])
         other = UsbDevice("00008030000A1B2C3D4E", [capture], log)
-        wanted = UsbDevice("00008120001A2B3C4D5E", [capture], log)
-        with mock.patch.dict(sys.modules, fake_usb(log, [other, wanted], claim_error=OSError("busy"))):
+        wanted = SwitchingDevice("00008120001A2B3C4D5E", [usbmux, capture], log, shown=False)
+        with mock.patch.dict(sys.modules, fake_usb(log, [other, wanted], claim_error=OSError("busy"))), \
+                mock.patch.object(qt.time, "sleep"):
             with self.assertRaises(OSError):
                 qt._open("00008120-001A2B3C4D5E", "libusb0.dll")
         self.assertIn(("dispose", other), log)
-        self.assertEqual([("set_configuration", 5), ("claim", wanted, 2), ("release", wanted, 2), ("dispose", wanted)],
+        self.assertEqual([("ctrl", (0x40, 0x52, 0x00, 0x02)), ("dispose", wanted), ("set_configuration", 5),
+                          ("claim", wanted, 2), ("release", wanted, 2), ("dispose", wanted)],
                          [entry for entry in log if entry != ("dispose", other)])
 
     def test_l_arret_suit_l_ordre_de_quicktime_video_hack(self):
@@ -595,8 +648,39 @@ class UsbCleanup(unittest.TestCase):
         with mock.patch.dict(sys.modules, fake_usb(log, [])):
             session.stop()
             session.stop()
-        self.assertEqual([qt.hpd0(), ("release", device, 2), ("ctrl", (0x40, 0x52, 0x00, 0x00)),
+        self.assertEqual([qt.hpd0(), ("ctrl", (0x40, 0x52, 0x00, 0x00)), ("release", device, 2),
                           ("set_configuration", 4), ("dispose", device)], log)
+
+    def test_une_configuration_de_capture_restee_est_cachee_puis_reactivee(self):
+        # A tool killed without its stop leaves the device mid-session in its capture configuration.
+        log = []
+        usbmux = Configuration(4, [interface(0xFF, 0xFE, 1)])
+        capture = Configuration(5, [interface(0xFF, 0xFE, 1), interface(0xFF, 0x2A, 2)])
+        device = SwitchingDevice("00008120001A2B3C4D5E", [usbmux, capture], log)
+        with mock.patch.dict(sys.modules, fake_usb(log, [device], claim_error=OSError("stop here"))), \
+                mock.patch.object(qt.time, "sleep"):
+            with self.assertRaises(OSError):
+                qt._open("00008120-001A2B3C4D5E", "libusb0.dll")
+        self.assertEqual([("ctrl", (0x40, 0x52, 0x00, 0x00)), ("ctrl", (0x40, 0x52, 0x00, 0x02)),
+                          ("set_configuration", 5)],
+                         [entry for entry in log if entry[0] in ("ctrl", "set_configuration")])
+
+
+class SwitchingDevice(UsbDevice):
+    """Shows its capture configuration after the enable request, hides it after the hide request."""
+
+    def __init__(self, serial, configs, log, shown=True):
+        super().__init__(serial, configs, log)
+        self._all = configs
+        self._shown = shown
+
+    def configurations(self):
+        return self._all if self._shown else self._all[:1]
+
+    def ctrl_transfer(self, *args, **kw):
+        super().ctrl_transfer(*args, **kw)
+        if args[:2] == (0x40, 0x52):
+            self._shown = args[3] == 0x02
 
 
 class EndOfCapture(unittest.TestCase):
