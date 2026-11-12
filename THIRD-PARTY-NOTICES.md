@@ -16,6 +16,9 @@ No copyright notice or third-party licence text may be removed.
 | uv | MIT or Apache License 2.0 | Downloaded from GitHub on first opening of the iPhone window |
 | pymobiledevice3 and its Python packages | GPL-3.0-or-later and others | Fetched from PyPI by uv, iPhone window only |
 | Python (python-build-standalone) | PSF License | Fetched by uv, iPhone window only |
+| libusb-win32 | LGPL-3.0 (library), GPL-3.0 (driver) | Downloaded from GitHub only when the player turns on Image HD, never bundled |
+| pyusb | BSD-3-Clause | Fetched from PyPI by uv, pinned by hash, Image HD only |
+| quicktime_video_hack, ioscreen | MIT | Protocol references, not shipped; recorded fixtures in the tests |
 | .NET runtime | MIT | Included by the self-contained publish |
 | CommunityToolkit.Mvvm | MIT | NuGet package |
 | Serilog and its sinks | Apache License 2.0 | NuGet packages |
@@ -48,6 +51,31 @@ pymobiledevice3 runs as a separate program that DT Hub starts and talks to
 over its command line and a local web page. DT Hub is not linked with it
 and ships none of its code, so the GPL does not reach DT Hub. Its licence
 text comes with the package, as installed by uv.
+
+## libusb-win32, pyusb and the QuickTime capture references (iPhone HD picture)
+
+- libusb-win32: https://github.com/mcuee/libusb-win32, library under
+  LGPL-3.0, driver under GPL-3.0
+- pyusb: https://github.com/pyusb/pyusb, BSD-3-Clause
+- quicktime_video_hack: https://github.com/danielpaulus/quicktime_video_hack,
+  MIT
+- ioscreen: https://github.com/danielpaulus/ioscreen, MIT
+
+libusb-win32 is not in the installer. DT Hub downloads the official release
+from GitHub, checked against the hash in `build/dependencies.json`, only when
+the player turns on Image HD, and runs its `install-filter.exe` on the
+player's Apple device after their explicit choice. DT Hub is not linked with
+it and ships none of its code, so neither licence reaches DT Hub. Its licence
+files come with the downloaded release.
+
+pyusb is installed by uv with the other iPhone packages, pinned by hash in
+`build/iphone-requirements.txt`, and loaded by the tool only for the HD
+picture.
+
+quicktime_video_hack and ioscreen are protocol references: DT Hub's own
+module (`dthub_quicktime.py`) is written after their documentation, and the
+tests replay messages recorded with quicktime_video_hack
+(`tests/quicktime/fixtures`). Their MIT notices are kept here.
 
 ## scrcpy
 

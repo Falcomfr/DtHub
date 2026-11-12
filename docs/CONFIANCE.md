@@ -161,8 +161,13 @@ effective argument.
   a real doubt.
 - Not changing the file name from one version to the next, since
   reputation attaches to it.
-- Never asking for administrator rights, which the application does not
-  do and must not start doing.
+- Asking for administrator rights only when you ask for it. DT Hub asks
+  once, and only if you turn on Image HD (iPhone and iPad): Windows then
+  asks permission to install the libusb-win32 filter driver on your Apple
+  device, and nothing else. It asks once more to remove it if you turn
+  Image HD off and agree. Every other player, every player who leaves Image
+  HD off, is never asked for administrator rights, and DT Hub must not
+  start asking for them anywhere else.
 
 ## Checking a binary's state yourself
 

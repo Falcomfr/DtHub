@@ -3522,4 +3522,34 @@ A phone already paired over Wi-Fi comes back on its own.</value>
   <data name="IosGameMissing" xml:space="preserve">
     <value>DOFUS Touch not installed</value>
   </data>
+  <data name="IosHdPicture" xml:space="preserve">
+    <value>HD picture (iPhone and iPad)</value>
+  </data>
+  <data name="IosHdPictureTip" xml:space="preserve">
+    <value>Sharp picture, instead of the current one limited by the iPhone. Installs a small USB driver, once.</value>
+  </data>
+  <data name="IosHdExplain" xml:space="preserve">
+    <value>For the HD picture, DT Hub installs the libusb-win32 driver on your plugged-in iPhone or iPad, and only on it. Windows will ask for permission. You can remove it by unticking the box.</value>
+  </data>
+  <data name="IosHdNoDevice" xml:space="preserve">
+    <value>Plug in your iPhone or iPad, then tick again.</value>
+  </data>
+  <data name="IosHdRefused" xml:space="preserve">
+    <value>HD picture not turned on: Windows was not given permission.</value>
+  </data>
+  <data name="IosHdFailed" xml:space="preserve">
+    <value>HD picture not turned on: the driver did not install.</value>
+  </data>
+  <data name="IosHdRemoveAsk" xml:space="preserve">
+    <value>Also remove the USB driver installed for the HD picture? Windows will ask for permission.</value>
+  </data>
+  <data name="IosHdNewDevices" xml:space="preserve">
+    <value>{0} device(s) to activate</value>
+  </data>
+  <data name="IosHdActivate" xml:space="preserve">
+    <value>Activate</value>
+  </data>
+  <data name="IosHdHelp" xml:space="preserve">
+    <value>Blurry picture? Try the HD picture in the settings.</value>
+  </data>
 </root>

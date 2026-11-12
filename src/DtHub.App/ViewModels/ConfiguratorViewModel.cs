@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 
@@ -8,9 +9,11 @@ using CommunityToolkit.Mvvm.Input;
 using DtHub.App.Services;
 using DtHub.Core;
 using DtHub.Core.Adb;
+using DtHub.Core.Dependencies;
 using DtHub.Core.Devices;
 using DtHub.Core.Dofus;
 using DtHub.Core.Hotkeys;
+using DtHub.Core.IPhone;
 using DtHub.Core.Localization;
 using DtHub.Core.Settings;
 using DtHub.Core.Storage;
@@ -31,7 +34,9 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     private readonly IAppPaths _paths;
 
     private readonly DiagnosticReporter _reporter;
+    private readonly IUsbFilterDriver? _usbFilter;
     private bool _loading;
+    private bool _revertingIosHd;
     private bool _movingWindows;
     private int? _pendingPercent;
     private CancellationTokenSource? _persistSize;
@@ -43,7 +48,8 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         IDialogService dialogs,
         IAppPaths paths,
         DiagnosticReporter reporter,
-        IUsbEnumerationInspector usb)
+        IUsbEnumerationInspector usb,
+        IUsbFilterDriver? usbFilter = null)
     {
         Instances = instances;
         _settings = settings;
@@ -52,6 +58,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         _paths = paths;
         _reporter = reporter;
         _usb = usb;
+        _usbFilter = usbFilter;
 
         // A fault outside the UI thread does not show up: it gets
         // counted, and this line is the only place where it can be
@@ -1003,6 +1010,14 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     [ObservableProperty]
     private bool _sharpImage;
 
+    /// <summary>The HD picture for iPhone and iPad, which needs the USB filter (D234).</summary>
+    [ObservableProperty]
+    private bool _iosHdPicture;
+
+    /// <summary>The "n device(s) to activate" line, null when there is nothing to activate.</summary>
+    [ObservableProperty]
+    private string? _iosHdPending;
+
     public string Disclaimer =>
         Strings.Get("Disclaimer");
 
@@ -1036,6 +1051,8 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             Language = settings.Language;
             AudioEnabled = settings.AudioEnabled;
             SharpImage = settings.SharpImage;
+            IosHdPicture = settings.IosHdPicture;
+            RefreshIosHdPending(settings);
             _dtStuffLandscape = settings.DtStuffLandscape;
             ReadCustomQuality(settings);
 
@@ -1665,6 +1682,158 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         }
 
         _ = ApplyStartupSettingAsync(() => _settings.SetSharpImageAsync(value));
+    }
+
+    /// <summary>
+    /// Turning it on asks first, then installs the filter on the Apple
+    /// devices present. Anything but Done puts the box back and saves
+    /// nothing; turning it off offers to remove the filters DT Hub added.
+    /// </summary>
+    partial void OnIosHdPictureChanged(bool value)
+    {
+        if (_loading || _revertingIosHd || _usbFilter is null)
+        {
+            return;
+        }
+
+        _ = value ? EnableIosHdAsync(_usbFilter) : DisableIosHdAsync(_usbFilter);
+    }
+
+    private async Task EnableIosHdAsync(IUsbFilterDriver filter)
+    {
+        if (!_dialogs.Confirm(Strings.Get("IosHdExplain")))
+        {
+            RevertIosHd();
+            return;
+        }
+
+        var present = filter.PresentAppleDevices();
+
+        if (present.Count == 0)
+        {
+            RevertIosHd(Strings.Get("IosHdNoDevice"));
+            return;
+        }
+
+        if (!await InstallIosHdAsync(filter, present).ConfigureAwait(true))
+        {
+            RevertIosHd();
+        }
+    }
+
+    /// <summary>Installs on <paramref name="ids"/> and saves the choice; shows the refusal or failure, false then.</summary>
+    private async Task<bool> InstallIosHdAsync(IUsbFilterDriver filter, IReadOnlyList<string> ids)
+    {
+        var result = await RunFilterAsync(() => filter.InstallAsync(ids, CancellationToken.None)).ConfigureAwait(true);
+
+        if (result != UsbFilterResult.Done)
+        {
+            _dialogs.ShowWarning(Strings.Get(result == UsbFilterResult.Refused ? "IosHdRefused" : "IosHdFailed"));
+            return false;
+        }
+
+        try
+        {
+            var stored = (await _settings.GetAsync().ConfigureAwait(true)).IosHdFilteredDevices;
+            await _settings.SetIosHdPictureAsync(true, [.. stored.Union(ids, StringComparer.OrdinalIgnoreCase)])
+                .ConfigureAwait(true);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            Instances.ShowBanner(exception.Message);
+            return false;
+        }
+
+        RefreshIosHdPending(await _settings.GetAsync().ConfigureAwait(true));
+        return true;
+    }
+
+    private async Task DisableIosHdAsync(IUsbFilterDriver filter)
+    {
+        try
+        {
+            var stored = (await _settings.GetAsync().ConfigureAwait(true)).IosHdFilteredDevices;
+            await _settings.SetIosHdPictureAsync(false, stored).ConfigureAwait(true);
+
+            if (stored.Count > 0 && _dialogs.Confirm(Strings.Get("IosHdRemoveAsk"))
+                && await RunFilterAsync(() => filter.UninstallAsync(stored, CancellationToken.None)).ConfigureAwait(true)
+                    == UsbFilterResult.Done)
+            {
+                await _settings.SetIosHdPictureAsync(false, []).ConfigureAwait(true);
+            }
+
+            RefreshIosHdPending(await _settings.GetAsync().ConfigureAwait(true));
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            Instances.ShowBanner(exception.Message);
+        }
+    }
+
+    /// <summary>
+    /// The driver reports Refused and Failed by value, but a download that
+    /// failed, a missing file or a cancelled wait comes out as an exception:
+    /// all of them are Failed here.
+    /// </summary>
+    private static async Task<UsbFilterResult> RunFilterAsync(Func<Task<UsbFilterResult>> run)
+    {
+        try
+        {
+            return await run().ConfigureAwait(true);
+        }
+        catch (Exception exception) when (exception is DependencyProvisioningException
+            or Win32Exception or ArgumentException or OperationCanceledException)
+        {
+            // Surfaces as Failed: the caller shows the "driver did not install" message.
+            return UsbFilterResult.Failed;
+        }
+    }
+
+    private void RevertIosHd(string? message = null)
+    {
+        _revertingIosHd = true;
+
+        try
+        {
+            IosHdPicture = false;
+        }
+        finally
+        {
+            _revertingIosHd = false;
+        }
+
+        if (message is not null)
+        {
+            _dialogs.ShowWarning(message);
+        }
+    }
+
+    /// <summary>Apple devices present but not yet filtered, only once the HD picture is on.</summary>
+    private void RefreshIosHdPending(AppSettingsDocument settings)
+    {
+        var missing = _usbFilter is null || !settings.IosHdPicture
+            ? []
+            : _usbFilter.PresentAppleDevices().Where(id => !_usbFilter.IsFiltered(id)).ToList();
+
+        IosHdPending = missing.Count == 0 ? null : Strings.Format("IosHdNewDevices", missing.Count);
+    }
+
+    [RelayCommand]
+    private async Task ActivateHdDevicesAsync()
+    {
+        if (_usbFilter is null)
+        {
+            return;
+        }
+
+        var missing = _usbFilter.PresentAppleDevices().Where(id => !_usbFilter.IsFiltered(id)).ToList();
+
+        if (missing.Count > 0)
+        {
+            await InstallIosHdAsync(_usbFilter, missing).ConfigureAwait(true);
+        }
+
+        RefreshIosHdPending(await _settings.GetAsync().ConfigureAwait(true));
     }
 
     /// <summary>

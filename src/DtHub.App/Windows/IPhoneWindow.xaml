@@ -14,6 +14,8 @@
       <TextBlock Text="{loc:T IPhoneTitle}" Style="{StaticResource Title}" />
       <TextBlock Style="{StaticResource Muted}" Margin="0,12,0,0" TextWrapping="Wrap" LineHeight="20"
                  Text="{loc:T IPhoneIntro}" />
+      <TextBlock Style="{StaticResource Muted}" Margin="0,8,0,0" TextWrapping="Wrap" LineHeight="20"
+                 Text="{loc:T IosHdHelp}" />
     </StackPanel>
 
     <Border DockPanel.Dock="Bottom" Margin="0,14,0,0">

@@ -3522,4 +3522,34 @@ Un téléphone déjà associé en Wi-Fi revient tout seul.</value>
   <data name="IosGameMissing" xml:space="preserve">
     <value>DOFUS Touch non installé</value>
   </data>
+  <data name="IosHdPicture" xml:space="preserve">
+    <value>Image HD (iPhone et iPad)</value>
+  </data>
+  <data name="IosHdPictureTip" xml:space="preserve">
+    <value>Image nette, au lieu de l'image actuelle limitée par l'iPhone. Installe un petit pilote USB, une fois.</value>
+  </data>
+  <data name="IosHdExplain" xml:space="preserve">
+    <value>Pour l'image HD, DT Hub installe le pilote libusb-win32 sur ton iPhone ou iPad branché, et seulement sur lui. Windows va te demander l'autorisation. Tu pourras le retirer en décochant la case.</value>
+  </data>
+  <data name="IosHdNoDevice" xml:space="preserve">
+    <value>Branche ton iPhone ou ton iPad, puis coche à nouveau.</value>
+  </data>
+  <data name="IosHdRefused" xml:space="preserve">
+    <value>Image HD non activée : Windows n'a pas eu l'autorisation.</value>
+  </data>
+  <data name="IosHdFailed" xml:space="preserve">
+    <value>Image HD non activée : le pilote ne s'est pas installé.</value>
+  </data>
+  <data name="IosHdRemoveAsk" xml:space="preserve">
+    <value>Retirer aussi le pilote USB installé pour l'image HD ? Windows te demandera l'autorisation.</value>
+  </data>
+  <data name="IosHdNewDevices" xml:space="preserve">
+    <value>{0} appareil(s) à activer</value>
+  </data>
+  <data name="IosHdActivate" xml:space="preserve">
+    <value>Activer</value>
+  </data>
+  <data name="IosHdHelp" xml:space="preserve">
+    <value>Image floue ? Essaie l'Image HD dans les réglages.</value>
+  </data>
 </root>

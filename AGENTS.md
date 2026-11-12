@@ -220,8 +220,16 @@ server for the whole machine. A test verifies this.
   (`PyMobileDevice.PythonVersion`), then only the packages of
   `build/iphone-requirements.txt`, each checked against its hash
   (`--require-hashes`). No other Python, and nothing outside that list.
+
+  Within the same bounds (D234), the HD picture adds one embedded module,
+  `dthub_quicktime.py`, and one package, pyusb, pinned by hash in
+  `build/iphone-requirements.txt`. They run only when the player turned
+  Image HD on and only for the device opened. Nothing else is added.
 - Touching Windows Defender, creating antivirus exclusions,
-  requesting elevation.
+  requesting elevation. One exception, bounded by D234: running
+  `install-filter.exe install` or `uninstall` (libusb-win32, binaries from
+  `build/dependencies.json`) on Apple devices only, after the player
+  explicitly turned Image HD on or off. Nothing else asks for elevation.
 - A low-level keyboard hook. Shortcuts go through `RegisterHotKey`,
   active only when a DT Hub window is active.
 - Downloading or running a binary from an unofficial source. The

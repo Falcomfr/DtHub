@@ -12475,3 +12475,61 @@ onglet.
 - Le son n'était pas en cause : l'outil démarre le son de l'appareil quel que
   soit `--no-audio`, qui ne règle que la lecture dans la page. L'iPad a de
   nouveau son son sur le PC.
+
+## D234 - Image HD de l'iPhone et de l'iPad : une exception bornée à l'élévation
+
+Demandé le 12/11/2026 : l'image d'un iPhone ou d'un iPad dans DT Hub est
+« moche et étirée ». Mesuré le jour même sur un banc : l'affichage de DT Hub
+n'ajoute presque rien à la perte, elle vient de l'appareil. Par DisplayService
+(le chemin de D227), iOS plafonne son encodeur HEVC vers 6 Mbit/s et baisse la
+résolution quand l'écran bouge ; aucun réglage ne le relève. La capture USB de
+QuickTime passe par un autre encodeur et envoie du H.264 à la résolution
+native. Spec : `docs/superpowers/specs/2026-11-12-iphone-hd-picture-design.md`.
+Suite de D227 et de D233.
+
+**Choix : une capture QuickTime dans le processus Python déjà lancé, à la
+demande du joueur.** Sous Windows, elle exige le filtre libusb-win32 sur
+l'appareil, donc une élévation, ce que `AGENTS.md` interdit et que
+`docs/CONFIANCE.md` promettait de ne jamais demander. Le propriétaire a tranché
+pour une exception bornée :
+- sur demande seulement : la case « Image HD (iPhone et iPad) », décochée par
+  défaut ; DT Hub explique ce qu'il installe avant que Windows demande ;
+- une élévation pour installer le filtre, sur les appareils Apple seulement
+  (`USB\VID_05AC&PID_xxxx`, parent composite, id exact en majuscules), une pour
+  le retirer si le joueur décoche et accepte ;
+- les binaires viennent de `build/dependencies.json` (libusb-win32, hash
+  vérifié) ; le filtre se pose par-dessus le pilote d'Apple et ne le remplace
+  pas : les clics, les touches et les commandes du jeu passent comme avant ;
+- un appareil branché plus tard n'est jamais filtré seul : la ligne « n
+  appareil(s) à activer » et le bouton « Activer » le font, à la demande ;
+- le chemin d'avant reste le défaut et le repli : toute panne avant la première
+  image rend la fenêtre à DisplayService.
+
+Écartés : une version en C# (LibUsbDotNet, page et décodeur à soi), deux fois le
+travail pour la même image ; lancer le binaire d'un autre projet (iPhoneMirror,
+ZenLink en GPLv3, source non officielle) ; remplacer le pilote d'Apple à la
+Zadig, qui coupe les clics.
+
+**Mise en place (ViewModel).** Cocher demande confirmation, cherche les
+appareils Apple branchés (aucun : « Branche ton iPhone... », case décochée),
+puis installe. Refus de Windows ou échec (téléchargement, fichier absent,
+annulation) : message, case décochée, rien d'enregistré. Décocher
+enregistre `false` et propose de retirer le filtre ; les ids ne s'effacent
+que si le retrait a réussi. La case n'existe que sous Windows, le ViewModel
+partagé avec le Mac prend le pilote en option. La ligne « à activer » ne
+s'affiche que case cochée.
+
+**Garde-fous, valables pour toute évolution :**
+- aucune élévation que le joueur n'a pas demandée, aucun pilote sur un
+  appareil qui n'est pas d'Apple ;
+- un joueur qui laisse Image HD décochée ne voit aucun changement et n'est
+  jamais invité à élever ;
+- `dthub_quicktime.py` et pyusb (haché) sont les seuls ajouts Python.
+
+**Non vérifié, faute d'iPhone ou d'iPad sous la main** : tout ce qui touche
+l'appareil. La signature du pilote sous Windows 11 avec le démarrage sécurisé,
+l'enchaînement de la configuration cachée, le H.264 réel (orientation,
+images clés), la coexistence de la capture et du flux DisplayService, la
+chaleur d'un second encodeur. Le premier joueur équipé fera l'essai, comme
+pour D227. Le risque principal : la décision a été prise sans comparer les deux
+chemins sur un appareil.
