@@ -180,7 +180,8 @@ public sealed class WindowManagerService
     /// window. The aspect ratio applies to the client area, the one
     /// scrcpy fills: ignoring it leaves black bars on the sides.
     /// </param>
-    private ScreenRect Compute(MonitorInfo monitor, double sourceAspectRatio, (int Width, int Height) chrome)
+    private ScreenRect Compute(
+        MonitorInfo monitor, double sourceAspectRatio, (int Width, int Height) chrome, int? heightCap = null)
     {
         if (IsFullscreen)
         {
@@ -188,7 +189,7 @@ public sealed class WindowManagerService
         }
 
         var work = UsableArea(monitor);
-        var (width, height) = ComputeSize(monitor, sourceAspectRatio, chrome);
+        var (width, height) = ComputeSize(monitor, sourceAspectRatio, chrome, heightCap);
 
         return WindowLayoutCalculator.Place(work, width, height, Anchor);
     }
@@ -1067,7 +1068,7 @@ public sealed class WindowManagerService
         }
 
         var monitor = WindowLayoutCalculator.ChooseMonitor(monitors, preferredDeviceName: null);
-        List<(string, ScreenRect)> applied = [];
+        List<(IGameWindow Session, nint Handle, (int Width, int Height) Chrome)> placed = [];
 
         foreach (var session in sessions.Where(s => s.IsAlive))
         {
@@ -1088,8 +1089,20 @@ public sealed class WindowManagerService
             // back on leaving.
             _controller.SetBorderless(handle, IsFullscreen);
 
-            (int Width, int Height) chrome = IsFullscreen ? (0, 0) : MeasureChrome(handle);
-            var rect = Resolve(session, monitor, monitors, chrome, remembered);
+            placed.Add((session, handle, IsFullscreen ? (0, 0) : MeasureChrome(handle)));
+        }
+
+        // Windows of different shapes take the height of the lowest, as a
+        // size does (ResizeToPercentAsync): an iPad beside an iPhone.
+        var lowest = placed.Count > 1
+            ? placed.Min(p => ComputeSize(monitor, p.Session.SourceAspectRatio, p.Chrome).Height - p.Chrome.Height)
+            : (int?)null;
+
+        List<(string, ScreenRect)> applied = [];
+
+        foreach (var (session, handle, chrome) in placed)
+        {
+            var rect = Resolve(session, monitor, monitors, chrome, remembered, lowest);
 
             // A window already in place is not moved. scrcpy opens
             // it at the rectangle we asked for: moving it anyway has
@@ -1116,7 +1129,8 @@ public sealed class WindowManagerService
         MonitorInfo monitor,
         IReadOnlyList<MonitorInfo> monitors,
         (int Width, int Height) chrome,
-        IReadOnlyDictionary<string, StoredWindowRect>? remembered)
+        IReadOnlyDictionary<string, StoredWindowRect>? remembered,
+        int? heightCap = null)
     {
         if (remembered is not null
             && remembered.TryGetValue(session.Key, out var stored)
@@ -1128,7 +1142,7 @@ public sealed class WindowManagerService
                 : restored;
         }
 
-        return Compute(monitor, session.SourceAspectRatio, chrome);
+        return Compute(monitor, session.SourceAspectRatio, chrome, heightCap);
     }
 
     /// <summary>

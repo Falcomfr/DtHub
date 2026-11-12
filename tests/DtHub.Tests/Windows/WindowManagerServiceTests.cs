@@ -1697,6 +1697,30 @@ public class WindowManagerServiceTests
     }
 
     [Fact]
+    public async Task Ranger_donne_aussi_la_meme_hauteur_a_un_iPhone_et_un_iPad()
+    {
+        var desktop = new FakeWindowController();
+        IGameWindow[] windows =
+        [
+            new ShapedWindow(1, 2752.0 / 1264),
+            new ShapedWindow(2, 2420.0 / 1668),
+        ];
+        foreach (var window in windows)
+        {
+            desktop.AddWindow(window.WindowHandle, window.ProcessId, window.WindowTitle);
+        }
+
+        var service = new WindowManagerService(desktop, NoDelay);
+
+        await service.ArrangeAsync(windows, CancellationToken.None);
+
+        var phone = desktop.GetWindowRect(1)!.Value;
+        var pad = desktop.GetWindowRect(2)!.Value;
+        Assert.Equal(phone.Height, pad.Height);
+        Assert.InRange(pad.Width - (pad.Height * 2420.0 / 1668), -1, 1);
+    }
+
+    [Fact]
     public async Task Une_fenetre_seule_garde_toute_sa_part_de_l_ecran()
     {
         var desktop = new FakeWindowController();
