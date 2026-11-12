@@ -22,6 +22,9 @@
     <!-- pymobiledevice3 and its packages, each with its hashes: uv installs
          nothing else for the iPhone window (D227). -->
     <EmbeddedResource Include="..\..\build\iphone-requirements.txt" LogicalName="DtHub.Infrastructure.iphone-requirements.txt" />
+    <!-- The QuickTime capture protocol the bootstrap loads for the HD
+         picture. Tested by tests/quicktime against recorded messages. -->
+    <EmbeddedResource Include="IPhone\dthub_quicktime.py" LogicalName="DtHub.Infrastructure.dthub_quicktime.py" />
 
     <!-- The quest catalog as DT Hub indexed it on 2026-10-11, the last read
          through wp/v2. The base a new player starts from before the public

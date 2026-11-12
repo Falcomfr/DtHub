@@ -24,6 +24,7 @@ public class EmbeddedResourceTests
     [InlineData("DtHub.Infrastructure.dependencies.json")]
     [InlineData("DtHub.Infrastructure.papycha-catalog.json")]
     [InlineData("DtHub.Infrastructure.dofus-touch-ids.json")]
+    [InlineData("DtHub.Infrastructure.dthub_quicktime.py")]
     public void La_ressource_est_embarquee_et_se_lit(string name)
     {
         var assembly = typeof(DependencyManifest).Assembly;
