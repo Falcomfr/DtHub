@@ -1,5 +1,5 @@
 ﻿using System.Globalization;
-using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 
 using DtHub.Core.IPhone;
@@ -48,7 +48,12 @@ public sealed class IosGameControl(int controlPort)
     {
         using var request = new HttpRequestMessage(method, new Uri(_root, path))
         {
-            Content = bundle is null ? null : JsonContent.Create(new Dictionary<string, string> { ["bundle"] = bundle }),
+            // A string, not JsonContent: that one goes out chunked, without a
+            // Content-Length, and the tool, reading by it, got an empty body
+            // (KeyError('bundle') on every launch and stop, 2026-11-12).
+            Content = bundle is null
+                ? null
+                : new StringContent(JsonSerializer.Serialize(new Dictionary<string, string> { ["bundle"] = bundle }), Encoding.UTF8, "application/json"),
         };
 
         try

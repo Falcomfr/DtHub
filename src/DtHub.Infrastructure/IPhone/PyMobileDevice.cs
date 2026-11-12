@@ -86,6 +86,52 @@ public sealed partial class PyMobileDevice : IDisposable
         screen_stream._NAMED_BUTTONS["brightness-up"] = (0x0C, 0x6F, 0.05)
 
 
+        def to_panel(x, y, orientation):
+            # The touchscreen counts in its own portrait. SpringBoard's 3 is landscape with the
+            # home side right (device turned counter-clockwise), 4 the other way round.
+            if orientation == 3:
+                return 65535 - y, x
+            if orientation == 4:
+                return y, 65535 - x
+            return x, y
+
+
+        _orientation = {"at": -10.0, "value": None}
+
+
+        async def interface_orientation(server):
+            # Asked at most every 2 s: a drag sends dozens of touches a second.
+            now = asyncio.get_running_loop().time()
+            if now - _orientation["at"] > 2.0:
+                _orientation["at"] = now
+                try:
+                    from pymobiledevice3.services.springboard import SpringBoardServicesService
+                    async with SpringBoardServicesService(lockdown=server._rsd) as springboard:
+                        _orientation["value"] = int(await springboard.get_interface_orientation())
+                except Exception:
+                    screen_stream.logger.warning("DT Hub: interface orientation unknown", exc_info=True)
+                    _orientation["value"] = None
+            return _orientation["value"]
+
+
+        handle_touch = screen_stream.ScreenStreamServer._handle_touch
+
+
+        async def handle_landscape_touch(self, body):
+            try:
+                data = json.loads(body)
+                if data.pop("landscape", False):
+                    data["x"], data["y"] = to_panel(int(data["x"]), int(data["y"]), await interface_orientation(self))
+                body = json.dumps(data).encode()
+            except Exception:
+                # The touch goes as the viewer measured it, as before.
+                screen_stream.logger.warning("DT Hub: touch not turned", exc_info=True)
+            return await handle_touch(self, body)
+
+
+        screen_stream.ScreenStreamServer._handle_touch = handle_landscape_touch
+
+
         def file_path(url):
             # CoreDevice encodes a URL as {"relative": "file:///..."}; /private/var and /var are one folder.
             url = url.get("relative", "") if isinstance(url, dict) else str(url or "")

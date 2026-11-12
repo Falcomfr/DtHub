@@ -342,7 +342,7 @@ public sealed partial class IPhoneScreens(
         var preferences = await settings.GetAsync(cancellationToken).ConfigureAwait(true);
         var (port, controlPort) = PyMobileDevice.FreePorts();
         var device = entry.Device;
-        var session = await tools.StartMirrorAsync(device, port, preferences.AudioEnabled && device.StreamsSound, controlPort, cancellationToken).ConfigureAwait(true);
+        var session = await tools.StartMirrorAsync(device, port, preferences.AudioEnabled, controlPort, cancellationToken).ConfigureAwait(true);
 
         if (entry.Life.State == IosWindowState.Closed)
         {

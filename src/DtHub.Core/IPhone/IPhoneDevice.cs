@@ -17,14 +17,6 @@ public sealed record IPhoneDevice(string Udid, string Name, string IosVersion, s
     public bool CanMirror =>
         int.TryParse(IosVersion.Split('.')[0], out var major) && major >= MinimumIosMajor;
 
-    /// <summary>
-    /// Whether the screen asks for the sound too. Not on an iPad: an iPad Pro
-    /// M4 showed its screen and took no click (2026-11-11), the sound stream
-    /// being its only difference from the last iPhone that took clicks.
-    /// shortcut: unproven on a device, give the iPad its sound back once one confirms clicks without it.
-    /// </summary>
-    public bool StreamsSound => DeviceClass != "iPad";
-
     /// <summary>What Apple calls its system: an iPad player looks for iPadOS, not iOS.</summary>
     public string SystemName => DeviceClass switch
     {

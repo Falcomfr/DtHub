@@ -12458,3 +12458,20 @@ branché) ; l'icône de la ligne est celle d'un compte Android, aucune sans
 compte Android ; la ligne dit « ouvert » sans le chrono des sessions Android ;
 une fenêtre rouverte peut apparaître un instant libre avant de rejoindre son
 onglet.
+
+**Retour du 12/11/2026 (0.15.1), premier joueur iPad et iPhone en 0.15.0 :**
+- Le jeu ne se lançait ni ne s'arrêtait : DT Hub envoyait le corps des
+  commandes en morceaux, sans `Content-Length`, et le serveur de l'outil, qui
+  lit le corps par cette longueur, recevait un corps vide (`KeyError('bundle')`).
+  Le corps part maintenant avec sa longueur.
+- Sur l'iPad en paysage, seul le centre de l'écran répondait. L'iPad envoie
+  une image en paysage et la page de l'outil mesure le clic sur cette image,
+  alors que l'écran tactile compte dans son propre portrait : un clic tourné
+  d'un quart de tour autour du centre. La page marque le clic mesuré sur une
+  image en paysage, et l'outil le retourne avec l'orientation de l'interface
+  lue auprès de SpringBoard (3 : paysage côté accueil à droite, 4 : l'autre),
+  relue au plus toutes les 2 s. Sans orientation lisible, le clic part comme
+  avant. Le sens des deux paysages reste à confirmer sur l'appareil.
+- Le son n'était pas en cause : l'outil démarre le son de l'appareil quel que
+  soit `--no-audio`, qui ne règle que la lecture dans la page. L'iPad a de
+  nouveau son son sur le PC.

@@ -34,6 +34,21 @@ public partial class IPhoneMirrorWindow : Window
     /// </summary>
     private const string ScreenOnly = """
         try { localStorage.setItem('frameOn', 'false'); localStorage.setItem('zoom', '1'); } catch (e) {}
+        // An iPad in landscape sends a landscape picture, and the viewer measures a touch on it, while
+        // the touchscreen counts in its own portrait: only the centre answered (2026-11-12). The tool
+        // turns the touch back with the device's orientation; the flag says the picture was landscape
+        // and not turned by the viewer (an iPhone's game turned by ↻ is already measured upright).
+        { const send = window.fetch;
+          window.fetch = (url, init) => {
+            try {
+              const c = document.getElementById('c');
+              if (url === '/touch' && init && typeof init.body === 'string' && c && c.width > c.height
+                  && (typeof visualRotation === 'undefined' || visualRotation === 0)) {
+                init = { ...init, body: JSON.stringify({ ...JSON.parse(init.body), landscape: true }) };
+              }
+            } catch (e) {}
+            return send(url, init);
+          }; }
         // Without a size in its config, as the viewer sets it, Edge hands each
         // frame cropped to 1280x720: the top of the screen only (measured
         // 2026-11-09). The whole picture is decoded, so show all of it.

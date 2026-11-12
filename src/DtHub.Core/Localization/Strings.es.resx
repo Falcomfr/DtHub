@@ -3425,7 +3425,7 @@ Un teléfono ya vinculado por Wi-Fi vuelve solo.</value>
     <value>El iPhone no respondió a tiempo. Desbloquéalo y toca «Confiar» si lo pide, comprueba la conexión a Internet (la primera apertura la necesita) y vuelve a intentarlo.</value>
   </data>
   <data name="IPhoneGameFailed" xml:space="preserve">
-    <value>DT Hub no pudo abrir, cerrar ni encontrar DOFUS Touch en el iPhone. Vuelve a abrir su pantalla en DT Hub y vuelve a intentarlo.</value>
+    <value>DT Hub no pudo abrir, cerrar ni encontrar DOFUS Touch en el iPhone o el iPad. Vuelve a abrir su pantalla en DT Hub y vuelve a intentarlo.</value>
   </data>
   <data name="IPhoneUnpluggedWait" xml:space="preserve">
     <value>El iPhone se desconectó. Vuelve a conectarlo y desbloquéalo: su pantalla volverá aquí sola.</value>
