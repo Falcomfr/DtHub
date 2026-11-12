@@ -17,6 +17,14 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.15.1] - 2026-11-12
+
+### Fixed
+
+- DT Hub opens and closes DOFUS Touch on the iPhone and iPad: every command failed.
+- On an iPad in landscape, a click lands where you click, not only in the middle of the screen.
+- The iPad's sound plays on the PC again.
+
 ## [0.15.0] - 2026-11-11
 
 ### Added

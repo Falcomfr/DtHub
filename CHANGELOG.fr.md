@@ -11,6 +11,14 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.15.1] - 2026-11-12
+
+### Corrigé
+
+- DT Hub ouvre et ferme DOFUS Touch sur l'iPhone et l'iPad : chaque commande échouait.
+- Sur un iPad en paysage, un clic tombe là où l'on clique, et plus seulement au milieu de l'écran.
+- Le son de l'iPad sort de nouveau sur le PC.
+
 ## [0.15.0] - 2026-11-11
 
 ### Ajouté
