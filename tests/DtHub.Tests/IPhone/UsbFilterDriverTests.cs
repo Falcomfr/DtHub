@@ -16,6 +16,9 @@ public class UsbFilterDriverTests
     [InlineData(@"USB\VID_046D&PID_C52B", false)]
     [InlineData(@"USB\VID_05AC&PID_12A8\serial", false)]
     [InlineData("", false)]
+    [InlineData("USB\\VID_05AC&PID_12A8\n", false)]
+    [InlineData("USB\\VID_05AC&PID_12a8", false)]
+    [InlineData("USB\\VID_05AC&PID_12A8&MI_00", false)]
     public void Seul_un_identifiant_Apple_est_accepte(string id, bool expected) =>
         Assert.Equal(expected, UsbFilterDriver.IsAppleHardwareId(id));
 

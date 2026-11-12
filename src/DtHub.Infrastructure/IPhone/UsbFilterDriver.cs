@@ -41,7 +41,7 @@ public sealed partial class UsbFilterDriver : IUsbFilterDriver
         _runElevated = runElevated;
     }
 
-    [GeneratedRegex(@"^USB\\VID_05AC&PID_[0-9A-Fa-f]{4}$")]
+    [GeneratedRegex(@"^USB\\VID_05AC&PID_[0-9A-F]{4}\z")]
     private static partial Regex AppleId();
 
     /// <summary><c>USB\VID_05AC&amp;PID_xxxx</c> and nothing else: no serial, no interface.</summary>
