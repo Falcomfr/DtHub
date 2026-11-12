@@ -11,6 +11,7 @@ using DtHub.Core.Dependencies;
 using DtHub.Core.Devices;
 using DtHub.Core.Dofus;
 using DtHub.Core.Hotkeys;
+using DtHub.Core.IPhone;
 using DtHub.Core.Papycha;
 using DtHub.Core.Processes;
 using DtHub.Core.Scrcpy;
@@ -71,6 +72,7 @@ public static class AppServices
         services.AddSingleton(_ => new HttpClient { Timeout = TimeSpan.FromMinutes(10) });
         services.AddSingleton<IDependencyProvisioner, ArchiveDependencyProvisioner>();
         services.AddSingleton<PyMobileDevice>();
+        services.AddSingleton<IUsbFilterDriver, UsbFilterDriver>();
 
         // Quest guides. Its own client: the one above waits ten
         // minutes, sized for an eleven-megabyte archive, which would

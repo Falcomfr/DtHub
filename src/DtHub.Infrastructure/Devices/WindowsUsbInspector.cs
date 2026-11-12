@@ -108,7 +108,8 @@ public sealed class WindowsUsbInspector : IUsbEnumerationInspector
                 devices.Add((problem, new UsbPresence(
                     InstanceId(set, ref info),
                     Property(set, ref info, SpdrpCompatibleIds),
-                    Property(set, ref info, SpdrpService) is [var service, ..] ? service : null)));
+                    Property(set, ref info, SpdrpService) is [var service, ..] ? service : null,
+                    Property(set, ref info, SpdrpUpperFilters))));
             }
 
             return devices;
@@ -163,6 +164,7 @@ public sealed class WindowsUsbInspector : IUsbEnumerationInspector
 
     private const int SpdrpCompatibleIds = 0x00000002;
     private const int SpdrpService = 0x00000004;
+    private const int SpdrpUpperFilters = 0x00000011;
     private const int DigcfDeviceInterface = 0x00000010;
     private const int DigcfPresent = 0x00000002;
     private const int DigcfAllClasses = 0x00000004;

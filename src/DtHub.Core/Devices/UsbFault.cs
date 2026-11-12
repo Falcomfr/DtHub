@@ -70,8 +70,13 @@ public sealed record UsbFault(UsbFaultKind Kind, int ProblemCode, string DeviceI
 /// <param name="Id">The device instance identifier, serial included.</param>
 /// <param name="CompatibleIds">The class codes, such as <c>USB\Class_FF&amp;SubClass_42&amp;Prot_01</c>.</param>
 /// <param name="Service">The driver service bound to it, null when none is.</param>
-public sealed record UsbPresence(string Id, IReadOnlyList<string> CompatibleIds, string? Service)
+/// <param name="UpperFilters">The upper filter drivers bound to it, empty when none is.</param>
+public sealed record UsbPresence(
+    string Id, IReadOnlyList<string> CompatibleIds, string? Service, IReadOnlyList<string>? UpperFilters = null)
 {
+    /// <summary>The upper filter drivers, never null.</summary>
+    public IReadOnlyList<string> Filters => UpperFilters ?? [];
+
     /// <summary>
     /// True for an Android debugging interface: the phone offers it only
     /// with USB debugging on, whatever the brand.
