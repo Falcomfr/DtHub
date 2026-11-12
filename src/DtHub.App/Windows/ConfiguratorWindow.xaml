@@ -636,6 +636,7 @@
                             ToolTip="{loc:T SharpImageTip}" />
 
                   <CheckBox Content="{loc:T IosHdPicture}" Margin="0,0,0,5"
+                            Visibility="{Binding ShowsIosHd, Converter={StaticResource BoolToVisibility}}"
                             IsChecked="{Binding IosHdPicture}"
                             IsEnabled="{Binding IosHdBusy, Converter={StaticResource InverseBool}}"
                             ToolTip="{loc:T IosHdPictureTip}" />

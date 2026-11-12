@@ -12522,6 +12522,12 @@ que si le retrait a réussi. La case n'existe que sous Windows, le ViewModel
 partagé avec le Mac prend le pilote en option. La ligne « à activer » ne
 s'affiche que case cochée.
 
+**Livrée sans essai préalable, montrée aux seuls joueurs iOS (12/11/2026).**
+Le propriétaire a choisi de la livrer dans la version suivante plutôt que par
+une version d'essai à part : la case n'apparaît qu'à un joueur qui a un compte
+iPhone ou iPad, ou qui a encore l'option cochée ou un pilote à retirer
+(`IosHdVisibility`). Les joueurs Android ne la voient jamais.
+
 **Garde-fous, valables pour toute évolution :**
 - aucune élévation que le joueur n'a pas demandée, aucun pilote sur un
   appareil qui n'est pas d'Apple ;

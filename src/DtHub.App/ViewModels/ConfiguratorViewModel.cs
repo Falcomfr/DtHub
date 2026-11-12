@@ -1026,6 +1026,10 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     [ObservableProperty]
     private bool _iosHdBusy;
 
+    /// <summary>The Image HD box is shown: Windows, and an iPhone or iPad account (IosHdVisibility).</summary>
+    [ObservableProperty]
+    private bool _showsIosHd;
+
     public string Disclaimer =>
         Strings.Get("Disclaimer");
 
@@ -1955,6 +1959,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     /// <summary>Apple devices present but not yet filtered, only once the HD picture is on.</summary>
     private void RefreshIosHdPending(AppSettingsDocument settings)
     {
+        ShowsIosHd = _usbFilter is not null && IosHdVisibility.Shows(settings);
         var missing = _usbFilter is null || !settings.IosHdPicture ? null : Missing(_usbFilter);
 
         IosHdPending = missing is not { Count: > 0 } ? null : Strings.Format("IosHdNewDevices", missing.Count);
