@@ -11,6 +11,12 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Modifié
+
+- Un iPhone et un iPad ouverts ensemble prennent maintenant la même hauteur avec une taille (Ctrl+1 à Ctrl+4, le curseur) et quand on les replace depuis « Replacer les fenêtres de jeu », chacun gardant sa forme.
+
 ## [0.15.1] - 2026-11-12
 
 ### Corrigé

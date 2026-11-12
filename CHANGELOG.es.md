@@ -10,6 +10,12 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Cambiado
+
+- Un iPhone y un iPad abiertos a la vez reciben ahora la misma altura con un tamaño (Ctrl+1 a Ctrl+4, el control deslizante) y al recolocarlas desde «Recolocar las ventanas de juego», cada uno con su forma.
+
 ## [0.15.1] - 2026-11-12
 
 ### Corregido

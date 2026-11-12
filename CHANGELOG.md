@@ -17,6 +17,12 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Changed
+
+- An iPhone and an iPad open together now get the same height from a size (Ctrl+1 to Ctrl+4, the slider) and when they are moved from "Move the game windows", each keeping its shape.
+
 ## [0.15.1] - 2026-11-12
 
 ### Fixed
