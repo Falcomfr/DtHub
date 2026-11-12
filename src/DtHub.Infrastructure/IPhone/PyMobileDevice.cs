@@ -96,20 +96,28 @@ public sealed partial class PyMobileDevice : IDisposable
             return x, y
 
 
-        _orientation = {"at": -10.0, "value": None}
+        _orientation = {"at": -10.0, "value": None, "told": False}
+
+
+        async def read_orientation(server):
+            from pymobiledevice3.services.springboard import SpringBoardServicesService
+            async with SpringBoardServicesService(lockdown=server._rsd) as springboard:
+                return int(await springboard.get_interface_orientation())
 
 
         async def interface_orientation(server):
-            # Asked at most every 2 s: a drag sends dozens of touches a second.
+            # Asked at most every 2 s: a drag sends dozens of touches a second. Within 1 s: the
+            # touches, keys and buttons wait in one queue behind it.
             now = asyncio.get_running_loop().time()
             if now - _orientation["at"] > 2.0:
                 _orientation["at"] = now
                 try:
-                    from pymobiledevice3.services.springboard import SpringBoardServicesService
-                    async with SpringBoardServicesService(lockdown=server._rsd) as springboard:
-                        _orientation["value"] = int(await springboard.get_interface_orientation())
+                    _orientation["value"] = await asyncio.wait_for(read_orientation(server), 1.0)
                 except Exception:
-                    screen_stream.logger.warning("DT Hub: interface orientation unknown", exc_info=True)
+                    # Said once: every 2 s, it filled the 300 lines DT Hub copies of the tool.
+                    if not _orientation["told"]:
+                        _orientation["told"] = True
+                        screen_stream.logger.warning("DT Hub: interface orientation unknown", exc_info=True)
                     _orientation["value"] = None
             return _orientation["value"]
 
