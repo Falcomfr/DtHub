@@ -798,6 +798,20 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         _ = SaveAsync(settings => settings.UpdatesAutomatic = value);
     }
 
+    /// <summary>The first start after an update opens what it brings.</summary>
+    [ObservableProperty]
+    private bool _showNotesAtStartup = true;
+
+    partial void OnShowNotesAtStartupChanged(bool value)
+    {
+        if (_loading)
+        {
+            return;
+        }
+
+        _ = SaveAsync(settings => settings.ShowNotesAtStartup = value);
+    }
+
     /// <summary>
     /// True when closing a game window also stops the game on the
     /// phone. False, the game survives its window and it reopens
@@ -1013,6 +1027,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             Quality = settings.Quality;
             Zoom = settings.GameZoom;
             UpdatesAutomatic = settings.UpdatesAutomatic;
+            ShowNotesAtStartup = settings.ShowNotesAtStartup;
             StopAppOnClose = settings.StopAppOnClose;
             TurnScreenOff = settings.TurnScreenOff;
             TitleShowsStatus = settings.TitleShowsStatus;
@@ -1403,6 +1418,10 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
     /// </summary>
     [RelayCommand]
     private void Discord() => _dialogs.OpenUrl(ProductInfo.DiscordUrl);
+
+    [RelayCommand]
+    private void Changelog() =>
+        _dialogs.OpenUrl(DtHub.Core.Updates.ReleaseNotes.ChangelogUrl(Strings.Spoken.TwoLetterISOLanguageName));
 
     /// <summary>Shows what the pending version brings.</summary>
     [RelayCommand]

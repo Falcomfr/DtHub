@@ -1184,6 +1184,24 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Les_nouveautes_au_demarrage_restent_affichees_sauf_si_on_les_masque()
+    {
+        // A settings file from before the option has no such key: its player
+        // keeps seeing what an update brings.
+        var path = Path.Combine(_directory, "settings.json");
+        Directory.CreateDirectory(_directory);
+        await File.WriteAllTextAsync(path, "{}");
+        var service = new SettingsService(new JsonDocumentStore<AppSettingsDocument>(path, NullLogger.Instance));
+
+        Assert.True((await service.GetAsync(CancellationToken.None)).ShowNotesAtStartup);
+
+        await service.UpdateAsync(s => s.ShowNotesAtStartup = false, CancellationToken.None);
+        service.Invalidate();
+
+        Assert.False((await service.GetAsync(CancellationToken.None)).ShowNotesAtStartup);
+    }
+
+    [Fact]
     public async Task Un_raccourci_a_deux_modificateurs_les_garde_tous_les_deux()
     {
         // Control | Shift has no member of its own: read back as nothing,

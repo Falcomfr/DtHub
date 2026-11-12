@@ -177,6 +177,12 @@ public sealed class AppSettingsDocument
     public bool UpdatesAutomatic { get; set; } = true;
 
     /// <summary>
+    /// True when the first start after an update opens what it brings.
+    /// Unchecked, the notes stay one button away, on GitHub.
+    /// </summary>
+    public bool ShowNotesAtStartup { get; set; } = true;
+
+    /// <summary>
     /// The interface language, as two letters. Empty to follow Windows's
     /// display language, which is the ordinary case: this setting exists
     /// only to override it.

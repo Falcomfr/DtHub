@@ -80,6 +80,15 @@
   <data name="AllVersions" xml:space="preserve">
     <value>All versions</value>
   </data>
+  <data name="ShowNotesAtStartup" xml:space="preserve">
+    <value>Show what’s new after an update</value>
+  </data>
+  <data name="ShowNotesAtStartupTip" xml:space="preserve">
+    <value>Unchecked, the what’s new window no longer opens on the first start after an update. “See what’s new” shows the notes on GitHub, in your language.</value>
+  </data>
+  <data name="SeeWhatsNew" xml:space="preserve">
+    <value>See what’s new</value>
+  </data>
   <data name="AllVersionsTip" xml:space="preserve">
     <value>Every version’s notes, on GitHub.</value>
   </data>

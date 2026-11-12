@@ -764,6 +764,10 @@
                           IsChecked="{Binding UpdatesAutomatic}"
                           ToolTip.Tip="{loc:T AutomaticUpdatesTip}" />
 
+                <CheckBox Content="{loc:T ShowNotesAtStartup}" Margin="0,0,0,8"
+                          IsChecked="{Binding ShowNotesAtStartup}"
+                          ToolTip.Tip="{loc:T ShowNotesAtStartupTip}" />
+
                 <TextBlock Classes="muted" FontSize="{DynamicResource FontSmall}">
                   <Run Text="{Binding ProductName, Mode=OneWay}" />
                   <Run Text=" " />
@@ -779,6 +783,10 @@
                            IsVisible="{Binding HasIncident}" />
 
                 <WrapPanel Margin="-9,4,0,0">
+                  <Button Content="{loc:T SeeWhatsNew}" Theme="{StaticResource QuietButton}"
+                          Command="{Binding ChangelogCommand}"
+                          ToolTip.Tip="{loc:T AllVersionsTip}" />
+
                   <Button Content="{loc:T OpenLogFolder}" Theme="{StaticResource QuietButton}"
                           Command="{Binding OpenLogsCommand}" />
 

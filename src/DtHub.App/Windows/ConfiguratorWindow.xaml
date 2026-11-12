@@ -906,6 +906,10 @@
                           IsChecked="{Binding UpdatesAutomatic}"
                           ToolTip="{loc:T AutomaticUpdatesTip}" />
 
+                <CheckBox Content="{loc:T ShowNotesAtStartup}" Margin="0,0,0,8"
+                          IsChecked="{Binding ShowNotesAtStartup}"
+                          ToolTip="{loc:T ShowNotesAtStartupTip}" />
+
                 <TextBlock Style="{StaticResource Muted}" FontSize="{StaticResource FontSmall}">
                   <Run Text="{Binding ProductName, Mode=OneWay}" />
                   <Run Text="{Binding Version, Mode=OneWay}" />
@@ -926,6 +930,10 @@
                      wrap onto a new line rather than lying about their
                      name. -->
                 <WrapPanel Margin="-9,4,0,0">
+                  <Button Content="{loc:T SeeWhatsNew}" Style="{StaticResource QuietButton}"
+                          Command="{Binding ChangelogCommand}"
+                          ToolTip="{loc:T AllVersionsTip}" />
+
                   <Button Content="{loc:T OpenLogFolder}" Style="{StaticResource QuietButton}"
                           Command="{Binding OpenLogsCommand}" />
 

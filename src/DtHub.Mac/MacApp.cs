@@ -341,7 +341,8 @@ internal sealed class MacApp : Application
         var updates = services.GetRequiredService<BundleUpdateService>();
         updates.Sweep();
 
-        if (updates.TakeNotes() is { Length: > 0 } installed)
+        // Taken even when hidden: the notes are the installer's, kept for one start.
+        if (updates.TakeNotes() is { Length: > 0 } installed && document.ShowNotesAtStartup)
         {
             ShowNotes($"DT Hub {updates.Running}", Strings.Get("UpdateJustInstalled"), installed);
         }

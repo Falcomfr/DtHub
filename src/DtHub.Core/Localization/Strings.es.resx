@@ -80,6 +80,15 @@
   <data name="AllVersions" xml:space="preserve">
     <value>Todas las versiones</value>
   </data>
+  <data name="ShowNotesAtStartup" xml:space="preserve">
+    <value>Mostrar las novedades tras una actualización</value>
+  </data>
+  <data name="ShowNotesAtStartupTip" xml:space="preserve">
+    <value>Sin marcar, la ventana de novedades ya no se abre al primer inicio tras una actualización. «Ver las novedades» las muestra en GitHub, en su idioma.</value>
+  </data>
+  <data name="SeeWhatsNew" xml:space="preserve">
+    <value>Ver las novedades</value>
+  </data>
   <data name="AllVersionsTip" xml:space="preserve">
     <value>Las novedades de cada versión, en GitHub.</value>
   </data>

@@ -80,6 +80,15 @@
   <data name="AllVersions" xml:space="preserve">
     <value>Toutes les versions</value>
   </data>
+  <data name="ShowNotesAtStartup" xml:space="preserve">
+    <value>Afficher les nouveautés après une mise à jour</value>
+  </data>
+  <data name="ShowNotesAtStartupTip" xml:space="preserve">
+    <value>Décoché, la fenêtre des nouveautés ne s'ouvre plus au démarrage qui suit une mise à jour. « Voir les nouveautés » les montre sur GitHub, dans votre langue.</value>
+  </data>
+  <data name="SeeWhatsNew" xml:space="preserve">
+    <value>Voir les nouveautés</value>
+  </data>
   <data name="AllVersionsTip" xml:space="preserve">
     <value>Les nouveautés de chaque version, sur GitHub.</value>
   </data>
