@@ -52,6 +52,10 @@ class Messages(unittest.TestCase):
         with self.assertRaises(ValueError):
             qt.parse_message(fixture("clok-request")[:-1])
 
+    def test_un_en_tete_trop_court_est_refuse(self):
+        with self.assertRaises(ValueError):
+            qt.parse_message(struct.pack("<I", 16) + fixture("clok-request")[4:16])
+
 
 class Replies(unittest.TestCase):
     """The host's clock refs are the ones the device addresses its next
@@ -104,6 +108,13 @@ class Video(unittest.TestCase):
         self.assertEqual((1126, 2436), (fmt.width, fmt.height))
         self.assertEqual("avc1.640033", qt.codec_string(fmt.sps))
 
+    def test_l_avcc_de_l_appareil_est_donne_tel_quel(self):
+        fmt = qt.format_description(message("cvrp-request"))
+        self.assertEqual(1, fmt.avcc[0])
+        self.assertEqual(fmt.sps[1], fmt.avcc[1])
+        self.assertIn(fmt.pps, fmt.avcc)
+        self.assertIn(fmt.avcc, fixture("cvrp-request"))
+
     def test_avcc_suit_le_format_standard(self):
         fmt = qt.format_description(message("cvrp-request"))
         record = qt.avcc(fmt.sps, fmt.pps)
@@ -132,6 +143,29 @@ class Video(unittest.TestCase):
         self.assertIsNone(qt.sample_nalus(empty))
 
 
+def truncated(name):
+    """The message cut in the middle, its length prefix rewritten to match."""
+    raw = fixture(name)[:len(fixture(name)) // 2]
+    return qt.parse_message(struct.pack("<I", len(raw)) + raw[4:])
+
+
+class MalformedInput(unittest.TestCase):
+    def test_un_cvrp_tronque_leve_value_error(self):
+        with self.assertRaises(ValueError):
+            qt.format_description(truncated("cvrp-request"))
+
+    def test_un_feed_tronque_leve_value_error(self):
+        with self.assertRaises(ValueError):
+            qt.sample_nalus(truncated("asyn-feed"))
+
+    def test_un_avcc_tronque_leve_value_error(self):
+        raw = bytearray(fixture("cvrp-request"))
+        record = raw.index(bytes.fromhex("01640033ffe1"))
+        raw[record + 7] += 100  # SPS length now runs past the record
+        with self.assertRaises(ValueError):
+            qt.format_description(qt.parse_message(bytes(raw)))
+
+
 class Framing(unittest.TestCase):
     def test_trame_de_configuration(self):
         self.assertEqual(b"\x00\x00\x00\x03\x03{}", qt.frame(3, b"{}"))
@@ -147,6 +181,24 @@ class Framing(unittest.TestCase):
     def test_le_cache_ignore_ce_qui_precede_la_premiere_image_cle(self):
         cache = qt.KeyCache()
         cache.add(b"B", False)
+        self.assertEqual([], cache.replay())
+
+    def test_le_cache_plein_se_vide_jusqu_a_la_prochaine_image_cle(self):
+        cache = qt.KeyCache(max_aus=3)
+        cache.add(b"K1", True)
+        for au in (b"d1", b"d2", b"d3"):
+            cache.add(au, False)
+        self.assertEqual([], cache.replay())
+        cache.add(b"d4", False)
+        self.assertEqual([], cache.replay())
+        cache.add(b"K2", True)
+        cache.add(b"d5", False)
+        self.assertEqual([b"K2", b"d5"], cache.replay())
+
+    def test_le_cache_se_vide_aussi_au_plafond_d_octets(self):
+        cache = qt.KeyCache(max_bytes=10)
+        cache.add(b"K" * 6, True)
+        cache.add(b"d" * 6, False)
         self.assertEqual([], cache.replay())
 
 

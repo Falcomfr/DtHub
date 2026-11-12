@@ -17,8 +17,13 @@ read from the device, and checks that prefix. Message.magic is the magic in
 reading order, upper case, trailing space removed: "CWPA", "AFMT", "CVRP",
 "CLOK", "TIME", "SKEW", "GO!" (quicktime_video_hack's OG), "STOP" for SYNC;
 "FEED", "EAT!", "SPRP", "SRAT", "TBAS", "TJMP", "RELS" for ASYN; "PING".
+
+Device data is untrusted: parse_message, format_description and
+sample_nalus raise ValueError, and only ValueError, on malformed or
+truncated input.
 """
 
+import functools
 import struct
 from dataclasses import dataclass
 
@@ -41,6 +46,20 @@ class VideoFormat:
     pps: bytes
     width: int
     height: int
+    avcc: bytes | None = None  # the device's own AVCDecoderConfigurationRecord, unmodified
+
+
+def _device_data(parse):
+    """Turns any parsing accident on device bytes into ValueError."""
+
+    @functools.wraps(parse)
+    def checked(*args):
+        try:
+            return parse(*args)
+        except (struct.error, IndexError, TypeError, KeyError) as error:
+            raise ValueError("malformed %s input: %r" % (parse.__name__, error)) from error
+
+    return checked
 
 
 def _wire(magic):
@@ -93,6 +112,7 @@ def _string_value(dict_content, key):
     return None
 
 
+@_device_data
 def parse_message(data):
     if len(data) < 8 or struct.unpack_from("<I", data)[0] != len(data):
         raise ValueError("message length prefix does not match its %d bytes" % len(data))
@@ -180,6 +200,7 @@ def need(device_clock_ref):
     return _asyn(device_clock_ref, "need")
 
 
+@_device_data
 def format_description(cvrp):
     """SPS, PPS and size from the format description a CVRP carries."""
     # CVRP payload: the device video clock ref (8), then a string-keyed dict.
@@ -192,12 +213,15 @@ def format_description(cvrp):
     atoms = _index_value(_child(fdsc, "extn"), 49)
     record = _index_value(atoms[1], 105)[1]
     sps_len = int.from_bytes(record[6:8], "big")
-    sps = record[8:8 + sps_len]
     pps_at = 8 + sps_len + 1
     pps_len = int.from_bytes(record[pps_at:pps_at + 2], "big")
-    return VideoFormat(sps, record[pps_at + 2:pps_at + 2 + pps_len], width, height)
+    if record[0] != 1 or len(record) < pps_at + 2 + pps_len or not sps_len or not pps_len:
+        raise ValueError("truncated avcC record")
+    sps = record[8:8 + sps_len]
+    return VideoFormat(sps, record[pps_at + 2:pps_at + 2 + pps_len], width, height, record)
 
 
+@_device_data
 def sample_nalus(feed):
     """The access unit of a FEED as 4-byte length-prefixed NALUs, or None
     when the sample buffer carries no media."""
@@ -222,16 +246,28 @@ def frame(kind, payload):
 
 
 class KeyCache:
-    """The last IDR and every AU since, so a new viewer can start decoding."""
+    """The last IDR and every AU since, so a new viewer can start decoding.
 
-    def __init__(self):
+    Capped at max_aus AUs (10 s at 60 fps) and max_bytes: past either, the
+    cache empties and stays empty until the next IDR, since a replay without
+    its IDR cannot be decoded.
+    """
+
+    def __init__(self, max_aus=600, max_bytes=64 * 1024 * 1024):
+        self._max_aus = max_aus
+        self._max_bytes = max_bytes
         self._aus = []
+        self._bytes = 0
 
     def add(self, au, key):
         if key:
-            self._aus = [au]
-        elif self._aus:
-            self._aus.append(au)
+            self._aus, self._bytes = [], 0
+        elif not self._aus:
+            return
+        self._aus.append(au)
+        self._bytes += len(au)
+        if len(self._aus) > self._max_aus or self._bytes > self._max_bytes:
+            self._aus, self._bytes = [], 0
 
     def replay(self):
         return list(self._aus)
