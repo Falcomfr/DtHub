@@ -7,12 +7,15 @@ Run with the iPhone tool's Python, from the repository root:
 
 import asyncio
 import base64
+import itertools
 import json
 import struct
 import sys
+import types
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
+from unittest import mock
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parents[1] / "src" / "DtHub.Infrastructure" / "IPhone"))
@@ -217,8 +220,8 @@ class FakeDevice:
         return self._serial
 
 
-def interface(cls, subclass):
-    return SimpleNamespace(bInterfaceClass=cls, bInterfaceSubClass=subclass)
+def interface(cls, subclass, number=0):
+    return SimpleNamespace(bInterfaceClass=cls, bInterfaceSubClass=subclass, bInterfaceNumber=number)
 
 
 class Device(unittest.TestCase):
@@ -441,6 +444,195 @@ class ServeWeb(unittest.IsolatedAsyncioTestCase):
         writer.close()
         self.assertEqual(config(self.fmt) + qt.frame(0, b"\x00\x00\x00\x02\x65\x88"), chunk)
         self.assertEqual([], list(self.server._subscribers.items()))
+
+
+USBTimeoutError = type("USBTimeoutError", (Exception,), {})
+
+
+class FakeIn:
+    """Gives its chunks one read each, then only timeouts, calling when_empty once."""
+
+    def __init__(self, chunks, when_empty=lambda: None):
+        self.chunks = list(chunks)
+        self.when_empty = when_empty
+
+    def read(self, size, timeout):
+        if self.chunks:
+            return self.chunks.pop(0)
+        self.when_empty()
+        raise USBTimeoutError("Operation timed out")
+
+
+class FakeOut:
+    def __init__(self, log=None):
+        self.log = [] if log is None else log
+
+    def write(self, data, timeout):
+        self.log.append(bytes(data))
+
+
+def device_clock(name):
+    return struct.unpack_from("<Q", message(name).payload)[0]
+
+
+class Session(unittest.TestCase):
+    """The capture thread's work, run in the test's own thread with fake endpoints."""
+
+    def setUp(self):
+        qt._picture, qt._loop = qt._Picture(), None
+
+    def tearDown(self):
+        qt._picture = qt._Picture()
+
+    def session(self, chunks, clock=lambda: 0.0):
+        self.out = FakeOut()
+        session = qt._Session(SimpleNamespace(), None, 0, FakeIn(chunks), self.out, clock=clock)
+        session._in.when_empty = session._done.set
+        return session
+
+    def test_le_protocole_repond_et_livre_une_image_coupee_en_deux_lectures(self):
+        feed = fixture("asyn-feed")
+        session = self.session([qt.ping() + fixture("cwpa-request1"), fixture("cvrp-request"),
+                                feed[:1000], feed[1000:]])
+        session._main()
+        audio, video = device_clock("cwpa-request1"), device_clock("cvrp-request")
+        self.assertEqual([qt.ping(), qt.hpd1(1), qt.hpd1(1), qt.reply(message("cwpa-request1"), audio + 1000, 0),
+                          qt.need(video), qt.reply(message("cvrp-request"), video + 0x1000AF, 0), qt.need(video)],
+                         self.out.log)
+        self.assertEqual("hd", qt._picture.mode)
+        self.assertEqual([qt.sample_nalus(message("asyn-feed"))], qt._picture.cache.replay())
+
+    def test_sans_image_en_cinq_secondes_l_image_hd_est_abandonnee(self):
+        session = self.session([], clock=itertools.count(0.0, 0.5).__next__)
+        session._in.when_empty = lambda: None
+        with self.assertLogs(qt._log, "WARNING") as logs:
+            session._main()
+        self.assertEqual(["DT Hub: HD picture unavailable: no frame within 5 s"], [r.getMessage() for r in logs.records])
+        self.assertEqual("off", qt._picture.mode)
+        self.assertEqual([qt.hpd0()], self.out.log)
+
+    def test_une_longueur_hors_bornes_abandonne_l_image_hd(self):
+        for length in (4, 64 * 1024 * 1024 + 1):
+            with self.subTest(length):
+                qt._picture = qt._Picture()
+                session = self.session([struct.pack("<I", length) + b"gnip" + bytes(8)])
+                with self.assertLogs(qt._log, "WARNING") as logs:
+                    session._main()
+                self.assertEqual(["DT Hub: HD picture unavailable: ValueError: bad message length %d" % length],
+                                 [r.getMessage() for r in logs.records])
+                self.assertEqual("off", qt._picture.mode)
+
+    def test_apres_la_premiere_image_une_panne_rend_displayservice(self):
+        feed = fixture("asyn-feed")
+        session = self.session([fixture("cvrp-request"), feed, struct.pack("<I", 4)])
+        with self.assertLogs(qt._log, "WARNING") as logs:
+            session._main()
+        self.assertTrue(logs.records[-1].getMessage().startswith("DT Hub: HD picture ended"))
+        self.assertEqual("off", qt._picture.mode)
+
+
+def fake_usb(log, devices, claim_error=None):
+    """pyusb's modules as _open and stop use them, recording calls in log."""
+    usb, core, util = types.ModuleType("usb"), types.ModuleType("usb.core"), types.ModuleType("usb.util")
+    backend, libusb0 = types.ModuleType("usb.backend"), types.ModuleType("usb.backend.libusb0")
+    usb.core, usb.util, usb.backend, backend.libusb0 = core, util, backend, libusb0
+    core.USBError = type("USBError", (Exception,), {})
+    core.find = lambda **_: iter(devices)
+    libusb0.get_backend = lambda find_library: object()
+
+    def claim_interface(device, number):
+        log.append(("claim", device, number))
+        if claim_error is not None:
+            raise claim_error
+
+    util.claim_interface = claim_interface
+    util.release_interface = lambda device, number: log.append(("release", device, number))
+    util.dispose_resources = lambda device: log.append(("dispose", device))
+    return {"usb": usb, "usb.core": core, "usb.util": util, "usb.backend": backend, "usb.backend.libusb0": libusb0}
+
+
+class Configuration(list):
+    def __init__(self, value, interfaces):
+        super().__init__(interfaces)
+        self.bConfigurationValue = value
+
+
+class UsbDevice(FakeDevice):
+    def __init__(self, serial, configs, log):
+        super().__init__(serial)
+        self._configs = configs
+        self.log = log
+
+    def configurations(self):
+        return self._configs
+
+    def set_configuration(self, value):
+        self.log.append(("set_configuration", value))
+
+    def ctrl_transfer(self, *args, **_):
+        self.log.append(("ctrl", args))
+
+
+class UsbCleanup(unittest.TestCase):
+    def test_un_echec_a_la_prise_de_l_interface_la_rend_et_libere_l_appareil(self):
+        log = []
+        capture = Configuration(5, [interface(0xFF, 0xFE, 1), interface(0xFF, 0x2A, 2)])
+        other = UsbDevice("00008030000A1B2C3D4E", [capture], log)
+        wanted = UsbDevice("00008120001A2B3C4D5E", [capture], log)
+        with mock.patch.dict(sys.modules, fake_usb(log, [other, wanted], claim_error=OSError("busy"))):
+            with self.assertRaises(OSError):
+                qt._open("00008120-001A2B3C4D5E", "libusb0.dll")
+        self.assertIn(("dispose", other), log)
+        self.assertEqual([("set_configuration", 5), ("claim", wanted, 2), ("release", wanted, 2), ("dispose", wanted)],
+                         [entry for entry in log if entry != ("dispose", other)])
+
+    def test_l_arret_suit_l_ordre_de_quicktime_video_hack(self):
+        log = []
+        device = UsbDevice("00008120001A2B3C4D5E", [], log)
+        session = qt._Session(device, Configuration(4, []), 2, FakeIn([]), FakeOut(log))
+        session.thread = SimpleNamespace(is_alive=lambda: True, join=lambda timeout: None)
+        session._released.set()  # the device's RELS
+        with mock.patch.dict(sys.modules, fake_usb(log, [])):
+            session.stop()
+            session.stop()
+        self.assertEqual([qt.hpd0(), ("release", device, 2), ("ctrl", (0x40, 0x52, 0x00, 0x00)),
+                          ("set_configuration", 4), ("dispose", device)], log)
+
+
+class EndOfCapture(unittest.TestCase):
+    def test_une_config_displayservice_impossible_n_empeche_pas_le_retour(self):
+        class State:
+            needs_key = reset_on_key = False
+
+            def mark_needs_key(self, now):
+                self.needs_key = True
+
+        def broken(*_):
+            raise ValueError("bad SPS")
+
+        asked = []
+        picture = qt._Picture()
+        picture.subscribers = qt._Subscribers(picture)
+        picture.server = SimpleNamespace(_codec_string="hev1.1.6.L153.B0", _vps_nal=b"v", _sps_nal=b"s",
+                                         _pps_nal=b"p", _request_recovery_idr=lambda reason: asked.append(reason))
+        picture.set_format(qt.format_description(message("cvrp-request")))
+        picture.deliver(b"K", True)
+        states = [State(), State()]
+        for state in states:
+            picture.subscribers[asyncio.Queue()] = state
+
+        async def end():
+            picture.end()
+
+        saved = qt._ss
+        qt._ss = SimpleNamespace(hevc_decoder_configuration_record=broken)
+        try:
+            with self.assertLogs(qt._log, "WARNING"):
+                asyncio.run(end())
+        finally:
+            qt._ss = saved
+        self.assertEqual([(True, True), (True, True)], [(s.needs_key, s.reset_on_key) for s in states])
+        self.assertEqual(["hd-ended"], asked)
 
 
 if __name__ == "__main__":

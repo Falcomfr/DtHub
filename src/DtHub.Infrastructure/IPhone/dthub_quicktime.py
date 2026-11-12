@@ -474,10 +474,14 @@ class _Picture:
             return
         server = self.server
         config = None
-        if server._codec_string and server._vps_nal and server._sps_nal and server._pps_nal:
-            hvcc = _ss.hevc_decoder_configuration_record(server._vps_nal, server._sps_nal, server._pps_nal)
-            config = frame(3, json.dumps({"codec": server._codec_string,
-                                          "description": base64.b64encode(hvcc).decode()}).encode())
+        try:
+            if server._codec_string and server._vps_nal and server._sps_nal and server._pps_nal:
+                hvcc = _ss.hevc_decoder_configuration_record(server._vps_nal, server._sps_nal, server._pps_nal)
+                config = frame(3, json.dumps({"codec": server._codec_string,
+                                              "description": base64.b64encode(hvcc).decode()}).encode())
+        except Exception:
+            # The subscribers still go back to DisplayService's key frames below.
+            _log.warning("DT Hub: DisplayService's decoder config not rebuilt", exc_info=True)
         now = asyncio.get_running_loop().time()
         for queue, state in dict.items(self.subscribers):
             while not queue.empty():
@@ -590,8 +594,9 @@ async def _serve_connection_hd(self, reader, writer):
 class _Session:
     """QuickTime's capture on the claimed interface, run by one daemon thread."""
 
-    def __init__(self, device, usbmux, interface, ep_in, ep_out):
+    def __init__(self, device, usbmux, interface, ep_in, ep_out, clock=time.monotonic):
         self._device = device
+        self._clock = clock  # seconds; tests pass their own
         self._usbmux = usbmux  # the configuration to go back to, None if the device has none
         self._interface = interface
         self._in = ep_in
@@ -612,7 +617,7 @@ class _Session:
 
     def _main(self):
         try:
-            self._run(time.monotonic())
+            self._run(self._clock())
         except Exception as error:
             # Nothing here may take serve-web down. Before the first frame this is the
             # fallback; after it, DisplayService's picture comes back so the window
@@ -634,7 +639,7 @@ class _Session:
     def _run(self, started):
         buffer = bytearray()
         while not self._done.is_set():
-            if should_fall_back(started, self._first_frame_at, time.monotonic()):
+            if should_fall_back(started, self._first_frame_at, self._clock()):
                 raise _Unavailable("no frame within %d s" % _FIRST_FRAME_SECONDS)
             try:
                 buffer += self._in.read(_READ_SIZE, _READ_TIMEOUT_MS)
@@ -698,7 +703,7 @@ class _Session:
             _on_picture(_picture.set_format, fmt)
         if au is not None:
             if self._first_frame_at is None:
-                self._first_frame_at = time.monotonic()
+                self._first_frame_at = self._clock()
             _on_picture(_picture.deliver, au, is_key(au))
         self._write(self._need)
 
@@ -745,8 +750,17 @@ def _open(udid, libusb0_path):
     if backend is None:
         raise _Unavailable("libusb0 backend unavailable")
 
+    def dispose(device):
+        with contextlib.suppress(Exception):
+            usb.util.dispose_resources(device)
+
     def find():
-        return pick_device(usb.core.find(find_all=True, idVendor=_APPLE_VENDOR, backend=backend), udid)
+        devices = list(usb.core.find(find_all=True, idVendor=_APPLE_VENDOR, backend=backend))
+        found = pick_device(devices, udid)
+        for other in devices:
+            if other is not found:
+                dispose(other)  # reading its serial opened it
+        return found
 
     device = find()
     if device is None:
@@ -758,6 +772,7 @@ def _open(udid, libusb0_path):
         except usb.core.USBError:
             pass  # quicktime_video_hack: "happens sometimes but it still works usually"
         # The device leaves the bus and comes back with the hidden configuration.
+        dispose(device)
         deadline = time.monotonic() + _SWITCH_SECONDS
         while config is None:
             if time.monotonic() >= deadline:
@@ -768,23 +783,31 @@ def _open(udid, libusb0_path):
                 config = capture_configuration(device.configurations()) if device is not None else None
             except usb.core.USBError:
                 config = None  # still re-enumerating
+            if config is None and device is not None:
+                dispose(device)
     configs = device.configurations()
     usbmux = usbmux_configuration(configs)
     interface = next(i for i in config
                      if i.bInterfaceClass == _VENDOR_CLASS and i.bInterfaceSubClass == _CAPTURE_SUBCLASS)
-    device.set_configuration(config.bConfigurationValue)
-    usb.util.claim_interface(device, interface.bInterfaceNumber)
 
     def endpoint(direction):
         return usb.util.find_descriptor(
             interface, custom_match=lambda e: usb.util.endpoint_direction(e.bEndpointAddress) == direction)
 
-    ep_in, ep_out = endpoint(usb.util.ENDPOINT_IN), endpoint(usb.util.ENDPOINT_OUT)
-    if ep_in is None or ep_out is None:
-        raise _Unavailable("capture interface without its two bulk endpoints")
-    for ep in (ep_in, ep_out):
-        device.ctrl_transfer(0x02, 0x01, 0x00, ep.bEndpointAddress)  # CLEAR_FEATURE(ENDPOINT_HALT), as qvh
-    return _Session(device, usbmux, interface.bInterfaceNumber, ep_in, ep_out)
+    try:
+        device.set_configuration(config.bConfigurationValue)
+        usb.util.claim_interface(device, interface.bInterfaceNumber)
+        ep_in, ep_out = endpoint(usb.util.ENDPOINT_IN), endpoint(usb.util.ENDPOINT_OUT)
+        if ep_in is None or ep_out is None:
+            raise _Unavailable("capture interface without its two bulk endpoints")
+        for ep in (ep_in, ep_out):
+            device.ctrl_transfer(0x02, 0x01, 0x00, ep.bEndpointAddress)  # CLEAR_FEATURE(ENDPOINT_HALT), as qvh
+        return _Session(device, usbmux, interface.bInterfaceNumber, ep_in, ep_out)
+    except Exception:
+        with contextlib.suppress(Exception):
+            usb.util.release_interface(device, interface.bInterfaceNumber)
+        dispose(device)
+        raise
 
 
 def install(screen_stream_module, udid, libusb0_path):
@@ -812,8 +835,10 @@ def install(screen_stream_module, udid, libusb0_path):
 
 def stop_capture():
     """Ends the capture cleanly: HPD0, the device's STOP answered, RELS awaited
-    briefly, then usbmux's configuration back. Idempotent, never raises, about
-    2 s at most. Called by the bootstrap's POST /capture/stop, and at exit."""
+    briefly, then usbmux's configuration back. For closing only: going back
+    re-enumerates the device and resets usbmux, which ends serve-web's tunnel;
+    the caller kills the tool right after. Idempotent, never raises, about 2 s
+    at most. Called by the bootstrap's POST /capture/stop, and at exit."""
     session = _session
     if session is None:
         return
