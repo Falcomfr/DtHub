@@ -47,6 +47,9 @@ public static class DependencyManifest
     /// <summary>Key of the dependency providing uv, for iPhones only.</summary>
     public const string UvKey = "uv";
 
+    /// <summary>Key of the dependency providing the libusb-win32 filter, for the iPhone HD picture.</summary>
+    public const string LibUsbWin32Key = "libusb-win32";
+
     /// <summary>All declared dependencies, indexed by key.</summary>
     public static IReadOnlyDictionary<string, ExternalDependency> All => Cached.Value;
 

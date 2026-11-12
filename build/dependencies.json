@@ -99,6 +99,19 @@
       "licenseUrl": "https://github.com/astral-sh/uv/blob/main/LICENSE-MIT",
       "redistributable": true,
       "redistributionNote": "Téléchargé seulement à la première ouverture de la fenêtre iPhone, jamais au démarrage. uv récupère à son tour un Python exact (python-build-standalone, PyMobileDevice.PythonVersion) puis pymobiledevice3 (GPL-3.0 ou ultérieure) et ses paquets depuis PyPI, chacun vérifié par l'empreinte de build/iphone-requirements.txt, et les range dans tools/iphone : rien n'est embarqué ni lié à DT Hub, pymobiledevice3 tourne dans son propre processus."
+    },
+    "libusb-win32": {
+      "displayName": "libusb-win32",
+      "version": "1.4.0.2",
+      "url": "https://github.com/mcuee/libusb-win32/releases/download/release_1.4.0.2/libusb-win32-bin-1.4.0.2.zip",
+      "sizeBytes": 2636261,
+      "sha256": "00004c92cdb99be36e17fb2377165eb97e63b48ba895bfc04a642ea9c3e26d94",
+      "archiveRootDirectory": "libusb-win32-bin-1.4.0.2",
+      "executable": "bin/amd64/install-filter.exe",
+      "license": "LGPL-3.0 (bibliothèque), GPL-3.0 (pilote)",
+      "licenseUrl": "https://github.com/mcuee/libusb-win32/blob/master/libusb/COPYING_LGPL.txt",
+      "redistributable": true,
+      "redistributionNote": "Téléchargé seulement quand le joueur active l'image HD, jamais embarqué. Le filtre est installé par install-filter.exe, avec élévation, sur les appareils Apple uniquement."
     }
   }
 }

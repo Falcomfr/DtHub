@@ -130,6 +130,16 @@ public class DependencyManifestTests
     }
 
     [Fact]
+    public void Le_filtre_usb_vient_de_la_version_officielle_de_libusb_win32()
+    {
+        var dependency = DependencyManifest.Get(DependencyManifest.LibUsbWin32Key);
+
+        Assert.Equal("https://github.com/mcuee/libusb-win32/releases/download/release_1.4.0.2/libusb-win32-bin-1.4.0.2.zip", dependency.Url.AbsoluteUri);
+        Assert.Equal("00004c92cdb99be36e17fb2377165eb97e63b48ba895bfc04a642ea9c3e26d94", dependency.Sha256);
+        Assert.EndsWith("install-filter.exe", dependency.Executable);
+    }
+
+    [Fact]
     public void Une_cle_inconnue_echoue_explicitement()
     {
         Assert.Throws<InvalidOperationException>(() => DependencyManifest.Get("composant-inexistant"));

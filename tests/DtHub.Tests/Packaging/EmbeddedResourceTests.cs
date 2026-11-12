@@ -40,9 +40,9 @@ public class EmbeddedResourceTests
     {
         // The manifest is read from the resource: this test also
         // fails if the file is present but unreadable. Windows, macOS
-        // and Linux each have their adb and their scrcpy; uv serves the
+        // and Linux each have their adb and their scrcpy; uv and libusb-win32 serve the
         // iPhone window.
-        Assert.Equal(7, DependencyManifest.All.Count);
+        Assert.Equal(8, DependencyManifest.All.Count);
         Assert.NotNull(DependencyManifest.Get(DependencyManifest.PlatformToolsKey));
         Assert.NotNull(DependencyManifest.Get(DependencyManifest.ScrcpyKey));
         Assert.NotNull(DependencyManifest.Get(DependencyManifest.PlatformToolsMacKey));
@@ -50,6 +50,7 @@ public class EmbeddedResourceTests
         Assert.NotNull(DependencyManifest.Get(DependencyManifest.PlatformToolsLinuxKey));
         Assert.NotNull(DependencyManifest.Get(DependencyManifest.ScrcpyLinuxKey));
         Assert.NotNull(DependencyManifest.Get(DependencyManifest.UvKey));
+        Assert.NotNull(DependencyManifest.Get(DependencyManifest.LibUsbWin32Key));
     }
 
     /// <summary>
