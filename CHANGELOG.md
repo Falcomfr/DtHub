@@ -17,6 +17,16 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Added
+
+- iPhone and iPad: an optional "HD picture" setting shows the screen at its full resolution over the USB cable, much sharper; it installs a small USB driver on the device once, with Windows' permission.
+
+### Fixed
+
+- An iPhone or iPad picture no longer shows a thin band along one edge, and a click near that edge lands where it is made.
+
 ## [0.15.1] - 2026-11-12
 
 ### Fixed

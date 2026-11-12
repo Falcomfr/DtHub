@@ -11,6 +11,16 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Ajouté
+
+- iPhone et iPad : un réglage « Image HD » affiche l'écran en pleine définition par le câble USB, bien plus net ; il installe une fois un petit pilote USB sur l'appareil, avec l'autorisation de Windows.
+
+### Corrigé
+
+- L'image d'un iPhone ou d'un iPad n'a plus de fine bande le long d'un bord, et un clic près de ce bord tombe là où l'on clique.
+
 ## [0.15.1] - 2026-11-12
 
 ### Corrigé
