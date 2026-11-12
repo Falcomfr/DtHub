@@ -20,7 +20,7 @@ public interface IUsbFilterDriver
     /// <summary>The ids <c>USB\VID_05AC&amp;PID_xxxx</c> of the present Apple composite parents.</summary>
     IReadOnlyList<string> PresentAppleDevices();
 
-    /// <summary>True when the parent is on usbccgp and has libusb0 among its UpperFilters.</summary>
+    /// <summary>True when every present parent with this id is on usbccgp and has libusb0 among its UpperFilters.</summary>
     bool IsFiltered(string hardwareId);
 
     Task<UsbFilterResult> InstallAsync(IReadOnlyList<string> hardwareIds, CancellationToken cancellationToken);

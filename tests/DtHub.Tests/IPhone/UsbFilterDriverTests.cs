@@ -82,6 +82,20 @@ public class UsbFilterDriverTests
         Assert.False(driver.IsFiltered(@"USB\VID_046D&PID_C52B"));
     }
 
+    [Fact]
+    public void Un_modele_n_est_filtre_que_si_tous_ses_appareils_presents_le_sont()
+    {
+        // Two iPhones of one model: the filter is per model, the second may predate it.
+        UsbPresence[] usb =
+        [
+            new(@"USB\VID_05AC&PID_12A8\A", [], "usbccgp", ["libusb0"]),
+            new(@"USB\VID_05AC&PID_12A8\B", [], "usbccgp"),
+        ];
+        var driver = Driver(usb, (_, _) => Task.FromResult(0));
+
+        Assert.False(driver.IsFiltered(Iphone));
+    }
+
     private static UsbFilterDriver Driver(UsbPresence[] usb, Func<string, string[], Task<int>> run) =>
         new(new FakeUsb(usb), new Provisioner(), run);
 

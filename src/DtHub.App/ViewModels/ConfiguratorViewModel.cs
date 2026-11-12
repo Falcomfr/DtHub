@@ -1105,6 +1105,12 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         await Instances.RefreshAsync(cancellationToken).ConfigureAwait(true);
         Instances.RefreshRunningState();
         RefreshConnection();
+
+        // An Apple device plugged since the panel loaded: the pending line follows. A toggle sets it itself.
+        if (!IosHdBusy)
+        {
+            RefreshIosHdPending(await _settings.GetAsync(cancellationToken).ConfigureAwait(true));
+        }
     }
 
     private readonly IUsbEnumerationInspector _usb;
@@ -1749,7 +1755,15 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             return;
         }
 
-        var result = await InstallIosHdAsync(filter, present, true).ConfigureAwait(true);
+        if (Missing(filter) is not { } missing)
+        {
+            SetIosHdBox(false, Strings.Get("IosHdFailed"));
+            return;
+        }
+
+        // Already filtered, say by an earlier activation: not installed again, but stored so it can be removed.
+        var result = await InstallIosHdAsync(filter, missing, true, [.. present.Except(missing, StringComparer.OrdinalIgnoreCase)])
+            .ConfigureAwait(true);
 
         if (result != UsbFilterResult.Done)
         {
@@ -1762,13 +1776,14 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
 
     /// <summary>
     /// Installs one device at a time, so the ids filtered before a refusal
-    /// on a later one are stored anyway and can be removed later. The
+    /// on a later one are stored anyway and can be removed later, with
+    /// <paramref name="filtered"/>, the ones that already were. The
     /// setting turns on only when every device went through.
     /// </summary>
     private async Task<UsbFilterResult> InstallIosHdAsync(
-        IUsbFilterDriver filter, IReadOnlyList<string> ids, bool enable)
+        IUsbFilterDriver filter, IReadOnlyList<string> ids, bool enable, IReadOnlyList<string> filtered)
     {
-        var done = new List<string>();
+        var done = new List<string>(filtered);
         var result = UsbFilterResult.Done;
 
         foreach (var id in ids)
@@ -1847,8 +1862,9 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
 
     /// <summary>
     /// The driver reports Refused and Failed by value, but a download that
-    /// failed, a missing file or a cancelled wait comes out as an exception:
-    /// all of them are Failed here.
+    /// failed, an extraction that could not write, a missing file, an
+    /// installer that did not start or a cancelled wait comes out as an
+    /// exception: all of them are Failed here.
     /// </summary>
     private static async Task<UsbFilterResult> RunFilterAsync(Func<Task<UsbFilterResult>> run)
     {
@@ -1857,7 +1873,8 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
             return await run().ConfigureAwait(true);
         }
         catch (Exception exception) when (exception is DependencyProvisioningException
-            or Win32Exception or ArgumentException or OperationCanceledException)
+            or Win32Exception or ArgumentException or OperationCanceledException
+            or InvalidOperationException or IOException)
         {
             // Surfaces as Failed: the caller shows the "driver did not install" message.
             return UsbFilterResult.Failed;
@@ -1932,7 +1949,7 @@ public sealed partial class ConfiguratorViewModel : ObservableObject
         await RunIosHdAsync(async () =>
         {
             if (Missing(filter) is { Count: > 0 } missing
-                && await InstallIosHdAsync(filter, missing, true).ConfigureAwait(true) is var result
+                && await InstallIosHdAsync(filter, missing, true, []).ConfigureAwait(true) is var result
                 && result != UsbFilterResult.Done)
             {
                 _dialogs.ShowWarning(ShowFailure(result));

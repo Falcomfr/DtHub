@@ -62,10 +62,14 @@ public sealed partial class UsbFilterDriver : IUsbFilterDriver
     public IReadOnlyList<string> PresentAppleDevices() =>
         [.. AppleParents().Select(p => ParentHardwareId(p.Id)).Distinct(StringComparer.OrdinalIgnoreCase)];
 
-    public bool IsFiltered(string hardwareId) =>
-        AppleParents().Any(p =>
-            string.Equals(ParentHardwareId(p.Id), hardwareId, StringComparison.OrdinalIgnoreCase)
-            && p.Filters.Contains("libusb0", StringComparer.OrdinalIgnoreCase));
+    public bool IsFiltered(string hardwareId)
+    {
+        // Every present device of the model: one plugged before the filter went on may still lack it.
+        var instances = AppleParents()
+            .Where(p => string.Equals(ParentHardwareId(p.Id), hardwareId, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        return instances.Count > 0 && instances.All(p => p.Filters.Contains("libusb0", StringComparer.OrdinalIgnoreCase));
+    }
 
     public string? LibUsb0Path()
     {

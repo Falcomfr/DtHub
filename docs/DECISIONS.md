@@ -12513,8 +12513,10 @@ Zadig, qui coupe les clics.
 
 **Mise en place (ViewModel).** Cocher demande confirmation, cherche les
 appareils Apple branchés (aucun : « Branche ton iPhone... », case décochée),
-puis installe. Refus de Windows ou échec (téléchargement, fichier absent,
-annulation) : message, case décochée, rien d'enregistré. Décocher
+puis installe sur ceux qui n'ont pas encore le filtre, un par un ; ceux qui
+l'ont déjà sont enregistrés sans être réinstallés. Refus de Windows ou échec
+(téléchargement, fichier absent, annulation) : message, case décochée ; les ids
+déjà installés restent enregistrés, pour pouvoir être retirés. Décocher
 enregistre `false` et propose de retirer le filtre ; les ids ne s'effacent
 que si le retrait a réussi. La case n'existe que sous Windows, le ViewModel
 partagé avec le Mac prend le pilote en option. La ligne « à activer » ne
