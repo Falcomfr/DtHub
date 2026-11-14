@@ -477,6 +477,12 @@
   <data name="Préambule d'ouverture : raccourcis {hotkeysMs} ms, appareils {devicesMs} ms, liaison {linkMs} ms, réglages {settingsMs} ms, total {totalMs} ms." xml:space="preserve">
     <value>Launch preparation: shortcuts {hotkeysMs} ms, devices {devicesMs} ms, connection {linkMs} ms, settings {settingsMs} ms, total {totalMs} ms.</value>
   </data>
+  <data name="Premier plan : fenêtre {window} du processus {owner}, raccourcis {state}." xml:space="preserve">
+    <value>Foreground: window {window} of process {owner}, hotkeys {state}.</value>
+  </data>
+  <data name="Raccourci reçu : {action}." xml:space="preserve">
+    <value>Hotkey received: {action}.</value>
+  </data>
   <data name="Raccourcis {state} (fenêtre {window})." xml:space="preserve">
     <value>Hotkeys {state} (window {window}).</value>
   </data>

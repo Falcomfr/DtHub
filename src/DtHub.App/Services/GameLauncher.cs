@@ -6986,6 +6986,15 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 _ = _modifiers.ReleaseUnlessHeld(GameWindows(), MouseCapturingWindows());
             }
 
+            // Every change of window, for "Ctrl+Tab sometimes dead" (2026-11-14):
+            // the toggles alone could not tell an event never received from a
+            // window misread. Process number only, never a window title.
+            if (window != _lastForeground)
+            {
+                _lastForeground = window;
+                LogForeground(window, owner, LogMessages.Translate(mine ? "actifs" : "en veille"));
+            }
+
             // The toggle is logged: without it, shortcuts turned off
             // by an unrecognized window left no trace, and the
             // symptom looked like a shortcut that "no longer works".
@@ -7015,6 +7024,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
     }
 
     private bool _hotkeysActive = true;
+
+    private nint _lastForeground;
 
     /// <summary>
     /// Keyboard navigation switches free windows when one of them is in
@@ -7137,6 +7148,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
             // First, before the shortcut moves the focus: the window it was
             // typed in got the Ctrl press, and the release will go elsewhere.
             _modifiers.Release(GameWindows(), MouseCapturingWindows());
+
+            LogHotkeyReceived(HotkeyBinding.DescribeAction(action));
 
             switch (action)
             {
@@ -7452,6 +7465,14 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Raccourcis {state} (fenêtre {window}).")]
     private partial void LogHotkeyScope(string state, nint window);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Premier plan : fenêtre {window} du processus {owner}, raccourcis {state}.")]
+    private partial void LogForeground(nint window, int owner, string state);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Raccourci reçu : {action}.")]
+    private partial void LogHotkeyReceived(string action);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Écrans : {monitors}. Fenêtres de jeu : {placement}.")]
     private partial void LogPlacement(string monitors, string placement);
