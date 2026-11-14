@@ -102,6 +102,10 @@ public sealed partial class AndroidAppLauncher : IAppLauncher
             // account out (measured on the 13T Pro, 2026-11-14).
             if (displaySize is var (width, height))
             {
+                // HyperOS hangs a frozen status bar on a task back from the
+                // phone's screen; a nudge made before the move settles keeps it.
+                await Task.Delay(MoveSettle, cancellationToken).ConfigureAwait(false);
+
                 var display = Text(displayId);
                 await _adb.ShellAsync(
                     serial, ["wm", "size", $"{Text(width)}x{Text(height - 1)}", "-d", display], null, cancellationToken)
@@ -119,6 +123,9 @@ public sealed partial class AndroidAppLauncher : IAppLauncher
             return false;
         }
     }
+
+    /// <summary>Measured on the 13T Pro: none kept the ghost bar, one second cleared it.</summary>
+    private static readonly TimeSpan MoveSettle = TimeSpan.FromSeconds(1);
 
     /// <summary>
     /// The root task holding the game of a profile in "am stack list", whose
