@@ -126,6 +126,13 @@ public static class ConnectionCheck
             return ConnectionVerdict.DriverRefused;
         }
 
+        // Windows holds the phone but could not read its serial: the same
+        // garbled link as an unreadable descriptor, the same advice.
+        if (states.Contains(AdbDeviceState.NoSerial))
+        {
+            return ConnectionVerdict.UsbUnreadable;
+        }
+
         // ADB sees nothing: this is the only place where Windows's
         // opinion is used. The most explicit fault wins, since an
         // ordinary machine often has some faulting device that has

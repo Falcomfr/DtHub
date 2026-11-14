@@ -31,6 +31,14 @@ public class ConnectionCheckTests
     }
 
     [Fact]
+    public void Un_telephone_lu_sans_numero_de_serie_accuse_le_cable_ou_le_port()
+    {
+        Assert.Equal(
+            ConnectionVerdict.UsbUnreadable,
+            ConnectionCheck.Of([AdbDeviceState.NoSerial], [], toolsReady: true));
+    }
+
+    [Fact]
     public void Sans_outils_rien_d_autre_n_est_examine()
     {
         Assert.Equal(

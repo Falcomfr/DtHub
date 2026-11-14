@@ -21,6 +21,23 @@ public class AdbDeviceParserTests
         Assert.Empty(AdbOutputParser.ParseDevices("List of devices attached\n\n"));
     }
 
+    /// <summary>
+    /// Seen on 2026-11-14, a 13T Pro on a failing USB port: Windows read the
+    /// phone without its serial. Split on spaces, the line gave the serial
+    /// "(no" and the state "serial".
+    /// </summary>
+    [Fact]
+    public void Telephone_sans_numero_de_serie_est_un_defaut_usb()
+    {
+        var device = AdbOutputParser.ParseDeviceLine(
+            "(no serial number)     device product:corot_global model:23078PND5G device:corot transport_id:4");
+
+        Assert.NotNull(device);
+        Assert.Equal(AdbDeviceState.NoSerial, device.State);
+        Assert.Equal("23078PND5G", device.Model);
+        Assert.False(device.IsReady);
+    }
+
     [Fact]
     public void Format_court_rend_le_serie_et_l_etat()
     {

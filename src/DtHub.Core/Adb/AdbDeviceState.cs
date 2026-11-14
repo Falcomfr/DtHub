@@ -40,4 +40,10 @@ public enum AdbDeviceState
 
     /// <summary>The port exists but no device responds.</summary>
     Detached,
+
+    /// <summary>
+    /// Listed as "(no serial number)": Windows enumerated the phone without
+    /// reading its serial, a USB link the cable or the port garbles.
+    /// </summary>
+    NoSerial,
 }

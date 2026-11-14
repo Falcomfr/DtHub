@@ -58,13 +58,18 @@ public static class AdbOutputParser
             return null;
         }
 
-        var tokens = line.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+        // Windows read the phone without its serial: the only spaced "serial".
+        const string NoSerial = "(no serial number)";
+        var noSerial = line.StartsWith(NoSerial, StringComparison.Ordinal);
+
+        var tokens = (noSerial ? "-" + line[NoSerial.Length..] : line)
+            .Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
         if (tokens.Length < 2)
         {
             return null;
         }
 
-        var serial = tokens[0];
+        var serial = noSerial ? NoSerial : tokens[0];
         var rawState = tokens[1];
 
         string? product = null, model = null, device = null, transportId = null, usbPath = null;
@@ -96,7 +101,7 @@ public static class AdbOutputParser
         return new AdbDeviceEntry
         {
             Serial = serial,
-            State = ParseState(rawState),
+            State = noSerial ? AdbDeviceState.NoSerial : ParseState(rawState),
             RawState = rawState,
             ConnectionKind = DetectConnectionKind(serial, usbPath),
             Product = product,
