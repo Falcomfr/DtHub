@@ -361,6 +361,8 @@ public partial class App : Application, IDisposable
         // settings.
         _started = true;
 
+        _ = WatchUiThreadAsync();
+
         if (openNothing)
         {
             // Already logged by the startup choice.
@@ -978,6 +980,34 @@ public partial class App : Application, IDisposable
     /// point starting up for someone who does not use it.
     /// </summary>
     private void ToggleQuests() => Quests()?.Toggle();
+
+    /// <summary>
+    /// Diagnostic for "Ctrl+Tab sometimes dead" (2026-11-14): a click on a busy
+    /// window does not bring it forward. Says when the UI thread answers late,
+    /// at the priority clicks are handled at.
+    /// </summary>
+    private async Task WatchUiThreadAsync()
+    {
+        try
+        {
+            while (!_quitting)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+
+                var wait = System.Diagnostics.Stopwatch.StartNew();
+                await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.Input);
+
+                if (wait.ElapsedMilliseconds > 1000)
+                {
+                    Log.Information("Fil d'affichage occupé {Ms} ms.", wait.ElapsedMilliseconds);
+                }
+            }
+        }
+        catch (TaskCanceledException)
+        {
+            // The dispatcher shut down with the application: nothing left to watch.
+        }
+    }
 
     /// <summary>
     /// A DOFUS Touch web tool: brought forward when already open, opened

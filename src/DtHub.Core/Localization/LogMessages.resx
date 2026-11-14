@@ -483,6 +483,9 @@
   <data name="Raccourci reçu : {action}." xml:space="preserve">
     <value>Hotkey received: {action}.</value>
   </data>
+  <data name="Fil d'affichage occupé {Ms} ms." xml:space="preserve">
+    <value>UI thread busy {Ms} ms.</value>
+  </data>
   <data name="Raccourcis {state} (fenêtre {window})." xml:space="preserve">
     <value>Hotkeys {state} (window {window}).</value>
   </data>

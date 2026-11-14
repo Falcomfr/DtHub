@@ -483,6 +483,9 @@
   <data name="Raccourci reçu : {action}." xml:space="preserve">
     <value>Raccourci reçu : {action}.</value>
   </data>
+  <data name="Fil d'affichage occupé {Ms} ms." xml:space="preserve">
+    <value>Fil d'affichage occupé {Ms} ms.</value>
+  </data>
   <data name="Raccourcis {state} (fenêtre {window})." xml:space="preserve">
     <value>Raccourcis {state} (fenêtre {window}).</value>
   </data>
