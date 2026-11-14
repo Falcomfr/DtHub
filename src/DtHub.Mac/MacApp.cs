@@ -122,7 +122,7 @@ internal sealed class MacApp : Application
 
                 _ = DtHub.Mac.Pc.Modal.Wait(async () =>
                 {
-                    await Task.WhenAny(QuitWorkAsync(), Task.Delay(QuitBudget)).ConfigureAwait(true);
+                    await QuitWithinBudgetAsync().ConfigureAwait(true);
                     return true;
                 });
             };
@@ -597,7 +597,7 @@ internal sealed class MacApp : Application
         Log.Information("Fermeture de session macOS : DT Hub enregistre et se ferme.");
         _ = DtHub.Mac.Pc.Modal.Wait(async () =>
         {
-            await Task.WhenAny(QuitWorkAsync(), Task.Delay(QuitBudget)).ConfigureAwait(true);
+            await QuitWithinBudgetAsync().ConfigureAwait(true);
             return true;
         });
         _desktop?.Shutdown();
@@ -610,6 +610,25 @@ internal sealed class MacApp : Application
     private static readonly TimeSpan QuitBudget = TimeSpan.FromSeconds(10);
 
     /// <summary>What a quit does before the application ends.</summary>
+    /// <summary>
+    /// The quit work, waited for <see cref="QuitBudget"/> at most: out of time
+    /// or failed, it never holds the quit. WaitAsync and not WhenAny with a
+    /// Delay, whose timer outlived the work (CA2027, .NET 11).
+    /// </summary>
+    private static async Task QuitWithinBudgetAsync()
+    {
+        try
+        {
+            await QuitWorkAsync().WaitAsync(QuitBudget).ConfigureAwait(true);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            // Out of budget or failed: the application quits all the same, as
+            // it did when WhenAny let both cases through.
+            _ = exception;
+        }
+    }
+
     private static async Task QuitWorkAsync()
     {
         if (IsShuttingDown || _services is null)

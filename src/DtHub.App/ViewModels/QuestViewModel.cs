@@ -802,7 +802,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         {
             // "Suivantes" comes from the tracker: once it is gone (unlinked,
             // lost, unreadable) the level has nothing left to hold.
-            ShowSection(_section == QuestTree.NextSection && !NextQuests().Any()
+            ShowSection(_section == QuestTree.NextSection && NextQuests().Count == 0
                 ? QuestTree.RootSection
                 : _section);
         }
