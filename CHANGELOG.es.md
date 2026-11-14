@@ -10,6 +10,12 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.15.4] - 2026-11-14
+
+### Corregido
+
+- Algunas tabletas Samsung (visto en una Galaxy Tab A8 con Android 14) ya no abrían el juego desde la 0.15.3, con «El teléfono se ha desconectado durante la sesión»: DT Hub vuelve a intentar la apertura al instante sin la opción que bloqueaba la tableta.
+
 ## [0.15.3] - 2026-11-14
 
 ### Cambiado

@@ -17,6 +17,12 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.15.4] - 2026-11-14
+
+### Fixed
+
+- Some Samsung tablets (seen on a Galaxy Tab A8 on Android 14) no longer opened the game at all since 0.15.3, showing "The phone disconnected during the session": DT Hub now retries the opening at once without the option that crashed the tablet.
+
 ## [0.15.3] - 2026-11-14
 
 ### Changed

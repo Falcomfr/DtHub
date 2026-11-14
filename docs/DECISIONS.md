@@ -12569,3 +12569,19 @@ alors au premier plan **sans** EVENT_SYSTEM_FOREGROUND (relevé indépendant :
 premier plan changé, aucun événement). Le fil des raccourcis relit donc aussi
 le premier plan toutes les 200 ms. Non revu en vrai après le correctif :
 l'état ne s'est plus reformé à la demande.
+
+## D236 - Sans garde du jeu sur les Samsung qui plantent
+
+**Date** : 2026-11-14. Complète D235.
+
+Dès la 0.15.3, une Galaxy Tab A8 (SM-X200, Android 14) refusait chaque
+ouverture, en Wi-Fi comme en USB : `stack corruption detected
+(-fstack-protector)` puis `Aborted` côté serveur. Bug Samsung connu de scrcpy
+(#2841, #6781, #6900) : l'encodeur recopie la ligne de commande d'`app_process`
+dans un tampon fixe, et `vd_destroy_content=false` l'allonge de 25 caractères.
+La 0.15.2 ouvrait la même tablette le même soir.
+
+**Choix.** Sur ce message, l'ouverture est refaite aussitôt sans
+`--no-vd-destroy-content`, et l'appareil s'en passe jusqu'au redémarrage de
+DT Hub. Les autres gardent le jeu à la coupure. Non reproduit faute de
+Samsung sous Android 14 : déduit du journal du joueur.
