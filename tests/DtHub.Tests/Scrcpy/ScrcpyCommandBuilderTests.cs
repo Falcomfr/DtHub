@@ -154,6 +154,13 @@ public class ScrcpyCommandBuilderTests
             ScrcpyCommandBuilder.BuildMirrorArguments("USB0001", "T", ScrcpyOptions.Default));
 
     [Fact]
+    public void Sans_la_garde_du_jeu_la_commande_retombe_a_la_longueur_d_avant() =>
+        Assert.DoesNotContain(
+            "--no-vd-destroy-content",
+            ScrcpyCommandBuilder.BuildMirrorArguments(
+                "USB0001", "T", ScrcpyOptions.Default with { KeepGameOnDisplayLoss = false }));
+
+    [Fact]
     public void Une_fenetre_destinee_aux_onglets_attend_hors_ecran_sans_changer_sa_taille()
     {
         var arguments = ScrcpyCommandBuilder.BuildMirrorArguments(

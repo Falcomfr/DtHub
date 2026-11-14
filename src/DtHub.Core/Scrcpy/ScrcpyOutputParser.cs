@@ -258,6 +258,14 @@ public static partial class ScrcpyOutputParser
     /// chance of succeeding. An unplugged or unauthorized device will
     /// stay that way: insisting would only add a wait to the failure.
     /// </summary>
+    /// <summary>
+    /// Some Samsung encoders copy the server's command line into a fixed
+    /// buffer and abort when it is too long (scrcpy #2841, #6900): seen on
+    /// a Tab A8 once --no-vd-destroy-content was added.
+    /// </summary>
+    public static bool IsServerStackCorruption(IEnumerable<string> output) =>
+        output.Any(line => line.Contains("stack corruption detected", StringComparison.Ordinal));
+
     public static bool CanRetrySmaller(ScrcpyFailureKind kind) => kind
         is ScrcpyFailureKind.Encoder
         or ScrcpyFailureKind.VirtualDisplayRefused

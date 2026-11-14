@@ -127,6 +127,12 @@ public sealed record ScrcpyOptions
     public bool DisableVirtualDisplayDecorations { get; init; } = true;
 
     /// <summary>
+    /// A lost link hands the game to the phone's screen instead of destroying
+    /// it. Off for a Samsung whose encoder crashes on the longer command.
+    /// </summary>
+    public bool KeepGameOnDisplayLoss { get; init; } = true;
+
+    /// <summary>
     /// Keeps a window destined for tabs off the desktop until its host is
     /// ready. Launch-only state, never persisted in the user's settings.
     /// </summary>

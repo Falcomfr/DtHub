@@ -213,7 +213,10 @@ public static class ScrcpyCommandBuilder
 
             // A display gone with its link hands the game to the phone's
             // screen instead of destroying it: the reopening sends it back.
-            arguments.Add("--no-vd-destroy-content");
+            if (sanitized.KeepGameOnDisplayLoss)
+            {
+                arguments.Add("--no-vd-destroy-content");
+            }
 
             // Typing goes through scrcpy's own injection, not Android's
             // keyboard, which otherwise inflated on the dark main panel for

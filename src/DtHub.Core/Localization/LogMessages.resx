@@ -742,6 +742,9 @@
   <data name="{instance} non lancée : appareil au niveau d'API {sdk}, sous le minimum requis." xml:space="preserve">
     <value>{instance} not launched: device API level {sdk} is below the required minimum.</value>
   </data>
+  <data name="{instance} : le serveur scrcpy a planté sur la commande longue (encodeur Samsung), nouvel essai sans garder le jeu à la coupure." xml:space="preserve">
+    <value>{instance}: the scrcpy server crashed on the long command (Samsung encoder), retrying without keeping the game on link loss.</value>
+  </data>
   <data name="{instance} refusée en {height} de haut : nouvel essai en {retry} de haut." xml:space="preserve">
     <value>{instance} rejected at height {height}: retrying at height {retry}.</value>
   </data>

@@ -386,6 +386,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     private readonly System.Collections.Concurrent.ConcurrentDictionary<string, int> _videoBuffers = new(StringComparer.Ordinal);
 
+    // Devices whose scrcpy server aborted on the longer command line: they
+    // open without --no-vd-destroy-content until DT Hub restarts.
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, byte> _shortCommandDevices = new(StringComparer.Ordinal);
+
     /// <summary>Pace of controls and polling, based on quality.</summary>
     public QualityProfile Quality => _quality;
 
@@ -4005,6 +4009,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 VideoBufferMs = _videoBuffers.TryGetValue(device.Serial, out var buffer)
                     ? buffer
                     : VideoBuffer.None,
+
+                KeepGameOnDisplayLoss = !_shortCommandDevices.ContainsKey(instance.DeviceId),
             };
 
             if (inTabs && tabAspect <= 0 && display.VirtualDisplayHeight > 0)
@@ -4079,6 +4085,20 @@ public sealed partial class GameLauncher : IAsyncDisposable
             {
                 session = await _sessions.StartAsync(
                     target, display, placement, cancellationToken).ConfigureAwait(false);
+
+                // A Samsung encoder that aborts on the long command line
+                // aborts on every attempt: retry once without the option
+                // that lengthened it, and keep it off for this device.
+                if (session.State == ScrcpySessionState.Failed
+                    && display.KeepGameOnDisplayLoss
+                    && ScrcpyOutputParser.IsServerStackCorruption(session.RecentOutput))
+                {
+                    _shortCommandDevices[instance.DeviceId] = 0;
+                    LogShortCommandFallback(instance.DisplayName);
+                    display = display with { KeepGameOnDisplayLoss = false };
+                    session = await _sessions.StartAsync(
+                        target, display, placement, cancellationToken).ConfigureAwait(false);
+                }
 
                 // Video encoders announce a maximum resolution, which
                 // varies from one device to another: a modest tablet may
@@ -7439,6 +7459,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Warning,
         Message = "{instance} refusée en {height} de haut : nouvel essai en {retry} de haut.")]
     private partial void LogDisplayFallback(string instance, int height, int retry);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "{instance} : le serveur scrcpy a planté sur la commande longue (encodeur Samsung), nouvel essai sans garder le jeu à la coupure.")]
+    private partial void LogShortCommandFallback(string instance);
 
     [LoggerMessage(
         Level = LogLevel.Warning,

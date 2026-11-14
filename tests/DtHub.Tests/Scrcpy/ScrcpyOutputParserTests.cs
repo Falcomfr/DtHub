@@ -127,6 +127,23 @@ public class ScrcpyOutputParserTests
     }
 
     [Fact]
+    public void Le_plantage_samsung_sur_une_commande_trop_longue_est_reconnu()
+    {
+        // Captured on a Galaxy Tab A8 (SM-X200, Android 14), DT Hub 0.15.3,
+        // 2026-11-14: the server dies as soon as the encoder starts.
+        string[] output =
+        [
+            "[server] INFO: Device: [samsung] samsung SM-X200 (Android 14)",
+            "stack corruption detected (-fstack-protector)",
+            "Aborted ",
+            "WARN: Device disconnected",
+        ];
+
+        Assert.True(ScrcpyOutputParser.IsServerStackCorruption(output));
+        Assert.False(ScrcpyOutputParser.IsServerStackCorruption(["WARN: Device disconnected"]));
+    }
+
+    [Fact]
     public void La_coupure_de_liaison_compte_comme_une_fin_meme_sans_le_mot_erreur()
     {
         // Captured on the real device, scrcpy 4.1, Wi-Fi connection
