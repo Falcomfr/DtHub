@@ -17,6 +17,19 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.15.3] - 2026-11-14
+
+### Changed
+
+- With "Close the game on the phone too" unchecked, reopening an account's window brings back the game still running, character still logged in, instead of restarting it.
+
+### Fixed
+
+- A brief loss of the phone's link (USB or Wi-Fi) no longer logs the accounts out: their windows reopen on the game kept running on the phone, even mid-fight.
+- Ctrl+Tab and the other shortcuts no longer stay dead after the game windows open or reopen while DT Hub is not in front; there is no more need to click elsewhere and back.
+- A phone that Windows reads without its serial number, a sign of a failing USB cable or port, now gets the advice to change cable or port.
+- iPhone and iPad: an interrupted setup of the iPhone tools no longer leaves them broken for good; the next try installs them again.
+
 ## [0.15.2] - 2026-11-12
 
 ### Added

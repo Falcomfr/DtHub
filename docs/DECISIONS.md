@@ -12542,3 +12542,30 @@ images clés), la coexistence de la capture et du flux DisplayService, la
 chaleur d'un second encodeur. Le premier joueur équipé fera l'essai, comme
 pour D227. Le risque principal : la décision a été prise sans comparer les deux
 chemins sur un appareil.
+
+## D235 - Une coupure garde le jeu, et le premier plan est aussi relu
+
+**Date** : 2026-11-14. Revient sur D202 (« chaque ouverture relance le jeu ») pour la reprise.
+
+Un joueur, trois comptes sur une tablette : un lien USB qui lâche une seconde
+déconnectait les trois en plein combat. Mesuré sur le 13T Pro (Android 16) :
+sans `--no-vd-destroy-content`, Android **détruit** le jeu quand l'écran virtuel
+part avec la liaison (`wm_destroy_activity … removeTaskDisplayArea`), puis la
+réouverture l'arrêtait et le relançait.
+
+**Choix.** L'écran virtuel rend son jeu à l'écran du téléphone ; une fin sur
+liaison perdue n'arrête plus le jeu ; la réouverture (et l'ouverture avec
+« Fermer aussi le jeu » décoché) le renvoie par `am display move-stack`, puis
+change la taille de l'écran d'un pixel et la rétablit, une seconde après :
+revenu de l'écran à 480 ppp, le jeu dessinait dans un coin (203/480), et
+HyperOS lui laissait une barre d'état figée. Un changement de **densité**
+recréait l'activité, donc déconnectait : écarté. Sans jeu gardé, ou si le
+déplacement échoue, l'ancien chemin (arrêt puis lancement) reste. Vérifié :
+deux comptes connectés ont traversé 1 min 37 de coupure dans DT Hub.
+
+**Ctrl+Tab mort.** Ouvrir ou rouvrir des onglets sans être au premier plan
+rend le cadre actif dans son programme sans le premier plan ; un clic le met
+alors au premier plan **sans** EVENT_SYSTEM_FOREGROUND (relevé indépendant :
+premier plan changé, aucun événement). Le fil des raccourcis relit donc aussi
+le premier plan toutes les 200 ms. Non revu en vrai après le correctif :
+l'état ne s'est plus reformé à la demande.

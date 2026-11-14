@@ -11,6 +11,19 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.15.3] - 2026-11-14
+
+### Modifié
+
+- Avec « Fermer aussi le jeu sur le téléphone » décoché, rouvrir la fenêtre d'un compte retrouve le jeu resté ouvert, personnage toujours connecté, au lieu de le relancer.
+
+### Corrigé
+
+- Une courte coupure de la liaison avec le téléphone (USB ou Wi-Fi) ne déconnecte plus les comptes : leurs fenêtres se rouvrent sur le jeu resté ouvert sur le téléphone, même en plein combat.
+- Ctrl+Tab et les autres raccourcis ne restent plus inactifs quand les fenêtres de jeu s'ouvrent ou se rouvrent alors que DT Hub n'est pas au premier plan ; plus besoin de cliquer ailleurs puis de revenir.
+- Un téléphone que Windows lit sans son numéro de série, signe d'un câble ou d'un port USB défaillant, reçoit maintenant le conseil de changer de câble ou de port.
+- iPhone et iPad : une installation interrompue des outils iPhone ne les laisse plus en panne pour de bon ; l'essai suivant les réinstalle.
+
 ## [0.15.2] - 2026-11-12
 
 ### Ajouté
