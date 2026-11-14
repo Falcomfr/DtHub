@@ -1667,6 +1667,61 @@ public class ScrcpySessionManagerTests
     }
 
     [Fact]
+    public async Task Une_liaison_perdue_laisse_le_jeu_ouvert_pour_la_reprise()
+    {
+        // A player's tablet on 2026-11-13: the USB link dropped for a second,
+        // and stopping the game here disconnected all three accounts mid-fight.
+        var process = new FakeProcessSession().Emit(NewDisplayLine);
+        var launcher = new FakeProcessLauncher().Prepare(process);
+        var appLauncher = new FakeAppLauncher();
+
+        await using var manager = Manager(launcher, appLauncher);
+        manager.StopAppOnClose = true;
+
+        var session = await manager.StartAsync(Target(), ScrcpyOptions.Default, null, CancellationToken.None);
+
+        appLauncher.ForceStops.Clear();
+        process.Emit("WARN: Device disconnected");
+        process.Exit(1);
+
+        await Eventually(() => session.State is ScrcpySessionState.Failed or ScrcpySessionState.Stopped);
+        await Task.Delay(100);
+
+        Assert.Empty(appLauncher.ForceStops);
+    }
+
+    [Fact]
+    public async Task Une_reprise_renvoie_le_jeu_sur_le_nouvel_ecran_sans_le_relancer()
+    {
+        var launcher = new FakeProcessLauncher().Prepare(new FakeProcessSession().Emit(NewDisplayLine));
+        var appLauncher = new FakeAppLauncher();
+
+        await using var manager = Manager(launcher, appLauncher);
+
+        await manager.StartAsync(
+            Target(userId: 10) with { ResumesGame = true }, ScrcpyOptions.Default, null, CancellationToken.None);
+
+        Assert.Equal("USB0001|10|com.ankama.dofustouch|7", Assert.Single(appLauncher.Moves));
+        Assert.Empty(appLauncher.ForceStops);
+        Assert.Empty(appLauncher.Calls);
+    }
+
+    [Fact]
+    public async Task Une_reprise_qui_ne_trouve_plus_le_jeu_le_relance()
+    {
+        var launcher = new FakeProcessLauncher().Prepare(new FakeProcessSession().Emit(NewDisplayLine));
+        var appLauncher = new FakeAppLauncher { MoveSucceeds = false };
+
+        await using var manager = Manager(launcher, appLauncher);
+
+        await manager.StartAsync(
+            Target(userId: 10) with { ResumesGame = true }, ScrcpyOptions.Default, null, CancellationToken.None);
+
+        Assert.Single(appLauncher.ForceStops);
+        Assert.Single(appLauncher.Calls);
+    }
+
+    [Fact]
     public async Task Le_jeu_n_est_arrete_qu_une_fois_par_session()
     {
         // The voluntary close and the end of the output read both happen for

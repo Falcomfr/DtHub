@@ -3963,7 +3963,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 launchRects[instance.Key] = launchGeometry;
             }
 
-            var target = ToTarget(instance, device.Serial);
+            var target = ToTarget(instance, device.Serial) with { ResumesGame = IsRecovering(instance.Key) };
 
             // The account's own tier, or the shared one if none was chosen.
             var quality = qualities.TryGetValue(instance.Key, out var own) ? own : _quality;

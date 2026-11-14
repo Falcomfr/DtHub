@@ -82,4 +82,17 @@ public interface IAppLauncher
         int userId,
         string packageName,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Sends the game still running on a profile to a display, without
+    /// restarting it. False when there is no such game or the phone refused:
+    /// the caller then launches it the usual way.
+    /// </summary>
+    Task<bool> MoveToDisplayAsync(
+        string serial,
+        int userId,
+        string packageName,
+        int displayId,
+        (int Width, int Height)? displaySize,
+        CancellationToken cancellationToken = default);
 }

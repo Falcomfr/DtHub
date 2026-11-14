@@ -237,6 +237,59 @@ public class AndroidAppLauncherTests
             call => call.Contains("--activity-exclude-from-recents", StringComparison.Ordinal));
     }
 
+    /// <summary>
+    /// "am stack list" on the 13T Pro (Android 16) with the game parked on the
+    /// main display after a lost window, plus a second profile's game.
+    /// </summary>
+    private static readonly string DeuxJeuxEnPile = string.Join(
+        '\n',
+        "RootTask id=1 bounds=[0,0][1220,2712] displayId=0 userId=0",
+        " configuration={1.0 208mcc1mnc [fr_FR] ldltr sw406dp w406dp h904dp 480dpi}",
+        "  taskId=1: com.miui.home/com.miui.home.launcher.Launcher bounds=[0,0][1220,2712] userId=0 visible=false",
+        "RootTask id=546 bounds=[0,0][1220,2712] displayId=0 userId=0",
+        " configuration={1.0 208mcc1mnc [fr_FR] ldltr sw406dp w406dp h904dp 480dpi}",
+        "  taskId=546: com.ankama.dofustouch/com.ankama.dofustouch.MainActivity bounds=[0,0][1220,2712] userId=0 visible=true",
+        "RootTask id=548 bounds=[0,0][1220,2712] displayId=0 userId=10",
+        "  taskId=548: com.ankama.dofustouch/com.ankama.dofustouch.MainActivity bounds=[0,0][1220,2712] userId=10 visible=true");
+
+    [Fact]
+    public async Task Le_jeu_garde_est_renvoye_sur_l_ecran_puis_recale()
+    {
+        var adb = new FakeAdbClient()
+            .WithShell("am stack list", DeuxJeuxEnPile)
+            .WithShell("am display move-stack", string.Empty)
+            .WithShell("wm size", string.Empty);
+
+        Assert.True(await Build(adb).MoveToDisplayAsync(Serial, 10, Package, 23, (1920, 1016)));
+
+        // The size nudge makes the game redo its layout without being
+        // recreated: back from the 480 dpi main display it drew at 203/480 of
+        // the screen, and a density nudge recreated it, a disconnection.
+        Assert.Equal(
+            ["am display move-stack 548 23", "wm size 1920x1015 -d 23", "wm size reset -d 23"],
+            adb.ShellCalls.Where(call => !call.StartsWith("am stack list", StringComparison.Ordinal)));
+    }
+
+    [Fact]
+    public async Task Sans_jeu_garde_rien_n_est_deplace()
+    {
+        var adb = new FakeAdbClient().WithShell("am stack list", DeuxJeuxEnPile);
+
+        Assert.False(await Build(adb).MoveToDisplayAsync(Serial, 999, Package, 23, (1920, 1016)));
+
+        Assert.DoesNotContain(adb.ShellCalls, call => call.Contains("move-stack", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Un_deplacement_refuse_se_declare_manque()
+    {
+        var adb = new FakeAdbClient()
+            .WithShell("am stack list", DeuxJeuxEnPile)
+            .FailShell("am display move-stack", AdbErrorKind.PermissionDenied);
+
+        Assert.False(await Build(adb).MoveToDisplayAsync(Serial, 0, Package, 23, (1920, 1016)));
+    }
+
     [Fact]
     public async Task Un_arret_force_nomme_le_profil_et_le_paquet()
     {

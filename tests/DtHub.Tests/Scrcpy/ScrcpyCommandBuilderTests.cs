@@ -143,6 +143,16 @@ public class ScrcpyCommandBuilderTests
         Assert.Contains("--no-vd-system-decorations", arguments);
     }
 
+    /// <summary>
+    /// Without it, Android destroys the game when the display goes with a lost
+    /// link: measured on the 13T Pro on 2026-11-14, the account was gone.
+    /// </summary>
+    [Fact]
+    public void L_afficheur_virtuel_rend_le_jeu_au_telephone_au_lieu_de_le_detruire() =>
+        Assert.Contains(
+            "--no-vd-destroy-content",
+            ScrcpyCommandBuilder.BuildMirrorArguments("USB0001", "T", ScrcpyOptions.Default));
+
     [Fact]
     public void Une_fenetre_destinee_aux_onglets_attend_hors_ecran_sans_changer_sa_taille()
     {

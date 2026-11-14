@@ -74,6 +74,80 @@ public sealed partial class AndroidAppLauncher : IAppLauncher
             .ConfigureAwait(false);
     }
 
+    public async Task<bool> MoveToDisplayAsync(
+        string serial,
+        int userId,
+        string packageName,
+        int displayId,
+        (int Width, int Height)? displaySize,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var stacks = await _adb.ShellAsync(serial, ["am", "stack", "list"], null, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (RootTaskOf(stacks, userId, packageName) is not { } rootTask)
+            {
+                return false;
+            }
+
+            await _adb.ShellAsync(
+                serial, ["am", "display", "move-stack", rootTask, Text(displayId)], null, cancellationToken)
+                .ConfigureAwait(false);
+
+            // Back from the phone's screen the game keeps that screen's
+            // density and draws in a corner. A one-pixel size change makes it
+            // lay out again; a density change would recreate it, logging the
+            // account out (measured on the 13T Pro, 2026-11-14).
+            if (displaySize is var (width, height))
+            {
+                var display = Text(displayId);
+                await _adb.ShellAsync(
+                    serial, ["wm", "size", $"{Text(width)}x{Text(height - 1)}", "-d", display], null, cancellationToken)
+                    .ConfigureAwait(false);
+                await _adb.ShellAsync(serial, ["wm", "size", "reset", "-d", display], null, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+
+            return true;
+        }
+        catch (AdbException)
+        {
+            // Not lost: the caller then restarts the game the usual way,
+            // whose launch says in the log how it went.
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// The root task holding the game of a profile in "am stack list", whose
+    /// "RootTask id=N" line comes before the "taskId=…: package/…" lines.
+    /// </summary>
+    private static string? RootTaskOf(string stacks, int userId, string packageName)
+    {
+        string? root = null;
+        var user = "userId=" + Text(userId);
+
+        foreach (var line in stacks.Split('\n'))
+        {
+            var trimmed = line.Trim();
+
+            if (trimmed.StartsWith("RootTask id=", StringComparison.Ordinal))
+            {
+                root = trimmed["RootTask id=".Length..].Split(' ')[0];
+            }
+            else if (trimmed.StartsWith("taskId=", StringComparison.Ordinal)
+                && trimmed.Contains(": " + packageName + "/", StringComparison.Ordinal)
+                && trimmed.Split(' ').Contains(user))
+            {
+                return root;
+            }
+        }
+
+        return null;
+    }
+
     public async Task<bool> ForceStopAsync(
         string serial,
         int userId,

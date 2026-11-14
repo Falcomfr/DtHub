@@ -93,6 +93,24 @@ public sealed class FakeAppLauncher : IAppLauncher
         return Task.FromResult(!Unreachable.Contains(serial));
     }
 
+    /// <summary>Games sent to a display, as "serial|user|package|display".</summary>
+    public List<string> Moves { get; } = [];
+
+    /// <summary>False to replay a phone where the kept game is gone.</summary>
+    public bool MoveSucceeds { get; set; } = true;
+
+    public Task<bool> MoveToDisplayAsync(
+        string serial,
+        int userId,
+        string packageName,
+        int displayId,
+        (int Width, int Height)? displaySize,
+        CancellationToken cancellationToken = default)
+    {
+        Moves.Add($"{serial}|{userId}|{packageName}|{displayId}");
+        return Task.FromResult(MoveSucceeds);
+    }
+
     public Task<string> ReadGameWindowAsync(
         string serial,
         int displayId,

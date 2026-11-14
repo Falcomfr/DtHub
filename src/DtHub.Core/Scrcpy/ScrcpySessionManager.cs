@@ -1723,6 +1723,20 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
 
             session.AppLaunchedByUs = true;
         }
+        else if (session.Target.ResumesGame
+            && await _appLauncher.MoveToDisplayAsync(
+                session.Serial,
+                session.Target.UserId,
+                session.Target.PackageName,
+                displayId,
+                session.VirtualDisplaySize,
+                cancellationToken).ConfigureAwait(false))
+        {
+            // The game kept through a lost link is still logged in: sent
+            // back rather than restarted, the account stays in its fight.
+            launch = AppLaunchResult.Success;
+            session.AppLaunchedByUs = true;
+        }
         else
         {
             _ = await _appLauncher.ForceStopAsync(
@@ -1831,7 +1845,12 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         // only the channel went quiet. The voluntary close is
         // already handled by StopAsync, and the single-use claim
         // prevents the double round trip.
-        var stopped = await StopAppOnDeviceAsync(session, CancellationToken.None).ConfigureAwait(false);
+        //
+        // Except a lost link: the window will be reopened, and the game kept
+        // on the phone sent back to it with the account still logged in.
+        var keeps = SessionRecovery.Decide(session.End, 0).Retry;
+        var stopped = !keeps
+            && await StopAppOnDeviceAsync(session, CancellationToken.None).ConfigureAwait(false);
 
         var exitCode = session.Process.ExitCode ?? -1;
 
@@ -1863,7 +1882,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
         // The game may have been launched between the stop above and the
         // state change: the launch then saw a live session and left it.
         // Once the state is final, whichever comes second stops it.
-        if (!stopped && !session.StopRequested && session.AppLaunchedByUs && StopsAppOnClose(session))
+        if (!keeps && !stopped && !session.StopRequested && session.AppLaunchedByUs && StopsAppOnClose(session))
         {
             await ForceStopGameAsync(session, CancellationToken.None).ConfigureAwait(false);
         }

@@ -36,6 +36,13 @@ public sealed record LaunchTarget
     /// </summary>
     public bool IsTransient { get; init; }
 
+    /// <summary>
+    /// True when reopening a window lost with its link: the game kept on the
+    /// phone is sent to the new display instead of being restarted, which
+    /// would disconnect the account.
+    /// </summary>
+    public bool ResumesGame { get; init; }
+
     /// <summary>Name displayed in the window title.</summary>
     public required string DisplayName { get; init; }
 
