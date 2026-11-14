@@ -532,13 +532,18 @@ public sealed partial class PyMobileDevice : IDisposable
             {
                 // A Python missing its files (an antivirus took python.exe on
                 // 2026-11-09) fails every try alike: the next one downloads it again.
-                try
+                // So does a venv a locked file left half cleared, which uv then
+                // refuses to clear (2026-11-14): the next try creates it anew.
+                foreach (var broken in (string[])[Path.Combine(Root, "python"), venv])
                 {
-                    Directory.Delete(Path.Combine(Root, "python"), recursive: true);
-                }
-                catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-                {
-                    // Still held by a process: the next try deletes it.
+                    try
+                    {
+                        Directory.Delete(broken, recursive: true);
+                    }
+                    catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+                    {
+                        // Still held by a process, or already gone: the next try deletes it.
+                    }
                 }
 
                 throw;

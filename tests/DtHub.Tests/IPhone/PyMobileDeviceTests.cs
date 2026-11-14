@@ -265,6 +265,27 @@ public class PyMobileDeviceTests
     }
 
     [Fact]
+    public async Task Un_venv_a_moitie_efface_est_supprime_pour_que_l_essai_suivant_le_recree()
+    {
+        // Seen on 2026-11-14: a locked file stopped "venv --clear" halfway,
+        // pyvenv.cfg gone, and uv then refused every try: "will not clear a
+        // directory that is not a virtual environment". iPhones never came back.
+        var root = Directory.CreateTempSubdirectory("dthub-iphone-").FullName;
+        var paths = new FakeAppPaths(root);
+        var venv = Path.Combine(paths.ToolsDirectory, "iphone", "venv");
+        Directory.CreateDirectory(Path.Combine(venv, "Scripts"));
+        var runner = new FakeProcessRunner().Respond(
+            "venv", standardError: "error: Failed to create virtual environment\n  cause: uv will not clear a directory that is not a virtual environment", exitCode: 2);
+        using var tools = new PyMobileDevice(
+            new UvAlreadyThere(), runner, new FakeProcessLauncher(), paths, NullLogger<PyMobileDevice>.Instance);
+
+        await Assert.ThrowsAsync<IPhoneException>(() => tools.ListAsync(CancellationToken.None));
+
+        Assert.False(Directory.Exists(venv));
+        Directory.Delete(root, recursive: true);
+    }
+
+    [Fact]
     public void La_liste_ne_cherche_d_iPhone_qu_une_fois_les_outils_installes()
     {
         // A player who never opened the iPhone window must not start Python
