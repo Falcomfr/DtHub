@@ -160,10 +160,26 @@ public sealed partial class Win32HotkeyRegistrar : IHotkeyRegistrar
         _captureHook = SetWinEventHook(
             EventSystemCaptureStart, EventSystemCaptureStart, 0, _captureCallback, 0, 0, WinEventOutOfContext);
 
+        // Windows does not always announce the foreground (see ForegroundWatch):
+        // it is also read here, five times a second, a call that costs nothing.
+        _ = SetTimer(0, 0, ForegroundReadMs, 0);
+
         _ready.TrySetResult();
 
         while (GetMessage(out var message, 0, 0, 0) > 0)
         {
+            if (message.message == WmTimer && message.hwnd == 0)
+            {
+                var now = GetForegroundWindow();
+
+                if (_foreground.Saw(now))
+                {
+                    ForegroundWindowChanged?.Invoke(this, now);
+                }
+
+                continue;
+            }
+
             if (message.message == WmHotkey)
             {
                 var id = (int)message.wParam;
@@ -192,8 +208,12 @@ public sealed partial class Win32HotkeyRegistrar : IHotkeyRegistrar
     }
 
     private void OnForegroundChanged(
-        nint hook, uint eventType, nint window, int objectId, int childId, uint thread, uint time) =>
+        nint hook, uint eventType, nint window, int objectId, int childId, uint thread, uint time)
+    {
+        // Noted so the reading does not announce the same change a second time.
+        _ = _foreground.Saw(GetForegroundWindow());
         ForegroundWindowChanged?.Invoke(this, window);
+    }
 
     private void OnMouseCaptured(
         nint hook, uint eventType, nint window, int objectId, int childId, uint thread, uint time) =>
@@ -311,7 +331,11 @@ public sealed partial class Win32HotkeyRegistrar : IHotkeyRegistrar
 
     private nint _captureHook;
 
+    private readonly ForegroundWatch _foreground = new();
+
+    private const uint ForegroundReadMs = 200;
     private const uint WmQuit = 0x0012;
+    private const uint WmTimer = 0x0113;
     private const uint WmHotkey = 0x0312;
     private const uint WmRunPending = 0x0400 + 1;
     private const uint ModNoRepeat = 0x4000;
@@ -373,4 +397,10 @@ public sealed partial class Win32HotkeyRegistrar : IHotkeyRegistrar
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool UnhookWinEvent(nint hook);
+
+    [DllImport("user32.dll")]
+    private static extern nuint SetTimer(nint window, nuint id, uint elapse, nint callback);
+
+    [DllImport("user32.dll")]
+    private static extern nint GetForegroundWindow();
 }
