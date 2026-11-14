@@ -1694,7 +1694,7 @@ public class ScrcpySessionManagerTests
     public async Task Une_reprise_renvoie_le_jeu_sur_le_nouvel_ecran_sans_le_relancer()
     {
         var launcher = new FakeProcessLauncher().Prepare(new FakeProcessSession().Emit(NewDisplayLine));
-        var appLauncher = new FakeAppLauncher();
+        var appLauncher = new FakeAppLauncher { MoveSucceeds = true };
 
         await using var manager = Manager(launcher, appLauncher);
 
@@ -1704,6 +1704,38 @@ public class ScrcpySessionManagerTests
         Assert.Equal("USB0001|10|com.ankama.dofustouch|7", Assert.Single(appLauncher.Moves));
         Assert.Empty(appLauncher.ForceStops);
         Assert.Empty(appLauncher.Calls);
+    }
+
+    [Fact]
+    public async Task Jeu_garde_a_la_fermeture_rouvert_sans_relance()
+    {
+        // "Fermer aussi le jeu" unchecked promises the reopened window finds
+        // the character still logged in: a restart broke that promise.
+        var launcher = new FakeProcessLauncher().Prepare(new FakeProcessSession().Emit(NewDisplayLine));
+        var appLauncher = new FakeAppLauncher { MoveSucceeds = true };
+
+        await using var manager = Manager(launcher, appLauncher);
+        manager.StopAppOnClose = false;
+
+        await manager.StartAsync(Target(userId: 10), ScrcpyOptions.Default, null, CancellationToken.None);
+
+        Assert.Single(appLauncher.Moves);
+        Assert.Empty(appLauncher.ForceStops);
+    }
+
+    [Fact]
+    public async Task Jeu_ferme_avec_sa_fenetre_rouvert_par_un_lancement_neuf()
+    {
+        var launcher = new FakeProcessLauncher().Prepare(new FakeProcessSession().Emit(NewDisplayLine));
+        var appLauncher = new FakeAppLauncher { MoveSucceeds = true };
+
+        await using var manager = Manager(launcher, appLauncher);
+        manager.StopAppOnClose = true;
+
+        await manager.StartAsync(Target(userId: 10), ScrcpyOptions.Default, null, CancellationToken.None);
+
+        Assert.Empty(appLauncher.Moves);
+        Assert.Single(appLauncher.Calls);
     }
 
     [Fact]

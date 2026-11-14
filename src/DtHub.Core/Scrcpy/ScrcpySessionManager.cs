@@ -1723,7 +1723,7 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
 
             session.AppLaunchedByUs = true;
         }
-        else if (session.Target.ResumesGame
+        else if ((session.Target.ResumesGame || !StopsAppOnClose(session))
             && await _appLauncher.MoveToDisplayAsync(
                 session.Serial,
                 session.Target.UserId,
@@ -1732,8 +1732,9 @@ public sealed class ScrcpySessionManager : IAsyncDisposable
                 session.VirtualDisplaySize,
                 cancellationToken).ConfigureAwait(false))
         {
-            // The game kept through a lost link is still logged in: sent
-            // back rather than restarted, the account stays in its fight.
+            // The game kept through a lost link, or by "Fermer aussi le jeu"
+            // unchecked, is still logged in: sent back rather than restarted,
+            // the account stays where it was.
             launch = AppLaunchResult.Success;
             session.AppLaunchedByUs = true;
         }

@@ -96,8 +96,8 @@ public sealed class FakeAppLauncher : IAppLauncher
     /// <summary>Games sent to a display, as "serial|user|package|display".</summary>
     public List<string> Moves { get; } = [];
 
-    /// <summary>False to replay a phone where the kept game is gone.</summary>
-    public bool MoveSucceeds { get; set; } = true;
+    /// <summary>True to replay a phone where the game is still running.</summary>
+    public bool MoveSucceeds { get; set; }
 
     public Task<bool> MoveToDisplayAsync(
         string serial,
