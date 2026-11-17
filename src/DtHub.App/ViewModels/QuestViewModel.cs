@@ -316,9 +316,30 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
         // After the names: the facts read starts from them, and two first reads would fetch them twice.
         await NamesRead.ConfigureAwait(true);
 
+        var language = TouchNameService.CurrentLanguage;
+
+        // Past the week the refresh takes six spaced minutes: last week's facts rank meanwhile, a spinner looked stuck.
+        if (_facts is null && await _touchNames.CachedAsync(language).ConfigureAwait(true) is { Facts.Count: > 0 } cached)
+        {
+            UseFacts(cached.Facts, cached);
+        }
+
         // Never throws but on cancellation, and none is asked for.
-        _facts = await _touchNames.FactsAsync(TouchNameService.CurrentLanguage).ConfigureAwait(true);
-        var names = await _touchNames.CachedAsync(TouchNameService.CurrentLanguage).ConfigureAwait(true);
+        var facts = await _touchNames.FactsAsync(language).ConfigureAwait(true);
+        UseFacts(facts, await _touchNames.CachedAsync(language).ConfigureAwait(true));
+
+        if (UnloggedTouchFailure() is { } failure)
+        {
+            Log.Warning(failure, "The game's quest rewards and objectives could not be read");
+        }
+
+        // The guide opened before the facts landed had no objectives to look up.
+        _ = RefreshSourcesAsync();
+    }
+
+    private void UseFacts(IReadOnlyDictionary<int, TouchQuestFacts> facts, TouchLanguageNames? names)
+    {
+        _facts = facts;
         _dungeonNames = names?.Dungeons.ToDictionary(d => d.Key, d => d.Value.Name) ?? [];
         _dungeonRooms = names?.Dungeons.ToDictionary(d => d.Key, d => d.Value.Rooms) ?? [];
         _itemNames = names?.Items ?? [];
@@ -326,16 +347,7 @@ public sealed partial class QuestViewModel : ObservableObject, IDisposable
             .Where(r => names!.Achievements.ContainsKey(r.Key) && _touchNames.Table.Whole.ContainsKey(r.Key))
             .GroupBy(r => names!.Achievements[r.Key])
             .ToDictionary(g => g.Key, g => new AchievementGoal(_touchNames.Table.Whole[g.First().Key], g.First().Value));
-
-        if (UnloggedTouchFailure() is { } failure)
-        {
-            Log.Warning(failure, "The game's quest rewards and objectives could not be read");
-        }
-
         Rescore();
-
-        // The guide opened before the facts landed had no objectives to look up.
-        _ = RefreshSourcesAsync();
     }
 
     // Each show reads again: past the week, the cache hands over to a fresh read.
