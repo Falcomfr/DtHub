@@ -144,6 +144,22 @@ public class ScrcpyOutputParserTests
     }
 
     [Fact]
+    public void Un_pc_sans_sortie_son_est_reconnu()
+    {
+        // Captured from a player's log (Xiaomi Pad 7, Android 16, DT Hub
+        // 0.15.4, 2026-11-20): scrcpy quits as soon as it opens, every time.
+        string[] output =
+        [
+            "[server] INFO: New display: 1920x1080/240 (id=88)",
+            "ERROR: Could not open audio device: No default audio device available",
+            "ERROR: Demuxer error",
+        ];
+
+        Assert.True(ScrcpyOutputParser.IsPcSoundOutputMissing(output));
+        Assert.False(ScrcpyOutputParser.IsPcSoundOutputMissing(["ERROR: Demuxer error"]));
+    }
+
+    [Fact]
     public void La_coupure_de_liaison_compte_comme_une_fin_meme_sans_le_mot_erreur()
     {
         // Captured on the real device, scrcpy 4.1, Wi-Fi connection

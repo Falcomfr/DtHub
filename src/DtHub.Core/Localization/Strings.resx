@@ -629,6 +629,9 @@ A phone already paired over Wi-Fi comes back on its own.</value>
   <data name="ScrcpyDisplayTimeoutWithAudio" xml:space="preserve">
     <value>The phone did not open a virtual display in time. Try without sound first: on some tablets, turning it on is enough to stop the display from opening.</value>
   </data>
+  <data name="PcSoundOutputMissing" xml:space="preserve">
+    <value>Sound off: Windows has no sound output (headset or speakers), so the game opens without sound. Plug one in, then restart DT Hub to get the sound back.</value>
+  </data>
   <data name="BrandSamsungWarning" xml:space="preserve">
     <value>• "USB debugging" greyed out or phone not detected: turn off "Auto Blocker" (Settings › Security and privacy), then "Block USB connections".
 • Secure Folder: unlock it before launching, or the game is not found there.</value>

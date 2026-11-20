@@ -629,6 +629,9 @@ Un teléfono ya vinculado por Wi-Fi vuelve solo.</value>
   <data name="ScrcpyDisplayTimeoutWithAudio" xml:space="preserve">
     <value>El teléfono no abrió una pantalla virtual a tiempo. Prueba primero sin sonido: en algunas tabletas, activarlo basta para impedir que la pantalla se abra.</value>
   </data>
+  <data name="PcSoundOutputMissing" xml:space="preserve">
+    <value>Sonido desactivado: Windows no tiene ninguna salida de sonido (auriculares o altavoces), así que el juego se abre sin sonido. Conecta una y reinicia DT Hub para recuperar el sonido.</value>
+  </data>
   <data name="BrandSamsungWarning" xml:space="preserve">
     <value>• «Depuración USB» atenuada o teléfono no detectado: desactiva «Bloqueador automático» (Ajustes › Seguridad y privacidad) y luego «Bloquear conexiones USB».
 • Carpeta segura: desbloquéala antes de lanzar, si no el juego no se encuentra en ella.</value>

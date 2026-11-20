@@ -629,6 +629,9 @@ Un téléphone déjà associé en Wi-Fi revient tout seul.</value>
   <data name="ScrcpyDisplayTimeoutWithAudio" xml:space="preserve">
     <value>Le téléphone n'a pas ouvert d'écran virtuel à temps. Essayez d'abord sans le son : sur certaines tablettes, l'activer suffit à empêcher l'écran de s'ouvrir.</value>
   </data>
+  <data name="PcSoundOutputMissing" xml:space="preserve">
+    <value>Son coupé : Windows n'a aucune sortie son (casque ou haut-parleurs), le jeu s'ouvre donc sans le son. Branchez-en une, puis relancez DT Hub pour retrouver le son.</value>
+  </data>
   <data name="BrandSamsungWarning" xml:space="preserve">
     <value>• « Débogage USB » grisé ou téléphone non détecté : désactivez « Bloqueur automatique » (Paramètres › Sécurité et confidentialité), puis « Bloquer les connexions USB ».
 • Dossier sécurisé : déverrouillez-le avant de lancer, sinon le jeu n'y est pas trouvé.</value>

@@ -390,6 +390,10 @@ public sealed partial class GameLauncher : IAsyncDisposable
     // open without --no-vd-destroy-content until DT Hub restarts.
     private readonly System.Collections.Concurrent.ConcurrentDictionary<string, byte> _shortCommandDevices = new(StringComparer.Ordinal);
 
+    // Windows had no sound output when a window opened: the sound stays off
+    // until DT Hub restarts, or every window would fail once first.
+    private volatile bool _noSoundOutput;
+
     /// <summary>Pace of controls and polling, based on quality.</summary>
     public QualityProfile Quality => _quality;
 
@@ -2561,6 +2565,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
     /// </summary>
     public async Task ApplySoundToPcAsync(bool enabled, CancellationToken cancellationToken = default)
     {
+        enabled &= !_noSoundOutput;
+
         await _sessions.SetSoundToPcAsync(enabled).ConfigureAwait(false);
 
         if (!enabled)
@@ -4041,7 +4047,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
             // same stream in several copies, that is to say an echo.
             // When that window closes first, a windowless session takes
             // the sound over for the others, see PassSoundOnAsync.
-            if (display.AudioEnabled && HasOpenSessionOn(instance.DeviceId))
+            if (display.AudioEnabled && (_noSoundOutput || HasOpenSessionOn(instance.DeviceId)))
             {
                 display = display with { AudioEnabled = false };
             }
@@ -4096,6 +4102,22 @@ public sealed partial class GameLauncher : IAsyncDisposable
                     _shortCommandDevices[instance.DeviceId] = 0;
                     LogShortCommandFallback(instance.DisplayName);
                     display = display with { KeepGameOnDisplayLoss = false };
+                    session = await _sessions.StartAsync(
+                        target, display, placement, cancellationToken).ConfigureAwait(false);
+                }
+
+                // Windows without a sound output: scrcpy quits as soon as it
+                // opens, every time (player's log, 2026-11-20). Retried
+                // without the sound, and said, since the game is now silent.
+                if (session.State == ScrcpySessionState.Failed
+                    && display.AudioEnabled
+                    && ScrcpyOutputParser.IsPcSoundOutputMissing(session.RecentOutput))
+                {
+                    _noSoundOutput = true;
+                    _sessions.SoundToPc = false;
+                    LogNoSoundOutput(instance.DisplayName);
+                    problems.Add($"{instance.DisplayName} : {Strings.Get("PcSoundOutputMissing")}");
+                    display = display with { AudioEnabled = false };
                     session = await _sessions.StartAsync(
                         target, display, placement, cancellationToken).ConfigureAwait(false);
                 }
@@ -6826,7 +6848,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         _zoom = settings.GameZoom;
         _sharpImage = settings.SharpImage;
         _sessions.StopAppOnClose = settings.StopAppOnClose;
-        _sessions.SoundToPc = settings.AudioEnabled;
+        _sessions.SoundToPc = settings.AudioEnabled && !_noSoundOutput;
         _windows.Anchor = settings.GameAnchor;
         _windows.Presets = await _settings.GetSizePresetsAsync(cancellationToken).ConfigureAwait(false);
 
@@ -7464,6 +7486,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Warning,
         Message = "{instance} : le serveur scrcpy a planté sur la commande longue (encodeur Samsung), nouvel essai sans garder le jeu à la coupure.")]
     private partial void LogShortCommandFallback(string instance);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "{instance} : Windows n'a aucune sortie son, nouvel essai sans le son du téléphone.")]
+    private partial void LogNoSoundOutput(string instance);
 
     [LoggerMessage(
         Level = LogLevel.Warning,

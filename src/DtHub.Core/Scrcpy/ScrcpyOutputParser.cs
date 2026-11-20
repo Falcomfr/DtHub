@@ -266,6 +266,13 @@ public static partial class ScrcpyOutputParser
     public static bool IsServerStackCorruption(IEnumerable<string> output) =>
         output.Any(line => line.Contains("stack corruption detected", StringComparison.Ordinal));
 
+    /// <summary>
+    /// Windows has no sound output (no speaker, no headset): scrcpy cannot
+    /// play the phone's sound and quits, taking the window with it.
+    /// </summary>
+    public static bool IsPcSoundOutputMissing(IEnumerable<string> output) =>
+        output.Any(line => line.Contains("Could not open audio device", StringComparison.Ordinal));
+
     public static bool CanRetrySmaller(ScrcpyFailureKind kind) => kind
         is ScrcpyFailureKind.Encoder
         or ScrcpyFailureKind.VirtualDisplayRefused

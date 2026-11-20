@@ -745,6 +745,9 @@
   <data name="{instance} : le serveur scrcpy a planté sur la commande longue (encodeur Samsung), nouvel essai sans garder le jeu à la coupure." xml:space="preserve">
     <value>{instance}: el servidor scrcpy se ha bloqueado con el comando largo (codificador Samsung), reintentando sin conservar el juego al cortarse la conexión.</value>
   </data>
+  <data name="{instance} : Windows n'a aucune sortie son, nouvel essai sans le son du téléphone." xml:space="preserve">
+    <value>{instance}: Windows no tiene ninguna salida de sonido, reintentando sin el sonido del teléfono.</value>
+  </data>
   <data name="{instance} refusée en {height} de haut : nouvel essai en {retry} de haut." xml:space="preserve">
     <value>{instance} rechazada con una altura de {height}: reintentando con una altura de {retry}.</value>
   </data>
