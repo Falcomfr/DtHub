@@ -17,6 +17,13 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [0.15.5] - 2026-11-20
+
+### Fixed
+
+- On a PC with no sound output (no speakers, no headset), every game window closed as soon as it opened, behind "Something went wrong while talking to the phone": the game now opens without sound, and DT Hub says why.
+- Guides > Recommended no longer stays stuck on "Reading the game's data" once a week: last week's data ranks the quests at once while the new read runs.
+
 ## [0.15.4] - 2026-11-14
 
 ### Fixed

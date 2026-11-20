@@ -10,6 +10,13 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [0.15.5] - 2026-11-20
+
+### Corregido
+
+- En un PC sin salida de sonido (ni altavoces ni auriculares), cada ventana de juego se cerraba nada más abrirse, con «Ha ocurrido un error al comunicarse con el teléfono»: el juego se abre ahora sin sonido, y DT Hub explica por qué.
+- Guías > Recomendadas ya no se queda bloqueado una vez por semana en «Leyendo los datos del juego»: los datos de la semana anterior clasifican las misiones al instante mientras se hace la nueva lectura.
+
 ## [0.15.4] - 2026-11-14
 
 ### Corregido

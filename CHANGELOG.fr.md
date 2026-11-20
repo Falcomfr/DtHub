@@ -11,6 +11,13 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [0.15.5] - 2026-11-20
+
+### Corrigé
+
+- Sur un PC sans sortie son (ni haut-parleurs ni casque), chaque fenêtre de jeu se refermait dès son ouverture, avec « Une erreur est survenue lors de la communication avec le téléphone » : le jeu s'ouvre désormais sans le son, et DT Hub dit pourquoi.
+- Guides > Recommandées ne reste plus bloqué une fois par semaine sur « Lecture des données du jeu » : les données de la semaine passée classent les quêtes tout de suite, pendant la nouvelle lecture.
+
 ## [0.15.4] - 2026-11-14
 
 ### Corrigé
