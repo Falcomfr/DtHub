@@ -60,13 +60,13 @@ public sealed class FakeDofusTouchClient : IDofusTouchClient
         {
             return rows
                 .Where(r => ids is null || ids.Contains(r.Key))
-                .ToDictionary(r => r.Key, r => JsonDocument.Parse(r.Value).RootElement);
+                .ToDictionary(r => r.Key, r => JsonElement.Parse(r.Value));
         }
 
         return ids!.ToDictionary(
             id => id,
-            id => JsonDocument.Parse(
-                $$"""{"nameId":{{(Nameless ? "null" : $"\"nom {id} {language}\"")}},"levelMin":10,"levelMax":20,"stepIds":[{{id}}],"dungeonKey":{{id + 1000}},"mapIds":[1,2,3]}""").RootElement);
+            id => JsonElement.Parse(
+                $$"""{"nameId":{{(Nameless ? "null" : $"\"nom {id} {language}\"")}},"levelMin":10,"levelMax":20,"stepIds":[{{id}}],"dungeonKey":{{id + 1000}},"mapIds":[1,2,3]}"""));
     }
 
     public Task<IReadOnlyDictionary<int, string>> GetTextsAsync(

@@ -177,7 +177,7 @@ public class TouchNameServiceTests
 
         var cached = service.CachedAsync("en");
 
-        Assert.Same(cached, await Task.WhenAny(cached, Task.Delay(5000)));
+        _ = await cached.WaitAsync(TimeSpan.FromSeconds(5));
         Assert.Null(await cached);
         _client.Pause.SetResult();
         Assert.Same(await first, await second);

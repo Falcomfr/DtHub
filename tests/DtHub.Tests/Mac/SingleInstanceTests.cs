@@ -33,7 +33,7 @@ public sealed class SingleInstanceTests : IDisposable
 
         Assert.Null(SingleInstance.TryClaim(_root));
 
-        Assert.Same(woken.Task, await Task.WhenAny(woken.Task, Task.Delay(TimeSpan.FromSeconds(10))));
+        await woken.Task.WaitAsync(TimeSpan.FromSeconds(10));
     }
 
     [Fact]

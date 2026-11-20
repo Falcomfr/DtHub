@@ -309,7 +309,7 @@ public sealed class UpdateServiceTests : IDisposable
 
         var check = service.CheckAsync(automatic: false);
 
-        Assert.Same(check, await Task.WhenAny(check, Task.Delay(TimeSpan.FromSeconds(5))));
+        await check.WaitAsync(TimeSpan.FromSeconds(5));
         Assert.Equal("### Ajouté\n- Une chose.", service.Available!.Notes);
     }
 
