@@ -55,7 +55,7 @@
   "alternateName": ["DTHub", "DOFUS Touch Hub"],
   "applicationCategory": "UtilitiesApplication",
   "operatingSystem": "Windows 10, Windows 11, macOS 14, Linux",
-  "softwareRequirements": "Windows 10 or 11 (64-bit), macOS 14 on Apple silicon, or 64-bit Linux. Android 11 or later on the phone.",
+  "softwareRequirements": "Windows 10 or 11 (64-bit), macOS 14 on Apple silicon, or 64-bit Linux. Android 11 or later on the phone, or iOS 27 or later on an iPhone or iPad (Windows only, over USB).",
   "url": "https://dthub.app/index.fr.html",
   "downloadUrl": "https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe",
   "softwareHelp": "https://github.com/Falcomfr/DtHub",
@@ -168,7 +168,7 @@
 <section id="fenetres">
   <h2><svg class="ic"><use href="#i-fenetres"/></svg><span>Les fenêtres</span></h2>
   <ul class="liste deux-colonnes">
-    <li>Un compte par profil Android</li>
+    <li>Un compte par profil Android, et un par iPhone ou iPad</li>
     <li>Toutes à la même taille, au même endroit, ou toutes dans un cadre à onglets</li>
     <li><code>F1</code> à <code>F8</code> amènent un compte au premier plan</li>
     <li>Côte à côte avec <code>Ctrl+T</code>, ou une grille de quatre avec <code>Ctrl+G</code></li>
@@ -207,7 +207,9 @@
         <li>Les guides de <a href="https://papycha.fr">papycha.fr</a>, à côté du jeu, <code>Ctrl+Q</code></li>
         <li>787 quêtes, 83 donjons, 2 raids, 8 tanières</li>
         <li>Votre suivi Papycha : chaque quête faite, en cours ou à faire</li>
-        <li>Combien sont faites dans chaque zone, avec des filtres pour ce qui reste et ce qui est accessible</li>
+        <li>Combien sont faites dans chaque zone, et un filtre pour ce que votre personnage peut faire maintenant</li>
+        <li>Les récompenses de chaque quête, XP, kamas et objets, calculées pour votre niveau</li>
+        <li>Les quêtes recommandées : les plus rentables à faire maintenant, classées par gain à la minute</li>
         <li>Les quêtes quotidiennes, hebdomadaires et saisonnières signalées</li>
         <li>Les étapes, et où vous en étiez</li>
       </ul>
@@ -307,7 +309,8 @@
     principal et un profil cloné, comme le Second espace ou les Applications
     doubles chez Xiaomi, ou un profil de travail créé avec Island. Branchez
     plusieurs téléphones, en USB ou en Wi-Fi, et chaque compte de chacun s'ouvre
-    dans sa fenêtre.</p>
+    dans sa fenêtre. Un iPhone ou un iPad n'en porte qu'un&nbsp;: iOS ne permet
+    pas de dupliquer une appli.</p>
 
   <h3>Le multicompte est-il autorisé&nbsp;?</h3>
   <p>Oui, dans des limites&nbsp;: jamais plus de deux comptes dans certains
@@ -321,8 +324,11 @@
     explique chaque étape au premier branchement.</p>
 
   <h3>Et sur iPhone&nbsp;?</h3>
-  <p>Non, Android seulement, en version 11 ou plus&nbsp;: DT Hub repose sur les
-    outils de débogage d'Android, qu'iOS n'a pas.</p>
+  <p>Oui, sur Windows, avec un iPhone ou un iPad sous iOS 27 ou plus récent&nbsp;:
+    le Mode développeur activé, l'appli Appareils Apple du Microsoft Store sur le
+    PC, et l'appareil branché en USB. Un seul compte par appareil, car iOS ne
+    permet pas de dupliquer une appli, et son écran se tamise au lieu de
+    s'éteindre. Pas encore sur Mac ni sur Linux.</p>
 </section>
 
 <section id="telecharger">
@@ -342,6 +348,7 @@
     <li data-pour="linux">Linux 64 bits (x86_64)</li>
     <li>Sur un autre ordinateur : <a href="install.fr.html#windows">Windows</a> · <a href="install.fr.html#mac">Mac</a> · <a href="install.fr.html#linux">Linux</a></li>
     <li>Android 11 ou plus, avec un profil cloné</li>
+    <li>Ou un iPhone ou un iPad sous iOS 27 ou plus, en USB, sur Windows seulement</li>
     <li><a href="install.fr.html">Le guide d'installation pas à pas</a> : débogage, deuxième compte, réglages par marque de téléphone</li>
     <li>Une connexion au premier lancement, pour 19 Mo d'outils</li>
     <li data-pour="windows">Signature du code&nbsp;: demandée à <a href="https://signpath.org/">SignPath Foundation</a>, gratuite pour les logiciels libres. Le certificat sera émis à son nom, pas au mien.</li>

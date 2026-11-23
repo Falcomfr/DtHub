@@ -57,7 +57,7 @@
   "alternateName": ["DTHub", "DOFUS Touch Hub"],
   "applicationCategory": "UtilitiesApplication",
   "operatingSystem": "Windows 10, Windows 11, macOS 14, Linux",
-  "softwareRequirements": "Windows 10 or 11 (64-bit), macOS 14 on Apple silicon, or 64-bit Linux. Android 11 or later on the phone.",
+  "softwareRequirements": "Windows 10 or 11 (64-bit), macOS 14 on Apple silicon, or 64-bit Linux. Android 11 or later on the phone, or iOS 27 or later on an iPhone or iPad (Windows only, over USB).",
   "url": "https://dthub.app/",
   "downloadUrl": "https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe",
   "softwareHelp": "https://github.com/Falcomfr/DtHub",
@@ -185,7 +185,7 @@
 <section id="windows">
   <h2><svg class="ic"><use href="#i-fenetres"/></svg><span>The windows</span></h2>
   <ul class="liste deux-colonnes">
-    <li>One account per Android profile</li>
+    <li>One account per Android profile, and one per iPhone or iPad</li>
     <li>All at the same size, the same place, or all in a tabbed frame</li>
     <li><code>F1</code> to <code>F8</code> bring an account forward</li>
     <li>Side by side with <code>Ctrl+T</code>, or a grid of four with <code>Ctrl+G</code></li>
@@ -224,7 +224,9 @@
         <li>The guides from <a href="https://papycha.fr">papycha.fr</a>, beside the game, <code>Ctrl+Q</code></li>
         <li>787 quests, 83 dungeons, 2 raids, 8 lairs</li>
         <li>Your Papycha quest tracking: each quest done, in progress or to do</li>
-        <li>How many are done in each area, with filters for what is left and what you can reach</li>
+        <li>How many are done in each area, and a filter for what your character can do now</li>
+        <li>Each quest's rewards, XP, kamas and items, worked out for your level</li>
+        <li>Recommended quests: the most rewarding to do now, ranked by gain per minute</li>
         <li>Daily, weekly and seasonal quests flagged</li>
         <li>The steps, and where you were</li>
       </ul>
@@ -322,7 +324,8 @@
   <p>One per Android profile. A phone often has two: the main profile and a
     cloned one, such as Xiaomi's Second space or Dual apps, or a work profile
     made with Island. Connect several phones, over USB or Wi-Fi, and every
-    account on each opens in its own window.</p>
+    account on each opens in its own window. An iPhone or iPad holds just one:
+    iOS cannot clone an app.</p>
 
   <h3>Is multi-accounting allowed?</h3>
   <p>Yes, within limits: never more than two accounts in some fights, such as
@@ -335,8 +338,11 @@
     the first time you connect.</p>
 
   <h3>Does it work with an iPhone?</h3>
-  <p>No, Android only, version 11 or later: DT Hub relies on Android's
-    debugging tools, which iOS does not have.</p>
+  <p>Yes, on Windows, with an iPhone or iPad on iOS 27 or later: Developer
+    Mode turned on, the Apple Devices app from the Microsoft Store on the PC,
+    and the device plugged in over USB. One account per device, since iOS
+    cannot clone an app, and its screen dims instead of switching off. Not on
+    Mac or Linux yet.</p>
 </section>
 
 <section id="download">
@@ -356,6 +362,7 @@
     <li data-pour="linux">64-bit Linux (x86_64)</li>
     <li>On another computer: <a href="install.html#windows">Windows</a> · <a href="install.html#mac">Mac</a> · <a href="install.html#linux">Linux</a></li>
     <li>Android 11 or later, with a cloned profile</li>
+    <li>Or an iPhone or iPad on iOS 27 or later, over USB, on Windows only</li>
     <li><a href="install.html">Step by step install guide</a>: debugging, second account, settings for each phone brand</li>
     <li>An internet connection on first launch, for 19 MB of tools</li>
     <li data-pour="windows">Code signing: requested from <a href="https://signpath.org/">SignPath Foundation</a>, free for open source projects. The certificate will be issued in their name, not mine.</li>

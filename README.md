@@ -4,7 +4,7 @@
 
 # DT Hub
 
-**Play several DOFUS Touch accounts side by side on Windows, from your own phones.**
+**Play several DOFUS Touch accounts side by side on your PC, from your own phones.**
 
 *Jouer à DOFUS Touch sur PC en multicompte, sans émulateur :
 [présentation en français](https://dthub.app/index.fr.html).*<br>
@@ -12,7 +12,9 @@
 [presentación en español](https://dthub.app/index.es.html).*
 
 Built on [ADB](https://developer.android.com/tools/adb) and
-[scrcpy](https://github.com/Genymobile/scrcpy). Not an emulator: the game runs
+[scrcpy](https://github.com/Genymobile/scrcpy), and on
+[pymobiledevice3](https://github.com/doronz88/pymobiledevice3) for an iPhone or
+iPad. Not an emulator: the game runs
 on your real phone, DT Hub only mirrors it and arranges the windows.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -119,6 +121,9 @@ window on your PC.
   just opens them.
 - **Any Android profile id works.** A cloned profile is not always 999, and
   DT Hub never assumes it is.
+- **An iPhone or iPad too**, on Windows: one account per device, in the same
+  list, shortcuts, teams and tabs as the Android accounts. See
+  [iPhone or iPad](#iphone-or-ipad).
 - **Stacked windows.** Every instance opens at the same place and size, so
   they overlay exactly. `Ctrl+Tab` cycles through them, and `F1` to `F8`
   bring forward the account on that line of the list.
@@ -154,8 +159,10 @@ window on your PC.
   [papycha.fr](https://papycha.fr) beside the game and remembers where you
   stopped. It shows the site's own pages; it never plays for you. Link your
   Papycha tracking and each quest shows whether it is done or in progress,
-  each area how many are done, with filters for what is left and what you
-  can reach. Repeatable quests show their rhythm.
+  each area how many are done, with a filter for what your character can do
+  now. Repeatable quests show their rhythm. Each quest shows its XP, kamas
+  and items for your level, and **Recommended** ranks the most rewarding
+  quests to do now by gain per minute.
 - **The Almanax of DOFUS Touch**, read from the official calendar filtered on
   Touch: the day's offering, copied in one click for the marketplace search,
   the days that also hold a special repeatable quest or a blessing, flagged,
@@ -219,6 +226,19 @@ Android 11 and later, phone and PC on the same network.
 Afterwards it reconnects on its own at every launch, even when the phone's
 port changes after a reboot.
 
+### iPhone or iPad
+
+Windows only, iOS or iPadOS 27 or later, over USB.
+
+1. On the device, turn on **Settings > Privacy & Security > Developer Mode**.
+2. On the PC, install the **Apple Devices** app from the Microsoft Store.
+3. Plug the device in, unlock it and tap **Trust**.
+4. In DT Hub, follow **I have an iPhone or an iPad** in the add-phone window.
+
+DT Hub then fetches its iPhone tools once. The PC must decode HEVC video: a
+recent graphics card does, otherwise install the HEVC Video Extensions from
+the Microsoft Store.
+
 ## Shortcuts
 
 | Shortcut | Action |
@@ -256,12 +276,16 @@ that folder to reset everything.
 
 ## Limitations
 
-- Windows only, x64 only.
+- Windows x64, Mac with Apple silicon, or Linux x86_64. iPhone and iPad work
+  on Windows only.
 - The colour on a game window's frame needs Windows 11. The row and the tab
   carry it on Windows 10 as before.
 - Wireless pairing needs Android 11 or later. USB works further back.
 - Virtual displays need Android 11 or later.
-- A cloned Android profile must exist on the phone; DT Hub does not create one.
+- Each extra Android account needs a cloned profile on the phone; DT Hub can
+  create one with **Clone the game**.
+- An iPhone or iPad holds one account, since iOS cannot clone an app, works
+  over USB only, and its screen dims instead of switching off.
 - The first launch needs an internet connection, once: 19 MB of tools, with a
   window showing what is being fetched.
 - DT Hub asks GitHub whether a newer version exists every time it starts. It

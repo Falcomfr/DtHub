@@ -56,7 +56,7 @@
   "alternateName": ["DTHub", "DOFUS Touch Hub"],
   "applicationCategory": "UtilitiesApplication",
   "operatingSystem": "Windows 10, Windows 11, macOS 14, Linux",
-  "softwareRequirements": "Windows 10 or 11 (64-bit), macOS 14 on Apple silicon, or 64-bit Linux. Android 11 or later on the phone.",
+  "softwareRequirements": "Windows 10 or 11 (64-bit), macOS 14 on Apple silicon, or 64-bit Linux. Android 11 or later on the phone, or iOS 27 or later on an iPhone or iPad (Windows only, over USB).",
   "url": "https://dthub.app/index.es.html",
   "downloadUrl": "https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe",
   "softwareHelp": "https://github.com/Falcomfr/DtHub",
@@ -169,7 +169,7 @@
 <section id="ventanas">
   <h2><svg class="ic"><use href="#i-fenetres"/></svg><span>Las ventanas</span></h2>
   <ul class="liste deux-colonnes">
-    <li>Una cuenta por perfil de Android</li>
+    <li>Una cuenta por perfil de Android, y una por iPhone o iPad</li>
     <li>Todas del mismo tamaño, en el mismo sitio, o todas en un marco con pestañas</li>
     <li><code>F1</code> a <code>F8</code> traen una cuenta al frente</li>
     <li>Lado a lado con <code>Ctrl+T</code>, o una cuadrícula de cuatro con <code>Ctrl+G</code></li>
@@ -208,7 +208,9 @@
         <li>Las guías de <a href="https://papycha.fr">papycha.fr</a>, al lado del juego, <code>Ctrl+Q</code></li>
         <li>787 misiones, 83 mazmorras, 2 raids, 8 guaridas</li>
         <li>Tu seguimiento de Papycha: cada misión hecha, en curso o por hacer</li>
-        <li>Cuántas llevas en cada zona, con filtros para lo que queda y lo que está a tu alcance</li>
+        <li>Cuántas llevas en cada zona, y un filtro para lo que tu personaje puede hacer ya</li>
+        <li>Las recompensas de cada misión, XP, kamas y objetos, calculadas para tu nivel</li>
+        <li>Las misiones recomendadas: las más rentables ahora, ordenadas por ganancia por minuto</li>
         <li>Las misiones diarias, semanales y de temporada señaladas</li>
         <li>Los pasos, y dónde te quedaste</li>
       </ul>
@@ -307,7 +309,8 @@
   <p>Una por perfil de Android. Un teléfono suele tener dos: el perfil
     principal y uno clonado, como Aplicaciones duales en Xiaomi o un perfil de
     trabajo creado con Island. Conecta varios teléfonos, por USB o Wi-Fi, y cada
-    cuenta de cada uno se abre en su ventana.</p>
+    cuenta de cada uno se abre en su ventana. Un iPhone o un iPad solo lleva una:
+    iOS no permite duplicar una app.</p>
 
   <h3>¿Está permitido el multicuenta?</h3>
   <p>Sí, con límites: nunca más de dos cuentas en algunos combates, como el
@@ -320,8 +323,11 @@
     la primera vez que lo conectas.</p>
 
   <h3>¿Funciona con iPhone?</h3>
-  <p>No, solo Android, versión 11 o superior: DT Hub se basa en las
-    herramientas de depuración de Android, que iOS no tiene.</p>
+  <p>Sí, en Windows, con un iPhone o un iPad con iOS 27 o posterior: el Modo de
+    desarrollador activado, la app Dispositivos Apple de Microsoft Store en el
+    PC, y el aparato conectado por USB. Una sola cuenta por aparato, porque iOS
+    no permite duplicar una app, y su pantalla se atenúa en lugar de apagarse.
+    Todavía no en Mac ni en Linux.</p>
 </section>
 
 <section id="descargar">
@@ -341,6 +347,7 @@
     <li data-pour="linux">Linux de 64 bits (x86_64)</li>
     <li>En otro ordenador: <a href="install.es.html#windows">Windows</a> · <a href="install.es.html#mac">Mac</a> · <a href="install.es.html#linux">Linux</a></li>
     <li>Android 11 o posterior, con un perfil clonado</li>
+    <li>O un iPhone o un iPad con iOS 27 o posterior, por USB, solo en Windows</li>
     <li><a href="install.es.html">La guía de instalación paso a paso</a>: depuración, segunda cuenta, ajustes por marca de teléfono</li>
     <li>Conexión a internet en el primer arranque, para 19 MB de herramientas</li>
     <li data-pour="windows">Firma del código: solicitada a <a href="https://signpath.org/">SignPath Foundation</a>, gratuita para el software libre. El certificado se emitirá a su nombre, no al mío.</li>
