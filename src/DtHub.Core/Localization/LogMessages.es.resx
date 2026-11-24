@@ -724,8 +724,8 @@
   <data name="Optimisation des jeux Samsung sur {serial} : {state}." xml:space="preserve">
     <value>Optimización de juegos de Samsung en {serial}: {state}.</value>
   </data>
-  <data name="{Window} : optimisation des jeux Samsung demandée {On}, relue {State}." xml:space="preserve">
-    <value>{Window}: optimización de juegos de Samsung pedida {On}, leída {State}.</value>
+  <data name="{Window} : optimisation des jeux Samsung demandée {Wanted}, relue {State}." xml:space="preserve">
+    <value>{Window}: optimización de juegos de Samsung pedida {Wanted}, leída {State}.</value>
   </data>
   <data name="{count} compte(s) oublié(s) : leur profil Android a disparu, ou le jeu n'y est plus installé." xml:space="preserve">
     <value>Se han olvidado {count} cuenta(s): su perfil de Android ha desaparecido o el juego ya no está instalado en él.</value>

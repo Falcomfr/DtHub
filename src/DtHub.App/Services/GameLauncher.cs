@@ -976,10 +976,17 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
             _ = Task.Run(async () =>
             {
-                var state = await SamsungGameOptimizing.ReadAsync(_adb, serial).ConfigureAwait(false);
+                GameOptimizingState? state = null;
 
-                // A failed read is let go: the next sweep asks again.
-                _gameOptimizing.Finish(deviceId, state);
+                try
+                {
+                    state = await SamsungGameOptimizing.ReadAsync(_adb, serial).ConfigureAwait(false);
+                }
+                finally
+                {
+                    // A failed read is let go, whatever stopped it: the next sweep asks again.
+                    _gameOptimizing.Finish(deviceId, state);
+                }
 
                 if (state is { } known && _gameOptimizing.Of(deviceId) == known)
                 {
@@ -1006,18 +1013,23 @@ public sealed partial class GameLauncher : IAsyncDisposable
         ArgumentNullException.ThrowIfNull(instance);
 
         var serial = _serials.GetValueOrDefault(instance.DeviceId) ?? FindSession(instance)?.Serial;
-        var state = serial is null
-            ? null
-            : await SamsungGameOptimizing.SetAsync(_adb, serial, on, cancellationToken).ConfigureAwait(false);
+        var wanted = on ? GameOptimizingState.On : GameOptimizingState.Off;
 
-        if (state is { } known)
+        // Unreachable is not refused: a refusal sends the player to adb by hand.
+        // A drop during the command throws, and the list says so the same way.
+        if (serial is null
+            || await SamsungGameOptimizing.SetAsync(_adb, serial, on, cancellationToken).ConfigureAwait(false)
+                is not { } state)
         {
-            _gameOptimizing.Set(instance.DeviceId, known);
+            LogGameOptimizingSet(instance.DisplayName, wanted, "?");
+
+            return new LaunchReport(0, [Strings.Format("PhoneNotConnectedNamed", instance.DisplayName)]);
         }
 
-        LogGameOptimizingSet(instance.DisplayName, on, state);
+        _gameOptimizing.Set(instance.DeviceId, state);
+        LogGameOptimizingSet(instance.DisplayName, wanted, state.ToString());
 
-        return state == (on ? GameOptimizingState.On : GameOptimizingState.Off)
+        return state == wanted
             ? new LaunchReport(0, [])
             : new LaunchReport(0, [Strings.Format("GameOptimizingRefused", instance.DisplayName)]);
     }
@@ -7395,8 +7407,8 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     [LoggerMessage(
         Level = LogLevel.Information,
-        Message = "{Window} : optimisation des jeux Samsung demandée {On}, relue {State}.")]
-    private partial void LogGameOptimizingSet(string window, bool on, GameOptimizingState? state);
+        Message = "{Window} : optimisation des jeux Samsung demandée {Wanted}, relue {State}.")]
+    private partial void LogGameOptimizingSet(string window, GameOptimizingState wanted, string state);
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "{Window} : le signal qui garde l'app éveillée n'est pas passé : {Reason}")]
     private partial void LogKeepAwakeFailed(string window, string reason);

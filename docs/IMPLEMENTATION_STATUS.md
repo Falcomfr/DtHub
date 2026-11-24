@@ -18,6 +18,12 @@ language (English, French or Spanish, D211), preserving raw tool output,
 exceptions and structured diagnostic metadata. All 2,521 tests pass; Release
 publish and a live English session on French Windows were verified.
 
+On Samsung phones, the account settings can turn off Samsung's game optimizing
+service, which draws the original game blurry on the main profile (D237). The
+state is read and logged when a Samsung connects. Unit tests cover the adb
+reads and the row gating; the switch itself is **IN PROGRESS** until a player
+confirms it in the app on a Samsung.
+
 ## Verified on real hardware
 
 Xiaomi 13T, Android 16, primary profile "Alice Martin" and cloned

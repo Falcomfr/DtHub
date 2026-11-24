@@ -640,8 +640,7 @@
 
                                 <!-- Samsung's game optimizing service (D237),
                                      read when the phone connects. -->
-                                <StackPanel IsVisible="{Binding HasGameOptimizing}"
-                                            ToolTip.Tip="{loc:T GameOptimizingNote}">
+                                <StackPanel IsVisible="{Binding HasGameOptimizing}">
                                   <ContentControl Theme="{StaticResource Groove}" Margin="0,6" />
 
                                   <TextBlock Text="{loc:T GameOptimizingHeading}" Classes="section" Margin="8,0,0,4" />
@@ -649,6 +648,7 @@
                                   <Button Theme="{StaticResource QuietButton}" Padding="8,5"
                                           HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
                                           Content="{loc:T GameOptimizingTurnOff}"
+                                          ToolTip.Tip="{loc:T GameOptimizingNote}"
                                           Command="{Binding TurnGameOptimizingOffCommand}"
                                           IsVisible="{Binding OffersGameOptimizingOff}" />
                                   <Button Theme="{StaticResource QuietButton}" Padding="8,5"

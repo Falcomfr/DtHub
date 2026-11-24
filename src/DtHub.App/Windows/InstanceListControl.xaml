@@ -935,8 +935,7 @@
                                      outside the game modes above (D237). Read when
                                      the phone connects. -->
                                 <StackPanel Visibility="{Binding HasGameOptimizing,
-                                                         Converter={StaticResource BoolToVisibility}}"
-                                            ToolTip="{loc:T GameOptimizingNote}">
+                                                         Converter={StaticResource BoolToVisibility}}">
                                   <Control Style="{StaticResource Groove}" Margin="0,6" />
 
                                   <TextBlock Text="{loc:T GameOptimizingHeading}" Style="{StaticResource SectionLabel}"
@@ -945,6 +944,7 @@
                                   <Button Style="{StaticResource QuietButton}" Padding="8,5"
                                           HorizontalContentAlignment="Left"
                                           Content="{loc:T GameOptimizingTurnOff}"
+                                          ToolTip="{loc:T GameOptimizingNote}"
                                           Command="{Binding TurnGameOptimizingOffCommand}"
                                           Visibility="{Binding OffersGameOptimizingOff,
                                                        Converter={StaticResource BoolToVisibility}}" />

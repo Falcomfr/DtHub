@@ -55,7 +55,8 @@ public static class SamsungGameOptimizing
 
     /// <summary>
     /// Turns it on or off, then reads the state back: what the command prints
-    /// on Samsung is not known, and a silent refusal must show.
+    /// on Samsung is not known, and a silent refusal must show. A phone that
+    /// cannot be reached throws, so the caller does not call it a refusal.
     /// </summary>
     public static async Task<GameOptimizingState?> SetAsync(
         IAdbClient adb,
@@ -65,18 +66,11 @@ public static class SamsungGameOptimizing
     {
         ArgumentNullException.ThrowIfNull(adb);
 
-        try
-        {
-            _ = await adb.ShellAsync(
-                serial,
-                on ? ["pm", "enable", Package] : ["pm", "disable-user", "--user", "0", Package],
-                null,
-                cancellationToken).ConfigureAwait(false);
-        }
-        catch (AdbException)
-        {
-            // The read below tells whether anything changed.
-        }
+        _ = await adb.ShellAsync(
+            serial,
+            on ? ["pm", "enable", Package] : ["pm", "disable-user", "--user", "0", Package],
+            null,
+            cancellationToken).ConfigureAwait(false);
 
         return await ReadAsync(adb, serial, cancellationToken).ConfigureAwait(false);
     }

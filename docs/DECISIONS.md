@@ -12613,3 +12613,12 @@ mesurer la résolution réelle du jeu, les autres marques.
 
 **Non vérifié** sur un téléphone : que toutes les versions de One UI acceptent
 `disable-user`, et que le redémarrage soit nécessaire (c'est ce qui a marché).
+
+**Profil 0.** Le profil principal est pris comme `--user 0`, comme le fait
+déjà `cmd game list-modes` (D203). Un Samsung n'a pas d'utilisateur système
+sans écran, et GOS vit sur ce profil. Si DT Hub gagne un jour une tablette où
+le principal n'est pas 0, la section ne s'affichera pas : rien ne casse.
+
+**Limite connue.** « Réactiver » vit sur la ligne de l'original. Si le joueur
+le désinstalle après avoir coupé GOS, il ne peut le remettre qu'à la main
+(`adb shell pm enable com.samsung.android.game.gos`).

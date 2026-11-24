@@ -94,6 +94,15 @@ public class SamsungGameOptimizingTests
         Assert.Equal(GameOptimizingState.On, await SamsungGameOptimizing.SetAsync(adb, Serial, on: false));
     }
 
+    [Fact]
+    public async Task Une_coupure_pendant_la_commande_remonte()
+    {
+        // A Wi-Fi drop is not a refusal: the caller says the phone is unreachable.
+        var adb = new FakeAdbClient().FailShell("pm disable-user", AdbErrorKind.DeviceOffline);
+
+        await Assert.ThrowsAsync<AdbException>(() => SamsungGameOptimizing.SetAsync(adb, Serial, on: false));
+    }
+
     [Theory]
     [InlineData("samsung", true)]
     [InlineData("Samsung", true)]
