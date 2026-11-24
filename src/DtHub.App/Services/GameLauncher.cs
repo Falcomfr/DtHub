@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 
 using DtHub.Core.Adb;
+using DtHub.Core.Android;
 using DtHub.Core.Devices;
 using DtHub.Core.Dofus;
 using DtHub.Core.Guidance;
@@ -942,6 +943,83 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
     /// <summary>Video encoders known per device, once asked for.</summary>
     private readonly System.Collections.Concurrent.ConcurrentDictionary<string, IReadOnlyList<VideoEncoder>> _encoders = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Samsung's game optimizing service per connected Samsung, by device id:
+    /// null while it is being read or could not be (D237).
+    /// </summary>
+    private readonly ConcurrentDictionary<string, GameOptimizingState?> _gameOptimizing = new(StringComparer.Ordinal);
+
+    /// <summary>The state of Samsung's game optimizing service on a device, when known.</summary>
+    public GameOptimizingState? GameOptimizingOf(string deviceId) => _gameOptimizing.GetValueOrDefault(deviceId);
+
+    /// <summary>
+    /// Reads, in the background and once per connection, whether each
+    /// Samsung runs its game optimizing service, and logs it. A device that
+    /// left is forgotten, so coming back reads and logs again.
+    /// </summary>
+    private void ProbeGameOptimizing(DeviceDiscoveryResult discovery)
+    {
+        foreach (var device in discovery.Devices)
+        {
+            if (!device.IsConnected || string.IsNullOrWhiteSpace(device.Serial))
+            {
+                _ = _gameOptimizing.TryRemove(device.Id, out _);
+                continue;
+            }
+
+            if (!SamsungGameOptimizing.Concerns(device.Manufacturer) || !_gameOptimizing.TryAdd(device.Id, null))
+            {
+                continue;
+            }
+
+            var (deviceId, serial) = (device.Id, device.Serial);
+
+            _ = Task.Run(async () =>
+            {
+                var state = await SamsungGameOptimizing.ReadAsync(_adb, serial).ConfigureAwait(false);
+
+                if (state is { } known && _gameOptimizing.ContainsKey(deviceId))
+                {
+                    _gameOptimizing[deviceId] = known;
+                    LogGameOptimizing(serial, known);
+                }
+            });
+        }
+
+        foreach (var gone in _gameOptimizing.Keys.Where(id => !discovery.Devices.Any(d => d.Id == id)).ToList())
+        {
+            _ = _gameOptimizing.TryRemove(gone, out _);
+        }
+    }
+
+    /// <summary>
+    /// Turns Samsung's game optimizing service on or off for the account's
+    /// phone, and says so when the state read back is not the one asked for.
+    /// </summary>
+    public async Task<LaunchReport> SetGameOptimizingAsync(
+        DofusInstance instance,
+        bool on,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(instance);
+
+        var serial = _serials.GetValueOrDefault(instance.DeviceId) ?? FindSession(instance)?.Serial;
+        var state = serial is null
+            ? null
+            : await SamsungGameOptimizing.SetAsync(_adb, serial, on, cancellationToken).ConfigureAwait(false);
+
+        if (state is { } known)
+        {
+            _gameOptimizing[instance.DeviceId] = known;
+        }
+
+        LogGameOptimizingSet(instance.DisplayName, on, state);
+
+        return state == (on ? GameOptimizingState.On : GameOptimizingState.Off)
+            ? new LaunchReport(0, [])
+            : new LaunchReport(0, [Strings.Format("GameOptimizingRefused", instance.DisplayName)]);
+    }
 
     /// <summary>
     /// Devices whose list has already been asked for, whether it
@@ -1916,6 +1994,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
         var discovery = await _devices.RefreshAsync(cancellationToken).ConfigureAwait(false);
 
         RememberSerials(discovery);
+        ProbeGameOptimizing(discovery);
 
         // The health pass is deliberately not run here. It asks each phone six
         // questions in turn, measured at 2.2 seconds for two devices and
@@ -7307,6 +7386,16 @@ public sealed partial class GameLauncher : IAsyncDisposable
         Level = LogLevel.Information,
         Message = "{Window} : mode de jeu Android mis sur {Mode}.")]
     private partial void LogGameModeSet(string window, string mode);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Optimisation des jeux Samsung sur {serial} : {state}.")]
+    private partial void LogGameOptimizing(string serial, GameOptimizingState state);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "{Window} : optimisation des jeux Samsung demandée {On}, relue {State}.")]
+    private partial void LogGameOptimizingSet(string window, bool on, GameOptimizingState? state);
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "{Window} : le signal qui garde l'app éveillée n'est pas passé : {Reason}")]
     private partial void LogKeepAwakeFailed(string window, string reason);

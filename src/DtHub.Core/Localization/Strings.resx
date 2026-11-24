@@ -672,6 +672,9 @@ A phone already paired over Wi-Fi comes back on its own.</value>
   <data name="GameModeRefused" xml:space="preserve">
     <value>{0}: the phone refused to change the game mode. On the phone, in game: game panel (Game Booster on Samsung, Game Turbo on Xiaomi) › this game's performance on Standard, then restart the account.</value>
   </data>
+  <data name="GameOptimizingRefused" xml:space="preserve">
+    <value>{0}: the phone did not change Samsung's game optimizing. By hand: adb shell pm disable-user --user 0 com.samsung.android.game.gos (or pm enable to bring it back), then restart the phone.</value>
+  </data>
   <data name="GameModeHeading" xml:space="preserve">
     <value>Phone game mode</value>
   </data>

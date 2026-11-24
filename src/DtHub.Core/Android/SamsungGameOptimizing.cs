@@ -48,6 +48,7 @@ public static class SamsungGameOptimizing
         }
         catch (AdbException)
         {
+            // Unknown, not absent: the caller shows nothing and logs nothing.
             return null;
         }
     }

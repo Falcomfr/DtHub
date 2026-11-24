@@ -721,6 +721,12 @@
   <data name="{Window} : mode de jeu Android mis sur {Mode}." xml:space="preserve">
     <value>{Window}: Android game mode set to {Mode}.</value>
   </data>
+  <data name="Optimisation des jeux Samsung sur {serial} : {state}." xml:space="preserve">
+    <value>Samsung game optimizing on {serial}: {state}.</value>
+  </data>
+  <data name="{Window} : optimisation des jeux Samsung demandée {On}, relue {State}." xml:space="preserve">
+    <value>{Window}: Samsung game optimizing asked {On}, read back {State}.</value>
+  </data>
   <data name="{count} compte(s) oublié(s) : leur profil Android a disparu, ou le jeu n'y est plus installé." xml:space="preserve">
     <value>{count} account(s) forgotten: their Android profile is gone, or the game is no longer installed in it.</value>
   </data>

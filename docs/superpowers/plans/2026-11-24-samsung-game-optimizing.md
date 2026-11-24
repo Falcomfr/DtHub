@@ -44,9 +44,9 @@
   - `public enum GameOptimizingState { Absent, On, Off }` (namespace `DtHub.Core.Android`)
   - `public static class SamsungGameOptimizing`
     - `public const string Package = "com.samsung.android.game.gos";`
-    - `public static bool Concerns(string? manufacturer)` — true for `samsung`, any case.
-    - `public static Task<GameOptimizingState?> ReadAsync(IAdbClient adb, string serial, CancellationToken cancellationToken = default)` — `null` when adb throws `AdbException`.
-    - `public static Task<GameOptimizingState?> SetAsync(IAdbClient adb, string serial, bool on, CancellationToken cancellationToken = default)` — runs the change, swallows its `AdbException`, then returns `ReadAsync`.
+    - `public static bool Concerns(string? manufacturer)`: true for `samsung`, any case.
+    - `public static Task<GameOptimizingState?> ReadAsync(IAdbClient adb, string serial, CancellationToken cancellationToken = default)`: `null` when adb throws `AdbException`.
+    - `public static Task<GameOptimizingState?> SetAsync(IAdbClient adb, string serial, bool on, CancellationToken cancellationToken = default)`: runs the change, swallows its `AdbException`, then returns `ReadAsync`.
 
 - [ ] **Step 1: Write the failing tests** (build the fake like `AndroidAppLauncherTests`, serial `"R5CW612EFBT"`)
 
@@ -101,8 +101,8 @@ git commit -m "feat: read and change Samsung's game optimizing service"
 **Interfaces:**
 - Consumes: Task 1 (`SamsungGameOptimizing.Concerns/ReadAsync/SetAsync`, `GameOptimizingState`).
 - Produces:
-  - `public GameOptimizingState? GameOptimizingOf(string deviceId)` — `null` when unknown or not a Samsung.
-  - `public Task<LaunchReport> SetGameOptimizingAsync(DofusInstance instance, bool on, CancellationToken cancellationToken = default)` — `LaunchReport(0, [])` when the state read back matches `on`, otherwise `LaunchReport(0, [Strings.Format("GameOptimizingRefused", instance.DisplayName)])`; same when no serial is known for the device.
+  - `public GameOptimizingState? GameOptimizingOf(string deviceId)`: `null` when unknown or not a Samsung.
+  - `public Task<LaunchReport> SetGameOptimizingAsync(DofusInstance instance, bool on, CancellationToken cancellationToken = default)`: `LaunchReport(0, [])` when the state read back matches `on`, otherwise `LaunchReport(0, [Strings.Format("GameOptimizingRefused", instance.DisplayName)])`; same when no serial is known for the device.
 
 No unit test: `GameLauncher` is only built by DI. Keep it glue; the logic is in Task 1.
 
@@ -152,11 +152,11 @@ git commit -m "feat: probe Samsung's game optimizing service when a Samsung conn
 - Consumes: Task 1 `GameOptimizingState`; Task 2 `GameOptimizingOf`, `SetGameOptimizingAsync`.
 - Produces on `InstanceRowViewModel`:
   - `[ObservableProperty] GameOptimizingState? _gameOptimizing` notifying the three booleans below.
-  - `public bool OffersGameOptimizingOff` — `GameOptimizing == On` and the row is the original on profile 0 (`!IsIos`, `Instance.UserId == 0`, `Instance.PackageName == DofusPackages.DofusTouch`).
-  - `public bool OffersGameOptimizingOn` — same with `Off`.
-  - `public bool HasGameOptimizing` — either of the two.
+  - `public bool OffersGameOptimizingOff`: `GameOptimizing == On` and the row is the original on profile 0 (`!IsIos`, `Instance.UserId == 0`, `Instance.PackageName == DofusPackages.DofusTouch`).
+  - `public bool OffersGameOptimizingOn`: same with `Off`.
+  - `public bool HasGameOptimizing`: either of the two.
   - `public bool? RequestedGameOptimizing { get; private set; }`, `public event EventHandler<InstanceRowViewModel>? GameOptimizingRequested;`
-  - `[RelayCommand] TurnGameOptimizingOff()` / `TurnGameOptimizingOn()` — set `RequestedGameOptimizing` to false / true and raise the event (same shape as `PickGameMode`).
+  - `[RelayCommand] TurnGameOptimizingOff()` / `TurnGameOptimizingOn()`: set `RequestedGameOptimizing` to false / true and raise the event (same shape as `PickGameMode`).
 
 - [ ] **Step 1: Write the failing tests** (build the row like `IosAccountRowTests` line 149, `DofusInstance` with `DeviceId`, `UserId`, `PackageName`)
 
