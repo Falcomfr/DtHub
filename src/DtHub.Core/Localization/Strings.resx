@@ -675,6 +675,26 @@ A phone already paired over Wi-Fi comes back on its own.</value>
   <data name="GameOptimizingRefused" xml:space="preserve">
     <value>{0}: the phone did not change Samsung's game optimizing. By hand: adb shell pm disable-user --user 0 com.samsung.android.game.gos (or pm enable to bring it back), then restart the phone.</value>
   </data>
+  <data name="GameOptimizingHeading" xml:space="preserve">
+    <value>Samsung game optimizing</value>
+  </data>
+  <data name="GameOptimizingNote" xml:space="preserve">
+    <value>Samsung's game optimizing service draws DOFUS Touch at a reduced resolution on the main profile: the picture is blurry on the PC. Applies to the whole phone.</value>
+  </data>
+  <data name="GameOptimizingTurnOff" xml:space="preserve">
+    <value>Turn off (sharper picture)</value>
+  </data>
+  <data name="GameOptimizingTurnOn" xml:space="preserve">
+    <value>Turn back on</value>
+  </data>
+  <data name="GameOptimizingConfirm" xml:space="preserve">
+    <value>Turn off Samsung's game optimizing on {0}?
+
+The game's picture should be sharp again. Game Booster may work less well, and a Samsung update may turn it back on. The phone will need a restart.</value>
+  </data>
+  <data name="GameOptimizingRestart" xml:space="preserve">
+    <value>Done. Restart the phone for it to take effect.</value>
+  </data>
   <data name="GameModeHeading" xml:space="preserve">
     <value>Phone game mode</value>
   </data>

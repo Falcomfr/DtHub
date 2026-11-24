@@ -675,6 +675,26 @@ Un téléphone déjà associé en Wi-Fi revient tout seul.</value>
   <data name="GameOptimizingRefused" xml:space="preserve">
     <value>{0} : le téléphone n'a pas changé l'optimisation des jeux Samsung. À la main : adb shell pm disable-user --user 0 com.samsung.android.game.gos (ou pm enable pour la remettre), puis redémarrez le téléphone.</value>
   </data>
+  <data name="GameOptimizingHeading" xml:space="preserve">
+    <value>Optimisation des jeux Samsung</value>
+  </data>
+  <data name="GameOptimizingNote" xml:space="preserve">
+    <value>Le service d'optimisation des jeux de Samsung dessine DOFUS Touch en résolution réduite sur le profil principal : l'image est floue sur le PC. Vaut pour tout le téléphone.</value>
+  </data>
+  <data name="GameOptimizingTurnOff" xml:space="preserve">
+    <value>Désactiver (image plus nette)</value>
+  </data>
+  <data name="GameOptimizingTurnOn" xml:space="preserve">
+    <value>Réactiver</value>
+  </data>
+  <data name="GameOptimizingConfirm" xml:space="preserve">
+    <value>Désactiver l'optimisation des jeux Samsung sur {0} ?
+
+L'image du jeu devrait redevenir nette. Game Booster peut moins bien fonctionner, et une mise à jour de Samsung peut la réactiver. Il faudra redémarrer le téléphone.</value>
+  </data>
+  <data name="GameOptimizingRestart" xml:space="preserve">
+    <value>C'est fait. Redémarrez le téléphone pour que ça prenne effet.</value>
+  </data>
   <data name="GameModeHeading" xml:space="preserve">
     <value>Mode jeu du téléphone</value>
   </data>

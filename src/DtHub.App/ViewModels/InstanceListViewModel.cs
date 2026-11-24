@@ -1480,6 +1480,38 @@ public sealed partial class InstanceListViewModel : ObservableObject
         row.GameModes = _launcher.GameModesOf(row.Key);
     }
 
+    /// <summary>
+    /// Samsung's game optimizing service turned off or back on from an
+    /// account's settings. Off changes the phone's system, so it is
+    /// confirmed first; either takes a restart of the phone (D237).
+    /// </summary>
+    private async void OnGameOptimizingRequested(object? sender, InstanceRowViewModel row)
+    {
+        ArgumentNullException.ThrowIfNull(row);
+
+        if (row.RequestedGameOptimizing is not { } on)
+        {
+            return;
+        }
+
+        if (!on && !_dialogs.Confirm(
+                Strings.Format("GameOptimizingConfirm", row.Instance.DeviceName),
+                Strings.Get("GameOptimizingHeading")))
+        {
+            return;
+        }
+
+        await ActOnAsync(row, instance => _launcher.SetGameOptimizingAsync(instance, on), engageDevice: false)
+            .ConfigureAwait(true);
+
+        row.GameOptimizing = _launcher.GameOptimizingOf(row.DeviceId);
+
+        if (row.GameOptimizing == (on ? GameOptimizingState.On : GameOptimizingState.Off))
+        {
+            _dialogs.ShowInformation(Strings.Get("GameOptimizingRestart"), Strings.Get("GameOptimizingHeading"));
+        }
+    }
+
     private async void OnQuietReducedRenderChanged(object? sender, InstanceRowViewModel row)
     {
         ArgumentNullException.ThrowIfNull(row);
@@ -1637,6 +1669,7 @@ public sealed partial class InstanceListViewModel : ObservableObject
                 row.StandardModeRequested += OnStandardModeRequested;
                 row.QuietReducedRenderChanged += OnQuietReducedRenderChanged;
                 row.GameModeRequested += OnGameModeRequested;
+                row.GameOptimizingRequested += OnGameOptimizingRequested;
                 row.ColourChanged += OnColourChanged;
                 row.NameChanged += OnNameChanged;
                 Rows.Add(row);
@@ -1665,6 +1698,8 @@ public sealed partial class InstanceListViewModel : ObservableObject
             {
                 row.GameModes = modes;
             }
+
+            row.GameOptimizing = _launcher.GameOptimizingOf(instance.DeviceId);
         }
 
         // Rows already present did not move: the saved order therefore

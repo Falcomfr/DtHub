@@ -930,6 +930,32 @@
                                   </ItemsControl>
                                 </StackPanel>
 
+                                <!-- Samsung's game optimizing service, which draws
+                                     the original game blurry on the main profile
+                                     outside the game modes above (D237). Read when
+                                     the phone connects. -->
+                                <StackPanel Visibility="{Binding HasGameOptimizing,
+                                                         Converter={StaticResource BoolToVisibility}}"
+                                            ToolTip="{loc:T GameOptimizingNote}">
+                                  <Control Style="{StaticResource Groove}" Margin="0,6" />
+
+                                  <TextBlock Text="{loc:T GameOptimizingHeading}" Style="{StaticResource SectionLabel}"
+                                             Margin="8,0,0,4" />
+
+                                  <Button Style="{StaticResource QuietButton}" Padding="8,5"
+                                          HorizontalContentAlignment="Left"
+                                          Content="{loc:T GameOptimizingTurnOff}"
+                                          Command="{Binding TurnGameOptimizingOffCommand}"
+                                          Visibility="{Binding OffersGameOptimizingOff,
+                                                       Converter={StaticResource BoolToVisibility}}" />
+                                  <Button Style="{StaticResource QuietButton}" Padding="8,5"
+                                          HorizontalContentAlignment="Left"
+                                          Content="{loc:T GameOptimizingTurnOn}"
+                                          Command="{Binding TurnGameOptimizingOnCommand}"
+                                          Visibility="{Binding OffersGameOptimizingOn,
+                                                       Converter={StaticResource BoolToVisibility}}" />
+                                </StackPanel>
+
                                 <!-- Only to undo "Don't warn me again": the
                                      rest of the time it would be one more line
                                      for nothing. -->

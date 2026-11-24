@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 
 using DtHub.App.Services;
 
+using DtHub.Core.Android;
 using DtHub.Core.Dofus;
 using DtHub.Core.Localization;
 using DtHub.Core.Sessions;
@@ -652,6 +653,43 @@ public sealed partial class InstanceRowViewModel : ObservableObject
     {
         RequestedGameMode = mode;
         GameModeRequested?.Invoke(this, this);
+    }
+
+    /// <summary>
+    /// Samsung's game optimizing service on this account's phone, when known:
+    /// it draws the original game at a reduced resolution on the main
+    /// profile, where renamed copies and other profiles escape it (D237).
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(OffersGameOptimizingOff))]
+    [NotifyPropertyChangedFor(nameof(OffersGameOptimizingOn))]
+    [NotifyPropertyChangedFor(nameof(HasGameOptimizing))]
+    private GameOptimizingState? _gameOptimizing;
+
+    private bool IsOriginalOnMainProfile =>
+        !IsIos && Instance.UserId == 0 && Instance.PackageName == DofusPackages.DofusTouch;
+
+    public bool OffersGameOptimizingOff => GameOptimizing == GameOptimizingState.On && IsOriginalOnMainProfile;
+
+    public bool OffersGameOptimizingOn => GameOptimizing == GameOptimizingState.Off && IsOriginalOnMainProfile;
+
+    public bool HasGameOptimizing => OffersGameOptimizingOff || OffersGameOptimizingOn;
+
+    /// <summary>What the button asked for, for the list to apply: on or off.</summary>
+    public bool? RequestedGameOptimizing { get; private set; }
+
+    public event EventHandler<InstanceRowViewModel>? GameOptimizingRequested;
+
+    [RelayCommand]
+    private void TurnGameOptimizingOff() => RequestGameOptimizing(false);
+
+    [RelayCommand]
+    private void TurnGameOptimizingOn() => RequestGameOptimizing(true);
+
+    private void RequestGameOptimizing(bool on)
+    {
+        RequestedGameOptimizing = on;
+        GameOptimizingRequested?.Invoke(this, this);
     }
 
     /// <summary>
