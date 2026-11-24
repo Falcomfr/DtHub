@@ -945,13 +945,12 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private readonly System.Collections.Concurrent.ConcurrentDictionary<string, IReadOnlyList<VideoEncoder>> _encoders = new(StringComparer.Ordinal);
 
     /// <summary>
-    /// Samsung's game optimizing service per connected Samsung, by device id:
-    /// null while it is being read or could not be (D237).
+    /// Samsung's game optimizing service per connected Samsung (D237).
     /// </summary>
-    private readonly ConcurrentDictionary<string, GameOptimizingState?> _gameOptimizing = new(StringComparer.Ordinal);
+    private readonly GameOptimizingStates _gameOptimizing = new();
 
     /// <summary>The state of Samsung's game optimizing service on a device, when known.</summary>
-    public GameOptimizingState? GameOptimizingOf(string deviceId) => _gameOptimizing.GetValueOrDefault(deviceId);
+    public GameOptimizingState? GameOptimizingOf(string deviceId) => _gameOptimizing.Of(deviceId);
 
     /// <summary>
     /// Reads, in the background and once per connection, whether each
@@ -964,11 +963,11 @@ public sealed partial class GameLauncher : IAsyncDisposable
         {
             if (!device.IsConnected || string.IsNullOrWhiteSpace(device.Serial))
             {
-                _ = _gameOptimizing.TryRemove(device.Id, out _);
+                _gameOptimizing.Forget(device.Id);
                 continue;
             }
 
-            if (!SamsungGameOptimizing.Concerns(device.Manufacturer) || !_gameOptimizing.TryAdd(device.Id, null))
+            if (!SamsungGameOptimizing.Concerns(device.Manufacturer) || !_gameOptimizing.Begin(device.Id))
             {
                 continue;
             }
@@ -979,17 +978,19 @@ public sealed partial class GameLauncher : IAsyncDisposable
             {
                 var state = await SamsungGameOptimizing.ReadAsync(_adb, serial).ConfigureAwait(false);
 
-                if (state is { } known && _gameOptimizing.ContainsKey(deviceId))
+                // A failed read is let go: the next sweep asks again.
+                _gameOptimizing.Finish(deviceId, state);
+
+                if (state is { } known && _gameOptimizing.Of(deviceId) == known)
                 {
-                    _gameOptimizing[deviceId] = known;
                     LogGameOptimizing(serial, known);
                 }
             });
         }
 
-        foreach (var gone in _gameOptimizing.Keys.Where(id => !discovery.Devices.Any(d => d.Id == id)).ToList())
+        foreach (var gone in _gameOptimizing.Known.Where(id => !discovery.Devices.Any(d => d.Id == id)))
         {
-            _ = _gameOptimizing.TryRemove(gone, out _);
+            _gameOptimizing.Forget(gone);
         }
     }
 
@@ -1011,7 +1012,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
 
         if (state is { } known)
         {
-            _gameOptimizing[instance.DeviceId] = known;
+            _gameOptimizing.Set(instance.DeviceId, known);
         }
 
         LogGameOptimizingSet(instance.DisplayName, on, state);
