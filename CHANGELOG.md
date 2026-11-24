@@ -17,6 +17,12 @@ French or Spanish, and the French one is what the Discord channel receives. The
 Keep each entry to one short line saying what the player gets; the why
 belongs in the commits and in `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Added
+
+- On a Samsung where the game is blurry on the PC, the account's settings can turn off Samsung's game optimizing service, which drew it at a reduced resolution, and turn it back on.
+
 ## [0.15.5] - 2026-11-20
 
 ### Fixed

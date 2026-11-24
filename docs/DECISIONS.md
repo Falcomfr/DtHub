@@ -12585,3 +12585,31 @@ La 0.15.2 ouvrait la même tablette le même soir.
 `--no-vd-destroy-content`, et l'appareil s'en passe jusqu'au redémarrage de
 DT Hub. Les autres gardent le jeu à la coupure. Non reproduit faute de
 Samsung sous Android 14 : déduit du journal du joueur.
+
+## D237 - Couper l'optimisation des jeux Samsung depuis DT Hub
+
+**Date** : 2026-11-24. Complète D203.
+
+Un joueur sur Galaxy S21 FE (SM-G990B2, Android 16) voyait l'original du jeu
+flou sur le PC, et la copie du profil pro nette. DT Hub envoyait la même image
+aux deux (1912x976, 12316 kb/s), et le mode de jeu Android était `standard`
+sur les deux profils : D203 n'y pouvait rien. Une copie renommée
+(`com.ankama.dofustouch.clone1`) sur le même profil principal était nette.
+`pm disable-user --user 0 com.samsung.android.game.gos`, puis un redémarrage,
+ont rendu l'original net. Le service d'optimisation des jeux de Samsung (GOS)
+réduit donc la résolution du jeu reconnu par son nom, sur le profil principal
+seulement, hors des modes de jeu. La couche du jeu se lit `couche ?` sur ces
+Samsung : l'alerte 75 % ne le voit pas.
+
+**Choix.** L'état de GOS (actif, coupé, absent) est lu une fois par connexion
+d'un Samsung, et inscrit au journal. Le menu du compte propose « Désactiver »
+seulement pour l'original sur le profil 0 d'un Samsung où GOS est actif, après
+confirmation, et « Réactiver » tant qu'il est coupé. DT Hub relit l'état après
+la commande plutôt que de croire sa réponse, et demande de redémarrer le
+téléphone.
+
+**Écarté.** Couper GOS d'office, le remettre après une mise à jour Samsung,
+mesurer la résolution réelle du jeu, les autres marques.
+
+**Non vérifié** sur un téléphone : que toutes les versions de One UI acceptent
+`disable-user`, et que le redémarrage soit nécessaire (c'est ce qui a marché).

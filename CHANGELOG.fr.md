@@ -11,6 +11,12 @@ Les rubriques suivent celles de l'anglais : `### Ajouté`, `### Modifié`,
 Une entrée tient en une ligne courte qui dit ce que le joueur y gagne ; le
 pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Ajouté
+
+- Sur un Samsung où le jeu est flou sur le PC, les réglages du compte peuvent couper l'optimisation des jeux Samsung, qui le dessinait en résolution réduite, et la remettre.
+
 ## [0.15.5] - 2026-11-20
 
 ### Corrigé

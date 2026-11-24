@@ -10,6 +10,12 @@ Los apartados siguen los del inglés: `### Añadido`, `### Cambiado`,
 Cada entrada cabe en una línea corta que dice lo que gana el jugador; el
 porqué queda en los commits y en `docs/DECISIONS.md`.
 
+## [Unreleased]
+
+### Añadido
+
+- En un Samsung donde el juego se ve borroso en el PC, los ajustes de la cuenta pueden desactivar la optimización de juegos de Samsung, que lo dibujaba con una resolución reducida, y volver a activarla.
+
 ## [0.15.5] - 2026-11-20
 
 ### Corregido
