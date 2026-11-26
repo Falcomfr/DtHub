@@ -80,8 +80,10 @@
 <script>
 // The pages are static: nobody negotiates the language for us. English is
 // served by default, a browser asking for French or Spanish is sent to
-// that page. No storage, no tracker: the "?lang=" parameter on language links
-// disarms the redirect, without which we would go in circles.
+// that page. No storage, no tracker: the "?lang=en" parameter on the links back
+// here disarms the redirect, without which we would go in circles. Only this
+// page redirects, so the links to the other two stay clean: Google indexes
+// the address it is linked to, and "index.es.html?lang=es" was one too many.
 (function () {
   if (location.search.indexOf('lang=') !== -1) { return; }
   var langues = navigator.languages || [navigator.language || ''];
@@ -132,8 +134,8 @@
       <a href="https://github.com/Falcomfr/DtHub"><svg class="ic"><use href="#i-github"/></svg>GitHub</a>
       <a href="install.html">Install</a>
       <a href="https://discord.gg/aauJcga6eG"><svg class="ic"><use href="#i-discord"/></svg>Discord</a>
-      <a href="index.fr.html?lang=fr">Français</a>
-      <a href="index.es.html?lang=es">Español</a>
+      <a href="index.fr.html">Français</a>
+      <a href="index.es.html">Español</a>
       <a class="bouton petit" href="https://github.com/Falcomfr/DtHub/releases/latest/download/DtHub.exe" data-mac-href="install.html#mac" data-linux-href="install.html#linux"><svg class="ic"><use href="#i-telecharger"/></svg>Download</a>
     </nav>
   </div>
