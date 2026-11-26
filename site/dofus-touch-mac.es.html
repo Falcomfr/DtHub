@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jugar a DOFUS Touch en Mac, sin emulador, con DT Hub</title>
+<meta name="description" content="DOFUS Touch en Mac con ratón y teclado, varias cuentas a la vez, sin BlueStacks: el juego se ejecuta en tu teléfono Android, DT Hub lo muestra en el Mac. Gratis y libre.">
+<link rel="icon" href="app.png">
+<link rel="stylesheet" href="style.css">
+
+<link rel="canonical" href="https://dthub.app/dofus-touch-mac.es.html">
+<link rel="alternate" hreflang="en" href="https://dthub.app/dofus-touch-mac.html">
+<link rel="alternate" hreflang="fr" href="https://dthub.app/dofus-touch-mac.fr.html">
+<link rel="alternate" hreflang="es" href="https://dthub.app/dofus-touch-mac.es.html">
+<link rel="alternate" hreflang="x-default" href="https://dthub.app/dofus-touch-mac.html">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="DT Hub">
+<meta property="og:locale" content="es_ES">
+<meta property="og:url" content="https://dthub.app/dofus-touch-mac.es.html">
+<meta property="og:title" content="Jugar a DOFUS Touch en Mac, sin emulador, con DT Hub">
+<meta property="og:description" content="DOFUS Touch en Mac con ratón y teclado, varias cuentas a la vez, sin BlueStacks: el juego se ejecuta en tu teléfono Android, DT Hub lo muestra en el Mac. Gratis y libre.">
+<meta property="og:image" content="https://dthub.app/screenshots/cadre-a-onglets.es.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<script src="systeme.js"></script>
+</head>
+<body>
+
+<!-- Icons, drawn here rather than fetched: the project promises to send
+     nothing without being asked, and a page that pulls an icon font from a
+     stranger's server breaks that promise for decoration.
+
+     Four of them are the application's own glyphs, copied path for path:
+     stacked windows, the Almanax calendar, the sliders of an account's
+     settings. The rest are drawn in the same hand, one stroke, round ends,
+     on the same fifteen unit grid. -->
+<svg class="jeu-icones" aria-hidden="true" focusable="false"><defs>
+  <g id="i-soleil"><circle cx="7.5" cy="7.5" r="2.7"/><path d="M7.5 1.4V3M7.5 12v1.6M1.4 7.5H3M12 7.5h1.6M3.2 3.2l1.2 1.2M10.6 10.6l1.2 1.2M11.8 3.2l-1.2 1.2M4.4 10.6l-1.2 1.2"/></g>
+  <g id="i-fenetres"><path d="M1.8 2.2h8.4v6.2H1.8ZM4.8 6.6h8.4v6.2H4.8Z"/></g>
+  <g id="i-panneau"><path d="M1.8 5h11.4M1.8 10h11.4"/><circle cx="5" cy="5" r="1.6"/><circle cx="10" cy="10" r="1.6"/></g>
+  <g id="i-guides"><path d="M7.5 4.3C6 3.1 4 2.8 2 3.1v8.6c2-.3 4 0 5.5 1.2 1.5-1.2 3.5-1.5 5.5-1.2V3.1c-2-.3-4 0-5.5 1.2ZM7.5 4.3v8.6"/></g>
+  <g id="i-almanax"><path d="M3 4.5h10v9H3ZM3 7.5h10M6 3v3M10 3v3"/></g>
+  <g id="i-outils"><path d="M9.6 2.1a3.1 3.1 0 0 0-3.3 4.2L2.2 10.4a1.2 1.2 0 0 0 1.7 1.7L8 8a3.1 3.1 0 0 0 4.2-3.3l-1.9 1.9-1.7-.5-.5-1.7Z"/></g>
+  <g id="i-regles"><path d="M7.5 1.8 12.6 3.7v4.1c0 2.9-2.2 4.7-5.1 5.5-2.9-.8-5.1-2.6-5.1-5.5V3.7Z"/><path d="m5.5 7.6 1.6 1.6 3-3.2"/></g>
+  <g id="i-reste"><path d="M7.5 1.9 13 4.7v5.6L7.5 13.1 2 10.3V4.7ZM2 4.7l5.5 2.8L13 4.7M7.5 7.5v5.6"/></g>
+  <g id="i-telecharger"><path d="M7.5 2.2v7.6M4.4 6.9l3.1 3.1 3.1-3.1M2.6 12.8h9.8"/></g>
+  <g id="i-merci"><path d="M7.5 12.8C4 10.4 1.9 8.4 1.9 6.2A2.9 2.9 0 0 1 7.5 4.8 2.9 2.9 0 0 1 13.1 6.2c0 2.2-2.1 4.2-5.6 6.6Z"/></g>
+  <g id="i-gratuit"><path d="M2.3 7.9V2.6h5.3l5.2 5.3-4.9 4.9Z"/><circle cx="4.9" cy="5.1" r=".8"/></g>
+  <g id="i-vous"><path d="M2.2 3.4h10.6v6.8H7.2l-3 2.6v-2.6H2.2Z"/></g>
+  <g id="i-info"><circle cx="7.5" cy="7.5" r="5.7"/><path d="M7.5 6.8v3.6M7.5 4.6v.1"/></g>
+  <g id="i-github"><path d="M7.5 1.2a6.3 6.3 0 0 0-2 12.3c.31.06.43-.14.43-.3v-1.08c-1.75.38-2.12-.84-2.12-.84-.29-.73-.7-.92-.7-.92-.57-.39.04-.38.04-.38.63.04.97.65.97.65.56.97 1.48.69 1.84.53.06-.41.22-.69.4-.85-1.4-.16-2.87-.7-2.87-3.11 0-.69.25-1.25.65-1.69-.07-.16-.28-.81.06-1.68 0 0 .53-.17 1.74.64a6 6 0 0 1 3.16 0c1.2-.81 1.73-.64 1.73-.64.35.87.13 1.52.07 1.68.4.44.65 1 .65 1.69 0 2.42-1.48 2.95-2.88 3.1.23.2.43.58.43 1.17v1.73c0 .17.11.37.43.3A6.3 6.3 0 0 0 7.5 1.2Z" fill="currentColor" stroke="none"/></g>
+  <!-- Discord's own mark, not drawn in our hand: alone it is the only thing
+       that says where the link leads. Scaled from its 24 unit box. -->
+  <g id="i-discord"><path transform="translate(0 1.5) scale(.625)" d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z" fill="currentColor" stroke="none"/></g>
+</defs></svg>
+
+<div class="barre">
+  <div class="barre-dedans">
+    <a class="marque" href="index.es.html"><img src="app.png" alt="" width="30" height="30">DT Hub</a>
+    <nav>
+      <a href="index.es.html">Presentación</a>
+      <a href="install.es.html">Instalación</a>
+      <a href="dofus-touch-mac.html">English</a>
+      <a href="dofus-touch-mac.fr.html">Français</a>
+      <a class="bouton petit" href="install.es.html#mac" data-mac-href="install.es.html#mac" data-linux-href="install.es.html#linux"><svg class="ic"><use href="#i-telecharger"/></svg>Descargar</a>
+    </nav>
+  </div>
+</div>
+
+<div class="page" id="top">
+
+<header class="hero guide">
+  <h1>Jugar a DOFUS Touch en Mac</h1>
+  <p class="accroche">En Mac, las páginas que prometen DOFUS Touch proponen casi todas un emulador. Hay otro camino: dejar el juego en tu teléfono y mostrar su pantalla en el Mac, con ratón y teclado.</p>
+</header>
+
+<section>
+  <h2><svg class="ic"><use href="#i-info"/></svg><span>Por qué no BlueStacks ni MuMu Player</span></h2>
+  <p>BlueStacks y MuMu Player ejecutan Android en el Mac, y DOFUS Touch con él. Ankama incluye los emuladores entre las prácticas prohibidas en DOFUS Touch, <a href="https://support.ankama.com/hc/es/articles/26840828168209">en su soporte</a>. Una cuenta que use uno se expone a una sanción.</p>
+</section>
+<section>
+  <h2><svg class="ic"><use href="#i-soleil"/></svg><span>DT Hub: tu teléfono, en la pantalla del Mac</span></h2>
+  <p>DT Hub muestra la pantalla de tus teléfonos Android en el Mac, una cuenta por ventana, y les devuelve el ratón y el teclado. El juego sigue siendo la aplicación oficial, en el teléfono: no es un emulador, y DT Hub nunca juega por ti.</p>
+  <ul class="liste">
+    <li>Todas las cuentas de todos tus teléfonos: perfil principal y perfil clonado, por USB o por Wi-Fi</li>
+    <li>En pestañas, una al lado de otra o en cuadrícula</li>
+    <li>Gratis, libre, y se actualiza solo</li>
+  </ul>
+</section>
+<section>
+  <h2><svg class="ic"><use href="#i-telecharger"/></svg><span>Instalarlo</span></h2>
+  <p>Abre Terminal (Aplicaciones › Utilidades), pega esta línea y pulsa Intro:</p>
+  <pre data-copier="Copiar" data-copie="Copiado"><code>curl -fsSL https://dthub.app/install-mac.sh | bash</code></pre>
+  <ul class="liste">
+    <li>Un Mac con chip de Apple (M1 o posterior), macOS 14 Sonoma o posterior</li>
+    <li>DT Hub se instala en Aplicaciones y luego se actualiza solo</li>
+    <li>En el primer arranque, macOS pide el permiso de Accesibilidad: sirve para colocar las ventanas de juego</li>
+    <li>Un teléfono o una tableta con Android 11 o posterior, con la <a href="install.es.html#telephone">depuración USB activada</a></li>
+  </ul>
+  <p><a href="install.es.html">La guía paso a paso</a>, con los ajustes de cada marca de teléfono.</p>
+</section>
+<section>
+  <h2><svg class="ic"><use href="#i-vous"/></svg><span>¿Y con un iPhone?</span></h2>
+  <p>Todavía no en Mac: DT Hub solo muestra un iPhone o un iPad en Windows. <a href="dofus-touch-iphone.es.html">Jugar a DOFUS Touch en PC con un iPhone</a>.</p>
+</section>
+<section>
+  <h2><svg class="ic"><use href="#i-regles"/></svg><span>¿Y varias cuentas?</span></h2>
+  <p>Jugar con varias cuentas está permitido en DOFUS Touch, con límites: nunca más de dos cuentas en algunos combates, como el Koliseo, y cada acción hecha a mano, sin automatización. Las reglas exactas están <a href="https://support.ankama.com/hc/es/articles/360019616574">en el soporte de Ankama</a>. No hablamos en su nombre: ante la duda, lo que vale es lo que dice Ankama.</p>
+  <p><a href="dofus-touch-pc.es.html">Todas las formas de jugar en ordenador, comparadas</a></p>
+  <div class="telecharger">
+    <a class="bouton" href="install.es.html#mac"><svg class="ic"><use href="#i-telecharger"/></svg>Instalar en Mac</a>
+  </div>
+</section>
+
+<footer>
+  <div class="liens">
+    <a href="https://github.com/Falcomfr/DtHub">Código fuente</a>
+    <a href="https://github.com/Falcomfr/DtHub/releases">Versiones</a>
+    <a href="https://github.com/Falcomfr/DtHub/blob/main/CHANGELOG.es.md">Cambios</a>
+    <a href="https://github.com/Falcomfr/DtHub/issues">Reportar un fallo</a>
+  </div>
+  <p>
+    Publicado con <a href="https://github.com/Falcomfr/DtHub/blob/main/LICENSE">licencia MIT</a>.
+    Los títulos de misiones del archivo <code>quest-successes.json</code> siguen
+    siendo propiedad de papycha.fr.
+  </p>
+  <p>
+    DT Hub también se escribe DTHub.
+    <strong>Sin relación con Ankama.</strong> DOFUS y DOFUS Touch son marcas de
+    Ankama. Este proyecto no está afiliado, aprobado ni respaldado por Ankama.
+  </p>
+</footer>
+
+</div>
+</body>
+</html>
