@@ -17,6 +17,10 @@ pourquoi reste dans les commits et dans `docs/DECISIONS.md`.
 
 - Sur un Samsung où le jeu est flou sur le PC, les réglages du compte peuvent couper l'optimisation des jeux Samsung, qui le dessinait en résolution réduite, et la remettre.
 
+### Modifié
+
+- Sur un Samsung qui ferme son Dossier sécurisé au PC, le conseil propose désormais DTCloner, l'appli gratuite de Lomitall qui crée une copie du jeu par compte, à la place de Parallel Space.
+
 ### Corrigé
 
 - Un appareil qui n'arrive pas à envoyer l'image d'une fenêtre de plus (son encodeur vidéo lâche, vu sur une Galaxy Tab A9+) ne rouvre plus cette fenêtre sans fin, le jeu clignotant sur l'écran de l'appareil : la fenêtre est rouverte une fois en plus petit, puis DT Hub dit pourquoi elle s'est fermée et quoi faire, au lieu d'une connexion perdue.

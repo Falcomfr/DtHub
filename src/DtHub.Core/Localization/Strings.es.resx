@@ -2510,7 +2510,7 @@ Para que no se vuelva a bloquear durante el juego: {1}  ›  «Bloqueo automáti
   <data name="SecureFolderForbidden" xml:space="preserve">
     <value>{0}: Samsung prohíbe al PC abrir el juego en la Carpeta segura, incluso desbloqueada.
 • Instala esta cuenta en un perfil de trabajo creado con la app Island (Play Store): DT Hub la abre como las demás. Si el inicio de sesión se bloquea, clona también Chrome en ese perfil.
-• O usa una app de clonación como Parallel Space: muéstrala con «+» y lanza DOFUS Touch dentro. Si el inicio de sesión se bloquea en una página de Chrome, ⋮ › Abrir en Chrome.</value>
+• O instala DTCloner (lomitall.fr), gratuito, que crea una copia del juego por cuenta: muestra cada copia con «+». Viene de fuera de Play Store e instala copias rehechas del juego: tú decides.</value>
   </data>
   <data name="SecureFolderLocked" xml:space="preserve">
     <value>{0}: la Carpeta segura se bloqueó. Desbloquéala, sus cuentas vuelven en unos segundos.

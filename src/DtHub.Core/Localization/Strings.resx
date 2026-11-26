@@ -2510,7 +2510,7 @@ Nothing shows up once unlocked? Samsung blocks the PC on this phone: install the
   <data name="SecureFolderForbidden" xml:space="preserve">
     <value>{0}: Samsung forbids the PC to open the game in the Secure Folder, even unlocked.
 • Install this account in a work profile made with the Island app (Play Store): DT Hub opens it like the others. If logging in gets stuck, clone Chrome into that profile too.
-• Or use a cloning app such as Parallel Space: show it with "+", then start DOFUS Touch inside. If logging in gets stuck on a Chrome page, ⋮ › Open in Chrome.</value>
+• Or install DTCloner (lomitall.fr), free, which makes one copy of the game per account: show each copy with "+". It comes from outside the Play Store and installs rebuilt copies of the game: your call.</value>
   </data>
   <data name="SecureFolderLocked" xml:space="preserve">
     <value>{0}: the Secure Folder locked itself. Unlock it, its accounts come back within seconds.

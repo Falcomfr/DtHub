@@ -2510,7 +2510,7 @@ Rien n'apparaît une fois déverrouillé ? Samsung bloque le PC sur ce télépho
   <data name="SecureFolderForbidden" xml:space="preserve">
     <value>{0} : Samsung interdit au PC d'ouvrir le jeu dans le Dossier sécurisé, même déverrouillé.
 • Installez ce compte dans un profil de travail créé avec l'app Island (Play Store) : DT Hub l'ouvre comme les autres. Si la connexion bloque, clonez aussi Chrome dans ce profil.
-• Ou utilisez une app de clonage comme Parallel Space : affichez-la avec « + », puis lancez DOFUS Touch dedans. Si la connexion bloque sur une page Chrome, ⋮ › Ouvrir dans Chrome.</value>
+• Ou installez DTCloner (lomitall.fr), gratuit, qui crée une copie du jeu par compte : affichez chaque copie avec « + ». Il vient hors Play Store et installe des copies refaites du jeu : à vous de choisir.</value>
   </data>
   <data name="SecureFolderLocked" xml:space="preserve">
     <value>{0} : le Dossier sécurisé s'est verrouillé. Déverrouillez-le, ses comptes reviennent en quelques secondes.

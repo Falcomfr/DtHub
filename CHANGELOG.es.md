@@ -16,6 +16,10 @@ porqué queda en los commits y en `docs/DECISIONS.md`.
 
 - En un Samsung donde el juego se ve borroso en el PC, los ajustes de la cuenta pueden desactivar la optimización de juegos de Samsung, que lo dibujaba con una resolución reducida, y volver a activarla.
 
+### Cambiado
+
+- En un Samsung que cierra su Carpeta segura al PC, el consejo propone ahora DTCloner, la app gratuita de Lomitall que crea una copia del juego por cuenta, en lugar de Parallel Space.
+
 ### Corregido
 
 - Un dispositivo que no consigue enviar la imagen de una ventana más (su codificador de vídeo falla, visto en una Galaxy Tab A9+) ya no reabre esa ventana sin fin, con el juego parpadeando en su pantalla: la ventana se reabre una vez más pequeña y luego DT Hub explica por qué se cerró y qué hacer, en lugar de una conexión perdida.
