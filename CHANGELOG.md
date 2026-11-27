@@ -23,6 +23,10 @@ belongs in the commits and in `docs/DECISIONS.md`.
 
 - On a Samsung where the game is blurry on the PC, the account's settings can turn off Samsung's game optimizing service, which drew it at a reduced resolution, and turn it back on.
 
+### Fixed
+
+- A device that cannot send one more window's picture (its video encoder gives up, seen on a Galaxy Tab A9+) no longer reopens that window over and over, the game flashing on the device's screen: the window is reopened once in a smaller size, then DT Hub says why it closed and what to do, instead of a lost connection.
+
 ## [0.15.5] - 2026-11-20
 
 ### Fixed

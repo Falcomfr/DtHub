@@ -420,6 +420,13 @@ public sealed partial class GameLauncher : IAsyncDisposable
     private readonly System.Collections.Concurrent.ConcurrentDictionary<string, GameZoom> _zoomsInUse = new(StringComparer.Ordinal);
 
     /// <summary>
+    /// Display height an account must stay under, its encoder having given
+    /// up above it mid-game: the Galaxy Tab A9+ refused a second stream at
+    /// 984 and held it at 720.
+    /// </summary>
+    private readonly ConcurrentDictionary<string, int> _encoderCaps = new(StringComparer.Ordinal);
+
+    /// <summary>
     /// Recovery attempts per instance, and time of the last one.
     /// </summary>
     private readonly ConcurrentDictionary<string, (int Count, DateTimeOffset Last)> _recoveries =
@@ -834,6 +841,21 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 : 0;
 
         var decision = SessionRecovery.Decide(session.End, already);
+
+        // One step lower, or not at all: at the same size the encoder fails
+        // the same way, and the window used to reopen and die without end.
+        if (decision.Smaller)
+        {
+            if (session.VirtualDisplaySize is { } size
+                && DisplayLadder.Below(size.Height, size.Width, size.Height) is { } lower)
+            {
+                _encoderCaps[key] = lower.Height;
+            }
+            else
+            {
+                decision = RecoveryDecision.None;
+            }
+        }
 
         if (!decision.Retry)
         {
@@ -4132,6 +4154,16 @@ public sealed partial class GameLauncher : IAsyncDisposable
             // the sound instead of falling back.
             display = display with { DeviceSdkVersion = device.SdkVersion };
 
+            // Its encoder gave up mid-game at a larger size: this account
+            // stays one step lower for the rest of the run, see TryRecover.
+            if (_encoderCaps.TryGetValue(instance.Key, out var cap)
+                && display.VirtualDisplayHeight > cap
+                && DisplayLadder.Below(display.VirtualDisplayHeight, display.VirtualDisplayWidth, display.VirtualDisplayHeight) is { } lower)
+            {
+                LogDisplayFallback(instance.DisplayName, display.VirtualDisplayHeight, lower.Height);
+                display = Shrunk(display, lower, quality, zoom, layoutHeight);
+            }
+
             // The captured sound is that of the whole phone:
             // Android cannot isolate it per application. Only one
             // session per device therefore carries it, the first
@@ -4232,18 +4264,7 @@ public sealed partial class GameLauncher : IAsyncDisposable
                 {
                     LogDisplayFallback(instance.DisplayName, display.VirtualDisplayHeight, smaller.Height);
 
-                    display = display with
-                    {
-                        VirtualDisplayWidth = smaller.Width,
-                        VirtualDisplayHeight = smaller.Height,
-                        VirtualDisplayDpi = ZoomProfile.DpiFor(smaller.Height, zoom, layoutHeight),
-                        // Never above the bitrate already chosen: with the
-                        // sharper image, it follows the window, not the
-                        // display, and the smaller display would raise it.
-                        VideoBitrateKbps = Math.Min(
-                            display.VideoBitrateKbps,
-                            quality.BitrateFor(smaller.Width, smaller.Height)),
-                    };
+                    display = Shrunk(display, smaller, quality, zoom, layoutHeight);
 
                     session = await _sessions.StartAsync(
                         target, display, placement, cancellationToken).ConfigureAwait(false);
@@ -6210,6 +6231,20 @@ public sealed partial class GameLauncher : IAsyncDisposable
             StoredWindowRect.From(
                 value, WindowLayoutCalculator.ChooseMonitor(monitors, value.CenterX, value.CenterY)));
     }
+
+    /// <summary>The same display one fallback step lower.</summary>
+    private static ScrcpyOptions Shrunk(
+        ScrcpyOptions display, (int Width, int Height) smaller, QualityProfile quality, GameZoom zoom, int layoutHeight) =>
+        display with
+        {
+            VirtualDisplayWidth = smaller.Width,
+            VirtualDisplayHeight = smaller.Height,
+            VirtualDisplayDpi = ZoomProfile.DpiFor(smaller.Height, zoom, layoutHeight),
+            // Never above the bitrate already chosen: with the sharper
+            // image, it follows the window, not the display, and the
+            // smaller display would raise it.
+            VideoBitrateKbps = Math.Min(display.VideoBitrateKbps, quality.BitrateFor(smaller.Width, smaller.Height)),
+        };
 
     /// <summary>
     /// Adapts the display's resolution to this instance's window.

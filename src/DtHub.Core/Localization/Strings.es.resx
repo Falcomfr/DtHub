@@ -1493,7 +1493,7 @@ En un dispositivo {0}, la copia manual se hace por: {1}.</value>
     <value>Este teléfono no ha podido crear una pantalla virtual. La función necesita Android 11 o posterior.</value>
   </data>
   <data name="ScrcpyEncoderRefused" xml:space="preserve">
-    <value>El codificador de vídeo del teléfono ha rechazado la sesión. Reduce el número de sesiones simultáneas o la tasa de bits en los ajustes.</value>
+    <value>El dispositivo no consigue enviar la imagen de una ventana más: su codificador de vídeo la ha rechazado. Pon tus cuentas en calidad Baja, abre menos a la vez o juega esta directamente en el dispositivo.</value>
   </data>
   <data name="ScrcpyConnectionFailed" xml:space="preserve">
     <value>La conexión con el teléfono ha fallado. Vuelve a conectarlo e inténtalo de nuevo.</value>

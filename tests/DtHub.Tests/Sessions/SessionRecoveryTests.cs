@@ -120,4 +120,24 @@ public class SessionRecoveryTests
         Assert.Equal(TimeSpan.Zero, SessionRecovery.Decide(Panne(), attemptsAlready: 3).Delay);
         Assert.Equal(RecoveryDecision.None, SessionRecovery.Decide(Panne(), attemptsAlready: 3));
     }
+
+    [Fact]
+    public void Un_encodeur_qui_lache_en_cours_de_partie_se_rouvre_une_fois_en_plus_petit()
+    {
+        // Galaxy Tab A9+, 2026-11-27: each account after the first opened,
+        // then its encoder died a second later. Reopened three times at the
+        // same size, it died three times, then "the phone is back" started
+        // the loop over, forever.
+        var first = SessionRecovery.Decide(Panne(ScrcpyFailureKind.Encoder), attemptsAlready: 0);
+
+        Assert.True(first.Retry);
+        Assert.True(first.Smaller);
+        Assert.False(SessionRecovery.Decide(Panne(ScrcpyFailureKind.Encoder), attemptsAlready: 1).Retry);
+    }
+
+    [Fact]
+    public void Une_liaison_tombee_se_rouvre_a_la_meme_taille()
+    {
+        Assert.False(SessionRecovery.Decide(Panne(), attemptsAlready: 0).Smaller);
+    }
 }

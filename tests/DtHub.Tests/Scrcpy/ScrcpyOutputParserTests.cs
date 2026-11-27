@@ -63,7 +63,7 @@ public class ScrcpyOutputParserTests
     [InlineData("ERROR: Device disconnected", "déconnecté")]
     [InlineData("ERROR: Device unauthorized", "débogage")]
     [InlineData("ERROR: Could not create virtual display", "Android 11")]
-    [InlineData("ERROR: Encoder 'c2.android.avc.encoder' failed", "débit")]
+    [InlineData("ERROR: Encoder 'c2.android.avc.encoder' failed", "Basse")]
     [InlineData("ERROR: Server connection failed", "Reconnectez")]
     public void Les_erreurs_courantes_sont_traduites_en_langage_comprehensible(string line, string expected)
     {
@@ -88,6 +88,9 @@ public class ScrcpyOutputParserTests
     [InlineData("ERROR: device unauthorized", ScrcpyFailureKind.Unauthorized)]
     [InlineData("ERROR: Could not create display", ScrcpyFailureKind.VirtualDisplayRefused)]
     [InlineData("ERROR: Encoder 'c2.android.avc.encoder' failed", ScrcpyFailureKind.Encoder)]
+    // Galaxy Tab A9+ on 2026-11-27, a second account: the encoder dies a
+    // second after the window opened, then scrcpy says the device left.
+    [InlineData("[server] ERROR: Capture/encoding error: android.media.MediaCodec$CodecException: ", ScrcpyFailureKind.Encoder)]
     [InlineData("ERROR: Server connection failed", ScrcpyFailureKind.ConnectionFailed)]
     public void Chaque_refus_connu_est_range_dans_sa_categorie(string line, ScrcpyFailureKind expected)
     {

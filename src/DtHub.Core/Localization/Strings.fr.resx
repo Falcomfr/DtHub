@@ -1493,7 +1493,7 @@ Sur un appareil {0}, la copie manuelle se fait par : {1}.</value>
     <value>Ce téléphone n'a pas pu créer d'écran virtuel. La fonction demande Android 11 ou plus récent.</value>
   </data>
   <data name="ScrcpyEncoderRefused" xml:space="preserve">
-    <value>L'encodeur vidéo du téléphone a refusé la session. Réduisez le nombre de sessions simultanées ou le débit dans les paramètres.</value>
+    <value>L'appareil n'arrive pas à envoyer l'image d'une fenêtre de plus : son encodeur vidéo a refusé. Passez vos comptes en qualité Basse, ouvrez-en moins à la fois, ou jouez celui-ci directement sur l'appareil.</value>
   </data>
   <data name="ScrcpyConnectionFailed" xml:space="preserve">
     <value>La connexion avec le téléphone a échoué. Reconnectez-le, puis réessayez.</value>

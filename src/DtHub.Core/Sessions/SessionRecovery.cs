@@ -19,7 +19,8 @@ public readonly record struct SessionEnd(bool Requested, bool EverRan, ScrcpyFai
 public sealed record RecoveryRequest(DofusInstance Instance, TimeSpan Delay);
 
 /// <summary>What to do next about a session that has gone dark.</summary>
-public readonly record struct RecoveryDecision(bool Retry, TimeSpan Delay)
+/// <param name="Smaller">Reopen one fallback step lower: the encoder gave up.</param>
+public readonly record struct RecoveryDecision(bool Retry, TimeSpan Delay, bool Smaller = false)
 {
     /// <summary>We do nothing.</summary>
     public static readonly RecoveryDecision None = new(false, TimeSpan.Zero);
@@ -105,6 +106,16 @@ public static class SessionRecovery
     /// </param>
     public static RecoveryDecision Decide(SessionEnd end, int attemptsAlready)
     {
+        // An encoder that gives up mid-game is not cured by insisting at the
+        // same size, but one step lower often is: a second stream the Galaxy
+        // Tab A9+ refused at 984 held for an hour at 720. One try, no more.
+        if (end.Failure == ScrcpyFailureKind.Encoder)
+        {
+            return !end.Requested && end.EverRan && attemptsAlready == 0
+                ? new RecoveryDecision(true, DelayFor(1), Smaller: true)
+                : RecoveryDecision.None;
+        }
+
         if (end.Requested || !end.EverRan || !Recoverable(end.Failure) || attemptsAlready >= MaxAttempts)
         {
             return RecoveryDecision.None;

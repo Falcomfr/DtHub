@@ -219,7 +219,12 @@ public static partial class ScrcpyOutputParser
             return ScrcpyFailureKind.VirtualDisplayRefused;
         }
 
-        if (text.Contains("encoder", StringComparison.Ordinal))
+        // "Capture/encoding error: MediaCodec$CodecException", a Galaxy Tab
+        // A9+ refusing a second stream: classed unknown, the "device
+        // disconnected" that follows it named the failure and the window
+        // was reopened at the same size forever.
+        if (text.Contains("encoder", StringComparison.Ordinal)
+            || text.Contains("encoding error", StringComparison.Ordinal))
         {
             return ScrcpyFailureKind.Encoder;
         }

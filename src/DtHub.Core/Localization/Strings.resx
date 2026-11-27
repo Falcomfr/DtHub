@@ -1493,7 +1493,7 @@ On a {0} device, the manual copy goes through: {1}.</value>
     <value>This phone could not create a virtual display. The feature needs Android 11 or newer.</value>
   </data>
   <data name="ScrcpyEncoderRefused" xml:space="preserve">
-    <value>The phone's video encoder refused the session. Lower the number of simultaneous sessions or the bitrate in the settings.</value>
+    <value>The device cannot send the picture of one more window: its video encoder refused. Set your accounts to Low quality, open fewer at once, or play this one directly on the device.</value>
   </data>
   <data name="ScrcpyConnectionFailed" xml:space="preserve">
     <value>The connection with the phone failed. Reconnect it, then try again.</value>
